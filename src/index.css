@@ -1,0 +1,200 @@
+@import "tailwindcss";
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+body {
+  font-family: "Roboto", sans-serif;
+}
+.form-group {
+  position: relative;
+  width: 100%;
+}
+
+.form-input {
+  width: 100%;
+  border: 1px solid #9ca3af; /* gray-400 */
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: 10px 10px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: #6b7280; /* gray-500 */
+}
+
+.form-label {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  background: white;
+  padding: 0 4px;
+  color: black;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus + .form-label,
+.form-input:not(:placeholder-shown) + .form-label {
+  top: -10px;
+  font-size: 12px;
+  color: black;
+}
+.form-group {
+  position: relative;
+}
+
+.form-input[type="date"] {
+  padding-top: 20px;
+}
+
+.form-input[type="date"] + .form-label {
+  top: -10px;
+  font-size: 12px;
+  background: white;
+  /* color: #4b5563; */
+}
+
+/* date picker css */
+/* =========================
+   Date Picker Floating Label
+========================= */
+
+.datepicker-group {
+  position: relative;
+  width: 100%;
+}
+
+.datepicker-label {
+  position: absolute;
+  left: 14px;
+  top: 13px;
+  color:black;
+  background: #fff;
+  padding: 0 4px;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  z-index: 1; /* 10 se 1 */
+}
+
+/* Focus hone par label upar */
+.datepicker-group:focus-within .datepicker-label {
+  top: -9px;
+  left: 10px;
+  font-size: 12px;
+  color: black;
+  z-index: 10;
+}
+.react-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+.react-datepicker {
+  z-index: 9999 !important;
+}
+/* Value hone par label upar */
+.datepicker-group.has-value .datepicker-label {
+  top: -9px;
+  left: 10px;
+  font-size: 12px;
+  color: black;
+}
+
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker__input-container {
+  width: 100%;
+}
+
+.react-datepicker__input-container input,
+.custom-datepicker {
+  width: 100%;
+  border: 1px solid #9ca3af;
+  border-radius: 12px;
+  padding: 10px 14px;
+  outline: none;
+  background: #fff;
+}
+
+.react-datepicker__input-container input:focus,
+.custom-datepicker:focus {
+  border-color: #6b7280;
+}
+
+/* Selected Date Gray */
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background: #6b7280 !important;
+  color: white !important;
+}
+
+/* Hover Date Gray */
+.react-datepicker__day:hover {
+  background: #e5e7eb !important;
+  color: black !important;
+}
+
+/* Clear Button Gray */
+.react-datepicker__close-icon::after {
+  background: #6b7280 !important;
+}
+
+/* select css  */
+
+.select-group {
+  position: relative;
+  width: 100%;
+}
+
+.select-label {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  color:black;
+  background: white;
+  padding: 0 4px;
+  pointer-events: none;
+  transition: all 0.2s ease;
+   z-index: 10;
+}
+
+/* Selected value hone par label upar */
+.select-group.has-value .select-label {
+  top: -9px;
+  left: 10px;
+  font-size: 12px;
+  color:black;
+  font-weight: 500;
+}
+
+/* React Select focus hone par bhi label upar */
+.select-group:focus-within .select-label {
+  top: -9px;
+  left: 10px;
+  font-size: 12px;
+  color:black;
+  font-weight: 500;
+}
+
+/* All buttton css  */
+
+
+.theme-btn {
+  @apply bg-linear-to-r from-slate-800 via-slate-700 to-slate-900
+         border border-slate-600
+         text-white
+         px-4 py-2
+         rounded-lg
+         font-medium
+         hover:opacity-90
+         transition-all duration-200;
+}
