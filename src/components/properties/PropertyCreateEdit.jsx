@@ -190,28 +190,36 @@ const PropertyCreateEdit = () => {
                 { id, data: formData },
                 {
                     onSuccess: (response) => {
-                        console.log("Property updated successfully", response);
+                        toast.dismiss()
                         toast.success(response?.message || "Updated successfully");
                         navigate("/properties");
                     },
                     onError: (error) => {
-                        console.error("Update failed", error);
+                        const errorMessage =
+                            error?.response?.data?.message ||
+                            error?.message ||
+                            "Something went wrong";
+                        toast.dismiss()
+                        toast.error(errorMessage);
                     },
                 }
             );
-
             return;
         }
-
         // 👉 CREATE MODE
         submitProperty(formData, {
             onSuccess: (response) => {
-                console.log("Property created successfully", response);
+                toast.dismiss()
                 toast.success(response?.message || "Created successfully");
                 navigate("/properties");
             },
             onError: (error) => {
-                console.error("Create failed", error);
+                const errorMessage =
+                    error?.response?.data?.message ||
+                    error?.message ||
+                    "Something went wrong";
+                toast.dismiss()
+                toast.error(errorMessage);
             },
         });
     };
@@ -274,12 +282,12 @@ const PropertyCreateEdit = () => {
                             <button
                                 type="submit"
                                 disabled={isUpdateProperty || isSubmitProperty}
-                               className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                                className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
                             >
                                 {isUpdateProperty || isSubmitProperty ? (
                                     <>
                                         <Loader />
-                                        Processing... 
+                                        Processing...
                                     </>
                                 ) : (
                                     id ? "Update Property" : "Create Property"
@@ -289,7 +297,7 @@ const PropertyCreateEdit = () => {
                     </div>
                 </div>
                 {/* Property Details */}
-                <div className="bg-white p-6 border-gray-400 rounded-xl shadow border">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div className="flex justify-between">
                         <h2 className="text-xl font-semibold mb-4">
                             Property Details
@@ -305,6 +313,9 @@ const PropertyCreateEdit = () => {
                             <label className="form-label">
                                 Property Code </label>
                         </div>
+
+
+                        
                         <Controller
                             name="status"
                             control={control}
@@ -331,6 +342,9 @@ const PropertyCreateEdit = () => {
                                 </div>
                             )}
                         />
+
+
+
                         <Controller
                             name="propertyLocation"
                             control={control}
@@ -387,7 +401,7 @@ const PropertyCreateEdit = () => {
                 </div>
 
                 {/* Internet Details */}
-                <div className="bg-white p-6 rounded-xl border-gray-400 shadow border">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 className="text-xl font-semibold mb-4">
                         Internet Details
                     </h2>
@@ -515,7 +529,7 @@ const PropertyCreateEdit = () => {
                 </div>
 
                 {/* Utility Details */}
-                <div className="bg-white p-6 rounded-xl border-gray-400 shadow border">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 className="text-xl font-semibold mb-4">
                         Utility Details
                     </h2>
@@ -718,7 +732,7 @@ const PropertyCreateEdit = () => {
                 </div>
 
                 {/* Owner Details */}
-                <div className="bg-white p-6 rounded-xl border-gray-400 shadow border">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 className="text-xl font-semibold mb-4">
                         Owner Details
                     </h2>
@@ -844,7 +858,7 @@ const PropertyCreateEdit = () => {
                 </div>
 
                 {/* Agreement Details */}
-                <div className="bg-white p-6 rounded-xl border-gray-400 shadow border">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 className="text-xl font-semibold mb-4">
                         Agreement Details
                     </h2>
@@ -1025,7 +1039,30 @@ const PropertyCreateEdit = () => {
                     </div>
                 </div>
 
+                <div className="flex justify-end gap-5">
+                    <button
+                        type="button"
+                        onClick={() => window.history.back()}
+                        className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium"
+                    >
+                        Cancel
+                    </button>
 
+                    <button
+                        type="submit"
+                        disabled={isUpdateProperty || isSubmitProperty}
+                        className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                    >
+                        {isUpdateProperty || isSubmitProperty ? (
+                            <>
+                                <Loader />
+                                Processing...
+                            </>
+                        ) : (
+                            id ? "Update Property" : "Create Property"
+                        )}
+                    </button>
+                </div>
 
             </form>
         </div>

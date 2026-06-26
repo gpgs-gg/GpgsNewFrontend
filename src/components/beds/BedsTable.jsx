@@ -2,16 +2,17 @@ import { useState, useMemo } from "react";
 import { Eye, Pencil, Filter, Phone, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
-import PropertyFilter from "./PropertyFilter";
 import NoDataFound from "../common/NoDataFound";
-import { usePropertiesData } from "./services";
 import { formatDate } from "../../utils/dateFormatter";
 import { useForm } from "react-hook-form";
 import { IoIosCall } from "react-icons/io";
 import { FaWhatsapp } from "react-icons/fa";
+import BedFilter from "./BedFilter";
+import { useBedsData } from "./services";
 
-const PropertiesTable = () => {
-  const { data: apiResponse } = usePropertiesData();
+const BedsTable = () => {
+  const { data: apiResponse } = useBedsData();
+
   // ✅ safe extraction
   const apiData = apiResponse?.data || [];
   const [search, setSearch] = useState("");
@@ -19,7 +20,9 @@ const PropertiesTable = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
   const [resetTrigger, setResetTrigger] = useState(0);
+
   const rowsPerPage = 10;
+
   // ✅ filter & search logic
   const filteredData = useMemo(() => {
     return apiData?.filter((item) => {
@@ -71,15 +74,15 @@ const PropertiesTable = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">Properties Master</h1>
+              <h1 className="text-2xl font-bold">Beds Master</h1>
               <p className="text-sm text-gray-500">
-                Manage all PG properties
+                Manage all PG Beds
               </p>
             </div>
 
-            <Link to="/properties/create">
+            <Link to="/bed/create">
               <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                + Add Property
+                + Add Bed
               </button>
             </Link>
           </div>
@@ -141,16 +144,23 @@ const PropertiesTable = () => {
 
             <table className="w-full">
 
-              <thead className="sticky top-0 bg-gray-100">
+              <thead className="sticky top-0 bg-gray-100 whitespace-nowrap">
                 <tr>
-                  <th className="p-3 text-left">Property Code</th>
-                  <th className="p-3 text-left">Beds Count</th>
-                  <th className="p-3 text-left">Location</th>
-                  <th className="p-3 text-left">ConsumerId</th>
-                  <th className="p-3 text-left">InternetVendorContact</th>
-                  <th className="p-3 text-left">Property Start Date</th>
-                  <th className="p-3 text-left">Property End Date</th>
+                  <th className="p-3 text-center">Property Code</th>
+                  <th className="p-3 text-center">Room No</th>
+                  <th className="p-3 text-center">Bed No</th>
+                  <th className="p-3 text-center">Gender</th>
+                  <th className="p-3 text-center">Sharing Type</th>
+                  <th className="p-3 text-center">Bath Attached</th>
+                  <th className="p-3 text-center">AC Room</th>
+                  <th className="p-3 text-center">Monthly Rent</th>
+                  <th className="p-3 text-center">SDMF</th>
+                  <th className="p-3 text-center">DA</th>
+                  <th className="p-3 text-center">URHD</th>
+                  <th className="p-3 text-center">URHA</th>
+                  <th className="p-3 text-center">PRHD</th>
                   <th className="p-3 text-center">Status</th>
+                  {/* <th className="p-3 text-center">Comment</th> */}
                   <th className="p-3 text-center">Actions</th>
                 </tr>
               </thead>
@@ -161,48 +171,24 @@ const PropertiesTable = () => {
                   paginatedData.map((item) => (
                     <tr
                       key={item._id}
-                      className="border-t border-gray-300 hover:bg-gray-50"
+                      className="border-t border-gray-300 text-center hover:bg-gray-50"
                     >
-                      <td className="p-3 font-semibold">{item.propertyCode}</td>
-
-                      <td className="p-3">{item.bedCount}</td>
-
-                      <td className="p-3">{item.propertyLocation}</td>
-
-                      <td className="p-3">{item?.internet?.consumerId}</td>
-
-                      <td className="p-3">
-                        <div className="flex flex-col gap-2">
-                          {item?.internet?.contactNo1 && (
-                            <div className="flex items-center gap-2">
-                              <span>{item.internet.contactNo1}</span>
-                              <a
-                                href={`tel:${item.internet.contactNo1}`}
-                                className="text-blue-600 hover:text-blue-800"
-                                title="Call"
-                              >
-                                <IoIosCall size={19} />
-                              </a>
-
-                              <a
-                                href={`https://wa.me/91${item.internet.contactNo1}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-green-600 hover:text-green-800"
-                                title="WhatsApp"
-                              >
-                                <FaWhatsapp size={16} />
-                              </a>
-                            </div>
-                          )}
-                        </div>
+                      <td className="p-3 text-center font-semibold">{item?.propertyId?.propertyCode}</td>
+                      <td className="p-3 text-center">{item.roomNo}</td>
+                      <td className="p-3 text-center">{item.bedNo}</td>
+                      <td className="p-3 text-center">{item?.gender}</td>
+                      <td className="p-3 text-center">{item?.sharingType}</td>
+                      <td className="p-3 text-center">{item?.bathAttached}</td>
+                      <td className="p-3 text-center">{item?.acRoom}</td>
+                      <td className="p-3 text-center">{item?.monthlyRent}</td>
+                      <td className="p-3 text-center">{item?.securityDepositMultiplicationFactor}</td>
+                      <td className="p-3 text-center">{item?.depositAmount}</td>
+                      <td className="p-3 text-center">
+                        {formatDate(item?.upcomingRentHikeDate)}
                       </td>
+                      <td className="p-3">{item?.upcomingRentHikeAmount}</td>
                       <td className="p-3">
-                        {formatDate(item?.agreement?.propertyStartDate)}
-                      </td>
-
-                      <td className="p-3">
-                        {formatDate(item?.agreement?.propertyEndDate)}
+                        {formatDate(item?.previousRentHikeDate)}
                       </td>
                       <td className="p-3 text-center">
                         <span
@@ -214,31 +200,34 @@ const PropertiesTable = () => {
                           {item.status}
                         </span>
                       </td>
-
+                      {/* <td className="p-3">{item?.comment}</td> */}
                       <td className="p-3">
                         <div className="flex justify-center gap-2">
-                          <Link to={`/properties/edit/${item._id}`}>
-                          {/* <Link to={`/properties/view/${item._id}`}> */}
+                          <Link to={`/bed/edit/${item._id}`}>
+                            {/* <Link to={`/properties/view/${item._id}`}> */}
                             <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
                               <Eye size={16} />
                             </button>
                           </Link>
-                          <Link to={`/properties/edit/${item._id}`}>
+                          <Link to={`/bed/edit/${item._id}`}>
                             <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
                               <Pencil size={16} />
                             </button>
                           </Link>
                         </div>
                       </td>
+
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7}>
-                      <NoDataFound
-                        title="No Properties Found"
-                        description="Try searching different keywords"
-                      />
+                    <td colSpan={15} className="h-64">
+                      <div className="flex items-center justify-center h-full">
+                        <NoDataFound
+                          title="No Properties Found"
+                          description="Try searching different keywords"
+                        />
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -268,7 +257,7 @@ const PropertiesTable = () => {
 
         </div>
       </div>
-      <PropertyFilter
+      <BedFilter
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         apiData={apiData}
@@ -280,4 +269,4 @@ const PropertiesTable = () => {
   );
 };
 
-export default PropertiesTable;
+export default BedsTable;

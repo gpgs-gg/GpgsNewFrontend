@@ -6,56 +6,55 @@ const Sidebar = ({
 }) => {
 
   const menuItems = [
-  { name: "Dashboard", path: "/" },
-  { name: "Properties", path: "/properties" },
-  { name: "Beds", path: "/beds" },
-  { name: "Tickets", path: "/tickets" },
-  { name: "Reports", path: "/reports" },
-  { name: "Settings", path: "/settings" },
-  // Demo extra items
-  { name: "Tenants", path: "/tenants" },
-  { name: "Rent Ledger", path: "/rent-ledger" },
-  { name: "Expenses", path: "/expenses" },
-  { name: "Complaints", path: "/complaints" },
-  { name: "Staff", path: "/staff" },
-  { name: "Inventory", path: "/inventory" },
-  { name: "Tenants", path: "/tenants" },
-  { name: "Rent Ledger", path: "/rent-ledger" },
-  { name: "Expenses", path: "/expenses" },
-  { name: "Complaints", path: "/complaints" },
-  { name: "Staff", path: "/staff" },
-  { name: "Inventory", path: "/inventory" },
-];
+    { name: "Dashboard", path: "/" },
+    { name: "Properties", path: "/properties" },
+    { name: "Beds", path: "/beds" },
+    { name: "New Booking", path: "/new-bookings" },
+    { name: "Clients", path: "/clients" },
+    { name: "Available Beds", path: "/available-beds" },
+    // Demo extra items
+    { name: "Tenants", path: "/tenants" },
+    { name: "Rent Ledger", path: "/rent-ledger" },
+    { name: "Expenses", path: "/expenses" },
+    { name: "Complaints", path: "/complaints" },
+    { name: "Staff", path: "/staff" },
+    { name: "Inventory", path: "/inventory" },
+    { name: "Tenants", path: "/tenants" },
+    { name: "Rent Ledger", path: "/rent-ledger" },
+    { name: "Expenses", path: "/expenses" },
+    { name: "Complaints", path: "/complaints" },
+    { name: "Staff", path: "/staff" },
+    { name: "Inventory", path: "/inventory" },
+  ];
 
   return (
     <>
       {/* Mobile Overlay */}
- {mobileOpen && (
-  <div
-    className="fixed inset-0 bg-black/30 z-40 md:hidden"
-    onClick={() => setMobileOpen(false)}
-  />
-)}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
 
-    <aside
-  className={`
+      <aside
+        className={`
     fixed top-0 left-0 z-50
     bg-gray-700 text-white
     h-screen
     transition-all duration-300
 
-    ${
-      mobileOpen
-        ? "translate-x-0"
-        : "-translate-x-full"
-    }
+    ${mobileOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
+          }
 
     md:translate-x-0
     ${collapsed ? "md:w-20" : "md:w-64"}
 
     w-64
   `}
->
+      >
         {/* Header */}
         <div className="h-16 flex items-center justify-center bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600 shrink-0">
           {!collapsed ? (
@@ -72,14 +71,13 @@ const Sidebar = ({
           <ul className="p-4 space-y-2">
             {menuItems.map((item, index) => (
               <li key={`${item.path}-${index}`}>
-           <NavLink
-  to={item.path}
-  onClick={() => setMobileOpen(false)}
+                <NavLink
+                  to={item.path}
+                  onClick={() => setMobileOpen(false)}
                   className={({ isActive }) =>
-                    `block rounded-lg text-lg px-4 py-3 transition-all ${
-                      isActive
-                        ? "bg-gray-100 text-black font-semibold"
-                        : "hover:bg-gray-600"
+                    `block rounded-lg text-lg px-4 py-3 transition-all ${isActive
+                      ? "bg-gray-100 text-black font-semibold"
+                      : "hover:bg-gray-600"
                     }`
                   }
                 >

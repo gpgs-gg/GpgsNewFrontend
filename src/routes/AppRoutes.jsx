@@ -1,28 +1,73 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import MainLayout from "../layouts/MainLayout";
+import ProtectedRoute from "../routes/protectedRoutes";
+import PublicRoute from "../routes/PublicRoutes";
 
 import Dashboard from "../pages/Dashboard";
-import Beds from "../pages/Beds";
 import Properties from "../pages/Properties";
 import Tickets from "../pages/Tickets";
-import Reports from "../pages/Reports";
 import Settings from "../pages/Settings";
+import Login from "../auth/Login";
+import SignupPage from "../auth/SignupPage";
+
 import PropertyCreateEdit from "../components/properties/PropertyCreateEdit";
+import BedsTable from "../components/beds/BedsTable";
+import BedCreateEdit from "../components/beds/BedCreateEdit";
+import NewBooking from "../pages/NewBooking";
+import NewBookingCreateEdit from "../components/newBooking/NewBookingCreateEdit";
+import NewBookingTable from "../components/newBooking/NewBookingTable";
+import Clients from "../pages/Clients";
+import AvailableBeds from "../pages/AvailableBeds";
 
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/beds" element={<Beds />} />
-        <Route path="/properties" element={<Properties />} />
-        <Route path="/tickets" element={<Tickets />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/properties/create" element={<PropertyCreateEdit />} />
-        <Route path="/properties/edit/:id" element={<PropertyCreateEdit />} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
+
+      <Route
+        path="/register"
+        element={
+          <PublicRoute>
+            <SignupPage />
+          </PublicRoute>
+        }
+      />
+
+      <Route element={<ProtectedRoute />}>
+        <Route element={<MainLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+
+          <Route path="/properties" element={<Properties />} />
+          <Route path="/properties/create" element={<PropertyCreateEdit />} />
+          <Route path="/properties/edit/:id" element={<PropertyCreateEdit />} />
+
+          <Route path="/beds" element={<BedsTable />} />
+          <Route path="/bed/create" element={<BedCreateEdit />} />
+          <Route path="/bed/edit/:id" element={<BedCreateEdit />} />
+
+          <Route path="/newbookings" element={<NewBookingTable />} />
+          <Route path="/newbooking/create" element={<NewBookingCreateEdit />} />
+          <Route path="/newbooking/edit/:id" element={<NewBookingCreateEdit />} />
+
+          <Route path="/new-bookings" element={<NewBooking />} />
+          <Route path="//available-beds" element={<AvailableBeds />} />
+          <Route path="/clients" element={<Clients />} />
+          <Route path="/tickets" element={<Tickets />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
       </Route>
+
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 };

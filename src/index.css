@@ -15,6 +15,12 @@ body {
   width: 100%;
 }
 
+.required-label::after {
+  content: " *";
+  color: red;
+  font-weight: bold;
+}
+
 .form-input {
   width: 100%;
   border: 1px solid #9ca3af; /* gray-400 */
@@ -186,8 +192,6 @@ body {
 }
 
 /* All buttton css  */
-
-
 .theme-btn {
   @apply bg-linear-to-r from-slate-800 via-slate-700 to-slate-900
          border border-slate-600

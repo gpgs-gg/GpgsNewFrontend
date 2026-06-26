@@ -73,7 +73,7 @@ const FilePreview = ({
 
                 {/* NEW FILES */}
                 {previews.map((item, index) => (
-                    <div key={index} className="relative w-24 h-24 flex-shrink-0">
+                    <div key={index} className="relative w-24 h-24 shrink-0">
 
                         {item.isImage && (
                             <>
@@ -125,7 +125,7 @@ const FilePreview = ({
                     const isPdf = /\.pdf$/i.test(url);
 
                     return (
-                        <div key={index} className="relative w-24 h-24 flex-shrink-0">
+                        <div key={index} className="relative w-24 h-24 shrink-0">
 
                             {isImage && (
                                 <>

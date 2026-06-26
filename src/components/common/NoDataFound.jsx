@@ -5,7 +5,7 @@ const NoDataFound = ({
   description = "No records available to display.",
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center py-16">
+    <div className="flex flex-col items-center  justify-center py-16">
       <div className="bg-gray-100 p-4 rounded-full">
         <SearchX
           size={50}
