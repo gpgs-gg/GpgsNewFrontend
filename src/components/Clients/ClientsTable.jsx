@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { FaEllipsisV } from "react-icons/fa";
 import BedShiftModal from "./BedShiftModal";
 import BedHistoryModal from "./BedHistoryModal";
+import ClientsFilter from "./ClientsFilter";
 
 const ClientsTable = () => {
   const [search, setSearch] = useState("");
@@ -19,6 +20,8 @@ const ClientsTable = () => {
   const [showBedShiftModal, setShowBedShiftModal] = useState(false);
   const [showBedHistoryModal, setShowBedHistoryModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState();
+    const [resetTrigger, setResetTrigger] = useState(0);
+
   const rowsPerPage = 10;
   const { data: clients, isPending: isClients } = useClients();
   const {
@@ -241,9 +244,9 @@ const ClientsTable = () => {
               <table className="w-full whitespace-nowrap border-collapse">
                 <thead className="sticky top-0 bg-gray-100 z-20">
                   <tr>
-                    <th className="p-3 text-center whitespace-nowrap">
+                    {/* <th className="p-3 text-center whitespace-nowrap">
                       Sr No.
-                    </th>
+                    </th> */}
 
                     <th className="p-3 text-center whitespace-nowrap">
                       Client Name
@@ -268,9 +271,12 @@ const ClientsTable = () => {
                     </th>
 
                     <th className="p-3 text-center whitespace-nowrap">
-                      Rent Start Date
+                      Rent DOJ
                     </th>
-
+                    <th className="p-3 text-center whitespace-nowrap">
+                      EBDOJ
+                    </th>
+                          
                     <th className="p-3 text-center whitespace-nowrap">
                       Monthly Rent
                     </th>
@@ -376,14 +382,14 @@ const ClientsTable = () => {
                       return (
                         <tr
                           key={item._id}
-                          className="border-t border-gray-300 hover:bg-gray-50"
+                          className="border-t text-center border-gray-300 hover:bg-gray-50"
                         >
                           {/* Sr No */}
-                          <td className="p-3 font-medium">
+                          {/* <td className="p-3 font-medium">
                             {(currentPage - 1) * rowsPerPage +
                               index +
                               1}
-                          </td>
+                          </td> */}
 
                           {/* Client Name */}
                           <td className="p-3">
@@ -435,9 +441,16 @@ const ClientsTable = () => {
 
                           {/* Rent Start Date */}
                           <td className="p-3">
-                            {item.rentStartDate
+                            {item.clientDoj
                               ? formatDate(
-                                item.rentStartDate
+                                item.clientDoj
+                              )
+                              : "-"}
+                          </td>
+                          <td className="p-3">
+                            {item.ebDoj
+                              ? formatDate(
+                                item.ebDoj
                               )
                               : "-"}
                           </td>
@@ -474,7 +487,7 @@ const ClientsTable = () => {
                             {formatDate(item.noticeLastDate) || "-"}
                           </td>
                           <td className="p-3">
-                            {formatDate(item.ClientVactingDate) || "-"}
+                            {formatDate(item.clientVacatingDate) || "-"}
                           </td>
                           {/* Total Amount */}
                           <td className="p-3 font-medium">
@@ -520,11 +533,13 @@ const ClientsTable = () => {
                               </button>
                               {openMenuId === item._id && (
                                 <div
-                                  className="absolute right-30 top-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999]"
+                                  className="absolute right-30 top-0 mt-2 w-fit bg-white font-bold border border-gray-300 rounded-lg shadow-xl z-9999"
                                 >
+                                  <div  className="flex">
+
                                   <Link
                                     to={`/clients/view/${item._id}`}
-                                    className="flex items-center border-b border-gray-300 gap-3 px-4 py-3 hover:bg-gray-100"
+                                    className="flex items-center border-b border-r border-gray-200 gap-1 px-4 py-3 hover:bg-gray-100"
                                   >
                                     <span>👁</span>
                                     <span>View</span>
@@ -532,10 +547,18 @@ const ClientsTable = () => {
 
                                   <Link
                                     to={`/clients/edit/${item._id}`}
-                                    className="flex items-center gap-3 px-4 py-3 border-b border-gray-300 hover:bg-gray-100"
+                                    className="flex items-center gap-1 px-4 py-3 border-b border-r border-gray-200 hover:bg-gray-100"
                                   >
                                     <span>✏️</span>
                                     <span>Edit</span>
+                                  </Link>
+                                  </div>
+
+                                  <Link to = {`/rent-ledger/client/${item?._id}`}
+                                    className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
+                                  >
+                                    <span>💰</span>
+                                    <span>Rent History</span>
                                   </Link>
 
                                   <button
@@ -543,20 +566,14 @@ const ClientsTable = () => {
                                       setSelectedClient(item);
                                       setShowBedShiftModal(true);
                                     }}
-                                    className="w-full flex items-center gap-3 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
+                                    className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
                                   >
                                     <span>🛏</span>
                                     <span>Bed Shift</span>
                                   </button>
+                                    
                                   <button
-                                    className="w-full flex items-center gap-3 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
-                                  >
-                                    <span>📢</span>
-                                    <span>Notice</span>
-                                  </button>
-
-                                  <button
-                                    className="w-full flex items-center gap-3 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
+                                    className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
                                   >
                                     <span>💰</span>
                                     <span>FNF</span>
@@ -566,7 +583,7 @@ const ClientsTable = () => {
                                       setSelectedClient(item);
                                       setShowBedHistoryModal(true);
                                     }}
-                                    className="w-full flex items-center gap-3 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
+                                    className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
                                   >
                                     <span>📜</span>
                                     <span>Bed History</span>
@@ -642,107 +659,7 @@ const ClientsTable = () => {
         </div>
       </div>
 
-      {/* Filter Modal */}
-      {filterOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-96 max-w-full shadow-2xl">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Filters</h2>
-              <button
-                onClick={() => setFilterOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-xl"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Booking Type
-                </label>
-                <select
-                  className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={filters.bookingType || ""}
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      bookingType: e.target.value || undefined,
-                    })
-                  }
-                >
-                  <option value="">All Types</option>
-                  <option value="Permanent">Permanent</option>
-                  <option value="Temporary">Temporary</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <select
-                  className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={filters.status || ""}
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      status: e.target.value || undefined,
-                    })
-                  }
-                >
-                  <option value="">All Status</option>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Booked">Booked</option>
-                  <option value="Maintenance">Maintenance</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Property Code
-                </label>
-                <select
-                  className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={filters.propertyCode || ""}
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      propertyCode: e.target.value || undefined,
-                    })
-                  }
-                >
-                  <option value="">All Properties</option>
-                  {bookings && bookings.length > 0 &&
-                    [...new Set(bookings.map(b => b.propertyId?.propertyCode).filter(Boolean))].map(code => (
-                      <option key={code} value={code}>{code}</option>
-                    ))
-                  }
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setFilters({});
-                  setFilterOpen(false);
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Clear All
-              </button>
-              <button
-                onClick={() => setFilterOpen(false)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Apply Filters
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+   
 
       <BedShiftModal
         isOpen={showBedShiftModal}
@@ -759,6 +676,18 @@ const ClientsTable = () => {
         }
         client={selectedClient}
       />
+
+
+
+  <ClientsFilter
+        isOpen={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        apiData={bookings}
+        onApply={(data) => setFilters(data)}
+        handleReset={handleReset}
+        resetTrigger={resetTrigger}
+        />
+
     </>
   );
 };

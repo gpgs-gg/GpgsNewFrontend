@@ -259,7 +259,11 @@ const NewBookingCreateEdit = () => {
 
         // Date conversion
         if (value instanceof Date) {
-          payload[key] = value.toISOString();
+          const year = value.getFullYear();
+          const month = String(value.getMonth() + 1).padStart(2, "0");
+          const day = String(value.getDate()).padStart(2, "0");
+
+          payload[key] = `${year}-${month}-${day}`;
         } else if (
           value !== undefined &&
           value !== null &&
@@ -269,8 +273,7 @@ const NewBookingCreateEdit = () => {
         }
       });
 
-      console.log("Final Payload:", payload);
-
+  // return
       submitNewBooking(payload, {
         onSuccess: (response) => {
           toast.success(
@@ -636,7 +639,7 @@ const NewBookingCreateEdit = () => {
               </div>
               <div className="form-group">
                 <input
-                  {...register("ProcessingFees")}
+                  {...register("processingFees")}
                   placeholder=" "
                   type="number"
                   className="form-input"
@@ -647,7 +650,7 @@ const NewBookingCreateEdit = () => {
               </div>
               <div className="form-group">
                 <input
-                  {...register("ParkingCharges")}
+                  {...register("parkingCharges")}
                   placeholder=" "
                   type="number"
                   className="form-input"

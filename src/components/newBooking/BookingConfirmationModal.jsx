@@ -11,7 +11,6 @@ const BookingConfirmationModal = ({
 }) => {
   if (!isOpen) return null;
   // last date of the month for parmanent property 
-   console.log(data)
   const startDate = data?.clientDoj
     ? new Date(data.clientDoj)
     : null;

@@ -19,6 +19,7 @@ import NewBookingCreateEdit from "../components/newBooking/NewBookingCreateEdit"
 import NewBookingTable from "../components/newBooking/NewBookingTable";
 import Clients from "../pages/Clients";
 import AvailableBeds from "../pages/AvailableBeds";
+import RentLedger from "../pages/RentLedger";
 
 const AppRoutes = () => {
   return (
@@ -33,7 +34,6 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
-
       <Route
         path="/register"
         element={
@@ -55,12 +55,13 @@ const AppRoutes = () => {
           <Route path="/bed/create" element={<BedCreateEdit />} />
           <Route path="/bed/edit/:id" element={<BedCreateEdit />} />
 
-          <Route path="/newbookings" element={<NewBookingTable />} />
-          <Route path="/newbooking/create" element={<NewBookingCreateEdit />} />
-          <Route path="/newbooking/edit/:id" element={<NewBookingCreateEdit />} />
+          <Route path="/new-bookings" element={<NewBookingTable />} />
+          <Route path="/new-bookings/create" element={<NewBookingCreateEdit />} />
+          <Route path="/new-bookings/edit/:id" element={<NewBookingCreateEdit />} />
 
-          <Route path="/new-bookings" element={<NewBooking />} />
-          <Route path="//available-beds" element={<AvailableBeds />} />
+          <Route path="/rent-ledger" element={<RentLedger />} />
+          <Route path="/rent-ledger/client/:clientId" element={<RentLedger />} />
+          <Route path="/available-beds" element={<AvailableBeds />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/settings" element={<Settings />} />

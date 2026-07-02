@@ -70,7 +70,7 @@ const Pagination = ({
             key={index}
             onClick={() => onPageChange(page)}
             className={`
-              min-w-[40px]
+              min-w-10
               h-10
               px-3
               rounded-lg

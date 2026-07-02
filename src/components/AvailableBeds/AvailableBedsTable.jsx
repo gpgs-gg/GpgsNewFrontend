@@ -455,9 +455,9 @@ const AvailableBedsTable = () => {
 
                           {/* Rent DOJ */}
                           <td className="p-3 text-center">
-                            {item.client?.rentStartDate
+                            {item.client?.clientDoj
                               ? formatDate(
-                                item.client.rentStartDate
+                                item.client.clientDoj
                               )
                               : "-"}
                           </td>

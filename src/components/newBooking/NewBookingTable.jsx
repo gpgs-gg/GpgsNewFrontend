@@ -14,14 +14,14 @@ const NewBookingTable = () => {
   const [filters, setFilters] = useState({});
   const rowsPerPage = 10;
   const { data: newBooking, isPending: isNewBooking } = useNewBooking();
- const {
-  mutate: createClientFromBooking,
-  isPending: isCreateClientLoading,
-} = useClientFromNewBooking();
-const {
-  mutate: cancelBooking,
-  isPending: isCancelBookingLoading,
-} = useCancelNewBooking();
+  const {
+    mutate: createClientFromBooking,
+    isPending: isCreateClientLoading,
+  } = useClientFromNewBooking();
+  const {
+    mutate: cancelBooking,
+    isPending: isCancelBookingLoading,
+  } = useCancelNewBooking();
 
   // Safely get bookings data
   const bookings = newBooking?.data || [];
@@ -105,44 +105,44 @@ const {
       // Example: await deleteBooking(id);
     }
   };
-const handleStatusToggle = (item) => {
-  if (item.status !== "Booked") {
-    createClientFromBooking(
-      { bookingId: item._id },
-      {
+  const handleStatusToggle = (item) => {
+    if (item.status !== "Booked") {
+      createClientFromBooking(
+        { bookingId: item._id },
+        {
+          onSuccess: (response) => {
+            toast.dismiss()
+            toast.success(
+              response?.message ||
+              response?.data?.message ||
+              "Success"
+            );
+          },
+          onError: (error) => {
+            toast.dismiss()
+            toast.error(
+              error?.response?.data?.message
+            );
+          },
+        }
+      );
+    } else {
+      cancelBooking(item._id, {
         onSuccess: (response) => {
-          toast.dismiss()
           toast.success(
             response?.message ||
             response?.data?.message ||
-            "Success"
+            "Booking cancelled successfully"
           );
         },
         onError: (error) => {
-         toast.dismiss()
-          toast.error(  
+          toast.error(
             error?.response?.data?.message
           );
         },
-      }
-    );
-  } else {
-    cancelBooking(item._id, {
-      onSuccess: (response) => {
-        toast.success(
-          response?.message ||
-          response?.data?.message ||
-          "Booking cancelled successfully"
-        );
-      },
-      onError: (error) => {
-        toast.error(
-          error?.response?.data?.message
-        );
-      },
-    });
-  }
-};
+      });
+    }
+  };
   return (
     <>
       <div className="space-y-5">
@@ -156,7 +156,7 @@ const handleStatusToggle = (item) => {
               </p>
             </div>
 
-            <Link to="/newbooking/create">
+            <Link to="/new-bookings/create">
               <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
                 + New Booking
               </button>
@@ -209,243 +209,241 @@ const handleStatusToggle = (item) => {
             </div>
           </div>
 
-<div className="flex-1 overflow-hidden">
-  <div className="overflow-auto h-full">
-    <table className="w-full whitespace-nowrap border-collapse">
-      <thead className="sticky top-0 bg-gray-100 z-20">
-        <tr>
-          <th className="p-3 text-center">Sr No.</th>
-          <th className="p-3 text-center">Client Name</th>
-          <th className="p-3 text-center">Calling No</th>
-          <th className="p-3 text-center">Whatsapp No</th>
+          <div className="flex-1 overflow-hidden">
+            <div className="overflow-auto h-full">
+              <table className="w-full whitespace-nowrap border-collapse">
+                <thead className="sticky top-0 bg-gray-100 z-20">
+                  <tr>
+                    <th className="p-3 text-center">Sr No.</th>
+                    <th className="p-3 text-center">Client Name</th>
+                    <th className="p-3 text-center">Status</th>
+                    <th className="p-3 text-center">Calling No</th>
+                    <th className="p-3 text-center">Whatsapp No</th>
+                    <th className="p-3 text-center">Perm Property</th>
+                    <th className="p-3 text-center">Perm Bed</th>
+                    <th className="p-3 text-center">Client DOJ</th>
 
-          <th className="p-3 text-center">Perm Property</th>
-          <th className="p-3 text-center">Perm Bed</th>
-          <th className="p-3 text-center">Client DOJ</th>
+                    <th className="p-3 text-center">Monthly Rent</th>
 
-          <th className="p-3 text-center">Monthly Rent</th>
+                    <th className="p-3 text-center">Deposit</th>
 
-          <th className="p-3 text-center">Deposit</th>
+                    <th className="p-3 text-center">Proc. Fee</th>
 
-          <th className="p-3 text-center">Proc. Fee</th>
+                    <th className="p-3 text-center">Temp Property</th>
 
-          <th className="p-3 text-center">Temp Property</th>
+                    <th className="p-3 text-center">Temp Bed</th>
 
-          <th className="p-3 text-center">Temp Bed</th>
+                    <th className="p-3 text-center">Temp DOJ</th>
 
-          <th className="p-3 text-center">Temp DOJ</th>
+                    <th className="p-3 text-center">Total Amt</th>
 
-          <th className="p-3 text-center">Total Amt</th>
+                    <th className="p-3 text-center">Booking Amt</th>
 
-          <th className="p-3 text-center">Booking Amt</th>
+                    <th className="p-3 text-center">Balance Amt</th>
 
-          <th className="p-3 text-center">Balance Amt</th>
 
-          <th className="p-3 text-center">Status</th>
-              
-          {/* Sticky Header */}
-          <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
-            Actions
-          </th>
-        </tr>
-      </thead>
 
-      <tbody>
-        {paginatedData?.length > 0 ? (
-          paginatedData.map((item, index) => {
-            const totalAmount =
-              (item.monthlyRent || 0) +
-              (item.depositAmount || 0) +
-              (item.processingFees || 0) +
-              (item.parkingCharges || 0);
+                    {/* Sticky Header */}
+                    <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
 
-            const bookingAmount = item.monthlyRent || 0;
+                <tbody>
+                  {paginatedData?.length > 0 ? (
+                    paginatedData.map((item, index) => {
+                      const totalAmount =
+                        (item.monthlyRent || 0) +
+                        (item.depositAmount || 0) +
+                        (item.processingFees || 0) +
+                        (item.parkingCharges || 0);
 
-            const balanceAmount =
-              totalAmount - bookingAmount;
+                      const bookingAmount = item.monthlyRent || 0;
 
-            return (
-              <tr
-                key={item._id}
-                className="border-t border-gray-300 hover:bg-gray-50"
-              >
-                <td className="p-3 font-medium">
-                  {(currentPage - 1) *
-                    rowsPerPage +
-                    index +
-                    1}
-                </td>
+                      const balanceAmount =
+                        totalAmount - bookingAmount;
 
-                <td className="p-3">
-                  {item.fullName || "-"}
-                </td>
+                      return (
+                        <tr
+                          key={item._id}
+                          className="border-t border-gray-300 hover:bg-gray-50"
+                        >
+                          <td className="p-3 font-medium">
+                            {(currentPage - 1) *
+                              rowsPerPage +
+                              index +
+                              1}
+                          </td>
 
-                <td className="p-3">
-                  {item.callingNo || "-"}
-                </td>
+                          <td className="p-3">
+                            {item.fullName || "-"}
+                          </td>
+                           
+                          <td className="p-3 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  className="sr-only peer"
+                                  checked={item.status === "Booked"}
+                                  onChange={() => handleStatusToggle(item)}
+                                />
+                                <div className="w-11 h-4 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors">
+                                  <div
+                                    className={`h-3 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${item.status === "Booked"
+                                        ? "translate-x-5"
+                                        : "translate-x-0.5"
+                                      }`}
+                                  />
+                                </div>
+                              </label>
 
-                <td className="p-3">
-                  {item.whatsappNo || "-"}
-                </td>
+                              <span
+                                className={`text-sm font-medium ${item.status === "Booked"
+                                    ? "text-green-600"
+                                    : "text-red-600"
+                                  }`}
+                              >
+                                {item.status === "Booked"
+                                  ? "Booked"
+                                  : "Not Booked"}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            {item.callingNo || "-"}
+                          </td>
 
-                <td className="p-3">
-                  {item.propertyId?.propertyCode ||
-                    "-"}
-                </td>
+                          <td className="p-3">
+                            {item.whatsappNo || "-"}
+                          </td>
 
-                <td className="p-3">
-                  {item.bedId?.bedNo || "-"}
-                </td>
+                          <td className="p-3">
+                            {item.propertyId?.propertyCode ||
+                              "-"}
+                          </td>
 
-                <td className="p-3">
-                  {item.clientDoj
-                    ? formatDate(
-                        item.clientDoj
-                      )
-                    : "-"}
-                </td>
+                          <td className="p-3">
+                            {item.bedId?.bedNo || "-"}
+                          </td>
 
-                <td className="p-3">
-                  ₹
-                  {(
-                    item.monthlyRent || 0
-                  ).toLocaleString("en-IN")}
-                </td>
+                          <td className="p-3">
+                            {item.clientDoj
+                              ? formatDate(
+                                item.clientDoj
+                              )
+                              : "-"}
+                          </td>
 
-                <td className="p-3">
-                  ₹
-                  {(
-                    item.depositAmount || 0
-                  ).toLocaleString("en-IN")}
-                </td>
+                          <td className="p-3">
+                            ₹
+                            {(
+                              item.monthlyRent || 0
+                            ).toLocaleString("en-IN")}
+                          </td>
 
-                <td className="p-3">
-                  ₹
-                  {(
-                    item.processingFees || 0
-                  ).toLocaleString("en-IN")}
-                </td>
+                          <td className="p-3">
+                            ₹
+                            {(
+                              item.depositAmount || 0
+                            ).toLocaleString("en-IN")}
+                          </td>
 
-                <td className="p-3">
-                  {item
-                    .temporaryPropertyId
-                    ?.propertyCode || "-"}
-                </td>
+                          <td className="p-3">
+                            ₹
+                            {(
+                              item.processingFees || 0
+                            ).toLocaleString("en-IN")}
+                          </td>
 
-                <td className="p-3">
-                  {item.temporaryBedId?.bedNo ||
-                    "-"}
-                </td>
+                          <td className="p-3">
+                            {item
+                              .temporaryPropertyId
+                              ?.propertyCode || "-"}
+                          </td>
 
-                <td className="p-3">
-                  {item.temporaryClientDoj
-                    ? formatDate(
-                        item.temporaryClientDoj
-                      )
-                    : "-"}
-                </td>
+                          <td className="p-3">
+                            {item.temporaryBedId?.bedNo ||
+                              "-"}
+                          </td>
 
-                <td className="p-3 font-medium">
-                  ₹
-                  {totalAmount.toLocaleString(
-                    "en-IN"
+                          <td className="p-3">
+                            {item.temporaryClientDoj
+                              ? formatDate(
+                                item.temporaryClientDoj
+                              )
+                              : "-"}
+                          </td>
+
+                          <td className="p-3 font-medium">
+                            ₹
+                            {totalAmount.toLocaleString(
+                              "en-IN"
+                            )}
+                          </td>
+
+                          <td className="p-3 text-green-600 font-medium">
+                            ₹
+                            {bookingAmount.toLocaleString(
+                              "en-IN"
+                            )}
+                          </td>
+
+                          <td className="p-3 text-red-600 font-medium">
+                            ₹
+                            {balanceAmount.toLocaleString(
+                              "en-IN"
+                            )}
+                          </td>
+
+
+                          {/* Sticky Actions Column */}
+                          <td className="p-3 sticky right-0 bg-white z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)]">
+                            <div className="flex justify-center gap-2">
+                              <Link
+                                to={`/new-bookings/view/${item._id}`}
+                              >
+                                <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
+                                  <Eye size={16} />
+                                </button>
+                              </Link>
+
+                              <Link
+                                to={`/new-bookings/edit/${item._id}`}
+                              >
+                                <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
+                                  <Pencil size={16} />
+                                </button>
+                              </Link>
+
+                              <button
+                                onClick={() =>
+                                  handleDelete(item._id)
+                                }
+                                className="p-2 bg-red-100 rounded-lg hover:bg-red-200"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={18}>
+                        <NoDataFound
+                          title="No Bookings Found"
+                          description="No booking records available"
+                        />
+                      </td>
+                    </tr>
                   )}
-                </td>
-
-                <td className="p-3 text-green-600 font-medium">
-                  ₹
-                  {bookingAmount.toLocaleString(
-                    "en-IN"
-                  )}
-                </td>
-
-                <td className="p-3 text-red-600 font-medium">
-                  ₹
-                  {balanceAmount.toLocaleString(
-                    "en-IN"
-                  )}
-                </td>
-
-           <td className="p-3 text-center">
-  <div className="flex items-center justify-center gap-2">
-    <label className="relative inline-flex items-center cursor-pointer">
-      <input
-        type="checkbox"
-        className="sr-only peer"
-        checked={item.status === "Booked"}
-        onChange={() => handleStatusToggle(item)}
-      />
-      <div className="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors">
-        <div
-          className={`h-5 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${
-            item.status === "Booked"
-              ? "translate-x-5"
-              : "translate-x-0.5"
-          }`}
-        />
-      </div>
-    </label>
-
-    <span
-      className={`text-sm font-medium ${
-        item.status === "Booked"
-          ? "text-green-600"
-          : "text-red-600"
-      }`}
-    >
-      {item.status === "Booked"
-        ? "Booked"
-        : "Not Booked"}
-    </span>
-  </div>
-</td>
-
-                {/* Sticky Actions Column */}
-                <td className="p-3 sticky right-0 bg-white z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)]">
-                  <div className="flex justify-center gap-2">
-                    <Link
-                      to={`/new-booking/view/${item._id}`}
-                    >
-                      <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
-                        <Eye size={16} />
-                      </button>
-                    </Link>
-
-                    <Link
-                      to={`/new-booking/edit/${item._id}`}
-                    >
-                      <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
-                        <Pencil size={16} />
-                      </button>
-                    </Link>
-
-                    <button
-                      onClick={() =>
-                        handleDelete(item._id)
-                      }
-                      className="p-2 bg-red-100 rounded-lg hover:bg-red-200"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            );
-          })
-        ) : (
-          <tr>
-            <td colSpan={18}>
-              <NoDataFound
-                title="No Bookings Found"
-                description="No booking records available"
-              />
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  </div>
-</div>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           {/* PAGINATION */}
           {filteredData.length > 0 && (

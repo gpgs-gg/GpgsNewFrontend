@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import { useParams } from "react-router-dom";
 import FilePreview from "../common/FilePreview";
 import Loader from "../common/Loader";
+import { convertStringFormatDate } from "../../utils/dateFormatter";
 
 const PropertyCreateEdit = () => {
     const navigate = useNavigate()
@@ -158,7 +159,7 @@ const PropertyCreateEdit = () => {
 
             // Date
             else if (value instanceof Date) {
-                formData.append(formKey, value.toISOString());
+                formData.append(formKey, convertStringFormatDate(value));
             }
 
             // Normal value
@@ -315,7 +316,7 @@ const PropertyCreateEdit = () => {
                         </div>
 
 
-                        
+
                         <Controller
                             name="status"
                             control={control}
