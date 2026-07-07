@@ -211,3 +211,108 @@ const FilePreview = ({
 };
 
 export default FilePreview;
+
+
+
+
+export const TableFilePreview = ({ files }) => {
+    const [preview, setPreview] = useState(null);
+
+    if (!files) return null;
+
+    const urlArray = Array.isArray(files)
+        ? files
+        : files
+            .split(",")
+            .map((url) => url.trim())
+            .filter(Boolean);
+
+    const getType = (url) => {
+        if (/\.pdf$/i.test(url)) return "pdf";
+        if (/\.(mp4|mov|avi|mkv|webm|3gp|mpeg)$/i.test(url)) return "video";
+        return "image";
+    };
+
+    return (
+        <>
+            <div className="flex gap-2 justify-center">
+                {urlArray.map((url, index) => {
+                    const type = getType(url);
+
+                    if (type === "image") {
+                        return (
+                            <img
+                                key={index}
+                                src={url}
+                                alt=""
+                                onClick={() => setPreview({ url, type })}
+                                className="w-10 h-10 rounded-md border bg-gray-100 object-contain p-1 cursor-pointer hover:scale-105 transition"
+                            />
+                        );
+                    }
+
+                    if (type === "pdf") {
+                        return (
+                            <div
+                                key={index}
+                                onClick={() => setPreview({ url, type })}
+                                className="w-10 h-10 border rounded-md bg-gray-100 flex items-center justify-center cursor-pointer hover:scale-105 transition"
+                            >
+                                <FileText size={22} className="text-red-600" />
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <video
+                            key={index}
+                            src={url}
+                            className="w-10 h-10 rounded-md border bg-gray-100 object-contain p-1 cursor-pointer"
+                            muted
+                            onClick={() => setPreview({ url, type })}
+                        />
+                    );
+                })}
+            </div>
+
+            {preview && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+                    <div className="relative inline-block">
+
+                        <button
+                            onClick={() => setPreview(null)}
+                            className="absolute -top-3 -right-3 z-50 bg-red-500 text-white p-2 rounded-full"
+                        >
+                            <X size={18} />
+                        </button>
+
+                        {preview.type === "image" && (
+                            <img
+                                src={preview.url}
+                                alt=""
+                                className="max-w-[90vw] max-h-[90vh] object-contain rounded"
+                            />
+                        )}
+
+                        {preview.type === "video" && (
+                            <video
+                                src={preview.url}
+                                controls
+                                autoPlay
+                                className="max-w-[90vw] max-h-[90vh] object-contain rounded"
+                            />
+                        )}
+
+                        {preview.type === "pdf" && (
+                            <iframe
+                                src={preview.url}
+                                title="PDF Preview"
+                                className="w-[80vw] h-[90vh] rounded"
+                            />
+                        )}
+                    </div>
+                </div>
+            )}
+        </>
+    );
+};

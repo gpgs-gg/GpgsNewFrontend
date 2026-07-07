@@ -1,20 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../../../api/ApiClient";
 
-// const getAvailableBedsData= async () => {
-//   const response = await apiClient.get("/available-beds");
-//   return response.data;
-// };
-
-// export const useAvailableBedsData = ( enabled = true ) => {
-//   return useQuery({
-//     queryKey: ["available-beds-data"],
-//     queryFn: getAvailableBedsData,
-//     enabled ,// Only fetch when enabled is true
-//   });
-// };
-
-
 const getClients= async () => {
   const response = await apiClient.get("/clients");
   return response.data;
@@ -28,34 +14,93 @@ export const useClients = ( enabled = true ) => {
   });
 };
 
-const createNewBooking = async (data) => {
-  const response = await apiClient.post("/new-bookings", data);
+const createClientData = async (data) => {
+  const response = await apiClient.post("/clients", data);
   return response.data;
 };
-export const useCreateNewBooking = () => {
+export const useCreateClientData = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: createNewBooking,
+    mutationFn: createClientData,
     onSuccess: () => {
       // 🔄 Refetch ticket sheet after update
-      queryClient.invalidateQueries(["Create-New-Booking"]);
+      queryClient.invalidateQueries(["create-client-data"]);
     },
   });
 };
 
 
 
-const createClientFromNewBooking = async (data) => {
-  const response = await apiClient.post("/clients/create-from-booking", data);
+// ✅ Update property Sheet
+const updateClientData = async ({ clientId, data }) => {
+  const response = await apiClient.put(`/clients/${clientId}`, data);
   return response.data;
 };
-export const useClientFromNewBooking = () => {
+export const useUpdateClientData = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateClientData,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["update-cleint-data"]);
+    },
+  });
+};
+
+
+const getSingleClientData = async (id) => {
+  const response = await apiClient.get(`/clients/${id}`);
+  return response.data;
+};
+
+export const useSingleClientData = (id) => {
+  return useQuery({
+    queryKey: ["client", id],
+    queryFn: () => getSingleClientData(id),
+    enabled: !!id,
+  });
+};
+
+
+
+const getPropertiesDropdown= async () => {
+  const response = await apiClient.get("/properties/dropdown");
+  return response.data;
+};
+
+export const usePropertiesDropdown = ( enabled = true ) => {
+  return useQuery({
+    queryKey: ["properties-dropdown"],
+    queryFn: getPropertiesDropdown,
+    enabled ,// Only fetch when enabled is true
+  });
+};
+
+const getBedsData= async () => {
+  const response = await apiClient.get("/beds");
+  return response.data;
+};
+
+export const useBedsData = ( enabled = true ) => {
+  return useQuery({
+    queryKey: ["beds-data"],
+    queryFn: getBedsData,
+    enabled ,// Only fetch when enabled is true
+  });
+};
+
+
+const TransferBed = async (data) => {
+  const response = await apiClient.post("/transfer-bed", data);
+  return response.data;
+};
+export const useTransferBed = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: createClientFromNewBooking,
+    mutationFn: TransferBed,
     onSuccess: () => {
       // 🔄 Refetch ticket sheet after update
-      queryClient.invalidateQueries(["Create-New-Booking"]);
+      queryClient.invalidateQueries(["transfer-bed"]);
     },
   });
 };
@@ -74,19 +119,17 @@ export const useCancelNewBooking = () => {
   });
 };
 
-
-
-const TransferBed = async (data) => {
-  const response = await apiClient.post("/transfer-bed", data);
+const createClientFromNewBooking = async (data) => {
+  const response = await apiClient.post("/clients/create-from-booking", data);
   return response.data;
 };
-export const useTransferBed = () => {
+export const useClientFromNewBooking = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: TransferBed,
+    mutationFn: createClientFromNewBooking,
     onSuccess: () => {
       // 🔄 Refetch ticket sheet after update
-      queryClient.invalidateQueries(["transfer-bed"]);
+      queryClient.invalidateQueries(["Create-New-Booking"]);
     },
   });
 };

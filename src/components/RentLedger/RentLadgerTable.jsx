@@ -1,5 +1,4 @@
 
-
 import { useState, useMemo } from "react";
 import { Eye, Pencil, Filter, Phone, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -9,17 +8,16 @@ import { formatDate } from "../../utils/dateFormatter";
 import { useForm } from "react-hook-form";
 import { IoIosCall } from "react-icons/io";
 import { FaWhatsapp } from "react-icons/fa";
-import { useRentHistoryData } from "./services";
 import RentLadgerFiilter from "./RentLadgerFiilter";
 import { useParams } from "react-router-dom";
+import { useRentHistoryData } from "./services";
 const RentLadgerTable = () => {
-  // const { data: apiResponse } = useRentHistoryData();
   const { clientId } = useParams();
   const { data: apiResponse } = useRentHistoryData(clientId);
   // API response
-  const client = apiResponse?.data?.[0]?.clientId;
-  const property = apiResponse?.data?.[0]?.propertyId;
-  const bed = apiResponse?.data?.[0]?.bedId;
+  const client = apiResponse?.data?.[0]?.clientId ?? {};
+  const property = apiResponse?.data?.[0]?.propertyId ?? {};
+  const bed = apiResponse?.data?.[0]?.bedId ?? {};
   // ✅ safe extraction
   const apiData = apiResponse?.data || [];
   const [search, setSearch] = useState("");
@@ -37,11 +35,9 @@ const RentLadgerTable = () => {
         Object.values(item).some((value) =>
           String(value).toLowerCase().includes(search.toLowerCase())
         );
-      const matchesClient =
-        !clientId || item?.clientId?._id === clientId;
+
 
       return (
-        matchesClient &&
         (!filters.propertyCode ||
           item.propertyCode === filters.propertyCode) &&
         (!filters.propertyLocation ||
@@ -74,7 +70,10 @@ const RentLadgerTable = () => {
 
     setResetTrigger((prev) => prev + 1);
   };
-
+  const currentMonth = new Date().toLocaleString("en-US", {
+    month: "long",
+  });
+  const currentYear = new Date().getFullYear();
   return (
     <>
       <div className="space-y-5">
@@ -85,7 +84,7 @@ const RentLadgerTable = () => {
           <div className="flex items-center justify-between mb-2  ">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Cleint Rent Details
+                {client.fullName} ( Payment History & Details )
               </h1>
 
               {!clientId && (
@@ -99,14 +98,14 @@ const RentLadgerTable = () => {
           {clientId && client && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
 
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              {/* <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
                 <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
                   Client Name
                 </p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
                   {client.fullName}
                 </p>
-              </div>
+              </div> */}
 
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
                 <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -205,6 +204,8 @@ const RentLadgerTable = () => {
             <table className="w-full">
               <thead className="sticky top-0 bg-gray-100 whitespace-nowrap">
                 <tr>
+                  <th className="p-3 text-center">Property</th>
+                  <th className="p-3 text-center">Pay Status</th>
                   <th className="p-3 text-center">Month</th>
                   <th className="p-3 text-center">Year</th>
                   {/* <th className="p-3 text-center">Stay Type</th> */}
@@ -223,22 +224,6 @@ const RentLadgerTable = () => {
                   <th className="p-3 text-center">Flat EB</th>
                   <th className="p-3 text-center">Monthly Rent</th>
 
-
-                  {/* <th className="p-3 text-center">Parking Received</th> */}
-                  {/* <th className="p-3 text-center">Parking Due</th> */}
-
-                  {/* <th className="p-3 text-center">Processing Received</th> */}
-                  {/* <th className="p-3 text-center">Processing Due</th> */}
-
-
-                  {/* <th className="p-3 text-center">Deposit Received</th> */}
-                  {/* <th className="p-3 text-center">Deposit Due</th> */}
-
-
-                  <th className="p-3 text-center">Rent DOJ</th>
-                  <th className="p-3 text-center">EB DOJ</th>
-
-                  <th className="p-3 text-center">Payment Status</th>
                   <th className="p-3 text-center">Payment Comments</th>
                   <th className="p-3 text-center">Remarks</th>
 
@@ -251,7 +236,32 @@ const RentLadgerTable = () => {
               <tbody>
                 {paginatedData.length > 0 ? (
                   paginatedData.map((item) => (
-                    <tr key={item._id} className="border-t border-gray-300 whitespace-nowrap text-center hover:bg-gray-50">
+
+                    <tr
+                      key={item._id}
+                      className={`border-t border-gray-200 whitespace-nowrap text-center
+    ${item.monthName === currentMonth && item.year === currentYear  && item.paymentStatus !== "Shifted"
+                          ? "bg-green-100 hover:bg-green-100"
+                          : "hover:bg-gray-50"
+                        }`}
+                    >
+
+                      <td className="p-3 font-bold">{item.propertyId?.propertyCode}</td>
+                      <td className="p-3">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold
+                             ${item.paymentStatus === "Paid"
+                              ? "bg-green-100 text-green-700"
+                              : item.paymentStatus === "Partial"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : item.paymentStatus === "Shifted"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-red-100 text-red-700"
+                            }`}
+                        >
+                          {item.paymentStatus}
+                        </span>
+                      </td>
 
                       <td className="p-3 font-bold">{item.monthName}</td>
                       <td className="p-3">{item.year}</td>
@@ -292,39 +302,29 @@ const RentLadgerTable = () => {
 
 
 
-                      <td className="p-3">
+                      {/* <td className="p-3">
                         {item.rentDOJ ? formatDate(item.rentDOJ) : "-"}
                       </td>
 
                       <td className="p-3">
                         {item.ebDOJ ? formatDate(item.ebDOJ) : "-"}
-                      </td>
+                      </td> */}
 
-                      <td className="p-3">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold
-      ${item.paymentStatus === "Paid"
-                              ? "bg-green-100 text-green-700"
-                              : item.paymentStatus === "Partial"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : item.paymentStatus === "Shifted"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-red-100 text-red-700"
-                            }`}
-                        >
-                          {item.paymentStatus}
-                        </span>
-                      </td>
 
                       <td className="p-3">{item.paymentComments || "-"}</td>
 
                       <td className="p-3">{item.remarks || "-"}</td>
 
                       {/* Sticky Actions Column */}
-                      <td className="p-3 sticky right-0 bg-white z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)]">
+                      <td
+                        className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${item.monthName === currentMonth && Number(item.year) === currentYear && item.paymentStatus !== "Shifted"
+                            ? "bg-green-100"
+                            : "bg-white"
+                          }`}
+                      >
                         <div className="flex justify-center gap-2">
                           <Link
-                            to={`/new-bookings/view/${item._id}`}
+                            to={`/rent-ledger/view/${item._id}`}
                           >
                             <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
                               <Eye size={16} />
@@ -332,7 +332,7 @@ const RentLadgerTable = () => {
                           </Link>
 
                           <Link
-                            to={`/new-bookings/edit/${item._id}`}
+                            to={`/rent-ledger/edit/${item._id}`}
                           >
                             <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
                               <Pencil size={16} />

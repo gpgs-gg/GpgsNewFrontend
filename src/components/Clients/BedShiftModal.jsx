@@ -10,6 +10,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useTransferBed } from "./services";
 import { toast } from "react-toastify";
+import DatePicker from "react-datepicker";
 const schema = yup.object({
     propertyId: yup
         .string()
@@ -18,6 +19,12 @@ const schema = yup.object({
     bedId: yup
         .string()
         .required("Bed is required"),
+    startDate: yup
+        .string()
+        .required("New property start date is required"),
+    endDate: yup
+        .string()
+        .required("Old property end date is required"),
 });
 const BedShiftModal = ({
     isOpen,
@@ -31,6 +38,7 @@ const BedShiftModal = ({
         handleSubmit,
         watch,
         reset,
+        setValue,
         formState: { errors },
     } = useForm({
         resolver: yupResolver(schema),
@@ -73,41 +81,43 @@ const BedShiftModal = ({
 
     if (!isOpen) return null;
 
-const onSubmit = (data) => {
-  const propertyId =
-    data.propertyId?.split(",")[0];
+    const onSubmit = (data) => {
+        const propertyId =
+            data.propertyId?.split(",")[0];
 
-  const bedId =
-    data.bedId?.split(",")[0];
+        const bedId =
+            data.bedId?.split(",")[0];
 
-  transferBed(
-    {
-      clientId: client._id,
-      newPropertyId: propertyId,
-      newBedId: bedId,
-    },
-    {
-      onSuccess: (response) => {
-        toast.success(
-          response?.message ||
-          response?.data?.message ||
-          "Bed transferred successfully"
+        transferBed(
+            {
+                clientId: client._id,
+                newPropertyId: propertyId,
+                newBedId: bedId,
+                endDate: data?.endDate,
+                startDate : data.startDate
+            },
+            {
+                onSuccess: (response) => {
+                    toast.success(
+                        response?.message ||
+                        response?.data?.message ||
+                        "Bed transferred successfully"
+                    );
+
+                    onClose();
+                    reset();
+                },
+
+                onError: (error) => {
+                    toast.error(
+                        error?.response?.data?.message ||
+                        error?.message ||
+                        "Something went wrong"
+                    );
+                },
+            }
         );
-
-        onClose();
-        reset();
-      },
-
-      onError: (error) => {
-        toast.error(
-          error?.response?.data?.message ||
-          error?.message ||
-          "Something went wrong"
-        );
-      },
-    }
-  );
-};
+    };
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             <div
@@ -189,6 +199,70 @@ const onSubmit = (data) => {
                                 </div>
                             )}
                         />
+                        <Controller
+                            name="endDate"
+                            control={control}
+                            render={({ field }) => (
+                                <div className={`datepicker-group ${field.value ? "has-value" : ""}`}>
+                                    <label className="datepicker-label">
+                                        End Date
+                                    </label>
+
+                                    <DatePicker
+                                        isClearable
+                                        selected={field.value}
+                                        onChange={(date) => {
+                                            field.onChange(date);
+
+                                            if (date) {
+                                                const nextDay = new Date(date);
+                                                nextDay.setDate(nextDay.getDate() + 1);
+
+                                                setValue("startDate", nextDay, {
+                                                    shouldDirty: true,
+                                                    shouldValidate: true,
+                                                });
+                                            } else {
+                                                setValue("startDate", null);
+                                            }
+                                        }}
+                                        dateFormat="dd MMM yyyy"
+                                        className="custom-datepicker"
+                                    />
+                                </div>
+                            )}
+                        />
+                           {errors.endDate && (
+                                        <p className="text-red-500 text-xs">
+                                            {errors.endDate.message}
+                                        </p>
+                                    )}
+                        <Controller
+                            name="startDate"
+                            control={control}
+                            render={({ field }) => (
+                                <div
+                                    className={`datepicker-group ${field.value ? "has-value" : ""
+                                        }`}
+                                >
+                                    <label className="datepicker-label">
+                                        Start Date
+                                    </label>
+                                    <DatePicker
+                                        isClearable
+                                        selected={field.value}
+                                        onChange={(date) => field.onChange(date)}
+                                        dateFormat="dd MMM yyyy"
+                                        className="custom-datepicker"
+                                    />
+                                </div>
+                            )}
+                        />
+                           {errors.startDate && (
+                                        <p className="text-red-500 text-xs">
+                                            {errors.startDate.message}
+                                        </p>
+                                    )}
                     </div>
 
                     {/* Footer */}

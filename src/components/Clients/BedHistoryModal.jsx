@@ -16,7 +16,7 @@ const BedHistoryModal = ({
         onClick={onClose}
       />
 
-      <div className="relative bg-white rounded-xl w-full max-w-6xl shadow-2xl">
+      <div className="relative bg-white rounded-md theme-btn w-full max-w-6xl shadow-2xl">
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-2 border-b">
           <div>
@@ -41,7 +41,7 @@ const BedHistoryModal = ({
         <div className="p-2 overflow-auto max-h-[50vh] scrollbar-none">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-gray-100">
+              <tr className="bg-gray-100 text-black">
                 <th className="p-3 text-left">
                   #
                 </th>
@@ -67,11 +67,11 @@ const BedHistoryModal = ({
             </thead>
 
             <tbody>
-              {client?.bedHistory?.map(
+              {[...client?.bedHistory].reverse()?.map(
                 (history, index) => (
                   <tr
                     key={index}
-                    className="border-b"
+                    className=""
                   >
                     <td className="p-3">
                       {index + 1}

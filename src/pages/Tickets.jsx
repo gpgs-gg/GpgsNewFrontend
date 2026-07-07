@@ -1,5 +1,12 @@
-const Tickets = () => {
-  return <h2 className="text-3xl font-bold">Tickets Page</h2>;
-};
+import React from 'react'
+import Main from '../components/tickets/Main'
 
-export default Tickets;
+const Tickets = () => {
+  return (
+    <div>
+      <Main />
+    </div>
+  )
+}
+
+export default Tickets

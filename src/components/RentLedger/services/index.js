@@ -1,19 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../../../api/ApiClient";
 
-// const getRentHistoryData= async () => {
-//   const response = await apiClient.get(`/rent-history?clientId${clientId}`);
-//   return response.data;
-// };
-
-// export const useRentHistoryData = ( enabled = true ) => {
-//   return useQuery({
-//     queryKey: ["Rent-history-data"],
-//     queryFn: getRentHistoryData,
-//     enabled ,// Only fetch when enabled is true
-//   });
-// };
-
 const getRentHistoryData = async (clientId) => {
   const response = await apiClient.get("/rent-history", {
     params: clientId ? { clientId } : {},
@@ -21,6 +8,7 @@ const getRentHistoryData = async (clientId) => {
 
   return response.data;
 };
+
 
 export const useRentHistoryData = (clientId) => {
   return useQuery({
@@ -30,63 +18,41 @@ export const useRentHistoryData = (clientId) => {
 };
 
 
-// ✅ 
-const createBedData = async (data) => {
-  const response = await apiClient.post("/beds", data);
-  return response.data;
-};
-export const usecreateBedData = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: createBedData,
-    onSuccess: () => {
-      // 🔄 Refetch ticket sheet after update
-      queryClient.invalidateQueries(["beds-data"]);
-    },
-  });
-};
 
-const getSingleBedsData = async (id) => {
-  const response = await apiClient.get(`/beds/${id}`);
+
+
+
+
+
+const getSingleClientRentData = async (id) => {
+  const response = await apiClient.get(`/rent-history/${id}`);
   return response.data;
 };
 
-export const useSingleBedsData = (id) => {
-
+export const useSingleClientRentData = (id) => {
   return useQuery({
-    queryKey: ["beds", id],
-    queryFn: () => getSingleBedsData(id),
+    queryKey: ["client", id],
+    queryFn: () => getSingleClientRentData(id),
     enabled: !!id,
   });
 };
 
+
+
+
 // ✅ Update Bed Sheet
-const updateBedsData = async ({ id, data }) => {
-  const response = await apiClient.put(`/beds/${id}`, data);
+const updateRentData = async ({ id, data }) => {
+   console.log(11111111111111, id, data)
+  const response = await apiClient.put(`/rent-history/${id}`, data);
   return response.data;
 };
-export const useUpdateBedsData = () => {
+export const useUpdateRentData = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: updateBedsData,
+    mutationFn: updateRentData,
     onSuccess: () => {
-      queryClient.invalidateQueries(["beds-data"]);
+      queryClient.invalidateQueries(["rent-history"]);
     },
-  });
-};
-
-
-
-const getPropertiesDropdown = async () => {
-  const response = await apiClient.get("/properties/dropdown");
-  return response.data;
-};
-
-export const usePropertiesDropdown = (enabled = true) => {
-  return useQuery({
-    queryKey: ["properties-dropdown"],
-    queryFn: getPropertiesDropdown,
-    enabled,// Only fetch when enabled is true
   });
 };

@@ -20,7 +20,7 @@ const ClientsTable = () => {
   const [showBedShiftModal, setShowBedShiftModal] = useState(false);
   const [showBedHistoryModal, setShowBedHistoryModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState();
-    const [resetTrigger, setResetTrigger] = useState(0);
+  const [resetTrigger, setResetTrigger] = useState(0);
 
   const rowsPerPage = 10;
   const { data: clients, isPending: isClients } = useClients();
@@ -276,7 +276,7 @@ const ClientsTable = () => {
                     <th className="p-3 text-center whitespace-nowrap">
                       EBDOJ
                     </th>
-                          
+
                     <th className="p-3 text-center whitespace-nowrap">
                       Monthly Rent
                     </th>
@@ -297,8 +297,20 @@ const ClientsTable = () => {
                     <th className="p-3 text-center whitespace-nowrap">
                       CVD
                     </th>
-
                     <th className="p-3 text-center whitespace-nowrap">
+                      VSD1
+                    </th>
+                    <th className="p-3 text-center whitespace-nowrap">
+                      VLD1
+                    </th>
+                    <th className="p-3 text-center whitespace-nowrap">
+                      VSD2
+                    </th>
+                    <th className="p-3 text-center whitespace-nowrap">
+                      VLD2
+                    </th>
+
+                    {/* <th className="p-3 text-center whitespace-nowrap">
                       Total Amount
                     </th>
 
@@ -308,7 +320,7 @@ const ClientsTable = () => {
 
                     <th className="p-3 text-center whitespace-nowrap">
                       Balance Amount
-                    </th>
+                    </th> */}
 
                     {/* Sticky Header */}
                     <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-[120px] shadow-[-4px_0_6px_rgba(0,0,0,0.1)] whitespace-nowrap">
@@ -418,7 +430,7 @@ const ClientsTable = () => {
                               <>
                                 {item.callingNo}
                                 <br />
-                                {item.whatsappNo}
+                                {/* {item.whatsappNo} */}
                               </>
                             )}
                           </td>
@@ -489,29 +501,41 @@ const ClientsTable = () => {
                           <td className="p-3">
                             {formatDate(item.clientVacatingDate) || "-"}
                           </td>
+                          <td className="p-3">
+                            {formatDate(item.vacationStartDate1) || "-"}
+                          </td>
+                          <td className="p-3">
+                            {formatDate(item.vacationLastDate1) || "-"}
+                          </td>
+                          <td className="p-3">
+                            {formatDate(item.vacationStartDate2) || "-"}
+                          </td>
+                          <td className="p-3">
+                            {formatDate(item.vacationStartDate2) || "-"}
+                          </td>
                           {/* Total Amount */}
-                          <td className="p-3 font-medium">
+                          {/* <td className="p-3 font-medium">
                             ₹
                             {totalAmount.toLocaleString(
                               "en-IN"
                             )}
-                          </td>
+                          </td> */}
 
                           {/* Advance Amount */}
-                          <td className="p-3 text-green-600 font-medium">
+                          {/* <td className="p-3 text-green-600 font-medium">
                             ₹
                             {bookingAmount.toLocaleString(
                               "en-IN"
                             )}
-                          </td>
+                          </td> */}
 
                           {/* Balance Amount */}
-                          <td className="p-3 text-red-600 font-medium">
+                          {/* <td className="p-3 text-red-600 font-medium">
                             ₹
                             {balanceAmount.toLocaleString(
                               "en-IN"
                             )}
-                          </td>
+                          </td> */}
 
                           <td className="p-3 sticky right-0 bg-white z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)]">
                             <div className="flex justify-center">
@@ -535,26 +559,9 @@ const ClientsTable = () => {
                                 <div
                                   className="absolute right-30 top-0 mt-2 w-fit bg-white font-bold border border-gray-300 rounded-lg shadow-xl z-9999"
                                 >
-                                  <div  className="flex">
 
-                                  <Link
-                                    to={`/clients/view/${item._id}`}
-                                    className="flex items-center border-b border-r border-gray-200 gap-1 px-4 py-3 hover:bg-gray-100"
-                                  >
-                                    <span>👁</span>
-                                    <span>View</span>
-                                  </Link>
 
-                                  <Link
-                                    to={`/clients/edit/${item._id}`}
-                                    className="flex items-center gap-1 px-4 py-3 border-b border-r border-gray-200 hover:bg-gray-100"
-                                  >
-                                    <span>✏️</span>
-                                    <span>Edit</span>
-                                  </Link>
-                                  </div>
-
-                                  <Link to = {`/rent-ledger/client/${item?._id}`}
+                                  <Link to={`/rent-ledger/client/${item?._id}`}
                                     className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
                                   >
                                     <span>💰</span>
@@ -571,23 +578,43 @@ const ClientsTable = () => {
                                     <span>🛏</span>
                                     <span>Bed Shift</span>
                                   </button>
-                                    
+
                                   <button
                                     className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
                                   >
                                     <span>💰</span>
                                     <span>FNF</span>
                                   </button>
-                                  <button
-                                    onClick={() => {
-                                      setSelectedClient(item);
-                                      setShowBedHistoryModal(true);
-                                    }}
-                                    className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
-                                  >
-                                    <span>📜</span>
-                                    <span>Bed History</span>
-                                  </button>
+                                 
+                                    <button
+                                      onClick={() => {
+                                        setSelectedClient(item);
+                                        setShowBedHistoryModal(true);
+                                      }}
+                                      className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
+                                    >
+                                      <span>📜</span>
+                                      <span>Bed History</span>
+                                    </button>
+                      
+                                  <div className="flex">
+
+                                    <Link
+                                      to={`/clients/view/${item._id}`}
+                                      className="flex items-center border-b border-r border-gray-200 gap-1 px-4 py-3 hover:bg-gray-100"
+                                    >
+                                      <span>👁</span>
+                                      <span>View</span>
+                                    </Link>
+
+                                    <Link
+                                      to={`/clients/edit/${item._id}`}
+                                      className="flex items-center gap-1 px-4 py-3 border-b border-r border-gray-200 hover:bg-gray-100"
+                                    >
+                                      <span>✏️</span>
+                                      <span>Edit</span>
+                                    </Link>
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -659,7 +686,7 @@ const ClientsTable = () => {
         </div>
       </div>
 
-   
+
 
       <BedShiftModal
         isOpen={showBedShiftModal}
@@ -679,14 +706,14 @@ const ClientsTable = () => {
 
 
 
-  <ClientsFilter
+      <ClientsFilter
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         apiData={bookings}
         onApply={(data) => setFilters(data)}
         handleReset={handleReset}
         resetTrigger={resetTrigger}
-        />
+      />
 
     </>
   );
