@@ -68,6 +68,17 @@ const ClientCreateEdit = () => {
         },
     ];
 
+    const isStayTypeOptions = [
+        {
+            value: "T. Booked",
+            label: "T. Booked",
+        },
+        {
+            value: "P. Booked",
+            label: "P. Booked",
+        },
+    ];
+
     useEffect(() => {
         const ClientData = singleClientData?.data;
         if (!ClientData) return;
@@ -76,6 +87,7 @@ const ClientCreateEdit = () => {
             propertyId: ClientData.propertyId?._id,
             roomNo: ClientData?.bedId?.roomNo,
             bedId: ClientData.bedId?._id,
+            stayType : ClientData?.stayType,
             fullName: ClientData.fullName,
             whatsappNo: ClientData.whatsappNo,
             callingNo: ClientData.callingNo,
@@ -369,6 +381,33 @@ const ClientCreateEdit = () => {
                             <label className="form-label required-label">Room No</label>
 
                         </div>
+                        <Controller
+                            name="stayType"
+                            control={control}
+                            defaultValue={null}
+                            render={({ field }) => (
+                                <div className={`select-group ${field.value != null ? "has-value" : ""
+                                    }`}>
+                                    <label className="select-label required-label">
+                                       Stay Type
+                                    </label>
+
+                                    <Select
+                                        {...field}
+                                        options={isStayTypeOptions}
+                                        isClearable
+                                        placeholder=""
+                                        value={isStayTypeOptions.find(
+                                            (option) => option.value === field.value
+                                        )}
+                                        onChange={(selectedOption) =>
+                                            field.onChange(selectedOption?.value)
+                                        }
+                                        styles={selectStyles}
+                                    />
+                                </div>
+                            )}
+                        />
 
 
                         <div className="form-group">
@@ -875,216 +914,8 @@ const ClientCreateEdit = () => {
 
                     </div>
                 </div>
-
-                {/* Agreement Details */}
-                {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-xl font-semibold mb-4">
-                        Agreement Details
-                    </h2>
-
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <Controller
-                            name="agreement.propertyStartDate"
-                            control={control}
-                            render={({ field }) => (
-                                <div
-                                    className={`datepicker-group ${field.value ? "has-value" : ""
-                                        }`}
-                                >
-                                    <label className="datepicker-label">
-                                        Property Start Date
-                                    </label>
-                                    <DatePicker
-                                        isClearable
-                                        selected={field.value}
-                                        onChange={(date) => field.onChange(date)}
-                                        dateFormat="dd MMM yyyy"
-                                        className="custom-datepicker"
-                                    />
-                                </div>
-                            )}
-                        />
-                        <Controller
-                            name="agreement.propertyEndDate"
-                            control={control}
-                            render={({ field }) => (
-                                <div
-                                    className={`datepicker-group ${field.value ? "has-value" : ""
-                                        }`}
-                                >
-                                    <label className="datepicker-label">
-                                        Property End Date
-                                    </label>
-                                    <DatePicker
-                                        isClearable
-                                        selected={field.value}
-                                        onChange={(date) => field.onChange(date)}
-                                        dateFormat="dd MMM yyyy"
-                                        className="custom-datepicker"
-                                    />
-                                </div>
-                            )}
-                        />
-
-                        <Controller
-                            name="agreement.agreementStartDate"
-                            control={control}
-                            render={({ field }) => (
-                                <div
-                                    className={`datepicker-group ${field.value ? "has-value" : ""
-                                        }`}
-                                >
-                                    <label className="datepicker-label">
-                                        Agreement Start Date
-                                    </label>
-                                    <DatePicker
-                                        isClearable
-                                        selected={field.value}
-                                        onChange={(date) => field.onChange(date)}
-                                        dateFormat="dd MMM yyyy"
-                                        className="custom-datepicker"
-                                    />
-                                </div>
-                            )}
-                        />
-
-                        <Controller
-                            name="agreement.agreementEndDate"
-                            control={control}
-                            render={({ field }) => (
-                                <div
-                                    className={`datepicker-group ${field.value ? "has-value" : ""
-                                        }`}
-                                >
-                                    <label className="datepicker-label">
-                                        Agreement End Date
-                                    </label>
-                                    <DatePicker
-                                        isClearable
-                                        selected={field.value}
-                                        onChange={(date) => field.onChange(date)}
-                                        dateFormat="dd MMM yyyy"
-                                        className="custom-datepicker"
-                                    />
-                                </div>
-                            )}
-                        />
-
-                        <Controller
-                            name="agreement.agreementStatus"
-                            control={control}
-                            defaultValue={null}
-                            render={({ field }) => (
-                                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                                    <label className="select-label">
-                                        Status
-                                    </label>
-
-                                    <Select
-                                        {...field}
-                                        options={statusOptions}
-                                        isClearable
-                                        placeholder=""
-                                        value={statusOptions.find(
-                                            (option) => option.value === field.value
-                                        )}
-                                        onChange={(selectedOption) =>
-                                            field.onChange(selectedOption?.value)
-                                        }
-                                        styles={selectStyles}
-                                    />
-                                </div>
-                            )}
-                        />
-
-                        <div className="form-group">
-                            <input
-                                {...register("agreement.policeNocNo")}
-                                placeholder=" "
-                                type="text"
-                                className="form-input"
-                            />
-                            <label className="form-label">
-                                Police Noc No </label>
-                        </div>
-
-                        <Controller
-                            name="agreement.policeNocStatus"
-                            control={control}
-                            defaultValue={null}
-                            render={({ field }) => (
-                                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                                    <label className="select-label">
-                                        Police Noc Status
-                                    </label>
-
-                                    <Select
-                                        {...field}
-                                        options={PoliceNocStatusOptions}
-                                        isClearable
-                                        placeholder=""
-                                        value={PoliceNocStatusOptions.find(
-                                            (option) => option.value === field.value
-                                        )}
-                                        onChange={(selectedOption) =>
-                                            field.onChange(selectedOption?.value)
-                                        }
-                                        styles={selectStyles}
-                                    />
-                                </div>
-                            )}
-                        />
-
-                        <div className="form-group">
-                            <input
-                                {...register("agreement.dealDetails")}
-                                placeholder=" "
-                                type="text"
-                                className="form-input"
-                            />
-                            <label className="form-label">
-                                Deal Details</label>
-                        </div>
-
-                        <div className="form-group md:col-span-4">
-                            <textarea
-                                {...register("agreement.comment")}
-                                placeholder=""
-                                className="form-input md:col-span-4"
-                            />
-                            <label className="form-label">
-                                Agreement Comment</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex justify-end gap-5">
-                    <button
-                        type="button"
-                        onClick={() => window.history.back()}
-                        className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium"
-                    >
-                        Cancel
-                    </button>
-
-                    <button
-                        type="submit"
-                        disabled={isUpdateProperty || isSubmitProperty}
-                        className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-                    >
-                        {isUpdateProperty || isSubmitProperty ? (
-                            <>
-                                <Loader />
-                                Processing...
-                            </>
-                        ) : (
-                            id ? "Update Property" : "Create Property"
-                        )}
-                    </button>
-                </div> */}
-
             </form>
-            
+
         </div>
     )
 }

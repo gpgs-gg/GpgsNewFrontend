@@ -11,6 +11,8 @@ import { FaWhatsapp } from "react-icons/fa";
 import RentLadgerFiilter from "./RentLadgerFiilter";
 import { useParams } from "react-router-dom";
 import { useRentHistoryData } from "./services";
+import { IoIosArrowBack } from "react-icons/io";
+
 const RentLadgerTable = () => {
   const { clientId } = useParams();
   const { data: apiResponse } = useRentHistoryData(clientId);
@@ -82,10 +84,13 @@ const RentLadgerTable = () => {
 
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3">
           <div className="flex items-center justify-between mb-2  ">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {client.fullName} ( Payment History & Details )
+            <div className="flex w-full justify-between items-center">
+              <h1 className="text-2xl font-bold text-gray-900 uppercase">
+             Payment History & Details 
               </h1>
+              <button onClick={()=>window.history.back()} className="text-lg border px-2 rounded-md border-gray-300 flex gap-2 justify-center items-center mr-3">
+                  <IoIosArrowBack/> cancel
+              </button>
 
               {!clientId && (
                 <p className="text-sm text-gray-500 mt-1">
@@ -98,14 +103,14 @@ const RentLadgerTable = () => {
           {clientId && client && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
 
-              {/* <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
                 <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
                   Client Name
                 </p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
                   {client.fullName}
                 </p>
-              </div> */}
+              </div>
 
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
                 <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -117,7 +122,7 @@ const RentLadgerTable = () => {
               </div>
 
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase  tracking-wider text-gray-500">
                   Date of Joining
                 </p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
@@ -126,7 +131,7 @@ const RentLadgerTable = () => {
               </div>
 
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase  tracking-wider text-gray-500">
                   Property Code
                 </p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
@@ -135,7 +140,7 @@ const RentLadgerTable = () => {
               </div>
 
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase  tracking-wider text-gray-500">
                   Room / Bed
                 </p>
                 <p className="mt-1 text-lg font-semibold text-gray-900">
@@ -223,7 +228,8 @@ const RentLadgerTable = () => {
                   <th className="p-3 text-center">Adj. Amount</th>
                   <th className="p-3 text-center">Flat EB</th>
                   <th className="p-3 text-center">Monthly Rent</th>
-
+                  <th className="p-3 text-center">Rent Start Date</th>
+                  <th className="p-3 text-center">Rent Last Date</th>
                   <th className="p-3 text-center">Payment Comments</th>
                   <th className="p-3 text-center">Remarks</th>
 
@@ -249,7 +255,7 @@ const RentLadgerTable = () => {
                       <td className="p-3 font-bold">{item.propertyId?.propertyCode}</td>
                       <td className="p-3">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold
+                          className={`px-3 py-1 text-sm rounded-full font-semibold
                              ${item.paymentStatus === "Paid"
                               ? "bg-green-100 text-green-700"
                               : item.paymentStatus === "Partial"
@@ -302,13 +308,13 @@ const RentLadgerTable = () => {
 
 
 
-                      {/* <td className="p-3">
-                        {item.rentDOJ ? formatDate(item.rentDOJ) : "-"}
+                      <td className="p-3">
+                        {item.startDate ? formatDate(item.startDate) : "-"}
                       </td>
 
                       <td className="p-3">
-                        {item.ebDOJ ? formatDate(item.ebDOJ) : "-"}
-                      </td> */}
+                        {item.endDate ? formatDate(item.endDate) : "-"}
+                      </td>
 
 
                       <td className="p-3">{item.paymentComments || "-"}</td>
@@ -321,12 +327,14 @@ const RentLadgerTable = () => {
                             ? "bg-green-100"
                             : "bg-white"
                           }`}
-                      >
+                      > 
                         <div className="flex justify-center gap-2">
                           <Link
                             to={`/rent-ledger/view/${item._id}`}
                           >
-                            <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
+                            <button 
+                             disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
+                            className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
                               <Eye size={16} />
                             </button>
                           </Link>
@@ -334,7 +342,9 @@ const RentLadgerTable = () => {
                           <Link
                             to={`/rent-ledger/edit/${item._id}`}
                           >
-                            <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
+                            <button
+                                disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
+                            className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
                               <Pencil size={16} />
                             </button>
                           </Link>

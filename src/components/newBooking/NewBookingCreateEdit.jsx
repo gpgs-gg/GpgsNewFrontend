@@ -47,7 +47,7 @@ const NewBookingCreateEdit = () => {
   const watchTempClientDoj = watch("temporaryClientDoj");
   const watchTempClientLastDate = watch("temporaryClientLastDate");
   const watchTempMonthlyRent = watch("temporaryMonthlyRent");
-
+  const watchAskFor = watch("askFor");
   const propertiesOptions =
     propertiesDropdown?.data?.map((property) => ({
       value: `${property._id},${property.propertyCode}`,
@@ -215,7 +215,9 @@ const NewBookingCreateEdit = () => {
     { value: "AC", label: "AC" },
     { value: "Non AC", label: "Non AC" },
   ];
+
   const askForOptions = [
+    { value: "PA", label: "Partial Amount" },
     { value: "BA", label: "Booking Amount" },
     { value: "FA", label: "Full Amount" },
   ];
@@ -239,7 +241,6 @@ const NewBookingCreateEdit = () => {
       setIsLoading(true);
 
       const payload = {};
-
       Object.keys(formPreviewData).forEach((key) => {
         let value = formPreviewData[key];
 
@@ -273,7 +274,22 @@ const NewBookingCreateEdit = () => {
         }
       });
 
-  // return
+      const monthlyRent = Number(payload.monthlyRent || 0);
+      const clientCalculatedRent = Number(payload.clientCalculatedRent || 0);
+      const depositAmount = Number(payload.depositAmount || 0);
+      const processingFees = Number(payload.processingFees || 0);
+      const parkingCharges = Number(payload.parkingCharges || 0);
+      const temporaryParkingCharges = Number(payload.temporaryParkingCharges || 0);
+      const temporaryclientCalculatedRent = Number(payload.temporaryclientCalculatedRent || 0);
+      const partialAmount = Number(payload.partialAmount  || 0);
+
+      payload.totalAmount = clientCalculatedRent + depositAmount + processingFees + parkingCharges + temporaryclientCalculatedRent + temporaryParkingCharges
+      // payload.bookingAmount = payload.askFor === "FA" ? payload.totalAmount : monthlyRent;
+      payload.bookingAmount = payload.askFor === "FA" ? payload.totalAmount : payload.askFor === "PA" ? partialAmount : monthlyRent;
+      payload.balanceAmount =
+        payload.totalAmount - payload.bookingAmount;
+      payload.temporaryTotalAmount = temporaryclientCalculatedRent + temporaryParkingCharges;
+      // return
       submitNewBooking(payload, {
         onSuccess: (response) => {
           toast.success(
@@ -549,9 +565,6 @@ const NewBookingCreateEdit = () => {
                   Monthly Fixed Rent ( ₹ )
                 </label>
               </div>
-
-
-
               <div className="form-group">
                 <input
                   {...register("depositAmount")}
@@ -697,6 +710,22 @@ const NewBookingCreateEdit = () => {
                   Comments
                 </label>
               </div>
+
+              {watchAskFor === "PA" && (
+                <div className="form-group">
+                  <input
+                    {...register("partialAmount")}
+                    placeholder=" "
+                    type="number"
+                    className="form-input"
+                  />
+                  <label className="form-label required-label">
+                    Partial Amount ( ₹ )
+                  </label>
+                </div>
+              )}
+
+
             </div>
           </div>
         )}

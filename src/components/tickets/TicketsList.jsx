@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import { useTicketsData } from "./services";
-import { formatDate } from "../../utils/dateFormatter";
+import { convertStringFormatDateTime, formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { useForm } from "react-hook-form";
 import { IoIosCall } from "react-icons/io";
 import { FaWhatsapp } from "react-icons/fa";
@@ -14,10 +14,10 @@ import { TableFilePreview } from "../common/FilePreview";
 
 
 const priorityColors = {
-    Critical: "bg-red-600 text-white",
-    High: "bg-orange-100 text-orange-700",
-    Medium: "bg-yellow-100 text-yellow-700",
-    Low: "bg-green-100 text-green-700",
+    Critical: "text-red-700",
+    High: "text-red-500",
+    Medium: " text-yellow-500",
+    Low: " text-green-700",
 };
 
 const statusColors = {
@@ -497,7 +497,7 @@ const   TicketsList = () => {
                                             <td className="sticky  left-0 z-20  bg-white p-3 font-semibold shadow-md">{item.ticketId}</td>
 
                                             <td className="p-3">
-                                                {item.dateCreated}
+                                                {formatDateAndTime(new Date(item.dateCreated))}
                                             </td>
 
                                             <td className="p-3">{item.propertyCode}</td>
@@ -512,7 +512,7 @@ const   TicketsList = () => {
                                                             : "N/A"}
                                                     </div>
 
-                                                    <div className="text-xs text-gray-500 break-words max-w-[300px] whitespace-nowrap overflow-hidden text-ellipsis">
+                                                    <div className="text-xs text-gray-500 wrap-break-word max-w-75 whitespace-nowrap overflow-hidden text-ellipsis">
                                                         {item.description
                                                             ? item.description.length > 60
                                                                 ? `${item.description.substring(0, 60)}...`
@@ -532,7 +532,7 @@ const   TicketsList = () => {
                                             </td>
                                              <td className="p-3">
                                                 <span
-                                                    className={`px-2 py-1 rounded text-xs font-semibold ${priorityColors[item.priority] || "bg-gray-100 text-gray-700"
+                                                    className={`px-2 py-1  text-xs font-semibold ${priorityColors[item.priority] || "bg-gray-100 text-gray-700"
                                                         }`}
                                                 >
                                                     {item.priority}

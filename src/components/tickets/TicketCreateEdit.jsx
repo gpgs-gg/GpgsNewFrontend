@@ -10,8 +10,9 @@ import { useCreateTicketData, useSingleTicketData, useUpdateTicketData } from ".
 import { useEffect, useState } from "react";
 import { usePropertiesDropdown } from '../beds/services';
 import { useCurrentUser } from '../../auth/services';
-import { convertStringFormatDate, convertStringFormatDateTime } from '../../utils/dateFormatter';
+import { convertStringFormatDate, convertStringFormatDateTime, formatDateAndTime } from '../../utils/dateFormatter';
 import FilePreview from '../common/FilePreview';
+import Loader from '../common/Loader';
 function TicketCreateEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -22,7 +23,7 @@ function TicketCreateEdit() {
     reset,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm();
 
   // Api Hooks
@@ -36,40 +37,6 @@ function TicketCreateEdit() {
   const [existingAttachments, setExistingAttachments] = useState([]);
 
   const assignee = watch("assignee");
-  // useEffect(() => {
-  //   if (id && singleTicket?.data) {
-  //     const ticket = singleTicket.data;
-
-  //     reset({
-  //       ...ticket,
-
-  //       propertyCode: ticket.propertyCode || "",
-  //       department: ticket.department || "",
-  //       category: ticket.category || "",
-  //       priority: ticket.priority || "",
-  //       manager: ticket.manager || "",
-  //       assignee: ticket.assignee || "",
-  //       title: ticket.title || "",
-  //       description: ticket.description || "",
-  //       status: ticket.status || "",
-  //       customerImpacted: ticket.customerImpacted || "",
-  //       escalated: ticket.escalated || "",
-  //       targetDate: ticket.targetDate
-  //         ? new Date(ticket.targetDate)
-  //         : null,
-
-  //       estimatedTimeToResolve:
-  //         ticket.estimatedTimeToResolve || "",
-
-  //       internalComments:
-  //         ticket.internalComments || "",
-  //     });
-
-  //     setExistingAttachments(ticket.attachment || []);
-  //   }
-  // }, [id, singleTicket, reset]);
-
-
   useEffect(() => {
     if (id && singleTicket?.data) {
       const ticket = singleTicket.data;
@@ -116,9 +83,6 @@ function TicketCreateEdit() {
     { value: "Nerul ( W )", label: "Nerul ( W )" },
   ];
 
-  //   { value: "Nerul ( E )", label: "Nerul ( E )" },
-  //   { value: "Nerul ( W )", label: "Nerul ( W )" },
-  // ];
   const propertiesOptions =
     propertiesDropdown?.data?.map((property) => ({
       value: property.propertyCode,
@@ -152,6 +116,15 @@ function TicketCreateEdit() {
 
 
   const onSubmit = (data) => {
+const hasAttachmentChanges =
+  attachmentFiles.length > 0 ||
+  existingAttachments.length !== (singleTicket?.data?.attachment?.length || 0);
+
+if (!isDirty && !hasAttachmentChanges) {
+  toast.dismiss();
+  toast.info("No changes detected.");
+  return;
+}
     const formData = new FormData();
 
     Object.keys(data).forEach((key) => {
@@ -165,13 +138,13 @@ function TicketCreateEdit() {
         key !== "createdBy" &&
         key !== "createdByName"
       ) {
-      if (key === "targetDate" && value instanceof Date) {
-      formData.append(key, convertStringFormatDate(value));
-    } else if (value instanceof Date) {
-      formData.append(key, value.toISOString());
-    } else {
-      formData.append(key, value);
-    }
+        if (key === "targetDate" && value instanceof Date) {
+          formData.append(key, convertStringFormatDate(value));
+        } else if (value instanceof Date) {
+          formData.append(key, value.toISOString());
+        } else {
+          formData.append(key, value);
+        }
       }
     });
 
@@ -207,6 +180,7 @@ function TicketCreateEdit() {
         },
         {
           onSuccess: (res) => {
+            toast.dismiss()
             toast.success(res.message);
 
             navigate("/tickets");
@@ -218,6 +192,7 @@ function TicketCreateEdit() {
           },
 
           onError: (err) => {
+            toast.dismiss()
             toast.error(
               err?.response?.data?.message || "Update Failed"
             );
@@ -227,6 +202,7 @@ function TicketCreateEdit() {
     } else {
       createTicket(formData, {
         onSuccess: (res) => {
+          toast.dismiss()
           toast.success(res.message);
 
           navigate("/tickets");
@@ -238,6 +214,7 @@ function TicketCreateEdit() {
         },
 
         onError: (err) => {
+          toast.dismiss()
           toast.error(
             err?.response?.data?.message || "Create Failed"
           );
@@ -246,16 +223,7 @@ function TicketCreateEdit() {
     }
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
+
 
   const input =
     "w-full border border-gray-300 rounded-lg px-3 py-2 hover  focus:ring-2 focus:ring-gray-500 outline-none";
@@ -274,7 +242,7 @@ function TicketCreateEdit() {
 
               <p className="text-sm text-gray-500">
                 {id
-                  ? `${singleTicket?.data?.ticketId} - ${formatDate(singleTicket?.data?.createdAt)}`
+                  ? `${singleTicket?.data?.ticketId} - ${formatDateAndTime(singleTicket?.data?.createdAt)}`
                   : "Create and manage PG Ticket Details"}
               </p>
             </div>
@@ -294,7 +262,7 @@ function TicketCreateEdit() {
                 className="theme-btn text-white px-5 py-2 rounded-lg"
               >
                 {isCreateTicket || isUpdateTicket
-                  ? "Processing..."
+                  ? <div className='flex justify-center items-center gap-2'><Loader/> Processing...</div>
                   : id
                     ? "Update Ticket"
                     : "Create Ticket"}
@@ -731,18 +699,6 @@ function TicketCreateEdit() {
                   Actual Time
                 </label>
               </div>
-
-              {/* <div className="form-group">
-                <input
-                  {...register("internalComments")}
-                  className="form-input"
-                  placeholder=" "
-                />
-
-                <label className="form-label">
-                  Internal Comments
-                </label>
-              </div> */}
               {singleTicket?.data?.auditorLogs?.length > 0 && (
                 <div className="border rounded-lg p-4 bg-gray-50 h-48 col-span-4 flex flex-col">
                   <h3 className="font-semibold mb-3 shrink-0">
@@ -775,189 +731,6 @@ function TicketCreateEdit() {
 
           </div>
         )}
-
-        {/* Agreement Details */}
-        {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold mb-4">
-            Agreement Details
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Controller
-              name="agreement.propertyStartDate"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`datepicker-group ${field.value ? "has-value" : ""
-                    }`}
-                >
-                  <label className="datepicker-label">
-                    Property Start Date
-                  </label>
-                  <DatePicker
-                    isClearable
-                    selected={field.value}
-                    onChange={(date) => field.onChange(date)}
-                    dateFormat="dd MMM yyyy"
-                    className="custom-datepicker"
-                  />
-                </div>
-              )}
-            />
-            <Controller
-              name="agreement.propertyEndDate"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`datepicker-group ${field.value ? "has-value" : ""
-                    }`}
-                >
-                  <label className="datepicker-label">
-                    Property End Date
-                  </label>
-                  <DatePicker
-                    isClearable
-                    selected={field.value}
-                    onChange={(date) => field.onChange(date)}
-                    dateFormat="dd MMM yyyy"
-                    className="custom-datepicker"
-                  />
-                </div>
-              )}
-            />
-
-            <Controller
-              name="agreement.agreementStartDate"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`datepicker-group ${field.value ? "has-value" : ""
-                    }`}
-                >
-                  <label className="datepicker-label">
-                    Agreement Start Date
-                  </label>
-                  <DatePicker
-                    isClearable
-                    selected={field.value}
-                    onChange={(date) => field.onChange(date)}
-                    dateFormat="dd MMM yyyy"
-                    className="custom-datepicker"
-                  />
-                </div>
-              )}
-            />
-
-            <Controller
-              name="agreement.agreementEndDate"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`datepicker-group ${field.value ? "has-value" : ""
-                    }`}
-                >
-                  <label className="datepicker-label">
-                    Agreement End Date
-                  </label>
-                  <DatePicker
-                    isClearable
-                    selected={field.value}
-                    onChange={(date) => field.onChange(date)}
-                    dateFormat="dd MMM yyyy"
-                    className="custom-datepicker"
-                  />
-                </div>
-              )}
-            />
-
-            <Controller
-              name="agreement.agreementStatus"
-              control={control}
-              defaultValue={null}
-              render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                  <label className="select-label">
-                    Status
-                  </label>
-
-                  <Select
-                    {...field}
-                    options={statusOptions}
-                    isClearable
-                    placeholder=""
-                    value={statusOptions.find(
-                      (option) => option.value === field.value
-                    )}
-                    onChange={(selectedOption) =>
-                      field.onChange(selectedOption?.value)
-                    }
-                    styles={selectStyles}
-                  />
-                </div>
-              )}
-            />
-
-            <div className="form-group">
-              <input
-                {...register("agreement.policeNocNo")}
-                placeholder=" "
-                type="text"
-                className="form-input"
-              />
-              <label className="form-label">
-                Police Noc No </label>
-            </div>
-
-            <Controller
-              name="agreement.policeNocStatus"
-              control={control}
-              defaultValue={null}
-              render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                  <label className="select-label">
-                    Police Noc Status
-                  </label>
-
-                  <Select
-                    {...field}
-                    options={PoliceNocStatusOptions}
-                    isClearable
-                    placeholder=""
-                    value={PoliceNocStatusOptions.find(
-                      (option) => option.value === field.value
-                    )}
-                    onChange={(selectedOption) =>
-                      field.onChange(selectedOption?.value)
-                    }
-                    styles={selectStyles}
-                  />
-                </div>
-              )}
-            />
-
-            <div className="form-group">
-              <input
-                {...register("agreement.dealDetails")}
-                placeholder=" "
-                type="text"
-                className="form-input"
-              />
-              <label className="form-label">
-                Deal Details</label>
-            </div>
-
-            <div className="form-group md:col-span-4">
-              <textarea
-                {...register("agreement.comment")}
-                placeholder=""
-                className="form-input md:col-span-4"
-              />
-              <label className="form-label">
-                Agreement Comment</label>
-            </div>
-          </div>
-        </div> */}
-
         <div className="flex justify-end gap-5">
           <button
             type="button"
@@ -972,11 +745,11 @@ function TicketCreateEdit() {
             disabled={isCreateTicket || isUpdateTicket}
             className="theme-btn text-white px-5 py-2 rounded-lg"
           >
-            {isCreateTicket || isUpdateTicket
-              ? "Processing..."
-              : id
-                ? "Update Ticket"
-                : "Create Ticket"}
+          {isCreateTicket || isUpdateTicket
+                  ? <div className='flex justify-center items-center gap-2'><Loader/> Processing...</div>
+                  : id
+                    ? "Update Ticket"
+                    : "Create Ticket"}
           </button>
         </div>
 

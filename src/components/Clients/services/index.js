@@ -104,6 +104,8 @@ export const useTransferBed = () => {
     },
   });
 };
+
+
 const cancelNewBooking = async (id) => {
   const response = await apiClient.put(`/new-bookings/cancel/${id}`);
   return response.data;
@@ -133,3 +135,4 @@ export const useClientFromNewBooking = () => {
     },
   });
 };
+

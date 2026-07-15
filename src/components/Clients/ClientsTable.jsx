@@ -180,7 +180,7 @@ const ClientsTable = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">Clients Master</h1>
+              <h1 className="text-2xl font-bold uppercase">Clients Master</h1>
               <p className="text-sm text-gray-500">
                 Manage all clients
               </p>
@@ -247,13 +247,16 @@ const ClientsTable = () => {
                     {/* <th className="p-3 text-center whitespace-nowrap">
                       Sr No.
                     </th> */}
-
-                    <th className="p-3 text-center whitespace-nowrap">
-                      Client Name
-                    </th>
                     <th className="p-3 text-center whitespace-nowrap">
                       Status
                     </th>
+                    <th className="p-3 text-center whitespace-nowrap">
+                      Stay Type
+                    </th>
+                    <th className="p-3 text-center whitespace-nowrap">
+                      Client Name
+                    </th>
+
                     <th className="p-3 text-center whitespace-nowrap">
                       Contact No
                     </th>
@@ -261,7 +264,6 @@ const ClientsTable = () => {
                     <th className="p-3 text-center whitespace-nowrap">
                       Property
                     </th>
-
                     <th className="p-3 text-center whitespace-nowrap">
                       Room No
                     </th>
@@ -296,6 +298,9 @@ const ClientsTable = () => {
                     </th>
                     <th className="p-3 text-center whitespace-nowrap">
                       CVD
+                    </th>
+                    <th className="p-3 text-center whitespace-nowrap">
+                      Login Enabled
                     </th>
                     <th className="p-3 text-center whitespace-nowrap">
                       VSD1
@@ -337,11 +342,11 @@ const ClientsTable = () => {
                         (item?.processingFees || 0) +
                         (item?.parkingCharges || 0);
 
-                      const bookingAmount =
-                        item?.advanceAmount || 0;
+                      // const bookingAmount =
+                      //   item?.advanceAmount || 0;
 
-                      const balanceAmount =
-                        totalAmount - bookingAmount;
+                      // const balanceAmount =
+                      //   totalAmount - bookingAmount;
 
                       const getClientStatus = (item) => {
                         const today = new Date();
@@ -367,17 +372,9 @@ const ClientsTable = () => {
                           }
                         }
 
-                        // Temporary
-                        if (item.stayType === "T. Booked") {
-                          return {
-                            text: "T. Booked",
-                            className: "bg-yellow-200 text-yellow-700",
-                          };
-                        }
 
                         // Permanent Notice
                         if (
-                          item.stayType === "P. Booked" &&
                           item.noticeStartDate
                         ) {
                           return {
@@ -387,7 +384,7 @@ const ClientsTable = () => {
                         }
 
                         return {
-                          text: "P. Booked",
+                          text: "Active",
                           className: "bg-green-100 text-green-600",
                         };
                       };
@@ -402,12 +399,6 @@ const ClientsTable = () => {
                               index +
                               1}
                           </td> */}
-
-                          {/* Client Name */}
-                          <td className="p-3">
-                            {item.fullName || "-"}
-                          </td>
-                          {/* Status */}
                           <td className="p-3 text-center">
                             {(() => {
                               const status = getClientStatus(item);
@@ -421,6 +412,25 @@ const ClientsTable = () => {
                               );
                             })()}
                           </td>
+                        <td className="p-3">
+  <span
+    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+      item.stayType === "P. Booked"
+        ? " text-green-700"
+        : item.stayType === "T. Booked"
+        ? " text-yellow-700"
+        : " text-gray-700"
+    }`}
+  >
+    {item.stayType || "-"}
+  </span>
+</td>
+                          {/* Client Name */}
+                          <td className="p-3">
+                            {item.fullName || "-"}
+                          </td>
+                          {/* Status */}
+
                           {/* Contact No */}
                           <td className="p-3 whitespace-nowrap">
                             {item.callingNo ===
@@ -440,6 +450,8 @@ const ClientsTable = () => {
                             {item.propertyId
                               ?.propertyCode || "-"}
                           </td>
+
+
 
                           {/* Room No */}
                           <td className="p-3">
@@ -500,6 +512,14 @@ const ClientsTable = () => {
                           </td>
                           <td className="p-3">
                             {formatDate(item.clientVacatingDate) || "-"}
+                          </td>
+                          <td
+                            className={`p-3 font-semibold ${item.loginEnabled
+                              ? "text-green-600"
+                              : "text-red-600"
+                              }`}
+                          >
+                            {item.loginEnabled ? "Enabled" : "Disabled"}
                           </td>
                           <td className="p-3">
                             {formatDate(item.vacationStartDate1) || "-"}
@@ -585,18 +605,18 @@ const ClientsTable = () => {
                                     <span>💰</span>
                                     <span>FNF</span>
                                   </button>
-                                 
-                                    <button
-                                      onClick={() => {
-                                        setSelectedClient(item);
-                                        setShowBedHistoryModal(true);
-                                      }}
-                                      className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
-                                    >
-                                      <span>📜</span>
-                                      <span>Bed History</span>
-                                    </button>
-                      
+
+                                  <button
+                                    onClick={() => {
+                                      setSelectedClient(item);
+                                      setShowBedHistoryModal(true);
+                                    }}
+                                    className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
+                                  >
+                                    <span>📜</span>
+                                    <span>Bed History</span>
+                                  </button>
+
                                   <div className="flex">
 
                                     <Link

@@ -38,7 +38,22 @@ export const useCreateNewBooking = () => {
     mutationFn: createNewBooking,
     onSuccess: () => {
       // 🔄 Refetch ticket sheet after update
-      queryClient.invalidateQueries(["Create-New-Booking"]);
+      queryClient.invalidateQueries(["get-new-booking-data"]);
+    },
+  });
+};
+
+const updateNewBooking = async ({id, data}) => {
+  const response = await apiClient.put(`/new-bookings/${id}`, data);
+  return response.data;
+};
+export const useUpdateNewBooking = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateNewBooking,
+    onSuccess: () => {
+      // 🔄 Refetch ticket sheet after update
+      queryClient.invalidateQueries(["get-new-booking-data"]);
     },
   });
 };
@@ -55,7 +70,7 @@ export const useClientFromNewBooking = () => {
     mutationFn: createClientFromNewBooking,
     onSuccess: () => {
       // 🔄 Refetch ticket sheet after update
-      queryClient.invalidateQueries(["Create-New-Booking"]);
+      queryClient.invalidateQueries(["get-new-booking-data"]);
     },
   });
 };
@@ -69,7 +84,26 @@ export const useCancelNewBooking = () => {
     mutationFn: cancelNewBooking,
     onSuccess: () => {
       // 🔄 Refetch ticket sheet after update
-      queryClient.invalidateQueries(["Create-New-Booking"]);
+      queryClient.invalidateQueries(["get-new-booking-data"]);
+    },
+  });
+};
+
+
+
+const toggleClientLogin = async (id) => {
+  const response = await apiClient.patch(`/toggle-client-login/${id}`);
+  return response.data;
+};
+export const useToggleClientLogin = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: toggleClientLogin,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get-new-booking-data"], // ya jo tumhari client list ki query key hai
+      });
     },
   });
 };

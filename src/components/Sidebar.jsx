@@ -93,7 +93,7 @@
 // export default Sidebar
 
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Building2,
@@ -106,10 +106,21 @@ import {
   UserCog,
   Boxes,
 } from "lucide-react";
+import { CiLogout } from "react-icons/ci";
+import { useLogout } from "../auth/services";
 
 const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
   const [hovered, setHovered] = useState(false);
+  const { mutate: logoutUser, isPending } = useLogout();
+  const navigate = useNavigate();
 
+  const handleLogout = () => {
+    logoutUser(undefined, {
+      onSuccess: () => {
+        navigate("/login", { replace: true });
+      },
+    });
+  };
   // Sidebar expands when:
   // 1. collapsed = false
   // 2. OR mouse is hovering
@@ -119,8 +130,8 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
     { name: "Dashboard", path: "/", icon: <LayoutDashboard size={22} /> },
     { name: "Properties", path: "/properties", icon: <Building2 size={22} /> },
     { name: "Beds", path: "/beds", icon: <Bed size={22} /> },
-    { name: "New Booking", path: "/new-bookings", icon: <UserPlus size={22} /> },
     { name: "Available Beds", path: "/available-beds", icon: <Bed size={22} /> },
+    { name: "New Booking", path: "/new-bookings", icon: <UserPlus size={22} /> },
     { name: "Clients", path: "/clients", icon: <Users size={22} /> },
     // { name: "Rent Ledger", path: "/rent-ledger", icon: <Wallet size={22} /> },
     { name: "Tickets", path: "/tickets", icon: <Ticket size={22} /> },
@@ -175,7 +186,7 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
 
               ${
                 expanded
-                  ? "opacity-100 ml-3 max-w-[220px]"
+                  ? "opacity-100 ml-3 max-w-55"
                   : "opacity-0 ml-0 max-w-0"
               }
             `}
@@ -222,7 +233,29 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
               </span>
             </NavLink>
           ))}
+            <div className="border-t  border-slate-600 p-3 shrink-0">
+    <button
+      onClick={handleLogout}
+      disabled={isPending}
+      className="w-full flex items-center rounded-xl h-12 hover:bg-slate-700 transition-all"
+    >
+      <div className="w-16 flex justify-center shrink-0">
+        <CiLogout size={22} />
+      </div>
+
+      <span
+        className={`overflow-hidden whitespace-nowrap transition-all duration-300 ${
+          expanded
+            ? "opacity-100 max-w-40"
+            : "opacity-0 max-w-0"
+        }`}
+      >
+        {isPending ? "Logging out..." : "Logout"}
+      </span>
+    </button>
+  </div>
         </div>
+        
       </aside>
     </>
   );

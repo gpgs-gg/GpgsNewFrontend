@@ -9,6 +9,7 @@ const BookingConfirmationModal = ({
   data,
   isLoading,
 }) => {
+   console.log(11111111, data)
   if (!isOpen) return null;
   // last date of the month for parmanent property 
   const startDate = data?.clientDoj
@@ -111,14 +112,14 @@ const BookingConfirmationModal = ({
                   {"  "}{data?.monthlyRent} )
                 </div>
                 <p><strong>Permanent Bed Deposit Amount   :</strong> ₹ {data?.depositAmount}</p>
-                <p><strong>Processing Fees :</strong> ₹ {data?.ProcessingFees}</p>
-                <p><strong>Parking Charges :</strong> ₹ {data?.ParkingCharges}</p>
+                <p><strong>Processing Fees :</strong> ₹ {data?.processingFees}</p>
+                <p><strong>Parking Charges :</strong> ₹ {data?.parkingCharges}</p>
                 <p>
                   <strong>Total Amount To Be Paid :</strong> ₹ {
                     (Number(data?.clientCalculatedRent) || 0) +
                     (Number(data?.depositAmount) || 0) +
-                    (Number(data?.ProcessingFees) || 0) +
-                    (Number(data?.ParkingCharges) || 0) +
+                    (Number(data?.processingFees) || 0) +
+                    (Number(data?.parkingCharges) || 0) +
                     (Number(data?.temporaryParkingCharges) || 0) +
                     (Number(data?.temporaryclientCalculatedRent) || 0)
                   }

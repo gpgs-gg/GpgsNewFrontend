@@ -24,6 +24,7 @@ import NewBookingTable from "../components/newBooking/NewBookingTable";
 import ClientCreateEdit from "../components/Clients/ClientCreateEdit";
 import RentLadgerEdit from "../components/RentLedger/RentLadgerEdit";
 import TicketCreateEdit from "../components/tickets/TicketCreateEdit";
+import TicketView from "../components/tickets/TicketView";
 
 const AppRoutes = () => {
   return (
@@ -70,6 +71,7 @@ const AppRoutes = () => {
           <Route path="/clients/view/:clientId" element={<ClientCreateEdit />} />
           <Route path="/tickets/create" element={<TicketCreateEdit />} />
           <Route path="/tickets/edit/:id" element={<TicketCreateEdit />} />
+          <Route path="/tickets/view/:id" element={<TicketView/>} />
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/settings" element={<Settings />} />
         </Route>

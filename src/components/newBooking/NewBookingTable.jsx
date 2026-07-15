@@ -3,7 +3,7 @@ import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
 import NoDataFound from "../common/NoDataFound";
-import { useCancelNewBooking, useClientFromNewBooking, useNewBooking } from "./services";
+import { useCancelNewBooking, useClientFromNewBooking, useNewBooking, useToggleClientLogin, useUpdateNewBooking } from "./services";
 import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";
 
@@ -14,6 +14,8 @@ const NewBookingTable = () => {
   const [filters, setFilters] = useState({});
   const rowsPerPage = 10;
   const { data: newBooking, isPending: isNewBooking } = useNewBooking();
+  const { mutate: toggleClientLogin, isPendingToggleClientLogin } = useToggleClientLogin();
+  const { mutate: updateNewBooking, isPending } = useUpdateNewBooking();
   const {
     mutate: createClientFromBooking,
     isPending: isCreateClientLoading,
@@ -105,30 +107,43 @@ const NewBookingTable = () => {
       // Example: await deleteBooking(id);
     }
   };
-  const handleStatusToggle = (item) => {
-    if (item.status !== "Booked") {
+
+  const handlePaymentVerification = (item) => {
+    // Verify karna hai
+    if (!item.loginEnabled) {
+      if (item.status !== "Booked") {
+        toast.dismiss();
+       toast.error("Booking must be marked as 'Booked'.");
+        return;
+      }
+
       createClientFromBooking(
         { bookingId: item._id },
         {
           onSuccess: (response) => {
-            toast.dismiss()
+            toast.dismiss();
             toast.success(
               response?.message ||
               response?.data?.message ||
-              "Success"
+              "Client created successfully"
             );
           },
           onError: (error) => {
-            toast.dismiss()
+            toast.dismiss();
             toast.error(
-              error?.response?.data?.message
+              error?.response?.data?.message ||
+              "Failed to create client"
             );
           },
         }
       );
-    } else {
+    }
+
+    // Unverify karna hai
+    else {
       cancelBooking(item._id, {
         onSuccess: (response) => {
+          toast.dismiss();
           toast.success(
             response?.message ||
             response?.data?.message ||
@@ -136,13 +151,44 @@ const NewBookingTable = () => {
           );
         },
         onError: (error) => {
+          toast.dismiss();
           toast.error(
-            error?.response?.data?.message
+            error?.response?.data?.message ||
+            "Failed to cancel booking"
           );
         },
       });
     }
   };
+
+  const handleStatusToggle = (item) => {
+    updateNewBooking(
+      {
+        id: item._id,
+        data: {
+          status: item.status === "Booked" ? "Not Booked" : "Booked",
+        },
+      },
+      {
+        onSuccess: (response) => {
+          toast.dismiss()
+          toast.success(
+            response?.message ||
+            response?.data?.message ||
+            "Status updated successfully"
+          );
+        },
+        onError: (error) => {
+          toast.dismiss()
+          toast.error(
+            error?.response?.data?.message ||
+            "Failed to update status"
+          );
+        },
+      }
+    );
+  };
+
   return (
     <>
       <div className="space-y-5">
@@ -150,7 +196,7 @@ const NewBookingTable = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">New Bookings</h1>
+              <h1 className="text-2xl font-bold uppercase">New Bookings</h1>
               <p className="text-sm text-gray-500">
                 Manage all client bookings
               </p>
@@ -219,29 +265,22 @@ const NewBookingTable = () => {
                     <th className="p-3 text-center">Status</th>
                     <th className="p-3 text-center">Calling No</th>
                     <th className="p-3 text-center">Whatsapp No</th>
-                    <th className="p-3 text-center">Perm Property</th>
-                    <th className="p-3 text-center">Perm Bed</th>
+                    <th className="p-3 text-center">P.Property</th>
+                    <th className="p-3 text-center">P.Bed</th>
+                    <th className="p-3 text-center">P.Room</th>
                     <th className="p-3 text-center">Client DOJ</th>
-
+                       <th className="p-3 text-center">Booking Amt Received</th>
                     <th className="p-3 text-center">Monthly Rent</th>
-
                     <th className="p-3 text-center">Deposit</th>
 
                     <th className="p-3 text-center">Proc. Fee</th>
-
-                    <th className="p-3 text-center">Temp Property</th>
-
-                    <th className="p-3 text-center">Temp Bed</th>
-
-                    <th className="p-3 text-center">Temp DOJ</th>
-
+                    <th className="p-3 text-center">T.Property</th>
+                    <th className="p-3 text-center">T.Bed</th>
+                    <th className="p-3 text-center">T.DOJ</th>
                     <th className="p-3 text-center">Total Amt</th>
-
                     <th className="p-3 text-center">Booking Amt</th>
-
                     <th className="p-3 text-center">Balance Amt</th>
-
-
+                 
 
                     {/* Sticky Header */}
                     <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
@@ -253,16 +292,6 @@ const NewBookingTable = () => {
                 <tbody>
                   {paginatedData?.length > 0 ? (
                     paginatedData.map((item, index) => {
-                      const totalAmount =
-                        (item.monthlyRent || 0) +
-                        (item.depositAmount || 0) +
-                        (item.processingFees || 0) +
-                        (item.parkingCharges || 0);
-
-                      const bookingAmount = item.monthlyRent || 0;
-
-                      const balanceAmount =
-                        totalAmount - bookingAmount;
 
                       return (
                         <tr
@@ -279,7 +308,7 @@ const NewBookingTable = () => {
                           <td className="p-3">
                             {item.fullName || "-"}
                           </td>
-                           
+
                           <td className="p-3 text-center">
                             <div className="flex items-center justify-center gap-2">
                               <label className="relative inline-flex items-center cursor-pointer">
@@ -289,11 +318,11 @@ const NewBookingTable = () => {
                                   checked={item.status === "Booked"}
                                   onChange={() => handleStatusToggle(item)}
                                 />
-                                <div className="w-11 h-4 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors">
+                                <div className="w-11 h-5 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors">
                                   <div
-                                    className={`h-3 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${item.status === "Booked"
-                                        ? "translate-x-5"
-                                        : "translate-x-0.5"
+                                    className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${item.status === "Booked"
+                                      ? "translate-x-5"
+                                      : "translate-x-0.5"
                                       }`}
                                   />
                                 </div>
@@ -301,8 +330,8 @@ const NewBookingTable = () => {
 
                               <span
                                 className={`text-sm font-medium ${item.status === "Booked"
-                                    ? "text-green-600"
-                                    : "text-red-600"
+                                  ? "text-green-600"
+                                  : "text-red-600"
                                   }`}
                               >
                                 {item.status === "Booked"
@@ -327,6 +356,9 @@ const NewBookingTable = () => {
                           <td className="p-3">
                             {item.bedId?.bedNo || "-"}
                           </td>
+                          <td className="p-3">
+                            {item.bedId?.roomNo || "-"}
+                          </td>
 
                           <td className="p-3">
                             {item.clientDoj
@@ -335,7 +367,32 @@ const NewBookingTable = () => {
                               )
                               : "-"}
                           </td>
+                          <td className="p-3">
+                            <div className="flex items-center justify-center gap-3">
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  className="sr-only peer"
+                                  checked={item.loginEnabled}
+                                  onChange={() => handlePaymentVerification(item)}
+                                  disabled={isPending}
+                                />
 
+                                <div className="w-11 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
+
+                                <div className="absolute left-0.5 top-0.5 w-5 h-4 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
+                              </label>
+
+                              <span
+                                className={`text-sm font-semibold ${item.loginEnabled
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                                  }`}
+                              >
+                                {item.loginEnabled ? "Received" : "Pending"}
+                              </span>
+                            </div>
+                          </td>
                           <td className="p-3">
                             ₹
                             {(
@@ -378,23 +435,23 @@ const NewBookingTable = () => {
 
                           <td className="p-3 font-medium">
                             ₹
-                            {totalAmount.toLocaleString(
+                            {item.totalAmount?.toLocaleString(
                               "en-IN"
-                            )}
+                            ) || 0}
                           </td>
 
                           <td className="p-3 text-green-600 font-medium">
                             ₹
-                            {bookingAmount.toLocaleString(
+                            {item.bookingAmount?.toLocaleString(
                               "en-IN"
-                            )}
+                            )|| 0}
                           </td>
 
                           <td className="p-3 text-red-600 font-medium">
                             ₹
-                            {balanceAmount.toLocaleString(
+                            {item.balanceAmount?.toLocaleString(
                               "en-IN"
-                            )}
+                            ) || 0}
                           </td>
 
 

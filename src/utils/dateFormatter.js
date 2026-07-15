@@ -10,6 +10,19 @@ export const formatDate = (date) => {
   }
 };
 
+export const formatDateAndTime = (date) => {
+  if (!date) return "-";
+
+  try {
+    return format(new Date(date), "dd MMM yyyy hh:mm a")
+      .replace("am", "AM")
+      .replace("pm", "PM");
+  } catch {
+    return "-";
+  }
+};
+
+
 
 export const convertStringFormatDate = (date) => {
     if (!(date instanceof Date) || isNaN(date.getTime())) {
