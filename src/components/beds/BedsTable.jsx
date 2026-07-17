@@ -9,52 +9,30 @@ import { IoIosCall } from "react-icons/io";
 import { FaWhatsapp } from "react-icons/fa";
 import BedFilter from "./BedFilter";
 import { useBedsData } from "./services";
+import { PAGINATION } from "../../constants/appConfig";
+import useDebounce from "../hooks/useDebounce";
 
 const BedsTable = () => {
-  const { data: apiResponse } = useBedsData();
-
-  // ✅ safe extraction
-  const apiData = apiResponse?.data || [];
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
   const [resetTrigger, setResetTrigger] = useState(0);
+  const rowsPerPage = PAGINATION.BEDS_PER_PAGE || 10;
+  const debouncedSearch = useDebounce(search);
 
-  const rowsPerPage = 10;
+  const { data: apiResponse, isLoading } = useBedsData({
+    page: currentPage,
+    limit: rowsPerPage,
+    search : debouncedSearch,
+    filters,
+  });
+  const apiData = apiResponse?.data || [];
 
-  // ✅ filter & search logic
-  const filteredData = useMemo(() => {
-    return apiData?.filter((item) => {
-      const matchesSearch =
-        !search ||
-        Object.values(item).some((value) =>
-          String(value).toLowerCase().includes(search.toLowerCase())
-        );
+  const totalPages = apiResponse?.totalPages || 1;
+  const totalRecords = apiResponse?.totalRecords || 0;
 
-      return (
-        (!filters.propertyCode ||
-          item.propertyCode === filters.propertyCode) &&
-        (!filters.propertyLocation ||
-          item.propertyLocation === filters.propertyLocation) &&
-        (!filters.bedCount ||
-          String(item.bedCount) === String(filters.bedCount)) &&
-        (!filters.status ||
-          item.status === filters.status) &&
-        matchesSearch
-      );
-    });
-  }, [apiData, filters, search]);
-
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-
-  const paginatedData = useMemo(() => {
-    return filteredData.slice(
-      (currentPage - 1) * rowsPerPage,
-      currentPage * rowsPerPage
-    );
-  }, [filteredData, currentPage]);
-
+  const paginatedData = apiData;
 
   const handleReset = () => {
     setFilters({});
@@ -67,17 +45,13 @@ const BedsTable = () => {
   return (
     <>
       <div className="space-y-5">
-
         {/* HEADER */}
-
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold uppercase">Bed Master</h1>
-              <p className="text-sm text-gray-500">
-                Manage all PG Beds
-              </p>
+              <p className="text-sm text-gray-500">Manage all PG Beds</p>
             </div>
 
             <Link to="/bed/create">
@@ -90,10 +64,8 @@ const BedsTable = () => {
 
         {/* TABLE */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
-
           {/* SEARCH */}
           <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
-
             <div className="relative w-80">
               <input
                 className="border px-3 py-2 pr-10 rounded-lg w-full"
@@ -136,14 +108,11 @@ const BedsTable = () => {
                 Filters
               </button>
             </div>
-
           </div>
 
           {/* TABLE CONTENT */}
           <div className="flex-1 overflow-auto">
-
             <table className="w-full">
-
               <thead className="sticky top-0 bg-gray-100 whitespace-nowrap">
                 <tr>
                   <th className="p-3 text-center">Property Code</th>
@@ -166,14 +135,15 @@ const BedsTable = () => {
               </thead>
 
               <tbody>
-
                 {paginatedData.length > 0 ? (
                   paginatedData.map((item) => (
                     <tr
                       key={item._id}
-                      className="border-t border-gray-300 text-center hover:bg-gray-50"
+                      className="border-t border-gray-300 whitespace-nowrap text-center hover:bg-gray-50"
                     >
-                      <td className="p-3 text-center font-semibold">{item?.propertyId?.propertyCode}</td>
+                      <td className="p-3 text-center font-semibold">
+                        {item?.propertyId?.propertyCode}
+                      </td>
                       <td className="p-3 text-center">{item.roomNo}</td>
                       <td className="p-3 text-center">{item.bedNo}</td>
                       <td className="p-3 text-center">{item?.gender}</td>
@@ -181,7 +151,9 @@ const BedsTable = () => {
                       <td className="p-3 text-center">{item?.bathAttached}</td>
                       <td className="p-3 text-center">{item?.acRoom}</td>
                       <td className="p-3 text-center">{item?.monthlyRent}</td>
-                      <td className="p-3 text-center">{item?.securityDepositMultiplicationFactor}</td>
+                      <td className="p-3 text-center">
+                        {item?.securityDepositMultiplicationFactor}
+                      </td>
                       <td className="p-3 text-center">{item?.depositAmount}</td>
                       <td className="p-3 text-center">
                         {formatDate(item?.upcomingRentHikeDate)}
@@ -192,10 +164,11 @@ const BedsTable = () => {
                       </td>
                       <td className="p-3 text-center">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === "Active"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                            }`}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            item.status === "Active"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
                         >
                           {item.status}
                         </span>
@@ -216,7 +189,6 @@ const BedsTable = () => {
                           </Link>
                         </div>
                       </td>
-
                     </tr>
                   ))
                 ) : (
@@ -231,20 +203,16 @@ const BedsTable = () => {
                     </td>
                   </tr>
                 )}
-
               </tbody>
-
             </table>
-
           </div>
 
           {/* PAGINATION */}
           <div className="border-t p-3 flex justify-between items-center">
-
             <span className="text-sm text-gray-500">
               Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
-              {Math.min(currentPage * rowsPerPage, filteredData.length)} of{" "}
-              {filteredData.length}
+              {Math.min(currentPage * rowsPerPage, totalRecords)} of{" "}
+              {totalRecords}
             </span>
 
             <Pagination
@@ -252,16 +220,17 @@ const BedsTable = () => {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
             />
-
           </div>
-
         </div>
       </div>
       <BedFilter
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         apiData={apiData}
-        onApply={(data) => setFilters(data)}
+        onApply={(data) => {
+          setFilters(data);
+          setCurrentPage(1);
+        }}
         handleReset={handleReset}
         resetTrigger={resetTrigger}
       />

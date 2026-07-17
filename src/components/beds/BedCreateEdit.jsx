@@ -11,6 +11,8 @@ import { useParams } from "react-router-dom";
 import FilePreview from "../common/FilePreview";
 import Loader from "../common/Loader";
 import { usecreateBedData, usePropertiesDropdown, useSingleBedsData, useUpdateBedsData } from "./services";
+import { AsyncPaginate } from "react-select-async-paginate";
+import { getPropertyDropdown } from "../properties/services";
 
 const BedCreateEdit = () => {
     const navigate = useNavigate()
@@ -66,30 +68,42 @@ const BedCreateEdit = () => {
         { value: "Maintenance", label: "Maintenance" },
     ];
 
-    const propertiesOptions =
-        propertiesDropdown?.data?.map((property) => ({
-            value: property._id,
-            label: property.propertyCode,
-        })) || [];
+    const loadPropertyOptions = async (search, loadedOptions, { page }) => {
+        const res = await getPropertyDropdown({ page, limit: 10, search });
+        return {
+            options: res.data.map((item) => ({
+                value: item._id,
+                label: item.propertyCode,
+                location: item.propertyLocation,
+                bedCount: item.bedCount,
+            })),
+            hasMore: res.hasMore,
+            additional: { page: page + 1 },
+        };
+    };
+    console.log("loadPropertyOptions", loadPropertyOptions)
 
-const selectedProperty = propertiesDropdown?.data?.find(
-  (item) => item._id === watch("propertyId")
-);
+    const selectedProperty = watch("propertyId")
 
-const bedCountOptions = Array.from(
-  { length: Number(selectedProperty?.bedCount || 0) },
-  (_, index) => ({
-    value: `${index + 1}`,
-    label: `${index + 1}`,
-  })
-);
+    const bedCountOptions = Array.from(
+        { length: Number(selectedProperty?.bedCount || 0) },
+        (_, index) => ({
+            value: `${index + 1}`,
+            label: `${index + 1}`,
+        })
+    );
 
     useEffect(() => {
         const Bed = singleBedData?.data;
+        console.log(Bed)
         if (!Bed) return;
-           console.log(121212, Bed)
         reset({
-            propertyId: Bed.propertyId?._id,
+            propertyId: {
+                value: Bed.propertyId._id,
+                label: Bed.propertyId.propertyCode,
+                bedCount: Bed.propertyId.bedCount,
+                location: Bed.propertyId.propertyLocation,
+            },
             roomNo: Bed.roomNo,
             bedNo: Bed.bedNo,
             gender: Bed.gender,
@@ -104,6 +118,7 @@ const bedCountOptions = Array.from(
             comment: Bed.comment,
             status: Bed.status,
         });
+
     }, [singleBedData, reset]);
 
 
@@ -112,12 +127,16 @@ const bedCountOptions = Array.from(
         const payload = {};
         Object.keys(data).forEach((key) => {
             const value = data[key];
-            if (value instanceof Date) {
+
+            if (key === "propertyId") {
+                payload.propertyId = value?.value || null;
+            } else if (value instanceof Date) {
                 payload[key] = value.toISOString();
             } else if (value !== undefined && value !== null) {
                 payload[key] = value;
             }
         });
+
 
         if (id) {
             updateBedData(
@@ -139,7 +158,7 @@ const bedCountOptions = Array.from(
 
         submitBed(payload, {  // Sending as object, not FormData
             onSuccess: (response) => {
-                  toast.dismiss()
+                toast.dismiss()
                 toast.success(response?.message || "Created successfully");
                 navigate("/Beds");
             },
@@ -195,25 +214,37 @@ const bedCountOptions = Array.from(
                 {/* Bed Details */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 className="text-xl font-semibold mb-4">Bed Details</h2>
+
+
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <Controller
                             name="propertyId"
                             control={control}
-                            defaultValue={null}
-                            render={({ field }) => (
-                                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                                    <label className="select-label">Property  Code</label>
-                                    <Select
-                                        {...field}
-                                        options={propertiesOptions}
-                                        isClearable
-                                        placeholder=""
-                                        value={propertiesOptions.find(option => option.value === field.value)}
-                                        onChange={(selectedOption) => field.onChange(selectedOption?.value)}
-                                        styles={selectStyles}
-                                    />
-                                </div>
-                            )}
+                            rules={{
+                                required: "Property is required",
+                            }}
+                            render={({ field }) => {
+                                return (
+                                    <div
+                                        className={`select-group ${field.value ? "has-value" : ""}`}
+                                    >
+                                        <label className="select-label">Property Code</label>
+
+                                        <AsyncPaginate
+                                            additional={{ page: 1 }}
+                                            debounceTimeout={500}
+                                            loadOptions={loadPropertyOptions}
+                                            placeholder = "search/select"
+                                            value={field.value}
+                                            onChange={(option) => {
+                                                field.onChange(option);
+                                            }}
+                                            isClearable
+                                            styles={selectStyles}
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
 

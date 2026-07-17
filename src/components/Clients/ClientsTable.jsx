@@ -180,7 +180,7 @@ const ClientsTable = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold uppercase">Clients Master</h1>
+              <h1 className="text-2xl font-bold uppercase">Client Master</h1>
               <p className="text-sm text-gray-500">
                 Manage all clients
               </p>

@@ -9,49 +9,29 @@ import { formatDate } from "../../utils/dateFormatter";
 import { useForm } from "react-hook-form";
 import { IoIosCall } from "react-icons/io";
 import { FaWhatsapp } from "react-icons/fa";
+import { PAGINATION } from "../../constants/appConfig";
+import TableSkeleton from "../../components/common/TableSkelton";
+import useDebounce from "../hooks/useDebounce"
 
 const PropertiesTable = () => {
-  const { data: apiResponse } = usePropertiesData();
-  // ✅ safe extraction
-  const apiData = apiResponse?.data || [];
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
   const [resetTrigger, setResetTrigger] = useState(0);
-  const rowsPerPage = 10;
-  // ✅ filter & search logic
-  const filteredData = useMemo(() => {
-    return apiData?.filter((item) => {
-      const matchesSearch =
-        !search ||
-        Object.values(item).some((value) =>
-          String(value).toLowerCase().includes(search.toLowerCase())
-        );
-
-      return (
-        (!filters.propertyCode ||
-          item.propertyCode === filters.propertyCode) &&
-        (!filters.propertyLocation ||
-          item.propertyLocation === filters.propertyLocation) &&
-        (!filters.bedCount ||
-          String(item.bedCount) === String(filters.bedCount)) &&
-        (!filters.status ||
-          item.status === filters.status) &&
-        matchesSearch
-      );
-    });
-  }, [apiData, filters, search]);
-
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-
-  const paginatedData = useMemo(() => {
-    return filteredData.slice(
-      (currentPage - 1) * rowsPerPage,
-      currentPage * rowsPerPage
-    );
-  }, [filteredData, currentPage]);
-
+  const debouncedSearch = useDebounce(search);
+  const rowsPerPage = PAGINATION.PROPERTIES_PER_PAGE || 10;
+  const { data: apiResponse, isLoading } = usePropertiesData({
+    page: currentPage,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    filters,
+  });
+  // ✅ safe extraction
+  const apiData = apiResponse?.data || [];
+  const totalPages = apiResponse?.totalPages || 1;
+  const totalRecords = apiResponse?.totalRecords || 0;
+  const paginatedData = apiData;
 
   const handleReset = () => {
     setFilters({});
@@ -115,6 +95,8 @@ const PropertiesTable = () => {
                 </button>
               )}
             </div>
+
+            
             <div className="flex gap-2">
               {Object.keys(filters).length > 0 && (
                 <button
@@ -154,97 +136,99 @@ const PropertiesTable = () => {
                   <th className="p-3 text-center">Actions</th>
                 </tr>
               </thead>
+              {isLoading ? (
+                <TableSkeleton rows={8} columns={7} showStatus showActions />
+              ) : (
+                <tbody>
 
-              <tbody>
+                  {paginatedData.length > 0 ? (
+                    paginatedData.map((item) => (
+                      <tr
+                        key={item._id}
+                        className="border-t border-gray-300 hover:bg-gray-50"
+                      >
+                        <td className="p-3 font-semibold">{item.propertyCode}</td>
 
-                {paginatedData.length > 0 ? (
-                  paginatedData.map((item) => (
-                    <tr
-                      key={item._id}
-                      className="border-t border-gray-300 hover:bg-gray-50"
-                    >
-                      <td className="p-3 font-semibold">{item.propertyCode}</td>
+                        <td className="p-3">{item.bedCount}</td>
 
-                      <td className="p-3">{item.bedCount}</td>
+                        <td className="p-3">{item.propertyLocation}</td>
 
-                      <td className="p-3">{item.propertyLocation}</td>
+                        <td className="p-3">{item?.internet?.consumerId}</td>
 
-                      <td className="p-3">{item?.internet?.consumerId}</td>
+                        <td className="p-3">
+                          <div className="flex flex-col gap-2">
+                            {item?.internet?.contactNo1 && (
+                              <div className="flex items-center gap-2">
+                                <span>{item.internet.contactNo1}</span>
+                                <a
+                                  href={`tel:${item.internet.contactNo1}`}
+                                  className="text-blue-600 hover:text-blue-800"
+                                  title="Call"
+                                >
+                                  <IoIosCall size={19} />
+                                </a>
 
-                      <td className="p-3">
-                        <div className="flex flex-col gap-2">
-                          {item?.internet?.contactNo1 && (
-                            <div className="flex items-center gap-2">
-                              <span>{item.internet.contactNo1}</span>
-                              <a
-                                href={`tel:${item.internet.contactNo1}`}
-                                className="text-blue-600 hover:text-blue-800"
-                                title="Call"
-                              >
-                                <IoIosCall size={19} />
-                              </a>
+                                <a
+                                  href={`https://wa.me/91${item.internet.contactNo1}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-green-600 hover:text-green-800"
+                                  title="WhatsApp"
+                                >
+                                  <FaWhatsapp size={16} />
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          {formatDate(item?.agreement?.propertyStartDate)}
+                        </td>
 
-                              <a
-                                href={`https://wa.me/91${item.internet.contactNo1}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-green-600 hover:text-green-800"
-                                title="WhatsApp"
-                              >
-                                <FaWhatsapp size={16} />
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        {formatDate(item?.agreement?.propertyStartDate)}
-                      </td>
+                        <td className="p-3">
+                          {formatDate(item?.agreement?.propertyEndDate)}
+                        </td>
+                        <td className="p-3 text-center">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === "Active"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                              }`}
+                          >
+                            {item.status}
+                          </span>
+                        </td>
 
-                      <td className="p-3">
-                        {formatDate(item?.agreement?.propertyEndDate)}
-                      </td>
-                      <td className="p-3 text-center">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === "Active"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                            }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-
-                      <td className="p-3">
-                        <div className="flex justify-center gap-2">
-                          <Link to={`/properties/edit/${item._id}`}>
-                          {/* <Link to={`/properties/view/${item._id}`}> */}
-                            <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
-                              <Eye size={16} />
-                            </button>
-                          </Link>
-                          <Link to={`/properties/edit/${item._id}`}>
-                            <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
-                              <Pencil size={16} />
-                            </button>
-                          </Link>
-                        </div>
+                        <td className="p-3">
+                          <div className="flex justify-center gap-2">
+                            <Link to={`/properties/edit/${item._id}`}>
+                              {/* <Link to={`/properties/view/${item._id}`}> */}
+                              <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
+                                <Eye size={16} />
+                              </button>
+                            </Link>
+                            <Link to={`/properties/edit/${item._id}`}>
+                              <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
+                                <Pencil size={16} />
+                              </button>
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={7}>
+                        <NoDataFound
+                          title="No Properties Found"
+                          description="Try searching different keywords"
+                        />
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7}>
-                      <NoDataFound
-                        title="No Properties Found"
-                        description="Try searching different keywords"
-                      />
-                    </td>
-                  </tr>
-                )}
+                  )}
 
-              </tbody>
-
+                </tbody>
+              )}
             </table>
 
           </div>
@@ -254,8 +238,8 @@ const PropertiesTable = () => {
 
             <span className="text-sm text-gray-500">
               Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
-              {Math.min(currentPage * rowsPerPage, filteredData.length)} of{" "}
-              {filteredData.length}
+              {Math.min(currentPage * rowsPerPage, totalRecords.length)} of{" "}
+              {totalRecords.length}
             </span>
 
             <Pagination

@@ -4,11 +4,13 @@ import { useAuth } from "../context/authContext";
 import { useLogout } from "../auth/services";
 import { CiLogout } from "react-icons/ci";
 import { IoIosNotificationsOutline } from "react-icons/io";
+import { FaUserCircle } from "react-icons/fa";
 const Header = ({
   collapsed,
   setCollapsed,
   setMobileOpen,
 }) => {
+  const { user, loading, isAuthenticated } = useAuth();
 
   const navigate = useNavigate();
   const { mutate: logoutUser, isPending } = useLogout();
@@ -66,22 +68,24 @@ const Header = ({
           )}
         </div>
         <div className="p-3">
-          <div className="flex items-center gap-3 cursor-pointer rounded-lg ">
-            {/* Avatar */}
-            <img
-              src="https://i.pravatar.cc/150?img=12"
-              alt="User"
-              className="w-10 h-10 rounded-full object-cover"
-            />
+          <div className="flex items-center gap-3 cursor-pointer rounded-lg">
+            {user?.profileImage ? (
+              <img
+                src={user.profileImage}
+                alt={user.name}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <FaUserCircle className="w-10 h-10 text-gray-400" />
+            )}
 
-            {/* Name */}
-            {true && (
-              <div className="overflow-hidden">
-                <p className="font-semibold  truncate">
-                  Abhishek Gautam
+            {!loading && isAuthenticated && user && (
+              <div className="overflow-hidden capitalize">
+                <p className="font-semibold truncate">
+                  {user.name}
                 </p>
-                <p className="text-xs text-slate-400">
-                  Administrator
+                <p className="text-xs text-slate-500 ">
+                  {user.role}
                 </p>
               </div>
             )}

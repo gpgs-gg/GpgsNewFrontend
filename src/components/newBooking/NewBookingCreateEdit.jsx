@@ -941,6 +941,7 @@ const NewBookingCreateEdit = () => {
         onClose={() => setShowConfirmationModal(false)}
         onConfirm={handleFinalSubmit}
       />
+      
     </div>
   );
 };

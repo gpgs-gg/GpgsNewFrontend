@@ -1,0 +1,4 @@
+export const PAGINATION = {
+  PROPERTIES_PER_PAGE: 10,
+  BEDS_PER_PAGE:10
+};

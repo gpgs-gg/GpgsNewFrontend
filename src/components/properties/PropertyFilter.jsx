@@ -3,7 +3,8 @@ import { X } from "lucide-react";
 import Select from "react-select";
 import { useForm, Controller } from "react-hook-form";
 import { selectStyles } from "../../utils/selectStyles";
-
+import { getPropertyDropdown, usePropertyDropdown } from "./services";
+import { AsyncPaginate } from "react-select-async-paginate";
 const PropertyFilter = ({
   isOpen,
   onClose,
@@ -12,61 +13,72 @@ const PropertyFilter = ({
   handleReset,
   resetTrigger,
 }) => {
-  const {
-    control,
-    handleSubmit,
-    reset,
-  } = useForm({
+  const { data: dropdownData } = usePropertyDropdown({
+    page: 1,
+    limit: 10,
+    search: "",
+  });
+
+  const locations = dropdownData?.locations || [];
+  const bedCounts = dropdownData?.bedCounts || [];
+  const statuses = dropdownData?.statuses || [];
+  const { control, handleSubmit, reset } = useForm({
     defaultValues: {
-      propertyCode: "",
-      propertyLocation: "",
-      bedCount: "",
+      propertyId: null,
+      propertyLocation: null,
+      bedCount: null,
       status: "",
     },
   });
 
-  const propertyCodeOptions = useMemo(() => {
-    return [
-      ...new Set(
-        apiData?.map((item) => item.propertyCode).filter(Boolean)
-      ),
-    ].map((item) => ({
-      value: item,
-      label: item,
-    }));
-  }, [apiData]);
+  const loadPropertyOptions = async (search, loadedOptions, { page }) => {
+    const res = await getPropertyDropdown({ page, limit: 10, search });
+    return {
+      options: res.data.map((item) => ({
+        value: item._id,
+        label: item.propertyCode,
+        location: item.propertyLocation,
+        bedCount: item.bedCount,
+      })),
+      hasMore: res.hasMore,
+      additional: { page: page + 1 },
+    };
+  };
+  const locationOptions = useMemo(
+    () =>
+      locations.map((location) => ({
+        value: location,
+        label: location,
+      })),
+    [locations],
+  );
 
-  const locationOptions = useMemo(() => {
-    return [
-      ...new Set(
-        apiData?.map((item) => item.propertyLocation).filter(Boolean)
-      ),
-    ].map((item) => ({
-      value: item,
-      label: item,
-    }));
-  }, [apiData]);
+  const bedCountOptions = useMemo(
+    () =>
+      bedCounts.map((count) => ({
+        value: count,
+        label: String(count),
+      })),
+    [bedCounts],
+  );
 
-  const bedCountOptions = useMemo(() => {
-    return [
-      ...new Set(
-        apiData?.map((item) => item.bedCount).filter(Boolean)
-      ),
-    ]
-      .sort((a, b) => a - b)
-      .map((item) => ({
-        value: item,
-        label: String(item),
-      }));
-  }, [apiData]);
-
-  const statusOptions = [
-    { value: "Active", label: "Active" },
-    { value: "Inactive", label: "Inactive" },
-  ];
+  const statusOptions = useMemo(
+    () =>
+      statuses.map((status) => ({
+        value: status,
+        label: status,
+      })),
+    [statuses],
+  );
 
   const onSubmit = (data) => {
-    onApply(data);
+    onApply({
+      propertyId: data.propertyId?.value || "",
+      propertyLocation: data.propertyLocation?.value || "",
+      bedCount: data.bedCount?.value || "",
+      status: data.status?.value || "",
+    });
+
     onClose();
   };
   useEffect(() => {
@@ -77,64 +89,46 @@ const PropertyFilter = ({
       status: null,
     });
   }, [resetTrigger, reset]);
+
   return (
     <>
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 ${isOpen
-          ? "translate-x-0"
-          : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         <div className="flex justify-between items-center p-5 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600">
-          <h2 className="font-bold text-lg">
-            Filters
-          </h2>
+          <h2 className="font-bold text-lg">Filters</h2>
 
           <button onClick={onClose}>
             <X size={20} />
           </button>
         </div>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="p-5 space-y-5"
-        >
+        <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-5">
           {/* Property Code */}
           <Controller
-            name="propertyCode"
+            name="propertyId"
             control={control}
             render={({ field }) => (
-              <div
-                className={`select-group ${field.value ? "has-value" : ""
-                  }`}
-              >
-                <label className="select-label">
-                  Property Code
-                </label>
+              <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <label className="select-label">Property Code</label>
 
-                <Select
-                  {...field}
-                  options={propertyCodeOptions}
+                <AsyncPaginate
+                  additional={{
+                    page: 1,
+                  }}
+                  debounceTimeout={500}
                   isClearable
                   placeholder=""
-                  value={
-                    propertyCodeOptions.find(
-                      (option) => option.value === field.value
-                    ) || null
-                  }
-                  onChange={(selectedOption) =>
-                    field.onChange(
-                      selectedOption?.value || ""
-                    )
-                  }
+                  loadOptions={loadPropertyOptions}
                   styles={selectStyles}
+                  value={field.value}
+                  onChange={(selectedOption) => field.onChange(selectedOption)}
                 />
               </div>
             )}
@@ -145,29 +139,16 @@ const PropertyFilter = ({
             name="propertyLocation"
             control={control}
             render={({ field }) => (
-              <div
-                className={`select-group ${field.value ? "has-value" : ""
-                  }`}
-              >
-                <label className="select-label">
-                  Location
-                </label>
+              <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <label className="select-label">Location</label>
 
                 <Select
-                  {...field}
                   options={locationOptions}
+                  isSearchable
                   isClearable
-                  placeholder=""
-                  value={
-                    locationOptions.find(
-                      (option) => option.value === field.value
-                    ) || null
-                  }
-                  onChange={(selectedOption) =>
-                    field.onChange(
-                      selectedOption?.value || ""
-                    )
-                  }
+                  placeholder="Location"
+                  value={field.value}
+                  onChange={(option) => field.onChange(option)}
                   styles={selectStyles}
                 />
               </div>
@@ -179,30 +160,16 @@ const PropertyFilter = ({
             name="bedCount"
             control={control}
             render={({ field }) => (
-              <div
-                className={`select-group ${field.value ? "has-value" : ""
-                  }`}
-              >
-                <label className="select-label">
-                  Bed Count
-                </label>
+              <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <label className="select-label">Bed Count</label>
 
                 <Select
-                  {...field}
                   options={bedCountOptions}
+                  isSearchable
                   isClearable
-                  placeholder=""
-                  value={
-                    bedCountOptions.find(
-                      (option) =>
-                        String(option.value) === String(field.value)
-                    ) || null
-                  }
-                  onChange={(selectedOption) =>
-                    field.onChange(
-                      selectedOption?.value || ""
-                    )
-                  }
+                  placeholder="Bed Count"
+                  value={field.value}
+                  onChange={(option) => field.onChange(option)}
                   styles={selectStyles}
                 />
               </div>
@@ -214,29 +181,16 @@ const PropertyFilter = ({
             name="status"
             control={control}
             render={({ field }) => (
-              <div
-                className={`select-group ${field.value ? "has-value" : ""
-                  }`}
-              >
-                <label className="select-label">
-                  Status
-                </label>
+              <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <label className="select-label">Status</label>
 
                 <Select
-                  {...field}
                   options={statusOptions}
+                  isSearchable
                   isClearable
-                  placeholder=""
-                  value={
-                    statusOptions.find(
-                      (option) => option.value === field.value
-                    ) || null
-                  }
-                  onChange={(selectedOption) =>
-                    field.onChange(
-                      selectedOption?.value || ""
-                    )
-                  }
+                  placeholder="Status"
+                  value={field.value}
+                  onChange={(option) => field.onChange(option)}
                   styles={selectStyles}
                 />
               </div>
@@ -258,7 +212,6 @@ const PropertyFilter = ({
             >
               Apply Filters
             </button>
-
           </div>
         </form>
       </div>
