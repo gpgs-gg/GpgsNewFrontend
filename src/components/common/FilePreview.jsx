@@ -34,6 +34,10 @@ const FilePreview = ({
                 file.type?.startsWith("image/") ||
                 (typeof file === "string" &&
                     /\.(jpg|jpeg|png|webp|gif)$/i.test(file));
+            const isVideo =
+                file.type?.startsWith("video/") ||
+                (typeof file === "string" &&
+                    /\.(mp4|mov|avi|mkv|webm|3gp|mpeg)$/i.test(file));
 
             return {
                 file,
@@ -116,6 +120,24 @@ const FilePreview = ({
                                 </button>
                             </div>
                         )}
+                        {item.isVideo && (
+                            <>
+                                <video
+                                    src={item.url}
+                                    onClick={() => openPreview(item.url, "video")}
+                                    className="w-24 h-24 object-cover rounded-lg border cursor-pointer"
+                                    muted
+                                />
+
+                                <button
+                                    type="button"
+                                    onClick={() => onRemoveNew?.(index)}
+                                    className="absolute -top-2 -right-2 bg-black text-white rounded-full p-1 hover:bg-red-600"
+                                >
+                                    <X size={14} />
+                                </button>
+                            </>
+                        )}
                     </div>
                 ))}
 
@@ -123,6 +145,7 @@ const FilePreview = ({
                 {existing.map((url, index) => {
                     const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
                     const isPdf = /\.pdf$/i.test(url);
+                    const isVideo = /\.(mp4|mov|avi|mkv|webm|3gp|mpeg)$/i.test(url);
 
                     return (
                         <div key={index} className="relative w-24 h-24 shrink-0">
@@ -173,6 +196,24 @@ const FilePreview = ({
 
                                 </div>
                             )}
+                            {isVideo && (
+                                <>
+                                    <video
+                                        src={url}
+                                        onClick={() => openPreview(url, "video")}
+                                        className="w-24 h-24 object-cover rounded-lg border cursor-pointer"
+                                        muted
+                                    />
+
+                                    <button
+                                        type="button"
+                                        onClick={() => onRemoveExisting?.(index)}
+                                        className="absolute -top-2 -right-2 bg-black text-white rounded-full p-1 hover:bg-red-600"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </>
+                            )}
                         </div>
                     );
                 })}
@@ -203,6 +244,14 @@ const FilePreview = ({
                                 className="w-full h-full"
                             />
                         )}
+                        {previewType === "video" && (
+                            <video
+                                src={previewUrl}
+                                controls
+                                autoPlay
+                                className="w-full h-full object-contain"
+                            />
+                        )}
                     </div>
                 </div>
             )}
@@ -217,15 +266,16 @@ export default FilePreview;
 
 export const TableFilePreview = ({ files }) => {
     const [preview, setPreview] = useState(null);
+    const [showAll, setShowAll] = useState(false);
 
     if (!files) return null;
 
     const urlArray = Array.isArray(files)
         ? files
         : files
-            .split(",")
-            .map((url) => url.trim())
-            .filter(Boolean);
+              .split(",")
+              .map((url) => url.trim())
+              .filter(Boolean);
 
     const getType = (url) => {
         if (/\.pdf$/i.test(url)) return "pdf";
@@ -233,46 +283,65 @@ export const TableFilePreview = ({ files }) => {
         return "image";
     };
 
+    const visibleFiles = showAll ? urlArray : urlArray.slice(0, 2);
+
     return (
         <>
-            <div className="flex gap-2 justify-center">
-                {urlArray.map((url, index) => {
-                    const type = getType(url);
+           <div className="flex items-center gap-2  overflow-auto p-2 rounded-md ">
 
-                    if (type === "image") {
+               <div className="flex items-center justify-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                    {visibleFiles.map((url, index) => {
+                        const type = getType(url);
+
+                        if (type === "image") {
+                            return (
+                                <img
+                                    key={index}
+                                    src={url}
+                                    alt=""
+                                    onClick={() => setPreview({ url, type })}
+                                    className="w-10 h-10 rounded border bg-gray-100 object-cover cursor-pointer hover:scale-105 transition"
+                                />
+                            );
+                        }
+
+                        if (type === "pdf") {
+                            return (
+                                <div
+                                    key={index}
+                                    onClick={() => setPreview({ url, type })}
+                                    className="w-10 h-10 border rounded bg-gray-100 flex items-center justify-center cursor-pointer hover:scale-105 transition"
+                                >
+                                    <FileText
+                                        size={20}
+                                        className="text-red-600"
+                                    />
+                                </div>
+                            );
+                        }
+
                         return (
-                            <img
+                            <video
                                 key={index}
                                 src={url}
-                                alt=""
+                                muted
                                 onClick={() => setPreview({ url, type })}
-                                className="w-10 h-10 rounded-md border bg-gray-100 object-contain p-1 cursor-pointer hover:scale-105 transition"
+                                className="w-10 h-10 rounded border bg-gray-100 object-cover cursor-pointer"
                             />
                         );
-                    }
+                    })}
+                </div>
 
-                    if (type === "pdf") {
-                        return (
-                            <div
-                                key={index}
-                                onClick={() => setPreview({ url, type })}
-                                className="w-10 h-10 border rounded-md bg-gray-100 flex items-center justify-center cursor-pointer hover:scale-105 transition"
-                            >
-                                <FileText size={22} className="text-red-600" />
-                            </div>
-                        );
-                    }
-
-                    return (
-                        <video
-                            key={index}
-                            src={url}
-                            className="w-10 h-10 rounded-md border bg-gray-100 object-contain p-1 cursor-pointer"
-                            muted
-                            onClick={() => setPreview({ url, type })}
-                        />
-                    );
-                })}
+                {urlArray.length > 2 && (
+                    <button
+                        onClick={() => setShowAll(!showAll)}
+                        className="text-blue-600 text-xs mt-1 hover:underline"
+                    >
+                        {showAll
+                            ? "See Less"
+                            : `See More (${urlArray.length - 2})`}
+                    </button>
+                )}
             </div>
 
             {preview && (

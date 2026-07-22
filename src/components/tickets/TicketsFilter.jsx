@@ -3,11 +3,13 @@ import { X } from "lucide-react";
 import Select from "react-select";
 import { useForm, Controller } from "react-hook-form";
 import { selectStyles } from "../../utils/selectStyles";
+import { getTicketDropdown, useTicketDropdown } from "./services";
+import { AsyncPaginate } from "react-select-async-paginate";
+import { getPropertyDropdown } from "../properties/services";
 
 const TicketsFilter = ({
     isOpen,
     onClose,
-    apiData = [],
     onApply,
     handleReset,
     resetTrigger,
@@ -19,7 +21,7 @@ const TicketsFilter = ({
     } = useForm({
         defaultValues: {
             propertyCode: "",
-            Location: "",
+            propertyLocation: "",
             status: "",
             priority: "",
             department: "",
@@ -32,70 +34,173 @@ const TicketsFilter = ({
         },
     });
 
-    const propertyCodeOptions = useMemo(() => {
-        return [
-            ...new Set(
-                apiData?.map((item) => item.propertyCode).filter(Boolean)
-            ),
-        ].map((item) => ({
-            value: item,
-            label: item,
-        }));
-    }, [apiData]);
+    const { data: dropdownData } = useTicketDropdown({
+        page: 1,
+        limit: 10,
+        search: "",
+    });
 
-    const locationOptions = useMemo(() => {
-        return [
-            ...new Set(
-                apiData?.map((item) => item.propertyLocation).filter(Boolean)
-            ),
-        ].map((item) => ({
-            value: item,
-            label: item,
-        }));
-    }, [apiData]);
+    const loadPropertyOptions = async (
+        search,
+        loadedOptions,
+        { page }
+    ) => {
+        const res = await getPropertyDropdown({
+            page,
+            limit: 10,
+            search,
+        });
 
-    const priorityOptions = [
-        ...new Set(apiData.map(x => x.priority).filter(Boolean))
-    ].map(item => ({
-        value: item,
-        label: item
-    }));
+        const options = [
+            ...new Map(
+                res.data.map(item => [
+                    item.propertyCode,
+                    {
+                        value: item.propertyCode,
+                        label: item.propertyCode,
+                    },
+                ])
+            ).values(),
+        ];
 
-    const departmentOptions = [
-        ...new Set(apiData.map(x => x.department).filter(Boolean))
-    ].map(item => ({
-        value: item,
-        label: item
-    }));
+        return {
+            options,
+            hasMore: res.hasMore,
+            additional: {
+                page: page + 1,
+            },
+        };
+    };
 
-    const categoryOptions = [
-        ...new Set(apiData.map(x => x.category).filter(Boolean))
-    ].map(item => ({
-        value: item,
-        label: item
-    }));
+    
+    // const propertyCodeOptions = useMemo(() => {
+    //     return [
+    //         ...new Set(
+    //             apiData?.map((item) => item.propertyCode).filter(Boolean)
+    //         ),
+    //     ].map((item) => ({
+    //         value: item,
+    //         label: item,
+    //     }));
+    // }, [apiData]);
 
-    const assigneeOptions = [
-        ...new Set(apiData.map(x => x.assignee).filter(Boolean))
-    ].map(item => ({
-        value: item,
-        label: item
-    }));
 
-    const managerOptions = [
-        ...new Set(apiData.map(x => x.manager).filter(Boolean))
-    ].map(item => ({
-        value: item,
-        label: item
-    }));
+    // const locationOptions = useMemo(() => {
+    //     return [
+    //         ...new Set(
+    //             apiData?.map((item) => item.propertyLocation).filter(Boolean)
+    //         ),
+    //     ].map((item) => ({
+    //         value: item,
+    //         label: item,
+    //     }));
+    // }, [apiData]);
 
-    const statusOptions = [
-        ...new Set(apiData.map(x => x.status).filter(Boolean))
-    ].map(item => ({
-        value: item,
-        label: item,
-    }));
+    // const priorityOptions = [
+    //     ...new Set(apiData.map(x => x.priority).filter(Boolean))
+    // ].map(item => ({
+    //     value: item,
+    //     label: item
+    // }));
 
+    // const departmentOptions = [
+    //     ...new Set(apiData.map(x => x.department).filter(Boolean))
+    // ].map(item => ({
+    //     value: item,
+    //     label: item
+    // }));
+
+    // const categoryOptions = [
+    //     ...new Set(apiData.map(x => x.category).filter(Boolean))
+    // ].map(item => ({
+    //     value: item,
+    //     label: item
+    // }));
+
+    // const assigneeOptions = [
+    //     ...new Set(apiData.map(x => x.assignee).filter(Boolean))
+    // ].map(item => ({
+    //     value: item,
+    //     label: item
+    // }));
+
+    // const managerOptions = [
+    //     ...new Set(apiData.map(x => x.manager).filter(Boolean))
+    // ].map(item => ({
+    //     value: item,
+    //     label: item
+    // }));
+
+    // const statusOptions = [
+    //     ...new Set(apiData.map(x => x.status).filter(Boolean))
+    // ].map(item => ({
+    //     value: item,
+    //     label: item,
+    // }));
+
+
+    const locationOptions = useMemo(
+        () =>
+            (dropdownData?.propertyLocations || []).map((item) => ({
+                value: item,
+                label: item,
+            })),
+        [dropdownData]
+    );
+
+    const statusOptions = useMemo(
+        () =>
+            (dropdownData?.statuses || []).map((item) => ({
+                value: item,
+                label: item,
+            })),
+        [dropdownData]
+    );
+
+    const priorityOptions = useMemo(
+        () =>
+            (dropdownData?.priorities || []).map((item) => ({
+                value: item,
+                label: item,
+            })),
+        [dropdownData]
+    );
+
+    const departmentOptions = useMemo(
+        () =>
+            (dropdownData?.departments || []).map((item) => ({
+                value: item,
+                label: item,
+            })),
+        [dropdownData]
+    );
+
+    const categoryOptions = useMemo(
+        () =>
+            (dropdownData?.categories || []).map((item) => ({
+                value: item,
+                label: item,
+            })),
+        [dropdownData]
+    );
+
+    const assigneeOptions = useMemo(
+        () =>
+            (dropdownData?.assignees || []).map((item) => ({
+                value: item,
+                label: item,
+            })),
+        [dropdownData]
+    );
+
+    const managerOptions = useMemo(
+        () =>
+            (dropdownData?.managers || []).map((item) => ({
+                value: item,
+                label: item,
+            })),
+        [dropdownData]
+    );
     const customerImpactedOptions = [
         { value: "Yes", label: "Yes" },
         { value: "No", label: "No" },
@@ -109,14 +214,51 @@ const TicketsFilter = ({
         { value: "LateAcknowledged", label: "Late Acknowledged", },
         { value: "LateResolved", label: "Late Resolved", },
     ];
+
+
     const onSubmit = (data) => {
-        onApply(data);
+        const filters = {};
+
+        if (data.propertyCode)
+            filters.propertyCode = data.propertyCode.value;
+
+        if (data.propertyLocation)
+            filters.propertyLocation = data.propertyLocation;
+
+        if (data.status)
+            filters.status = data.status;
+
+        if (data.priority)
+            filters.priority = data.priority;
+
+        if (data.department)
+            filters.department = data.department;
+
+        if (data.category)
+            filters.category = data.category;
+
+        if (data.assignee)
+            filters.assignee = data.assignee;
+
+        if (data.manager)
+            filters.manager = data.manager;
+
+        if (data.customerImpacted)
+            filters.customerImpacted = data.customerImpacted;
+
+        if (data.escalated)
+            filters.escalated = data.escalated;
+
+        if (data.lateStatus)
+            filters.lateStatus = data.lateStatus;
+
+        onApply(filters);
         onClose();
     };
     useEffect(() => {
         reset({
             propertyCode: null,
-            Location: null,
+            propertyLocation: null,
             bedCount: null,
             status: null,
             priority: null,
@@ -172,22 +314,15 @@ const TicketsFilter = ({
                                         Property Code
                                     </label>
 
-                                    <Select
-                                        {...field}
-                                        options={propertyCodeOptions}
+                                    <AsyncPaginate
+                                        additional={{ page: 1 }}
+                                        debounceTimeout={500}
                                         isClearable
                                         placeholder=""
-                                        value={
-                                            propertyCodeOptions.find(
-                                                (option) => option.value === field.value
-                                            ) || null
-                                        }
-                                        onChange={(selectedOption) =>
-                                            field.onChange(
-                                                selectedOption?.value || ""
-                                            )
-                                        }
+                                        loadOptions={loadPropertyOptions}
                                         styles={selectStyles}
+                                        value={field.value}
+                                        onChange={(option) => field.onChange(option)}
                                     />
                                 </div>
                             )}
@@ -195,7 +330,7 @@ const TicketsFilter = ({
 
                         {/* Location */}
                         <Controller
-                            name="Location"
+                            name="propertyLocation"
                             control={control}
                             render={({ field }) => (
                                 <div

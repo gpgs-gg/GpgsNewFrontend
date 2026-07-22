@@ -1,7 +1,7 @@
 import React from "react";
 
 const TableSkeleton = ({
-  rows = 8,
+  rows = 20,
   columns = 5,
   showActions = false,
   showStatus = false,

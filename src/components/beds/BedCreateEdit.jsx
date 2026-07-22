@@ -81,7 +81,6 @@ const BedCreateEdit = () => {
             additional: { page: page + 1 },
         };
     };
-    console.log("loadPropertyOptions", loadPropertyOptions)
 
     const selectedProperty = watch("propertyId")
 

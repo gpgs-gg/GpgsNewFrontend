@@ -1,6 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../../../api/ApiClient";
 
+// const getBankTransactionData= async () => {
+//   const response = await apiClient.get("/bank");
+//   return response.data;
+// };
+
+// export const useBankTransactionData = ( enabled = true ) => {
+//   return useQuery({
+//     queryKey: ["bank-transaction-data"],
+//     queryFn: getBankTransactionData,
+//     enabled ,// Only fetch when enabled is true
+//   });
+// };
+
+
+
 
 const getBedsData = async ({ page = 1, limit = 10, search, filters = {} }) => {
   const params = {
@@ -10,7 +25,7 @@ const getBedsData = async ({ page = 1, limit = 10, search, filters = {} }) => {
   if (search?.trim()) {
     params.search = search.trim();
   }
-
+  
   if (filters.propertyId) {
     params.propertyId = filters.propertyId;
   }
@@ -37,53 +52,6 @@ const getBedsData = async ({ page = 1, limit = 10, search, filters = {} }) => {
   }
   if (filters.status) {
     params.status = filters.status;
-  }
-  // Monthly Rent
-  if (filters.monthlyRentMin) {
-    params.monthlyRentMin = filters.monthlyRentMin;
-  }
-  if (filters.monthlyRentMax) {
-    params.monthlyRentMax = filters.monthlyRentMax;
-  }
-
-  // SDMF
-  if (filters.sdmfMin) {
-    params.sdmfMin = filters.sdmfMin;
-  }
-  if (filters.sdmfMax) {
-    params.sdmfMax = filters.sdmfMax;
-  }
-
-  // Deposit Amount
-  if (filters.depositAmountMin) {
-    params.depositAmountMin = filters.depositAmountMin;
-  }
-  if (filters.depositAmountMax) {
-    params.depositAmountMax = filters.depositAmountMax;
-  }
-
-  // Upcoming Rent Hike Date
-  if (filters.upcomingRentHikeDateFrom) {
-    params.upcomingRentHikeDateFrom = filters.upcomingRentHikeDateFrom;
-  }
-  if (filters.upcomingRentHikeDateTo) {
-    params.upcomingRentHikeDateTo = filters.upcomingRentHikeDateTo;
-  }
-
-  // Upcoming Rent Hike Amount
-  if (filters.upcomingRentHikeAmountMin) {
-    params.upcomingRentHikeAmountMin = filters.upcomingRentHikeAmountMin;
-  }
-  if (filters.upcomingRentHikeAmountMax) {
-    params.upcomingRentHikeAmountMax = filters.upcomingRentHikeAmountMax;
-  }
-
-  // Previous Rent Hike Date
-  if (filters.previousRentHikeDateFrom) {
-    params.previousRentHikeDateFrom = filters.previousRentHikeDateFrom;
-  }
-  if (filters.previousRentHikeDateTo) {
-    params.previousRentHikeDateTo = filters.previousRentHikeDateTo;
   }
   const response = await apiClient.get("/beds", {
     params,
@@ -112,23 +80,6 @@ export const useBedsData = ({
       filters.bedNo,
       filters.status,
       filters.propertyLocation,
-      filters.monthlyRentMin,
-      filters.monthlyRentMax,
-
-      filters.sdmfMin,
-      filters.sdmfMax,
-
-      filters.depositAmountMin,
-      filters.depositAmountMax,
-
-      filters.upcomingRentHikeDateFrom,
-      filters.upcomingRentHikeDateTo,
-
-      filters.upcomingRentHikeAmountMin,
-      filters.upcomingRentHikeAmountMax,
-
-      filters.previousRentHikeDateFrom,
-      filters.previousRentHikeDateTo,
     ],
     queryFn: () =>
       getBedsData({
@@ -203,43 +154,53 @@ export const usePropertiesDropdown = ( enabled = true ) => {
   });
 };
 
-// ====================== DELETE MULTIPLE BEDS ======================
-const deleteMultipleBedsData = async (ids) => {
-  const response = await apiClient.delete("/beds", {
-    data: { ids },
-  });
 
+
+
+// ............................................................................................................................ //
+
+const getBankTransactionData= async () => {
+  const response = await apiClient.get("/bank");
   return response.data;
 };
 
-export const useDeleteMultipleBedsData = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: deleteMultipleBedsData,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["beds-data"],
-      });
-    },
+export const useBankTransactionData = ( enabled = true ) => {
+  return useQuery({
+    queryKey: ["bank-transaction-data"],
+    queryFn: getBankTransactionData,
+    enabled ,// Only fetch when enabled is true
   });
 };
 
-// ====================== DELETE SINGLE BED ======================
-const deleteBedData = async (id) => {
-  const response = await apiClient.delete(`/beds/${id}`);
+
+const getClientDataByProperty = async (id) => {
+  const response = await apiClient.get(`/bank/clients/property/${id}`);
   return response.data;
 };
 
-export const useDeleteBedData = () => {
+export const useClientDataByProperty = (id) => {
+
+  return useQuery({
+    queryKey: ["get-cleint-data-by-property", id],
+    queryFn: () => getClientDataByProperty(id),
+    enabled: !!id,
+  });
+};
+
+
+const updateBankTransactionReceived = async (data) => {
+  const response = await apiClient.put("/bank/transaction-received", data);
+  return response.data;
+};
+
+export const useUpdateBankTransactionReceived = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: deleteBedData,
+    mutationFn: updateBankTransactionReceived,
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["beds-data"],
-      });
+      queryClient.invalidateQueries(["client-rent-history"]);
+      queryClient.invalidateQueries(["bank-transactions"]);
     },
   });
 };

@@ -8,9 +8,11 @@ import "react-datepicker/dist/react-datepicker.css";
 import { selectStyles } from "../../utils/selectStyles";
 import Loader from "../common/Loader";
 import { usePropertiesDropdown } from "../beds/services";
-import { useAvailableBedsData, useCreateNewBooking } from "./services";
+import { useAvailableBedsData, useCreateNewBooking, useSingleNewBookingData, useUpdateNewBooking } from "./services";
 import BookingConfirmationModal from "./BookingConfirmationModal";
 import { formatDate } from "../../utils/dateFormatter";
+import { getPropertyDropdown } from "../properties/services";
+import { AsyncPaginate } from "react-select-async-paginate";
 
 const NewBookingCreateEdit = () => {
   const navigate = useNavigate();
@@ -34,25 +36,38 @@ const NewBookingCreateEdit = () => {
   const { data: propertiesDropdown, isPending: ispropertiesDropdown } = usePropertiesDropdown()
   const { data: bedAvailableData, isPending: isBedAvailableData } = useAvailableBedsData()
   const { mutate: submitNewBooking, isPending: isSubmitNewBooking } = useCreateNewBooking();
-
+  const { mutate: updateNewBooking, isPending: isUpdateNewBooking } = useUpdateNewBooking();
+  // const { mutate: updateNewBooking, isPending: isUpdateNewBooking } = useUpdateNewBooking();
+  const { data: bookingData, isPending: isBookingLoading } = useSingleNewBookingData(id);
   // watch section Permanent
-  const selectedPropertyId = watch("propertyId");
+  const selectedPropertyId = watch("propertyId")?.value;
+
   const selectedbedId = watch("bedId");
   const watchClientDoj = watch("clientDoj");
   const watchClientLastDate = watch("clientLastDate");
   const watchMonthlyRent = watch("monthlyRent");
   // watch section Temporary
-  const selectedTempPropertyId = watch("temporaryPropertyId");
+  const selectedTempPropertyId = watch("temporaryPropertyId")?.value;
   const selectedTempbedId = watch("temporaryBedId");
   const watchTempClientDoj = watch("temporaryClientDoj");
   const watchTempClientLastDate = watch("temporaryClientLastDate");
   const watchTempMonthlyRent = watch("temporaryMonthlyRent");
   const watchAskFor = watch("askFor");
-  const propertiesOptions =
-    propertiesDropdown?.data?.map((property) => ({
-      value: `${property._id},${property.propertyCode}`,
-      label: property.propertyCode,
-    })) || [];
+
+  const loadPropertyOptions = async (search, loadedOptions, { page }) => {
+    const res = await getPropertyDropdown({ page, limit: 10, search });
+    return {
+      options: res.data.map((item) => ({
+        value: `${item._id},${item.propertyCode}`,
+        label: item.propertyCode,
+        location: item.propertyLocation,
+        bedCount: item.bedCount,
+      })),
+      hasMore: res.hasMore,
+      additional: { page: page + 1 },
+    };
+  };
+
   // permanent property Logic ............................... start
   const bedOptions = bedAvailableData?.data
     ?.filter(
@@ -230,6 +245,85 @@ const NewBookingCreateEdit = () => {
     }
   }, [id]);
 
+
+
+
+  useEffect(() => {
+    if (!bookingData?.data) return;
+
+    const booking = bookingData.data;
+    reset({
+      ...booking,
+      // React Select values
+      propertyId: booking.propertyId
+        ? {
+          value: `${booking.propertyId._id},${booking.propertyId.propertyCode}`,
+          label: booking.propertyId.propertyCode,
+          location: booking.propertyId.propertyLocation,
+          bedCount: booking.propertyId.bedCount,
+        }
+        : null,
+      bedId: booking.bedId
+        ? `${booking.bedId._id},${booking.bedId.bedNo}`
+        : null,
+      temporaryPropertyId: booking.temporaryPropertyId
+        ? {
+          value: `${booking.temporaryPropertyId._id},${booking.temporaryPropertyId.propertyCode}`,
+          label: booking.temporaryPropertyId.propertyCode,
+          location: booking.temporaryPropertyId.propertyLocation,
+          bedCount: booking.temporaryPropertyId.bedCount,
+        }
+        : null,
+      temporaryBedId: booking.temporaryBedId
+        ? `${booking.temporaryBedId._id},${booking.temporaryBedId.bedNo}`
+        : null,
+      // DatePicker values
+      clientDoj: booking.clientDoj ? new Date(booking.clientDoj) : null,
+      clientLastDate: booking.clientLastDate
+        ? new Date(booking.clientLastDate)
+        : null,
+      temporaryClientDoj: booking.temporaryClientDoj
+        ? new Date(booking.temporaryClientDoj)
+        : null,
+      temporaryClientLastDate: booking.temporaryClientLastDate
+        ? new Date(booking.temporaryClientLastDate)
+        : null,
+      // Bed details
+      roomNo: booking.bedId?.roomNo || "",
+      acRoom: booking.bedId?.acRoom || "",
+      monthlyRent: booking.monthlyRent,
+      depositAmount: booking.depositAmount,
+      URHD: booking.URHD,
+      URHA: booking.URHA,
+      // Temporary bed
+      temporaryRoomNo: booking.temporaryBedId?.roomNo || "",
+      temporaryAcRoom: booking.temporaryBedId?.acRoom || "",
+      temporaryMonthlyRent: booking.temporaryBedId?.monthlyRent || "",
+      // Remaining fields
+      askFor: booking.askFor,
+      processingFees: booking.processingFees,
+      parkingCharges: booking.parkingCharges,
+      temporaryParkingCharges: booking.temporaryParkingCharges,
+      clientCalculatedRent: booking.clientCalculatedRent,
+      temporaryclientCalculatedRent:
+        booking.temporaryclientCalculatedRent,
+      partialAmount: booking.partialAmount,
+    });
+  }, [bookingData, reset]);
+
+  useEffect(() => {
+    if (!bookingData?.data || bedOptions.length === 0) return;
+
+    const booking = bookingData.data;
+
+    setValue(
+      "bedId",
+      `${booking.bedId._id},${booking.bedId.bedNo}`
+    );
+  }, [bedOptions]);
+
+
+
   const onSubmit = (data) => {
     setFormPreviewData(data);
     setShowConfirmationModal(true);
@@ -244,7 +338,6 @@ const NewBookingCreateEdit = () => {
       Object.keys(formPreviewData).forEach((key) => {
         let value = formPreviewData[key];
 
-        // Property & Bed dropdown values
         if (
           [
             "propertyId",
@@ -253,19 +346,40 @@ const NewBookingCreateEdit = () => {
             "temporaryBedId",
           ].includes(key)
         ) {
+          // AsyncPaginate object
+          if (value && typeof value === "object") {
+            value = value.value;
+          }
+
+          // "id,label" => only id
           if (typeof value === "string" && value.includes(",")) {
             value = value.split(",")[0];
           }
         }
 
-        // Date conversion
+        // Date fields
         if (value instanceof Date) {
           const year = value.getFullYear();
           const month = String(value.getMonth() + 1).padStart(2, "0");
           const day = String(value.getDate()).padStart(2, "0");
 
           payload[key] = `${year}-${month}-${day}`;
-        } else if (
+        }
+
+        // 👇 Ye 4 fields hamesha payload me bhejo
+        else if (
+          [
+            "clientLastDate",
+            "temporaryClientLastDate",
+            "clientDoj",
+            "temporaryClientDoj",
+          ].includes(key)
+        ) {
+          payload[key] = value ?? null;
+        }
+
+        // Baaki fields
+        else if (
           value !== undefined &&
           value !== null &&
           value !== ""
@@ -281,7 +395,7 @@ const NewBookingCreateEdit = () => {
       const parkingCharges = Number(payload.parkingCharges || 0);
       const temporaryParkingCharges = Number(payload.temporaryParkingCharges || 0);
       const temporaryclientCalculatedRent = Number(payload.temporaryclientCalculatedRent || 0);
-      const partialAmount = Number(payload.partialAmount  || 0);
+      const partialAmount = Number(payload.partialAmount || 0);
 
       payload.totalAmount = clientCalculatedRent + depositAmount + processingFees + parkingCharges + temporaryclientCalculatedRent + temporaryParkingCharges
       // payload.bookingAmount = payload.askFor === "FA" ? payload.totalAmount : monthlyRent;
@@ -290,28 +404,52 @@ const NewBookingCreateEdit = () => {
         payload.totalAmount - payload.bookingAmount;
       payload.temporaryTotalAmount = temporaryclientCalculatedRent + temporaryParkingCharges;
       // return
-      submitNewBooking(payload, {
-        onSuccess: (response) => {
-          toast.success(
-            response?.message ||
-            "Booking Created Successfully"
-          );
 
-          reset();
-          setShowConfirmationModal(false);
-          navigate("/new-bookings");
-        },
+      console.log(payload)
+      if (id) {
+        updateNewBooking(
+          { id, payload },
+          {
+            onSuccess: (response) => {
+              toast.success(
+                response?.message || "Booking Updated Successfully"
+              );
 
-        onError: (error) => {
-          console.error(error);
+              reset();
+              setShowConfirmationModal(false);
+              navigate("/new-bookings");
+            },
 
-          toast.error(
-            error?.response?.data?.message ||
-            error?.message ||
-            "Something went wrong"
-          );
-        },
-      });
+            onError: (error) => {
+              toast.error(
+                error?.response?.data?.message ||
+                error?.message ||
+                "Something went wrong"
+              );
+            },
+          }
+        );
+      } else {
+        submitNewBooking(payload, {
+          onSuccess: (response) => {
+            toast.success(
+              response?.message || "Booking Created Successfully"
+            );
+
+            reset();
+            setShowConfirmationModal(false);
+            navigate("/new-bookings");
+          },
+
+          onError: (error) => {
+            toast.error(
+              error?.response?.data?.message ||
+              error?.message ||
+              "Something went wrong"
+            );
+          },
+        });
+      }
     } catch (error) {
       console.error(error);
 
@@ -481,23 +619,22 @@ const NewBookingCreateEdit = () => {
                     <label className="select-label required-label">
                       Property Code
                     </label>
-                    <Select
-                      {...field}
-                      options={propertiesOptions}
-                      isClearable
-                      placeholder=""
-                      value={propertiesOptions.find(
-                        (option) => option.value === field.value
-                      )}
-                      onChange={(selectedOption) => {
-                        field.onChange(selectedOption?.value || null);
+
+                    <AsyncPaginate
+                      additional={{ page: 1 }}
+                      debounceTimeout={500}
+                      loadOptions={loadPropertyOptions}
+                      placeholder="search/select"
+                      value={field.value}
+                      onChange={(option) => {
+                        field.onChange(option);
                       }}
+                      isClearable
                       styles={selectStyles}
                     />
                   </div>
                 )}
               />
-
               <Controller
                 name="bedId"
                 control={control}
@@ -737,7 +874,6 @@ const NewBookingCreateEdit = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-
               <Controller
                 name="temporaryPropertyId"
                 control={control}
@@ -745,20 +881,19 @@ const NewBookingCreateEdit = () => {
                 render={({ field }) => (
                   <div className={`select-group ${field.value ? "has-value" : ""}`}>
                     <label className="select-label required-label">
-                      Property Code
+                      Temporary Property Code
                     </label>
 
-                    <Select
-                      {...field}
-                      options={propertiesOptions}
-                      isClearable
-                      placeholder=""
-                      value={propertiesOptions.find(
-                        (option) => option.value === field.value
-                      )}
-                      onChange={(selectedOption) => {
-                        field.onChange(selectedOption?.value || null);
+                    <AsyncPaginate
+                      additional={{ page: 1 }}
+                      debounceTimeout={500}
+                      loadOptions={loadPropertyOptions}
+                      placeholder="search/select"
+                      value={field.value}
+                      onChange={(option) => {
+                        field.onChange(option);
                       }}
+                      isClearable
                       styles={selectStyles}
                     />
                   </div>
@@ -941,7 +1076,7 @@ const NewBookingCreateEdit = () => {
         onClose={() => setShowConfirmationModal(false)}
         onConfirm={handleFinalSubmit}
       />
-      
+
     </div>
   );
 };

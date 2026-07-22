@@ -3,19 +3,35 @@ import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
 import NoDataFound from "../common/NoDataFound";
-import { useCancelNewBooking, useClientFromNewBooking, useNewBooking, useToggleClientLogin, useUpdateNewBooking } from "./services";
+import { useCancelNewBooking, useClientFromNewBooking, useDeleteNewBookingData, useNewBooking, useToggleClientLogin, useUpdateNewBooking, useUpdateNewBookingForBooked } from "./services";
 import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";
-
+import ConfirmModal from "../common/ConfirmModal";
+import TableSkeleton from "../../components/common/TableSkelton";
+import NewBookingFilter from "./NewBookingFilter";
+import useDebounce from "../hooks/useDebounce";
+import { FaEllipsisV } from "react-icons/fa";
 const NewBookingTable = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState({});
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const debouncedSearch = useDebounce(search, 500);
+  const [filterLabels, setFilterLabels] = useState([]);
+  const [resetTrigger, setResetTrigger] = useState(0);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
   const rowsPerPage = 10;
-  const { data: newBooking, isPending: isNewBooking } = useNewBooking();
+  const { data: newBooking, isLoading } = useNewBooking({
+    page: currentPage,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    ...filters,
+  });
   const { mutate: toggleClientLogin, isPendingToggleClientLogin } = useToggleClientLogin();
-  const { mutate: updateNewBooking, isPending } = useUpdateNewBooking();
+  const { mutate: updateNewBookingForBooked, isPending } = useUpdateNewBookingForBooked();
+  const { mutate: deleteNewBooking, isPending: isLoadingDelete } = useDeleteNewBookingData();
   const {
     mutate: createClientFromBooking,
     isPending: isCreateClientLoading,
@@ -25,53 +41,47 @@ const NewBookingTable = () => {
     isPending: isCancelBookingLoading,
   } = useCancelNewBooking();
 
+
+  // Safely get bookings data
   // Safely get bookings data
   const bookings = newBooking?.data || [];
-
+  const totalPages = newBooking?.totalPages || 1;
+  const totalRecords = newBooking?.totalRecords || 0;
   // Filter logic - fixed to include all fields properly
-  const filteredData = useMemo(() => {
-    if (!bookings.length) return [];
-
-    return bookings.filter((item) => {
-      // Search matches across multiple fields
-      const matchesSearch = !search ||
-        (item.fullName && item.fullName.toLowerCase().includes(search.toLowerCase())) ||
-        (item.callingNo && item.callingNo.toLowerCase().includes(search.toLowerCase())) ||
-        (item.propertyId?.propertyCode && item.propertyId.propertyCode.toLowerCase().includes(search.toLowerCase())) ||
-        (item.bedId?.bedNo && item.bedId.bedNo.toLowerCase().includes(search.toLowerCase())) ||
-        (item.monthlyRent && item.monthlyRent.toString().includes(search)) ||
-        (item.status && item.status.toLowerCase().includes(search.toLowerCase())) ||
-        (item.temporaryPropertyId?.propertyCode && item.temporaryPropertyId.propertyCode.toLowerCase().includes(search.toLowerCase())) ||
-        (item.temporaryBedId?.bedNo && item.temporaryBedId.bedNo.toLowerCase().includes(search.toLowerCase()));
-
-      // Apply filters
-      const matchesBookingType = !filters.bookingType || item.bookingType === filters.bookingType;
-      const matchesStatus = !filters.status || item.status === filters.status;
-      const matchesPropertyCode = !filters.propertyCode ||
-        (item.propertyId?.propertyCode && item.propertyId.propertyCode === filters.propertyCode);
-
-      return matchesSearch && matchesBookingType && matchesStatus && matchesPropertyCode;
-    });
-  }, [bookings, filters, search]);
 
   // Reset to page 1 when filters or search changes
   useEffect(() => {
     setCurrentPage(1);
   }, [filters, search]);
 
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setOpenMenuId(null);
+    };
 
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage, rowsPerPage]);
+    document.addEventListener("click", handleOutsideClick);
 
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, []);
   const handleReset = () => {
     setFilters({});
+    setFilterLabels([]);
     setSearch("");
     setCurrentPage(1);
+    setResetTrigger((prev) => prev + 1);
   };
+  const removeFilter = (key) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: "",
+    }));
+
+    setFilterLabels((prev) => prev.filter((item) => item.key !== key));
+
+    setCurrentPage(1);
+  }
 
   // Get status color - fixed for all statuses
   const getStatusColor = (status) => {
@@ -100,12 +110,35 @@ const NewBookingTable = () => {
   };
 
   // Handle delete function
+  // Open Delete Confirmation Modal
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this booking?")) {
-      // Add your delete API call here
-      console.log("Delete booking with id:", id);
-      // Example: await deleteBooking(id);
-    }
+    setDeleteId(id);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm Delete
+  const confirmDelete = () => {
+    if (!deleteId) return;
+
+    deleteNewBooking(deleteId, {
+      onSuccess: (response) => {
+        toast.dismiss()
+        toast.success(response?.message || "Booking deleted successfully");
+        setShowDeleteModal(false);
+        setDeleteId(null);
+      },
+
+      onError: (error) => {
+        toast.dismiss()
+        toast.error(
+          error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong"
+        );
+        setShowDeleteModal(false);
+        setDeleteId(null);
+      },
+    });
   };
 
   const handlePaymentVerification = (item) => {
@@ -113,7 +146,7 @@ const NewBookingTable = () => {
     if (!item.loginEnabled) {
       if (item.status !== "Booked") {
         toast.dismiss();
-       toast.error("Booking must be marked as 'Booked'.");
+        toast.error("Booking must be marked as 'Booked'.");
         return;
       }
 
@@ -162,7 +195,7 @@ const NewBookingTable = () => {
   };
 
   const handleStatusToggle = (item) => {
-    updateNewBooking(
+    updateNewBookingForBooked(
       {
         id: item._id,
         data: {
@@ -235,7 +268,31 @@ const NewBookingTable = () => {
                 </button>
               )}
             </div>
+            {/* filter chips */}
+            <div className="flex flex-wrap items-center gap-2 flex-1">
+              {filterLabels.map((filter) => (
+                <div
+                  key={filter.key}
+                  className="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300"
+                >
+                  <span className="text-xs font-semibold uppercase text-slate-500">
+                    {filter.title}
+                  </span>
 
+                  <span className="text-sm font-medium text-slate-800">
+                    {filter.value}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => removeFilter(filter.key)}
+                    className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
             <div className="flex gap-2">
               {Object.keys(filters).length > 0 && (
                 <button
@@ -266,10 +323,11 @@ const NewBookingTable = () => {
                     <th className="p-3 text-center">Calling No</th>
                     <th className="p-3 text-center">Whatsapp No</th>
                     <th className="p-3 text-center">P.Property</th>
+                    <th className="p-3 text-center">Location</th>
                     <th className="p-3 text-center">P.Bed</th>
                     <th className="p-3 text-center">P.Room</th>
                     <th className="p-3 text-center">Client DOJ</th>
-                       <th className="p-3 text-center">Booking Amt Received</th>
+                    <th className="p-3 text-center">Booking Amt Received</th>
                     <th className="p-3 text-center">Monthly Rent</th>
                     <th className="p-3 text-center">Deposit</th>
 
@@ -280,7 +338,7 @@ const NewBookingTable = () => {
                     <th className="p-3 text-center">Total Amt</th>
                     <th className="p-3 text-center">Booking Amt</th>
                     <th className="p-3 text-center">Balance Amt</th>
-                 
+
 
                     {/* Sticky Header */}
                     <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
@@ -290,8 +348,8 @@ const NewBookingTable = () => {
                 </thead>
 
                 <tbody>
-                  {paginatedData?.length > 0 ? (
-                    paginatedData.map((item, index) => {
+                  {bookings?.length > 0 ? (
+                    bookings.map((item, index) => {
 
                       return (
                         <tr
@@ -350,6 +408,10 @@ const NewBookingTable = () => {
 
                           <td className="p-3">
                             {item.propertyId?.propertyCode ||
+                              "-"}
+                          </td>
+                          <td className="p-3">
+                            {item.propertyId?.propertyLocation ||
                               "-"}
                           </td>
 
@@ -444,7 +506,7 @@ const NewBookingTable = () => {
                             ₹
                             {item.bookingAmount?.toLocaleString(
                               "en-IN"
-                            )|| 0}
+                            ) || 0}
                           </td>
 
                           <td className="p-3 text-red-600 font-medium">
@@ -457,31 +519,55 @@ const NewBookingTable = () => {
 
                           {/* Sticky Actions Column */}
                           <td className="p-3 sticky right-0 bg-white z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)]">
-                            <div className="flex justify-center gap-2">
-                              <Link
-                                to={`/new-bookings/view/${item._id}`}
-                              >
-                                <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
-                                  <Eye size={16} />
-                                </button>
-                              </Link>
-
-                              <Link
-                                to={`/new-bookings/edit/${item._id}`}
-                              >
-                                <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
-                                  <Pencil size={16} />
-                                </button>
-                              </Link>
-
+                            <div className="flex justify-center relative">
                               <button
-                                onClick={() =>
-                                  handleDelete(item._id)
-                                }
-                                className="p-2 bg-red-100 rounded-lg hover:bg-red-200"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(
+                                    openMenuId === item._id ? null : item._id,
+                                  );
+                                }}
+                                className={`p-2 rounded-md transition-colors ${openMenuId === item._id
+                                    ? "bg-blue-100 text-blue-600"
+                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                  }`}
                               >
-                                <Trash2 size={16} />
+                                <FaEllipsisV />
                               </button>
+
+                              {openMenuId === item._id && (
+                                <div
+                                  className="absolute right-22 top-8 w-44 bg-white border border-gray-300 rounded-lg shadow-xl z-[9999]"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Link
+                                    to={`/new-bookings/view/${item._id}`}
+                                    className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
+                                  >
+                                    <span>👁</span>
+                                    <span>View</span>
+                                  </Link>
+
+                                  <Link
+                                    to={`/new-bookings/edit/${item._id}`}
+                                    className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
+                                  >
+                                    <span>✏️</span>
+                                    <span>Edit</span>
+                                  </Link>
+
+                                  <button
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      handleDelete(item._id);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 text-red-600"
+                                  >
+                                    <span>🗑</span>
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -503,14 +589,13 @@ const NewBookingTable = () => {
           </div>
 
           {/* PAGINATION */}
-          {filteredData.length > 0 && (
+          {bookings.length > 0 && (
             <div className="border-t p-3 flex justify-between items-center bg-white">
               <span className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
-                {Math.min(currentPage * rowsPerPage, filteredData.length)} of{" "}
-                {filteredData.length}
+                Showing {(currentPage - 1) * rowsPerPage + 1} -
+                {Math.min(currentPage * rowsPerPage, totalRecords)}
+                of {totalRecords}
               </span>
-
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
@@ -521,107 +606,30 @@ const NewBookingTable = () => {
         </div>
       </div>
 
-      {/* Filter Modal */}
-      {filterOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-96 max-w-full shadow-2xl">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Filters</h2>
-              <button
-                onClick={() => setFilterOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-xl"
-              >
-                ✕
-              </button>
-            </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Booking Type
-                </label>
-                <select
-                  className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={filters.bookingType || ""}
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      bookingType: e.target.value || undefined,
-                    })
-                  }
-                >
-                  <option value="">All Types</option>
-                  <option value="Permanent">Permanent</option>
-                  <option value="Temporary">Temporary</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <select
-                  className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={filters.status || ""}
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      status: e.target.value || undefined,
-                    })
-                  }
-                >
-                  <option value="">All Status</option>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Booked">Booked</option>
-                  <option value="Maintenance">Maintenance</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Property Code
-                </label>
-                <select
-                  className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={filters.propertyCode || ""}
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      propertyCode: e.target.value || undefined,
-                    })
-                  }
-                >
-                  <option value="">All Properties</option>
-                  {bookings && bookings.length > 0 &&
-                    [...new Set(bookings.map(b => b.propertyId?.propertyCode).filter(Boolean))].map(code => (
-                      <option key={code} value={code}>{code}</option>
-                    ))
-                  }
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setFilters({});
-                  setFilterOpen(false);
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Clear All
-              </button>
-              <button
-                onClick={() => setFilterOpen(false)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Apply Filters
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Booking"
+        message="Are you sure you want to delete this booking?"
+        loading={isLoadingDelete}
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setDeleteId(null);
+        }}
+      />
+      <NewBookingFilter
+        isOpen={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        apiData={bookings}
+        onApply={(data, labels) => {
+          setFilters(data);
+          setFilterLabels(labels);
+          setCurrentPage(1);
+        }}
+        handleReset={handleReset}
+        resetTrigger={resetTrigger}
+      />  
     </>
   );
 };

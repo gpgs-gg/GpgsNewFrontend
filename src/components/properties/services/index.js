@@ -63,12 +63,7 @@ export const usePropertiesData = ({
   });
 };
 
-
-
-
-
-
-// ✅ 
+// ✅
 const createPropertyData = async (data) => {
   const response = await apiClient.post("/properties", data);
   return response.data;
@@ -113,7 +108,6 @@ export const useUpdatePropertiesData = () => {
   });
 };
 
-
 export const getPropertyDropdown = async ({
   page = 1,
   limit = 10,
@@ -145,5 +139,48 @@ export const usePropertyDropdown = ({
       }),
     enabled,
     keepPreviousData: true,
+  });
+};
+
+// ====================== DELETE SINGLE PROPERTY ======================
+const deletePropertyData = async (id) => {
+  const response = await apiClient.delete(`/properties/${id}`);
+  return response.data;
+};
+
+export const useDeletePropertyData = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deletePropertyData,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["properties-data"],
+      });
+    },
+  });
+};
+
+
+
+// ====================== DELETE MULTIPLE PROPERTIES ======================
+const deleteMultiplePropertiesData = async (ids) => {
+  const response = await apiClient.delete("/properties", {
+    data: { ids },
+  });
+
+  return response.data;
+};
+
+export const useDeleteMultiplePropertiesData = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteMultiplePropertiesData,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["properties-data"],
+      });
+    },
   });
 };

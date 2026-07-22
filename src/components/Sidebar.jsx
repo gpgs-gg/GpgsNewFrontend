@@ -108,7 +108,7 @@ import {
 } from "lucide-react";
 import { CiLogout } from "react-icons/ci";
 import { useLogout } from "../auth/services";
-
+import { BsBank } from "react-icons/bs";
 const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
   const [hovered, setHovered] = useState(false);
   const { mutate: logoutUser, isPending } = useLogout();
@@ -135,7 +135,7 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
     { name: "Clients", path: "/clients", icon: <Users size={22} /> },
     // { name: "Rent Ledger", path: "/rent-ledger", icon: <Wallet size={22} /> },
     { name: "Tickets", path: "/tickets", icon: <Ticket size={22} /> },
-    // { name: "Tenants", path: "/tenants", icon: <Users size={22} /> },
+    { name: "Bank Transacations", path: "/bank-transactions", icon: <BsBank size={22} /> },
     // { name: "Expenses", path: "/expenses", icon: <ClipboardList size={22} /> },
     // { name: "Complaints", path: "/complaints", icon: <Ticket size={22} /> },
     // { name: "Staff", path: "/staff", icon: <UserCog size={22} /> },

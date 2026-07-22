@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
-import { Eye, Pencil, Filter, Phone, MessageCircle } from "lucide-react";
+import { Eye, Pencil, Filter, Phone, MessageCircle, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
 import NoDataFound from "../common/NoDataFound";
-import { useTicketsData } from "./services";
+import { getTicketsData, useDeleteTicketData, useTicketsData } from "./services";
 import { convertStringFormatDateTime, formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { useForm } from "react-hook-form";
 import { IoIosCall } from "react-icons/io";
@@ -11,6 +11,8 @@ import { FaWhatsapp } from "react-icons/fa";
 import TicketsFilter from "./TicketsFilter";
 import { IoClose } from "react-icons/io5";
 import { TableFilePreview } from "../common/FilePreview";
+import useDebounce from "../hooks/useDebounce";
+import ExportDrawer from "./ExportDrawer";
 
 
 const priorityColors = {
@@ -31,12 +33,12 @@ const statusColors = {
     ReOpen: "bg-purple-100 text-purple-700",
 };
 
-const   TicketsList = () => {
-    const { data: apiResponse } = useTicketsData();
+const TicketsList = () => {
+    // const { data: apiResponse } = useTicketsData();
+
 
     // ✅ safe extraction
-    const apiData = apiResponse?.data || [];
-
+    const { mutate: deleteTicket, isPending } = useDeleteTicketData();
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [filterOpen, setFilterOpen] = useState(false);
@@ -47,57 +49,67 @@ const   TicketsList = () => {
     const [showColumnSelector, setShowColumnSelector] = useState(false);
     const [previewFiles, setPreviewFiles] = useState([]);
     const rowsPerPage = 10;
+    const debouncedSearch = useDebounce(search);
 
+    const { data: apiResponse } = useTicketsData({
+        page: currentPage,
+        limit: rowsPerPage,
+        search: debouncedSearch,
+        ...filters,
+    });
+    const apiData = apiResponse?.data || [];
+    const totalPages = apiResponse?.totalPages || 1;
+    const totalRecords = apiResponse?.totalRecords || 0;
     // ✅ filter & search logic
-    const filteredData = useMemo(() => {
-        return apiData?.filter((item) => {
-            const matchesSearch =
-                !search ||
-                Object.values(item).some((value) =>
-                    String(value).toLowerCase().includes(search.toLowerCase())
-                );
+    // const filteredData = useMemo(() => {
+    //     return apiData?.filter((item) => {
+    //         const matchesSearch =
+    //             !search ||
+    //             Object.values(item).some((value) =>
+    //                 String(value).toLowerCase().includes(search.toLowerCase())
+    //             );
 
-            return (
-                (!filters.propertyCode ||
-                    item.propertyCode === filters.propertyCode) &&
-                (!filters.Location ||
-                    item.propertyLocation === filters.Location) &&
-                (!filters.priority ||
-                    item.priority === filters.priority) &&
-                (!filters.status ||
-                    item.status === filters.status) &&
-                (!filters.department ||
-                    item.department === filters.department) &&
-                (!filters.category ||
-                    item.category === filters.category) &&
-                (!filters.assignee ||
-                    item.assignee === filters.assignee) &&
-                (!filters.manager ||
-                    item.manager === filters.manager) &&
-                (!filters.customerImpacted ||
-                    item.customerImpacted === filters.customerImpacted) &&
-                (!filters.escalated ||
-                    item.escalated === filters.escalated) &&
-                (
-                    !filters.lateStatus ||
-                    (filters.lateStatus === "LateAcknowledged" &&
-                        item.lateAcknowledged === "Yes") ||
-                    (filters.lateStatus === "LateResolved" &&
-                        item.lateResolved === "Yes")
-                ) &&
-                matchesSearch
-            );
-        });
-    }, [apiData, filters, search]);
+    //         return (
+    //             (!filters.propertyCode ||
+    //                 item.propertyCode === filters.propertyCode) &&
+    //             (!filters.Location ||
+    //                 item.propertyLocation === filters.Location) &&
+    //             (!filters.priority ||
+    //                 item.priority === filters.priority) &&
+    //             (!filters.status ||
+    //                 item.status === filters.status) &&
+    //             (!filters.department ||
+    //                 item.department === filters.department) &&
+    //             (!filters.category ||
+    //                 item.category === filters.category) &&
+    //             (!filters.assignee ||
+    //                 item.assignee === filters.assignee) &&
+    //             (!filters.manager ||
+    //                 item.manager === filters.manager) &&
+    //             (!filters.customerImpacted ||
+    //                 item.customerImpacted === filters.customerImpacted) &&
+    //             (!filters.escalated ||
+    //                 item.escalated === filters.escalated) &&
+    //             (
+    //                 !filters.lateStatus ||
+    //                 (filters.lateStatus === "LateAcknowledged" &&
+    //                     item.lateAcknowledged === "Yes") ||
+    //                 (filters.lateStatus === "LateResolved" &&
+    //                     item.lateResolved === "Yes")
+    //             ) &&
+    //             matchesSearch
+    //         );
+    //     });
+    // }, [apiData, filters, search]);
 
-    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    // const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-    const paginatedData = useMemo(() => {
-        return filteredData.slice(
-            (currentPage - 1) * rowsPerPage,
-            currentPage * rowsPerPage
-        );
-    }, [filteredData, currentPage]);
+    // const paginatedData = useMemo(() => {
+    //     return filteredData.slice(
+    //         (currentPage - 1) * rowsPerPage,
+    //         currentPage * rowsPerPage
+    //     );
+    // }, [filteredData, currentPage]);
 
 
     const handleReset = () => {
@@ -179,13 +191,38 @@ const   TicketsList = () => {
         { label: "Late Resolved", key: "lateResolved" },
     ];
 
-    const handleSelectAll = () => {
-        if (selectedTickets.size === paginatedData.length) {
-            setSelectedTickets(new Set());
-        } else {
-            const allTicketIds = paginatedData.map(ticket => ticket.ticketId);
-            setSelectedTickets(new Set(allTicketIds));
+    const handleDelete = (id) => {
+        if (window.confirm("Are you sure you want to delete this ticket?")) {
+            deleteTicket(id, {
+                onSuccess: (data) => {
+                    toast.dismiss();
+                    toast.success(data.message);
+                },
+                onError: (error) => {
+                    toast.error(error.response?.data?.message || "Delete failed");
+                },
+            });
         }
+    };
+
+    const handleSelectAll = () => {
+        setSelectedTickets((prev) => {
+            const newSet = new Set(prev);
+
+            const currentPageIds = apiData.map(ticket => ticket.ticketId);
+
+            const allSelected = currentPageIds.every(id => newSet.has(id));
+
+            if (allSelected) {
+                // current page unselect
+                currentPageIds.forEach(id => newSet.delete(id));
+            } else {
+                // current page select
+                currentPageIds.forEach(id => newSet.add(id));
+            }
+
+            return newSet;
+        });
     };
 
     const handleColumnSelect = (columnKey) => {
@@ -213,67 +250,90 @@ const   TicketsList = () => {
         setShowColumnSelector(!showColumnSelector)
     };
 
-    const handleExport = () => {
-        const ticketsToExport = filteredData.filter(ticket =>
+    const handleExport = async () => {
+        // सर्व filtered tickets आण
+        const response = await getTicketsData({
+            page: 1,
+            limit: 100000,
+            search: debouncedSearch,
+            ...filters,
+        });
+
+        const allTickets = response.data || [];
+
+        // जर काही tickets select असतील तर तेवढेच export
+        const ticketsToExport =
             selectedTickets.size > 0
-                ? selectedTickets.has(ticket.ticketId)
+                ? allTickets.filter((ticket) =>
+                    selectedTickets.has(ticket.ticketId)
+                )
+                : allTickets;
+
+        const columnsToExport = fullHeaders.filter((header) =>
+            selectedColumns.size > 0
+                ? selectedColumns.has(header.key)
                 : true
         );
 
-        // Get selected columns
-        const columnsToExport = fullHeaders.filter(header =>
-            selectedColumns.size > 0 ? selectedColumns.has(header.key) : true
+        if (ticketsToExport.length === 0) {
+            toast.error("No tickets selected for export!");
+            return;
+        }
+
+        if (columnsToExport.length === 0) {
+            toast.error("No columns selected for export!");
+            return;
+        }
+
+        const headersRow = columnsToExport
+            .map((header) => header.label)
+            .join(",");
+
+        const dataRows = ticketsToExport.map((ticket) =>
+            columnsToExport
+                .map((header) => {
+                    let value = ticket[header.key] ?? "";
+
+                    if (typeof value === "string") {
+                        value = value.replace(/"/g, '""');
+
+                        if (
+                            value.includes(",") ||
+                            value.includes("\n") ||
+                            value.includes("\r")
+                        ) {
+                            value = `"${value}"`;
+                        }
+                    }
+
+                    return value;
+                })
+                .join(",")
         );
 
-        if (ticketsToExport.length === 0) {
-            toast.error("No tickets selected for export!")
-            return;
-        }
-        if (columnsToExport.length === 0) {
-            toast.error("No columns selected for export!")
-            return;
-        }
+        const csvContent = [headersRow, ...dataRows].join("\n");
 
-        // Prepare CSV content
-        const headersRow = columnsToExport.map(header => header.label).join(',');
-
-        const dataRows = ticketsToExport.map(ticket => {
-            return columnsToExport.map(header => {
-                let value = ticket[header.key] || '';
-                // Handle special formatting for dates
-                if (header.key === 'DateCreated' && value) {
-                    value = formatDate(value);
-                }
-                // Handle commas in values by wrapping in quotes
-                if (typeof value === "string") {
-                    value = value.replace(/"/g, '""'); // quotes escape
-
-                    if (
-                        value.includes(",") ||
-                        value.includes("\n") ||
-                        value.includes("\r")
-                    ) {
-                        value = `"${value}"`;
-                    }
-                }
-                return value;
-            }).join(',');
+        const blob = new Blob([csvContent], {
+            type: "text/csv;charset=utf-8;",
         });
 
-        const csvContent = [headersRow, ...dataRows].join('\n');
-
-        // Create and trigger download
-        const blob = new Blob([csvContent], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
+
+        const link = document.createElement("a");
+
         link.href = url;
-        link.download = `tickets-export-${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `tickets-${new Date()
+            .toISOString()
+            .split("T")[0]}.csv`;
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+
         window.URL.revokeObjectURL(url);
-        setShowColumnSelector(false)
-    }
+
+        setShowColumnSelector(false);
+    };
 
     return (
         <>
@@ -287,7 +347,7 @@ const   TicketsList = () => {
                         <div>
                             <h1 className="text-2xl font-bold">Tickets List</h1>
                             <p className="text-sm text-gray-500">
-                                {`Total Tickets: ${filteredData.length}`}
+                                {`Total Tickets: ${totalRecords}`}
                             </p>
                         </div>
 
@@ -357,57 +417,6 @@ const   TicketsList = () => {
                             )}
                         </div>
 
-                        {showColumnSelector && (
-                            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                                <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-96 overflow-hidden">
-                                    <div className="p-4 border-b">
-                                        <div className="flex justify-between items-center">
-                                            <h3 className="text-lg font-semibold">Select Columns to Export</h3>
-                                            <button
-                                                onClick={() => setShowColumnSelector(false)}
-                                                className="text-gray-500 hover:text-gray-700"
-                                            >
-                                                {/* <i className="fas fa-times"></i> */}
-                                                <IoClose size={22} />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="p-4 max-h-64 overflow-y-auto">
-                                        <div className="flex items-center gap-2 mb-3 p-2 bg-gray-50 rounded">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedColumns.size === fullHeaders.length}
-                                                onChange={handleSelectAllColumns}
-                                                className="h-4 w-4 text-orange-600 rounded focus:ring-orange-500"
-                                            />
-                                            <label className="font-medium">Select All Columns</label>
-                                        </div>
-
-                                        {fullHeaders.map((header) => (
-                                            <div key={header.key} className="flex items-center gap-2 mb-2 p-2 hover:bg-gray-50 rounded">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedColumns?.has(header.key)}
-                                                    onChange={() => handleColumnSelect(header.key)}
-                                                    className="h-4 w-4 text-orange-600 rounded focus:ring-orange-500"
-                                                />
-                                                <label>{header.label}</label>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="p-4 flex justify-center items-center border-t bg-gray-50">
-                                        <button
-                                            onClick={handleExport}
-                                            className="px-4 py-2 bg-orange-500  text-white rounded hover:bg-orange-600"
-                                        >
-                                            <pre> Export</pre>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
 
                         <div className="flex gap-2">
                             {Object.keys(filters).length > 0 && (
@@ -432,16 +441,18 @@ const   TicketsList = () => {
                     {/* TABLE CONTENT */}
                     <div className="flex-1 overflow-auto">
 
-                        <table className="min-w-[1400px] w-full">
-
+                        <table className="w-max min-w-full">
                             <thead className="sticky top-0 z-40 bg-gray-100 whitespace-nowrap">
                                 <tr>
                                     <th className="sticky  left-0  bg-gray-100 p-3 text-left shadow-md">
                                         <input
                                             type="checkbox"
-                                            checked={selectedTickets.size === paginatedData.length && paginatedData.length > 0}
+                                            checked={
+                                                apiData.length > 0 &&
+                                                apiData.every(ticket => selectedTickets.has(ticket.ticketId))
+                                            }
                                             onChange={handleSelectAll}
-                                            className="h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                                            className="h-4 w-4 accent-gray-500 border-gray-300 rounded"
                                         />
                                     </th>
                                     <th className="sticky  left-0  bg-gray-100 p-3 text-left shadow-md">Ticket ID</th>
@@ -450,11 +461,13 @@ const   TicketsList = () => {
                                     <th className="p-3 text-left">Title</th>
                                     <th className="p-3 text-center">Status</th>
                                     <th className="p-3 text-left">Priority</th>
-                                    <th className="p-3 text-center">Attachment</th>
+                                    <th className="p-3 text-center ">Attachment</th>
                                     <th className="p-3 text-center">Customer Impacted</th>
                                     <th className="p-3 text-center">Escalated</th>
                                     <th className="p-3 text-center">Target Date</th>
                                     <th className="p-3 text-left">Category</th>
+                                    <th className="p-3 text-left">Manager</th>
+                                    <th className="p-3 text-left">Ticket Manager</th>
                                     <th className="p-3 text-left">Assignee</th>
                                     <th className="p-3 text-left">Department</th>
                                     <th className="p-3 text-left">Created By Id</th>
@@ -468,8 +481,8 @@ const   TicketsList = () => {
                             </thead>
 
                             <tbody>
-                                {paginatedData.length > 0 ? (
-                                    paginatedData.map((item) => (
+                                {apiData.length > 0 ? (
+                                    apiData.map((item) => (
                                         <tr
                                             key={item._id}
                                             className="border-t border-gray-300 hover:bg-gray-50 whitespace-nowrap"
@@ -491,7 +504,7 @@ const   TicketsList = () => {
                                                             return newSet;
                                                         });
                                                     }}
-                                                    className="h-4 w-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                                                    className="h-4 w-4 accent-gray-500 border-gray-300 rounded "
                                                 />
                                             </td>
                                             <td className="sticky  left-0 z-20  bg-white p-3 font-semibold shadow-md">{item.ticketId}</td>
@@ -530,7 +543,7 @@ const   TicketsList = () => {
                                                     {item.status}
                                                 </span>
                                             </td>
-                                             <td className="p-3">
+                                            <td className="p-3">
                                                 <span
                                                     className={`px-2 py-1  text-xs font-semibold ${priorityColors[item.priority] || "bg-gray-100 text-gray-700"
                                                         }`}
@@ -538,16 +551,20 @@ const   TicketsList = () => {
                                                     {item.priority}
                                                 </span>
                                             </td>
-                                            <td className="p-3 text-center">
-                                                <TableFilePreview files={item.attachment} />
+                                            <td className="p-3">
+                                                <div className="inline-flex">
+                                                    <TableFilePreview files={item.attachment} />
+                                                </div>
                                             </td>
                                             <td className="p-3">{item.customerImpacted}</td>
                                             <td className="p-3">{item.escalated}</td>
                                             <td className="p-3"> {formatDate(item.targetDate)}</td>
                                             <td className="p-3">{item.category}</td>
 
-                                           
 
+
+                                            <td className="p-3">{item.manager}</td>
+                                            <td className="p-3">{item.ticketManager}</td>
                                             <td className="p-3">{item.assignee}</td>
                                             <td className="p-3">{item.department}</td>
                                             <td className="p-3">{item.createdById}</td>
@@ -572,6 +589,14 @@ const   TicketsList = () => {
                                                             <Pencil size={16} />
                                                         </button>
                                                     </Link>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleDelete(item._id)
+                                                        }
+                                                        className="p-2 bg-red-100 rounded-lg hover:bg-red-200"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -596,9 +621,9 @@ const   TicketsList = () => {
                     <div className="border-t p-3 flex justify-between items-center">
 
                         <span className="text-sm text-gray-500">
-                            Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
-                            {Math.min(currentPage * rowsPerPage, filteredData.length)} of{" "}
-                            {filteredData.length}
+                            Showing {(currentPage - 1) * rowsPerPage + 1} -
+                            {Math.min(currentPage * rowsPerPage, totalRecords)}
+                            of {totalRecords}
                         </span>
 
                         <Pagination
@@ -618,6 +643,17 @@ const   TicketsList = () => {
                 onApply={(data) => setFilters(data)}
                 handleReset={handleReset}
                 resetTrigger={resetTrigger}
+            />
+
+            <ExportDrawer
+                isOpen={showColumnSelector}
+                onClose={() => setShowColumnSelector(false)}
+                fullHeaders={fullHeaders}
+                selectedColumns={selectedColumns}
+                setSelectedColumns={setSelectedColumns}
+                selectedTickets={selectedTickets}
+                totalTickets={apiData.length}
+                onExport={handleExport}
             />
         </>
     );

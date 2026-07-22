@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { selectStyles } from "../../utils/selectStyles";
 import { getPropertyDropdown, usePropertyDropdown } from "./services";
 import { AsyncPaginate } from "react-select-async-paginate";
+
 const PropertyFilter = ({
   isOpen,
   onClose,
@@ -72,12 +73,33 @@ const PropertyFilter = ({
   );
 
   const onSubmit = (data) => {
-    onApply({
+    const filters = {
       propertyId: data.propertyId?.value || "",
       propertyLocation: data.propertyLocation?.value || "",
       bedCount: data.bedCount?.value || "",
       status: data.status?.value || "",
-    });
+    };
+
+    const labels = [
+      data.propertyId && {
+        key: "propertyId",
+        label: `Property : ${data.propertyId.label}`,
+      },
+      data.propertyLocation && {
+        key: "propertyLocation",
+        label: `Location : ${data.propertyLocation.label}`,
+      },
+      data.bedCount && {
+        key: "bedCount",
+        label: `Beds : ${data.bedCount.label}`,
+      },
+      data.status && {
+        key: "status",
+        label: `Status : ${data.status.label}`,
+      },
+    ].filter(Boolean);
+
+    onApply(filters, labels);
 
     onClose();
   };

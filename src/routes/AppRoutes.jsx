@@ -15,6 +15,7 @@ import NewBooking from "../pages/NewBooking";
 import Clients from "../pages/Clients";
 import AvailableBeds from "../pages/AvailableBeds";
 import RentLedger from "../pages/RentLedger";
+import BankTransaction from "../pages/BankTransaction";
 
 import PropertyCreateEdit from "../components/properties/PropertyCreateEdit";
 import BedsTable from "../components/beds/BedsTable";
@@ -73,6 +74,7 @@ const AppRoutes = () => {
           <Route path="/tickets/edit/:id" element={<TicketCreateEdit />} />
           <Route path="/tickets/view/:id" element={<TicketView/>} />
           <Route path="/tickets" element={<Tickets />} />
+          <Route path="/bank-transactions" element={<BankTransaction />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>

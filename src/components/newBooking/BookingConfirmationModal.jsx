@@ -66,7 +66,7 @@ const BookingConfirmationModal = ({
             <div className="mb-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
                 <div>
-                  <p><strong>Temporary PG Facility Code :</strong>{" "}{data?.temporaryPropertyId?.split(",")[1]}</p>
+                  <p><strong>Temporary PG Facility Code :</strong>{" "}{data?.temporaryPropertyId?.value?.split(",")[1]}</p>
                   <p><strong>Room No :</strong>{" "}{data?.temporaryRoomNo}</p>
                   <p><strong>Bed No :</strong>{" "}{data?.temporaryBedId?.split(",")[1]}</p>
                   <p><strong>ACRoom :</strong> {data?.temporaryAcRoom}</p>
@@ -93,7 +93,7 @@ const BookingConfirmationModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 whitespace-nowrap gap-1">
               <div>
 
-                <p><strong>Permanent PG Facility Code :</strong> {data?.propertyId?.split(",")[1]}</p>
+                <p><strong>Permanent PG Facility Code :</strong> {data?.propertyId?.value?.split(",")[1]}</p>
                 <p><strong>Room No :</strong> {data?.roomNo}</p>
                 <p><strong>Bed No :</strong> {data?.bedId?.split(",")[1]}</p>
                 <p><strong>ACRoom :</strong> {data?.acRoom}</p>

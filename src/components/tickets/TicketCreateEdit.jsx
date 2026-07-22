@@ -13,6 +13,8 @@ import { useCurrentUser } from '../../auth/services';
 import { convertStringFormatDate, convertStringFormatDateTime, formatDateAndTime } from '../../utils/dateFormatter';
 import FilePreview from '../common/FilePreview';
 import Loader from '../common/Loader';
+import { getPropertyDropdown } from '../properties/services';
+import { AsyncPaginate } from 'react-select-async-paginate';
 function TicketCreateEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -90,7 +92,41 @@ function TicketCreateEdit() {
       propLocation: property.propertyLocation,
     })) || [];
 
-  console.log("propertiesOptions", propertiesOptions);
+
+
+  const loadPropertyOptions = async (
+    search,
+    loadedOptions,
+    { page }
+  ) => {
+    const res = await getPropertyDropdown({
+      page,
+      limit: 10,
+      search,
+    });
+
+    const options = [
+      ...new Map(
+        res.data.map((item) => [
+          item.propertyCode,
+          {
+            value: item.propertyCode,
+            label: item.propertyCode,
+            propLocation: item.propertyLocation, // <-- Add this
+          },
+        ])
+      ).values(),
+    ];
+
+    return {
+      options,
+      hasMore: res.hasMore,
+      additional: {
+        page: page + 1,
+      },
+    };
+  };
+
   const DepartmentOptions = [
     { value: "Nerul ( E )", label: "Nerul ( E )" },
     { value: "Nerul ( W )", label: "Nerul ( W )" },
@@ -116,15 +152,15 @@ function TicketCreateEdit() {
 
 
   const onSubmit = (data) => {
-const hasAttachmentChanges =
-  attachmentFiles.length > 0 ||
-  existingAttachments.length !== (singleTicket?.data?.attachment?.length || 0);
+    const hasAttachmentChanges =
+      attachmentFiles.length > 0 ||
+      existingAttachments.length !== (singleTicket?.data?.attachment?.length || 0);
 
-if (!isDirty && !hasAttachmentChanges) {
-  toast.dismiss();
-  toast.info("No changes detected.");
-  return;
-}
+    if (!isDirty && !hasAttachmentChanges) {
+      toast.dismiss();
+      toast.info("No changes detected.");
+      return;
+    }
     const formData = new FormData();
 
     Object.keys(data).forEach((key) => {
@@ -262,7 +298,7 @@ if (!isDirty && !hasAttachmentChanges) {
                 className="theme-btn text-white px-5 py-2 rounded-lg"
               >
                 {isCreateTicket || isUpdateTicket
-                  ? <div className='flex justify-center items-center gap-2'><Loader/> Processing...</div>
+                  ? <div className='flex justify-center items-center gap-2'><Loader /> Processing...</div>
                   : id
                     ? "Update Ticket"
                     : "Create Ticket"}
@@ -289,24 +325,31 @@ if (!isDirty && !hasAttachmentChanges) {
                     Property
                   </label>
 
-                  <Select
-                    {...field}
-                    options={propertiesOptions}
-                    placeholder=""
+                  <AsyncPaginate
+                    additional={{ page: 1 }}
+                    debounceTimeout={500}
                     isClearable
                     isDisabled={id ? true : false}
-                    value={propertiesOptions.find(
-                      (x) => x.value === field.value
-                    )}
-                    onChange={(selected) => {
-                      field.onChange(selected?.value || "");
-
-                      // Automatically set property location
-                      setValue("propertyLocation", selected?.propLocation || "");
-                    }}
+                    placeholder=""
+                    loadOptions={loadPropertyOptions}
                     styles={selectStyles}
-                  />
+                    value={
+                      field.value
+                        ? {
+                          value: field.value,
+                          label: field.value,
+                        }
+                        : null
+                    }
+                    onChange={(selected) => {
+                      field.onChange(selected?.value || ""); // Sirf value save hogi
 
+                      setValue(
+                        "propertyLocation",
+                        selected?.propLocation || ""
+                      );
+                    }}
+                  />
                   {errors.propertyCode && (
                     <p className="text-red-500 text-sm mt-1">
                       {errors.propertyCode.message}
@@ -492,6 +535,26 @@ if (!isDirty && !hasAttachmentChanges) {
               render={({ field }) => (
                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                   <label className="select-label">Manager</label>
+
+                  <Select
+                    {...field}
+                    options={ManagerOptions}
+                    placeholder=""
+                    isClearable
+                    value={ManagerOptions.find(x => x.value === field.value)}
+                    onChange={(e) => field.onChange(e?.value)}
+                    styles={selectStyles}
+                  />
+
+                </div>
+              )}
+            />
+            <Controller
+              name="ticketManager"
+              control={control}
+              render={({ field }) => (
+                <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                  <label className="select-label">Ticket Manager</label>
 
                   <Select
                     {...field}
@@ -745,11 +808,11 @@ if (!isDirty && !hasAttachmentChanges) {
             disabled={isCreateTicket || isUpdateTicket}
             className="theme-btn text-white px-5 py-2 rounded-lg"
           >
-          {isCreateTicket || isUpdateTicket
-                  ? <div className='flex justify-center items-center gap-2'><Loader/> Processing...</div>
-                  : id
-                    ? "Update Ticket"
-                    : "Create Ticket"}
+            {isCreateTicket || isUpdateTicket
+              ? <div className='flex justify-center items-center gap-2'><Loader /> Processing...</div>
+              : id
+                ? "Update Ticket"
+                : "Create Ticket"}
           </button>
         </div>
 
