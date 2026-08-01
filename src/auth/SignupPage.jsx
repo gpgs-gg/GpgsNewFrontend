@@ -29,7 +29,8 @@ const SignupPage = () => {
       await registerUser({
         name: data.name,
         email: data.email,
-        password: data.password,
+        password: data.password,  
+        role:"Admin"
       });
       toast.dismiss();
       toast.success("Account created successfully!");

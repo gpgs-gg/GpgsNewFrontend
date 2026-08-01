@@ -13,7 +13,7 @@ import { useParams } from "react-router-dom";
 import FilePreview from "../common/FilePreview";
 import Loader from "../common/Loader";
 import { convertStringFormatDate } from "../../utils/dateFormatter";
-
+import { useLocations } from "../Options/services";
 const PropertyCreateEdit = () => {
     const navigate = useNavigate()
     const { id } = useParams();
@@ -29,6 +29,10 @@ const PropertyCreateEdit = () => {
     const { mutate: submitProperty, isPending: isSubmitProperty } = usecreatePropertyData();
     const { data: singlePropertyData, isPending: isSingleProperty } = useSinglePropertiesData(id)
     const { mutate: updatePropertyData, isPending: isUpdateProperty } = useUpdatePropertiesData(id)
+    // get locations
+    const { data, error } = useLocations();
+    const locations = data?.[0]?.items || [];
+
     //    define for global scope 
     const property = singlePropertyData?.data;
     const [aadharFiles, setAadharFiles] = useState([]);
@@ -126,11 +130,10 @@ const PropertyCreateEdit = () => {
         { value: "Main Router", label: "Main Router" },
         { value: "Sub Router", label: "Sub Router" },
     ];
-    const LocationOptions = [
-        { value: "Nerul ( E )", label: "Nerul ( E )" },
-        { value: "Nerul ( W )", label: "Nerul ( W )" },
-    ];
-
+  const LocationOptions = locations.map((location) => ({
+    value: location.value,
+    label: location.label,
+  }));
 
 
 

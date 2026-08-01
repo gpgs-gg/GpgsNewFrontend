@@ -13,6 +13,7 @@ import { IoClose } from "react-icons/io5";
 import { TableFilePreview } from "../common/FilePreview";
 import useDebounce from "../hooks/useDebounce";
 import ExportDrawer from "./ExportDrawer";
+import TableSkeleton from "../common/TableSkelton";
 
 
 const priorityColors = {
@@ -51,7 +52,7 @@ const TicketsList = () => {
     const rowsPerPage = 10;
     const debouncedSearch = useDebounce(search);
 
-    const { data: apiResponse } = useTicketsData({
+    const { data: apiResponse, isPending: isTicketData } = useTicketsData({
         page: currentPage,
         limit: rowsPerPage,
         search: debouncedSearch,
@@ -368,7 +369,7 @@ const TicketsList = () => {
                         <div className="relative w-80">
                             <input
                                 className="border px-3 py-2 pr-10 rounded-lg w-full"
-                                placeholder="Search property..."
+                                placeholder="Search Tickets..."
                                 value={search}
                                 onChange={(e) => {
                                     setSearch(e.target.value);
@@ -393,16 +394,20 @@ const TicketsList = () => {
 
 
 
-                        <div className="flex flex-wrap gap-2 items-center">
-                            <button
-                                onClick={handleSelectedColoum}
-                                className="px-1 py-1  text-black whitespace-nowrap  flex items-center gap-2"
-                            >
-                                <i className="fas fa-download"></i>
-                                Export {selectedTickets.size > 0 ? `(${selectedTickets.size} selected)` : '(All)'}
-                            </button>
 
-                            {/* <button 
+
+                        <div className="flex gap-2">
+
+                            <div className="flex flex-wrap gap-2 items-center">
+                                <button
+                                    onClick={handleSelectedColoum}
+                                    className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
+                                >
+                                    <i className="fas fa-download"></i>
+                                    Export {selectedTickets.size > 0 ? `(${selectedTickets.size} selected)` : '(All)'}
+                                </button>
+
+                                {/* <button 
                                     onClick={() => setShowColumnSelector(!showColumnSelector)}
                                     className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center gap-2"
                                 >
@@ -410,15 +415,12 @@ const TicketsList = () => {
                                     Select Columns
                                 </button>  */}
 
-                            {selectedTickets.size > 0 && (
-                                <span className="text-sm text-gray-600">
-                                    {selectedTickets.size} ticket(s) selected
-                                </span>
-                            )}
-                        </div>
-
-
-                        <div className="flex gap-2">
+                                {selectedTickets.size > 0 && (
+                                    <span className="text-sm text-gray-600">
+                                        {selectedTickets.size} ticket(s) selected
+                                    </span>
+                                )}
+                            </div>
                             {Object.keys(filters).length > 0 && (
                                 <button
                                     onClick={handleReset}
@@ -475,144 +477,185 @@ const TicketsList = () => {
                                     <th className="p-3 text-left">Updated By ID</th>
                                     <th className="p-3 text-left">Updated By Name</th>
                                     <th className="p-3 text-left">Updated Date Time</th>
+                                    <th className="p-3 text-left">workLogs</th>
                                     <th className="p-3 text-left">Location</th>
                                     <th className="sticky right-0  bg-gray-100 p-3 text-center shadow-md">Actions</th>
                                 </tr>
                             </thead>
+                            {isTicketData ? (
+                                <TableSkeleton rows={20} columns={17} />
+                            ) : (
+                                <tbody>
+                                    {apiData.length > 0 ? (
+                                        apiData.map((item) => (
+                                            <tr
+                                                key={item._id}
+                                                className="border-t border-gray-300 hover:bg-gray-50 whitespace-nowrap"
+                                            >
+                                                <td className="sticky left-0 z-20 bg-white p-3 shadow-md">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedTickets.has(item.ticketId)}
+                                                        onChange={() => {
+                                                            setSelectedTickets((prev) => {
+                                                                const newSet = new Set(prev);
 
-                            <tbody>
-                                {apiData.length > 0 ? (
-                                    apiData.map((item) => (
-                                        <tr
-                                            key={item._id}
-                                            className="border-t border-gray-300 hover:bg-gray-50 whitespace-nowrap"
-                                        >
-                                            <td className="sticky left-0 z-20 bg-white p-3 shadow-md">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedTickets.has(item.ticketId)}
-                                                    onChange={() => {
-                                                        setSelectedTickets((prev) => {
-                                                            const newSet = new Set(prev);
+                                                                if (newSet.has(item.ticketId)) {
+                                                                    newSet.delete(item.ticketId);
+                                                                } else {
+                                                                    newSet.add(item.ticketId);
+                                                                }
 
-                                                            if (newSet.has(item.ticketId)) {
-                                                                newSet.delete(item.ticketId);
-                                                            } else {
-                                                                newSet.add(item.ticketId);
+                                                                return newSet;
+                                                            });
+                                                        }}
+                                                        className="h-4 w-4 accent-gray-500 border-gray-300 rounded "
+                                                    />
+                                                </td>
+                                                <td className="sticky  left-0 z-20  bg-white p-3 font-semibold shadow-md">{item.ticketId}</td>
+
+                                                <td className="p-3">
+                                                    {formatDateAndTime(new Date(item.dateCreated))}
+                                                </td>
+
+                                                <td className="p-3">{item.propertyCode}</td>
+
+                                                <td className="p-3">
+                                                    <div>
+                                                        <div className="font-medium">
+                                                            {item.title
+                                                                ? item.title.length > 25
+                                                                    ? `${item.title.substring(0, 25)}...`
+                                                                    : item.title
+                                                                : "N/A"}
+                                                        </div>
+
+                                                        <div className="text-xs text-gray-500 wrap-break-word max-w-75 whitespace-nowrap overflow-hidden text-ellipsis">
+                                                            {item.description
+                                                                ? item.description.length > 60
+                                                                    ? `${item.description.substring(0, 60)}...`
+                                                                    : item.description
+                                                                : "No Description"}
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                <td className="p-3 text-center">
+                                                    <span
+                                                        className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[item.status] || "bg-gray-100 text-gray-700"
+                                                            }`}
+                                                    >
+                                                        {item.status}
+                                                    </span>
+                                                </td>
+                                                <td className="p-3">
+                                                    <span
+                                                        className={`px-2 py-1  text-xs font-semibold ${priorityColors[item.priority] || "bg-gray-100 text-gray-700"
+                                                            }`}
+                                                    >
+                                                        {item.priority}
+                                                    </span>
+                                                </td>
+                                                <td className="p-3">
+                                                    <div className="inline-flex">
+                                                        <TableFilePreview files={item.attachment} />
+                                                    </div>
+                                                </td>
+                                                <td className="p-3">{item.customerImpacted}</td>
+                                                <td className="p-3">{item.escalated}</td>
+                                                <td className="p-3"> {formatDate(item.targetDate)}</td>
+                                                <td className="p-3">{item.category}</td>
+
+
+
+                                                <td className="p-3">{item.manager}</td>
+                                                <td className="p-3">{item.ticketManager}</td>
+                                                <td className="p-3">{item.assignee}</td>
+                                                <td className="p-3">{item.department}</td>
+                                                <td className="p-3">{item.createdById}</td>
+                                                <td className="p-3">{item.createdByName}</td>
+                                                <td className="p-3">{item.updatedById}</td>
+                                                <td className="p-3">{item.updatedByName}</td>
+                                                <td className="p-3">{item.updatedDateTime}</td>
+                                                <td className="px-2">
+                                                    {item.workLogs?.length > 0 ? (
+                                                        <div className="group relative cursor-pointer">
+                                                            {/* Short Text */}
+                                                            <div className="truncate max-w-28 text-xs">
+                                                                {[...item.workLogs]
+                                                                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]?.message}
+                                                            </div>
+
+                                                            {/* Hover Popup */}
+                                                            <div className="absolute right-0 top-4 hidden group-hover:block bg-white border shadow-xl rounded-lg p-3 w-80 max-h-62.5 overflow-y-auto whitespace-pre-line text-xs z-50">
+                                                                {[...item.workLogs]
+                                                                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                                                    .map((log, index) => (
+                                                                        <div key={log._id || index} className="mb-3">
+                                                                            <div className="text-gray-700">
+                                                                                {log.createdBy}
+                                                                                <span className="mx-1">•</span>
+                                                                                {formatDateAndTime(log.createdAt)}
+                                                                            </div>
+
+                                                                            <div className="mt-1 font-medium">
+                                                                                {log.message}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-xs text-gray-500">-</div>
+                                                    )}
+                                                </td>
+                                                <td className="p-3">{item.propertyLocation}</td>
+
+
+
+                                                <td className="sticky right-0 z-20 bg-white p-3 shadow-md">
+                                                    <div className="flex justify-center gap-2">
+                                                        <Link to={`/tickets/view/${item._id}`}>
+                                                            <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
+                                                                <Eye size={16} />
+                                                            </button>
+                                                        </Link>
+
+                                                        <Link
+                                                            to={`/tickets/edit/${item._id}`}
+                                                            state={{
+                                                                filters,
+                                                                search: debouncedSearch,
+                                                            }}
+                                                        >
+                                                            <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
+                                                                <Pencil size={16} />
+                                                            </button>
+                                                        </Link>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleDelete(item._id)
                                                             }
-
-                                                            return newSet;
-                                                        });
-                                                    }}
-                                                    className="h-4 w-4 accent-gray-500 border-gray-300 rounded "
+                                                            className="p-2 bg-red-100 rounded-lg hover:bg-red-200"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={10}>
+                                                <NoDataFound
+                                                    title="No Tickets Found"
+                                                    description="Try searching different keywords"
                                                 />
                                             </td>
-                                            <td className="sticky  left-0 z-20  bg-white p-3 font-semibold shadow-md">{item.ticketId}</td>
-
-                                            <td className="p-3">
-                                                {formatDateAndTime(new Date(item.dateCreated))}
-                                            </td>
-
-                                            <td className="p-3">{item.propertyCode}</td>
-
-                                            <td className="p-3">
-                                                <div>
-                                                    <div className="font-medium">
-                                                        {item.title
-                                                            ? item.title.length > 25
-                                                                ? `${item.title.substring(0, 25)}...`
-                                                                : item.title
-                                                            : "N/A"}
-                                                    </div>
-
-                                                    <div className="text-xs text-gray-500 wrap-break-word max-w-75 whitespace-nowrap overflow-hidden text-ellipsis">
-                                                        {item.description
-                                                            ? item.description.length > 60
-                                                                ? `${item.description.substring(0, 60)}...`
-                                                                : item.description
-                                                            : "No Description"}
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            <td className="p-3 text-center">
-                                                <span
-                                                    className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[item.status] || "bg-gray-100 text-gray-700"
-                                                        }`}
-                                                >
-                                                    {item.status}
-                                                </span>
-                                            </td>
-                                            <td className="p-3">
-                                                <span
-                                                    className={`px-2 py-1  text-xs font-semibold ${priorityColors[item.priority] || "bg-gray-100 text-gray-700"
-                                                        }`}
-                                                >
-                                                    {item.priority}
-                                                </span>
-                                            </td>
-                                            <td className="p-3">
-                                                <div className="inline-flex">
-                                                    <TableFilePreview files={item.attachment} />
-                                                </div>
-                                            </td>
-                                            <td className="p-3">{item.customerImpacted}</td>
-                                            <td className="p-3">{item.escalated}</td>
-                                            <td className="p-3"> {formatDate(item.targetDate)}</td>
-                                            <td className="p-3">{item.category}</td>
-
-
-
-                                            <td className="p-3">{item.manager}</td>
-                                            <td className="p-3">{item.ticketManager}</td>
-                                            <td className="p-3">{item.assignee}</td>
-                                            <td className="p-3">{item.department}</td>
-                                            <td className="p-3">{item.createdById}</td>
-                                            <td className="p-3">{item.createdByName}</td>
-                                            <td className="p-3">{item.updatedById}</td>
-                                            <td className="p-3">{item.updatedByName}</td>
-                                            <td className="p-3">{item.updatedDateTime}</td>
-                                            <td className="p-3">{item.propertyLocation}</td>
-
-
-
-                                            <td className="sticky right-0 z-20 bg-white p-3 shadow-md">
-                                                <div className="flex justify-center gap-2">
-                                                    <Link to={`/tickets/view/${item._id}`}>
-                                                        <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
-                                                            <Eye size={16} />
-                                                        </button>
-                                                    </Link>
-
-                                                    <Link to={`/tickets/edit/${item._id}`}>
-                                                        <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
-                                                            <Pencil size={16} />
-                                                        </button>
-                                                    </Link>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleDelete(item._id)
-                                                        }
-                                                        className="p-2 bg-red-100 rounded-lg hover:bg-red-200"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={10}>
-                                            <NoDataFound
-                                                title="No Tickets Found"
-                                                description="Try searching different keywords"
-                                            />
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-
+                                    )}
+                                </tbody>
+                            )}
                         </table>
 
                     </div>

@@ -42,7 +42,6 @@ export const useSingleClientRentData = (id) => {
 
 // ✅ Update Bed Sheet
 const updateRentData = async ({ id, data }) => {
-   console.log(11111111111111, id, data)
   const response = await apiClient.put(`/rent-history/${id}`, data);
   return response.data;
 };

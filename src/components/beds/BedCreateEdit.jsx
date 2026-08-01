@@ -13,7 +13,7 @@ import Loader from "../common/Loader";
 import { usecreateBedData, usePropertiesDropdown, useSingleBedsData, useUpdateBedsData } from "./services";
 import { AsyncPaginate } from "react-select-async-paginate";
 import { getPropertyDropdown } from "../properties/services";
-
+import { useSharingTypes } from "../Options/services";
 const BedCreateEdit = () => {
     const navigate = useNavigate()
     const { id } = useParams();
@@ -30,7 +30,9 @@ const BedCreateEdit = () => {
     const { data: singleBedData, isPending: isSingleBed } = useSingleBedsData(id)
     const { mutate: updateBedData, isPending: isUpdateBed } = useUpdateBedsData(id)
     const { data: propertiesDropdown, isPending: ispropertiesDropdown } = usePropertiesDropdown()
+    const { data: sharingTypeData } = useSharingTypes();
 
+    const sharingTypes = sharingTypeData?.[0]?.items || [];
 
     const Bed = singleBedData?.data;
     const [aadharFiles, setAadharFiles] = useState([]);
@@ -45,12 +47,10 @@ const BedCreateEdit = () => {
         { value: "Any", label: "Any" },
     ];
 
-    const sharingTypeOptions = [
-        { value: "Private", label: "Private" },
-        { value: "Double", label: "Double" },
-        { value: "Triple", label: "Triple" },
-        { value: "Quad", label: "Quad" },
-    ];
+    const sharingTypeOptions = sharingTypes.map((type) => ({
+        value: type.value,
+        label: type.label,
+    }));
     const bathAttachedOptions = [
         { value: "Yes", label: "Yes" },
         { value: "No", label: "No" },
@@ -233,7 +233,7 @@ const BedCreateEdit = () => {
                                             additional={{ page: 1 }}
                                             debounceTimeout={500}
                                             loadOptions={loadPropertyOptions}
-                                            placeholder = "search/select"
+                                            placeholder="search/select"
                                             value={field.value}
                                             onChange={(option) => {
                                                 field.onChange(option);

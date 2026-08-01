@@ -105,11 +105,16 @@ import {
   ClipboardList,
   UserCog,
   Boxes,
+  Database,
 } from "lucide-react";
 import { CiLogout } from "react-icons/ci";
 import { useLogout } from "../auth/services";
 import { BsBank } from "react-icons/bs";
+import { useAuth } from "../context/authContext";
+import { useQueryClient } from "@tanstack/react-query";
 const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
+    const { user , setUser} = useAuth();
+  const queryClient = useQueryClient();
   const [hovered, setHovered] = useState(false);
   const { mutate: logoutUser, isPending } = useLogout();
   const navigate = useNavigate();
@@ -117,6 +122,9 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
   const handleLogout = () => {
     logoutUser(undefined, {
       onSuccess: () => {
+        localStorage.removeItem("user");
+        setUser(null);
+        queryClient.clear();
         navigate("/login", { replace: true });
       },
     });
@@ -125,22 +133,33 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
   // 1. collapsed = false
   // 2. OR mouse is hovering
   const expanded = !collapsed || hovered;
+  // const { user } = useAuth();
 
-  const menuItems = [
-    { name: "Dashboard", path: "/", icon: <LayoutDashboard size={22} /> },
-    { name: "Properties", path: "/properties", icon: <Building2 size={22} /> },
-    { name: "Beds", path: "/beds", icon: <Bed size={22} /> },
-    { name: "Available Beds", path: "/available-beds", icon: <Bed size={22} /> },
-    { name: "New Booking", path: "/new-bookings", icon: <UserPlus size={22} /> },
-    { name: "Clients", path: "/clients", icon: <Users size={22} /> },
-    // { name: "Rent Ledger", path: "/rent-ledger", icon: <Wallet size={22} /> },
-    { name: "Tickets", path: "/tickets", icon: <Ticket size={22} /> },
-    { name: "Bank Transacations", path: "/bank-transactions", icon: <BsBank size={22} /> },
-    // { name: "Expenses", path: "/expenses", icon: <ClipboardList size={22} /> },
-    // { name: "Complaints", path: "/complaints", icon: <Ticket size={22} /> },
-    // { name: "Staff", path: "/staff", icon: <UserCog size={22} /> },
-    // { name: "Inventory", path: "/inventory", icon: <Boxes size={22} /> },
-  ];
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+
+  const menuItems = isAdmin
+    ? [
+      { name: "Dashboard", path: "/", icon: <LayoutDashboard size={22} /> },
+      { name: "Properties", path: "/properties", icon: <Building2 size={22} /> },
+      { name: "Beds", path: "/beds", icon: <Bed size={22} /> },
+      { name: "Available Beds", path: "/available-beds", icon: <Bed size={22} /> },
+      { name: "New Booking", path: "/new-bookings", icon: <UserPlus size={22} /> },
+      { name: "Clients", path: "/clients", icon: <Users size={22} /> },
+      { name: "Rent Ledger", path: "/rent-ledger", icon: <Wallet size={22} /> },
+      { name: "Tickets", path: "/tickets", icon: <Ticket size={22} /> },
+      { name: "Bank Transactions", path: "/bank-transactions", icon: <BsBank size={22} /> },
+      { name: "PG Leads", path: "/leads", icon: <Users size={22} /> },
+      { name: "Users", path: "/users", icon: <Users size={22} /> },
+      { name: "Dynamic Options", path: "/options", icon: <Database size={22} /> },
+    ]
+    : [
+      { name: "Dashboard", path: "/", icon: <LayoutDashboard size={22} /> },
+      {
+        name: "Client Rent History",
+        path: "/renthistory",
+        icon: <ClipboardList size={22} />,
+      },
+    ];
 
   return (
     <>
@@ -184,10 +203,9 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
               overflow-hidden whitespace-nowrap
               transition-all duration-300 ease-in-out
 
-              ${
-                expanded
-                  ? "opacity-100 ml-3 max-w-55"
-                  : "opacity-0 ml-0 max-w-0"
+              ${expanded
+                ? "opacity-100 ml-3 max-w-55"
+                : "opacity-0 ml-0 max-w-0"
               }
             `}
           >
@@ -196,66 +214,63 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
         </div>
 
         {/* Menu */}
-        <div className="h-[calc(100vh-64px)] overflow-y-auto scrollbar-hide py-3">
-          {menuItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                `mx-2 my-1 flex items-center justify-start rounded-xl h-12 transition-all duration-300
-                 ${
-                   isActive
-                     ? "bg-white text-black shadow-md"
-                     : "hover:bg-slate-700"
-                 }`
-              }
-            >
-              {/* Icon */}
-              <div className="w-16 flex justify-center shrink-0">
-                {item.icon}
-              </div>
+        <div className="h-[calc(100vh-64px)] flex flex-col overflow-hidden">
+          {/* Scrollable Menu */}
+          <div className="flex-1 overflow-y-auto scrollbar-hide py-3">
+            {menuItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  `mx-2 my-1 flex items-center rounded-xl h-12 transition-all duration-300
+          ${isActive
+                    ? "bg-white text-black shadow-md"
+                    : "hover:bg-slate-700"
+                  }`
+                }
+              >
+                <div className="w-16 flex justify-center shrink-0">
+                  {item.icon}
+                </div>
 
-              {/* Animated Text */}
-              <span
-                className={`
-                  overflow-hidden whitespace-nowrap
-                  transition-all duration-300 ease-in-out
-
-                  ${
-                    expanded
+                <span
+                  className={`overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out
+          ${expanded
                       ? "opacity-100 translate-x-0 max-w-45"
                       : "opacity-0 -translate-x-4 max-w-0"
-                  }
-                `}
-              >
-                {item.name}
-              </span>
-            </NavLink>
-          ))}
-            <div className="border-t  border-slate-600 p-3 shrink-0">
-    <button
-      onClick={handleLogout}
-      disabled={isPending}
-      className="w-full flex items-center rounded-xl h-12 hover:bg-slate-700 transition-all"
-    >
-      <div className="w-16 flex justify-center shrink-0">
-        <CiLogout size={22} />
-      </div>
+                    }`}
+                >
+                  {item.name}
+                </span>
+              </NavLink>
+            ))}
+          </div>
 
-      <span
-        className={`overflow-hidden whitespace-nowrap transition-all duration-300 ${
-          expanded
-            ? "opacity-100 max-w-40"
-            : "opacity-0 max-w-0"
-        }`}
-      >
-        {isPending ? "Logging out..." : "Logout"}
-      </span>
-    </button>
-  </div>
+          {/* Fixed Logout */}
+          <div className="mt-auto border-t border-slate-700 p-3 bg-slate-800 shrink-0">
+            <button
+              onClick={handleLogout}
+              disabled={isPending}
+              className="w-full flex items-center rounded-xl h-12 hover:bg-slate-700 transition-all"
+            >
+              <div className="w-16 flex justify-center shrink-0">
+                <CiLogout size={22} />
+              </div>
+
+              <span
+                className={`overflow-hidden whitespace-nowrap transition-all duration-300
+        ${expanded
+                    ? "opacity-100 max-w-40"
+                    : "opacity-0 max-w-0"
+                  }`}
+              >
+                {isPending ? "Logging out..." : "Logout"}
+              </span>
+            </button>
+          </div>
         </div>
-        
+
       </aside>
     </>
   );

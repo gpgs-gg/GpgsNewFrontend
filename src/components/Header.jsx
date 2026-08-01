@@ -11,7 +11,6 @@ const Header = ({
   setMobileOpen,
 }) => {
   const { user, loading, isAuthenticated } = useAuth();
-
   const navigate = useNavigate();
   const { mutate: logoutUser, isPending } = useLogout();
 

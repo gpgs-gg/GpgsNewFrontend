@@ -1,20 +1,21 @@
 import React from 'react'
 import { useForm, Controller } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Select from "react-select";
 import { selectStyles } from "../../utils/selectStyles";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { useCreateTicketData, useSingleTicketData, useUpdateTicketData } from "./services";
+import { useCreateTicketData, useSingleTicketData, useUpdateTicketData, getTicketNavigation } from "./services";
 import { useEffect, useState } from "react";
 import { usePropertiesDropdown } from '../beds/services';
 import { useCurrentUser } from '../../auth/services';
 import { convertStringFormatDate, convertStringFormatDateTime, formatDateAndTime } from '../../utils/dateFormatter';
-import FilePreview from '../common/FilePreview';
 import Loader from '../common/Loader';
 import { getPropertyDropdown } from '../properties/services';
 import { AsyncPaginate } from 'react-select-async-paginate';
+import { Link } from "react-router-dom";
+import FilePreview from '../common/FilePreview';
 function TicketCreateEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -34,7 +35,10 @@ function TicketCreateEdit() {
   const { data: singleTicket } = useSingleTicketData(id);
   const { data: propertiesDropdown, isPending: ispropertiesDropdown } = usePropertiesDropdown()
   const { data: currentUser, isLoading } = useCurrentUser();
-
+  const [navigation, setNavigation] = useState({
+    previousId: null,
+    nextId: null,
+  });
   const [attachmentFiles, setAttachmentFiles] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
 
@@ -59,6 +63,33 @@ function TicketCreateEdit() {
     }
   }, [id, singleTicket, reset]);
 
+  const location = useLocation();
+
+  const filters = location.state?.filters || {};
+  const search = location.state?.search || "";
+
+  useEffect(() => {
+    if (!id) return;
+
+    const loadNavigation = async () => {
+      try {
+        const res = await getTicketNavigation({
+          id,
+          search,
+          ...filters,
+        });
+
+        setNavigation({
+          previousId: res.previousId,
+          nextId: res.nextId,
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    loadNavigation();
+  }, [id, search, filters]);
 
 
   const StatusOptions = [
@@ -71,15 +102,7 @@ function TicketCreateEdit() {
     { value: "Cancelled", label: "Cancelled" },
     { value: "ReOpen", label: "ReOpen" },
   ];
-  const PoliceNocStatusOptions = [
-    { value: "Approved", label: "Approved" },
-    { value: "Rejected", label: "Rejected" },
-  ];
 
-  const RouterConnectionTypeOptions = [
-    { value: "Main Router", label: "Main Router" },
-    { value: "Sub Router", label: "Sub Router" },
-  ];
   const LocationOptions = [
     { value: "Nerul ( E )", label: "Nerul ( E )" },
     { value: "Nerul ( W )", label: "Nerul ( W )" },
@@ -187,7 +210,6 @@ function TicketCreateEdit() {
     for (const [key, value] of formData.entries()) {
       console.log(key, value);
     }
-
     formData.append("createdBy", currentUser?.user?.role || "");
     formData.append("createdByName", currentUser?.user?.name || "");
     // formData.append("dateCreated", convertStringFormatDateTime(new Date()));      
@@ -196,13 +218,11 @@ function TicketCreateEdit() {
       "auditorLog",
       data.auditorLog || ""
     );
-
     // Existing attachments
     formData.append(
       "existingAttachments",
       JSON.stringify(existingAttachments)
     );
-
     // New Attachments
     attachmentFiles.forEach((file) => {
       formData.append("attachment", file);
@@ -219,7 +239,7 @@ function TicketCreateEdit() {
             toast.dismiss()
             toast.success(res.message);
 
-            navigate("/tickets");
+            // navigate("/tickets");
 
             reset();
 
@@ -284,13 +304,14 @@ function TicketCreateEdit() {
             </div>
 
             <div className="flex justify-end gap-5">
-              <button
-                type="button"
-                onClick={() => window.history.back()}
-                className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium"
-              >
-                Cancel
-              </button>
+              <Link to="/tickets">
+                <button
+                  type="button"
+                  className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium"
+                >
+                  Cancel
+                </button>
+              </Link>
 
               <button
                 type="submit"
@@ -304,11 +325,41 @@ function TicketCreateEdit() {
                     : "Create Ticket"}
               </button>
             </div>
+
           </div>
         </div>
         {/* Property Details */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold mb-4">Ticket Details</h2>
+          <div className="flex justify-between items-center  mb-4">
+            <h2 className="text-xl font-semibold mb-4">Ticket Details</h2>
+            <div className="flex justify-end gap-5">
+              <button
+                type="button"
+                disabled={!navigation.previousId}
+                className="border border-gray-600 theme-btn px-6 py-2 rounded-lg font-medium"
+                onClick={() =>
+                  navigate(`/tickets/edit/${navigation.previousId}`, {
+                    state: location.state,
+                  })
+                }
+              >
+                Previous
+              </button>
+
+              <button
+                type="button"
+                disabled={!navigation.nextId}
+                className="border border-gray-600 theme-btn px-6 py-2 rounded-lg font-medium"
+                onClick={() =>
+                  navigate(`/tickets/edit/${navigation.nextId}`, {
+                    state: location.state,
+                  })
+                }
+              >
+                Next
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
@@ -549,6 +600,7 @@ function TicketCreateEdit() {
                 </div>
               )}
             />
+
             <Controller
               name="ticketManager"
               control={control}
@@ -663,7 +715,7 @@ function TicketCreateEdit() {
             Description
           </h2>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             <div className="form-group">
               <textarea
@@ -685,7 +737,7 @@ function TicketCreateEdit() {
 
             </div>
 
-            <div className="form-group md:col-span-2">
+            <div className="form-group md:col-span-1">
               <input
                 type="file"
                 multiple
@@ -724,6 +776,61 @@ function TicketCreateEdit() {
                 }
               />
             </div>
+
+          {id && (
+              <div className="form-group">
+              <textarea
+
+                rows={5}
+                {...register("newWorkLog", {
+                 
+                })}
+                className="form-input"
+              />
+              <label className="form-label form-label ">
+                Add WorkLog
+              </label>
+
+            </div>
+          )}
+
+            {id && (
+              <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col md:col-span-1">
+                <h3 className="font-semibold text-lg mb-1">
+                  Work Log History
+                </h3>
+
+                <div className="flex-1 overflow-y-auto">
+                  {singleTicket?.data?.workLogs?.length > 0 ? (
+                    singleTicket.data.workLogs
+                      .slice()
+                      .reverse()
+                      .map((log) => (
+                        <div
+                          key={log._id}
+                          className="border-b py-3 last:border-b-0"
+                        >
+                          <small className="text-gray-500">
+                            {log.createdBy || "System"} •{" "}
+                            {formatDateAndTime(log.createdAt)}
+                          </small>
+                          <p className="whitespace-pre-line text-sm">
+                            {log.message}
+                          </p>
+
+
+                        </div>
+                      ))
+                  ) : (
+                    <p className="text-gray-400 text-center mt-10">
+                      No Work Logs Available
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+
 
           </div>
 
@@ -795,13 +902,14 @@ function TicketCreateEdit() {
           </div>
         )}
         <div className="flex justify-end gap-5">
-          <button
-            type="button"
-            onClick={() => window.history.back()}
-            className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium"
-          >
-            Cancel
-          </button>
+          <Link to="/tickets">
+            <button
+              type="button"
+              className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium"
+            >
+              Cancel
+            </button>
+          </Link>
 
           <button
             type="submit"

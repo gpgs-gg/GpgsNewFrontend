@@ -1,16 +1,44 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../../../api/ApiClient";
 
-const getClients= async () => {
-  const response = await apiClient.get("/clients");
+const getClients = async ({ page, limit, search, filters }) => {
+  const params = {
+    page,
+    limit,
+  };
+
+  if (search?.trim()) {
+    params.search = search.trim();
+  }
+
+  Object.entries(filters || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      params[key] = value;
+    }
+  });
+
+  const response = await apiClient.get("/clients", {
+    params,
+  });
+
   return response.data;
 };
 
-export const useClients = ( enabled = true ) => {
+export const useClients = (
+  { page, limit, search, filters },
+  enabled = true,
+) => {
   return useQuery({
-    queryKey: ["get-clients-data"],
-    queryFn: getClients,
-    enabled ,// Only fetch when enabled is true
+    queryKey: ["get-clients-data", page, limit, search, filters],
+    queryFn: () =>
+      getClients({
+        page,
+        limit,
+        search,
+        filters,
+      }),
+    keepPreviousData: true,
+    enabled,
   });
 };
 

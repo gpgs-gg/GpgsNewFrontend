@@ -3,7 +3,12 @@ import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
 import NoDataFound from "../common/NoDataFound";
-import { useCancelNewBooking, useClientFromNewBooking, useClients } from "./services";
+import useDebounce from "../hooks/useDebounce";
+import {
+  useCancelNewBooking,
+  useClientFromNewBooking,
+  useClients,
+} from "./services";
 import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";
 import { FaEllipsisV } from "react-icons/fa";
@@ -20,69 +25,55 @@ const ClientsTable = () => {
   const [showBedShiftModal, setShowBedShiftModal] = useState(false);
   const [showBedHistoryModal, setShowBedHistoryModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState();
+  const debouncedSearch = useDebounce(search, 500);
+  const [filterLabels, setFilterLabels] = useState([]);
   const [resetTrigger, setResetTrigger] = useState(0);
 
   const rowsPerPage = 10;
-  const { data: clients, isPending: isClients } = useClients();
-  const {
-    mutate: createClientFromBooking,
-    isPending: isCreateClientLoading,
-  } = useClientFromNewBooking();
+  const { data: clients, isPending: isClients } = useClients({
+    page: currentPage,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    filters,
+  });
+  const { mutate: createClientFromBooking, isPending: isCreateClientLoading } =
+    useClientFromNewBooking();
 
-
-  const {
-    mutate: cancelBooking,
-    isPending: isCancelBookingLoading,
-  } = useCancelNewBooking();
+  const { mutate: cancelBooking, isPending: isCancelBookingLoading } =
+    useCancelNewBooking();
 
   // Safely get bookings data
   const bookings = clients?.data || [];
 
-  // Filter logic - fixed to include all fields properly
-  const filteredData = useMemo(() => {
-    if (!bookings.length) return [];
+  const totalPages = clients?.totalPages || 1;
 
-    return bookings.filter((item) => {
-      // Search matches across multiple fields
-      const matchesSearch = !search ||
-        (item.fullName && item.fullName.toLowerCase().includes(search.toLowerCase())) ||
-        (item.callingNo && item.callingNo.toLowerCase().includes(search.toLowerCase())) ||
-        (item.propertyId?.propertyCode && item.propertyId.propertyCode.toLowerCase().includes(search.toLowerCase())) ||
-        (item.bedId?.bedNo && item.bedId.bedNo.toLowerCase().includes(search.toLowerCase())) ||
-        (item.monthlyRent && item.monthlyRent.toString().includes(search)) ||
-        (item.status && item.status.toLowerCase().includes(search.toLowerCase())) ||
-        (item.temporaryPropertyId?.propertyCode && item.temporaryPropertyId.propertyCode.toLowerCase().includes(search.toLowerCase())) ||
-        (item.temporaryBedId?.bedNo && item.temporaryBedId.bedNo.toLowerCase().includes(search.toLowerCase()));
+  const totalRecords = clients?.totalRecords || 0;
 
-      // Apply filters
-      const matchesBookingType = !filters.bookingType || item.bookingType === filters.bookingType;
-      const matchesStatus = !filters.status || item.status === filters.status;
-      const matchesPropertyCode = !filters.propertyCode ||
-        (item.propertyId?.propertyCode && item.propertyId.propertyCode === filters.propertyCode);
-
-      return matchesSearch && matchesBookingType && matchesStatus && matchesPropertyCode;
-    });
-  }, [bookings, filters, search]);
+  const paginatedData = bookings;
 
   // Reset to page 1 when filters or search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters, search]);
-
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage, rowsPerPage]);
+  }, [debouncedSearch, filters]);
 
   const handleReset = () => {
     setFilters({});
+    setFilterLabels([]);
     setSearch("");
     setCurrentPage(1);
-  };
 
+    setResetTrigger((prev) => prev + 1);
+  };
+  const removeFilter = (key) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: "",
+    }));
+
+    setFilterLabels((prev) => prev.filter((item) => item.key !== key));
+
+    setCurrentPage(1);
+  };
   // Get status color - fixed for all statuses
   const getStatusColor = (status) => {
     if (!status) return "bg-gray-100 text-gray-700";
@@ -123,34 +114,28 @@ const ClientsTable = () => {
         { bookingId: item._id },
         {
           onSuccess: (response) => {
-            toast.dismiss()
+            toast.dismiss();
             toast.success(
-              response?.message ||
-              response?.data?.message ||
-              "Success"
+              response?.message || response?.data?.message || "Success",
             );
           },
           onError: (error) => {
-            toast.dismiss()
-            toast.error(
-              error?.response?.data?.message
-            );
+            toast.dismiss();
+            toast.error(error?.response?.data?.message);
           },
-        }
+        },
       );
     } else {
       cancelBooking(item._id, {
         onSuccess: (response) => {
           toast.success(
             response?.message ||
-            response?.data?.message ||
-            "Booking cancelled successfully"
+              response?.data?.message ||
+              "Booking cancelled successfully",
           );
         },
         onError: (error) => {
-          toast.error(
-            error?.response?.data?.message
-          );
+          toast.error(error?.response?.data?.message);
         },
       });
     }
@@ -161,16 +146,10 @@ const ClientsTable = () => {
       setOpenMenuId(null);
     };
 
-    document.addEventListener(
-      "click",
-      handleOutsideClick
-    );
+    document.addEventListener("click", handleOutsideClick);
 
     return () => {
-      document.removeEventListener(
-        "click",
-        handleOutsideClick
-      );
+      document.removeEventListener("click", handleOutsideClick);
     };
   }, []);
   return (
@@ -181,16 +160,14 @@ const ClientsTable = () => {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold uppercase">Client Master</h1>
-              <p className="text-sm text-gray-500">
-                Manage all clients
-              </p>
+              <p className="text-sm text-gray-500">Manage all clients</p>
             </div>
 
-            <Link to="/newbooking/create">
+            {/* <Link to="/newbooking/create">
               <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
                 + Create Clients
               </button>
-            </Link>
+            </Link> */}
           </div>
         </div>
 
@@ -219,7 +196,32 @@ const ClientsTable = () => {
                 </button>
               )}
             </div>
+            <div className="flex flex-wrap items-center gap-2 flex-1">
+              {filterLabels.map((filter) => (
+                <div
+                  key={filter.key}
+                  className="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow"
+                >
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {filter.title}
+                  </span>
 
+                  <span className="text-sm font-medium text-slate-800">
+                    {filter.value}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => removeFilter(filter.key)}
+                    className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-slate-400 transition hover:bg-red-100 hover:text-red-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-2"></div>
             <div className="flex gap-2">
               {Object.keys(filters).length > 0 && (
                 <button
@@ -275,9 +277,7 @@ const ClientsTable = () => {
                     <th className="p-3 text-center whitespace-nowrap">
                       Rent DOJ
                     </th>
-                    <th className="p-3 text-center whitespace-nowrap">
-                      EBDOJ
-                    </th>
+                    <th className="p-3 text-center whitespace-nowrap">EBDOJ</th>
 
                     <th className="p-3 text-center whitespace-nowrap">
                       Monthly Rent
@@ -290,30 +290,16 @@ const ClientsTable = () => {
                     <th className="p-3 text-center whitespace-nowrap">
                       Parking Charges
                     </th>
-                    <th className="p-3 text-center whitespace-nowrap">
-                      NSD
-                    </th>
-                    <th className="p-3 text-center whitespace-nowrap">
-                      NLD
-                    </th>
-                    <th className="p-3 text-center whitespace-nowrap">
-                      CVD
-                    </th>
+                    <th className="p-3 text-center whitespace-nowrap">NSD</th>
+                    <th className="p-3 text-center whitespace-nowrap">NLD</th>
+                    <th className="p-3 text-center whitespace-nowrap">CVD</th>
                     <th className="p-3 text-center whitespace-nowrap">
                       Login Enabled
                     </th>
-                    <th className="p-3 text-center whitespace-nowrap">
-                      VSD1
-                    </th>
-                    <th className="p-3 text-center whitespace-nowrap">
-                      VLD1
-                    </th>
-                    <th className="p-3 text-center whitespace-nowrap">
-                      VSD2
-                    </th>
-                    <th className="p-3 text-center whitespace-nowrap">
-                      VLD2
-                    </th>
+                    <th className="p-3 text-center whitespace-nowrap">VSD1</th>
+                    <th className="p-3 text-center whitespace-nowrap">VLD1</th>
+                    <th className="p-3 text-center whitespace-nowrap">VSD2</th>
+                    <th className="p-3 text-center whitespace-nowrap">VLD2</th>
 
                     {/* <th className="p-3 text-center whitespace-nowrap">
                       Total Amount
@@ -360,9 +346,7 @@ const ClientsTable = () => {
 
                         // Vacated highest priority
                         if (item.clientVacatingDate) {
-                          const vacatedDate = new Date(
-                            item.clientVacatingDate
-                          );
+                          const vacatedDate = new Date(item.clientVacatingDate);
 
                           if (vacatedDate <= today) {
                             return {
@@ -372,11 +356,8 @@ const ClientsTable = () => {
                           }
                         }
 
-
                         // Permanent Notice
-                        if (
-                          item.noticeStartDate
-                        ) {
+                        if (item.noticeStartDate) {
                           return {
                             text: "Notice",
                             className: "bg-orange-200 text-orange-700",
@@ -412,29 +393,26 @@ const ClientsTable = () => {
                               );
                             })()}
                           </td>
-                        <td className="p-3">
-  <span
-    className={`px-2 py-1 rounded-full text-xs font-semibold ${
-      item.stayType === "P. Booked"
-        ? " text-green-700"
-        : item.stayType === "T. Booked"
-        ? " text-yellow-700"
-        : " text-gray-700"
-    }`}
-  >
-    {item.stayType || "-"}
-  </span>
-</td>
-                          {/* Client Name */}
                           <td className="p-3">
-                            {item.fullName || "-"}
+                            <span
+                              className={`px-2 py-1 rounded-full text-md font-semibold ${
+                                item.stayType === "P. Booked"
+                                  ? " text-green-700"
+                                  : item.stayType === "T. Booked"
+                                    ? " text-yellow-700"
+                                    : " text-gray-700"
+                              }`}
+                            >
+                              {item.stayType || "-"}
+                            </span>
                           </td>
+                          {/* Client Name */}
+                          <td className="p-3 font-bold">{item.fullName || "-"}</td>
                           {/* Status */}
 
                           {/* Contact No */}
                           <td className="p-3 whitespace-nowrap">
-                            {item.callingNo ===
-                              item.whatsappNo ? (
+                            {item.callingNo === item.whatsappNo ? (
                               item.callingNo || "-"
                             ) : (
                               <>
@@ -447,62 +425,45 @@ const ClientsTable = () => {
 
                           {/* Property */}
                           <td className="p-3">
-                            {item.propertyId
-                              ?.propertyCode || "-"}
+                            {item.propertyId?.propertyCode || "-"}
                           </td>
-
-
 
                           {/* Room No */}
-                          <td className="p-3">
-                            {item.bedId?.roomNo || "-"}
-                          </td>
+                          <td className="p-3">{item.bedId?.roomNo || "-"}</td>
 
                           {/* Bed No */}
-                          <td className="p-3">
-                            {item.bedId?.bedNo || "-"}
-                          </td>
+                          <td className="p-3">{item.bedId?.bedNo || "-"}</td>
 
                           {/* Rent Start Date */}
                           <td className="p-3">
-                            {item.clientDoj
-                              ? formatDate(
-                                item.clientDoj
-                              )
-                              : "-"}
+                            {item.clientDoj ? formatDate(item.clientDoj) : "-"}
                           </td>
                           <td className="p-3">
-                            {item.ebDoj
-                              ? formatDate(
-                                item.ebDoj
-                              )
-                              : "-"}
+                            {item.ebDoj ? formatDate(item.ebDoj) : "-"}
                           </td>
 
                           {/* Monthly Rent */}
                           <td className="p-3">
                             ₹
-                            {(
-                              item?.bedId
-                                ?.monthlyRent || 0
-                            ).toLocaleString("en-IN")}
+                            {(item?.bedId?.monthlyRent || 0).toLocaleString(
+                              "en-IN",
+                            )}
                           </td>
 
                           {/* Deposit */}
                           <td className="p-3">
                             ₹
-                            {(
-                              item?.bedId
-                                ?.depositAmount || 0
-                            ).toLocaleString("en-IN")}
+                            {(item?.bedId?.depositAmount || 0).toLocaleString(
+                              "en-IN",
+                            )}
                           </td>
 
                           {/* Parking Charges */}
                           <td className="p-3">
                             ₹
-                            {(
-                              item?.parkingCharges || 0
-                            ).toLocaleString("en-IN")}
+                            {(item?.parkingCharges || 0).toLocaleString(
+                              "en-IN",
+                            )}
                           </td>
                           <td className="p-3">
                             {formatDate(item.noticeStartDate) || "-"}
@@ -514,10 +475,11 @@ const ClientsTable = () => {
                             {formatDate(item.clientVacatingDate) || "-"}
                           </td>
                           <td
-                            className={`p-3 font-semibold ${item.loginEnabled
-                              ? "text-green-600"
-                              : "text-red-600"
-                              }`}
+                            className={`p-3 font-semibold ${
+                              item.loginEnabled
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
                           >
                             {item.loginEnabled ? "Enabled" : "Disabled"}
                           </td>
@@ -563,25 +525,21 @@ const ClientsTable = () => {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setOpenMenuId(
-                                    openMenuId === item._id
-                                      ? null
-                                      : item._id
+                                    openMenuId === item._id ? null : item._id,
                                   );
                                 }}
-                                className={`p-2 rounded-md transition-colors ${openMenuId === item._id
-                                  ? "bg-blue-100 text-blue-600"
-                                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                  }`}
+                                className={`p-2 rounded-md transition-colors ${
+                                  openMenuId === item._id
+                                    ? "bg-blue-100 text-blue-600"
+                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                }`}
                               >
                                 <FaEllipsisV />
                               </button>
                               {openMenuId === item._id && (
-                                <div
-                                  className="absolute right-30 top-0 mt-2 w-fit bg-white font-bold border border-gray-300 rounded-lg shadow-xl z-9999"
-                                >
-
-
-                                  <Link to={`/rent-ledger/client/${item?._id}`}
+                                <div className="absolute right-30 top-0 mt-2 w-fit bg-white font-bold border border-gray-300 rounded-lg shadow-xl z-9999">
+                                  <Link
+                                    to={`/rent-ledger/client/${item?._id}`}
                                     className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
                                   >
                                     <span>💰</span>
@@ -599,9 +557,7 @@ const ClientsTable = () => {
                                     <span>Bed Shift</span>
                                   </button>
 
-                                  <button
-                                    className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
-                                  >
+                                  <button className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left">
                                     <span>💰</span>
                                     <span>FNF</span>
                                   </button>
@@ -618,7 +574,6 @@ const ClientsTable = () => {
                                   </button>
 
                                   <div className="flex">
-
                                     <Link
                                       to={`/clients/view/${item._id}`}
                                       className="flex items-center border-b border-r border-gray-200 gap-1 px-4 py-3 hover:bg-gray-100"
@@ -688,12 +643,12 @@ const ClientsTable = () => {
           </div>
 
           {/* PAGINATION */}
-          {filteredData.length > 0 && (
+          {totalRecords > 0 && (
             <div className="border-t p-3 flex justify-between items-center bg-white">
               <span className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
-                {Math.min(currentPage * rowsPerPage, filteredData.length)} of{" "}
-                {filteredData.length}
+                Showing {(currentPage - 1) * rowsPerPage + 1} -
+                {Math.min(currentPage * rowsPerPage, totalRecords)}
+                of {totalRecords}
               </span>
 
               <Pagination
@@ -706,8 +661,6 @@ const ClientsTable = () => {
         </div>
       </div>
 
-
-
       <BedShiftModal
         isOpen={showBedShiftModal}
         onClose={() => {
@@ -718,25 +671,24 @@ const ClientsTable = () => {
       />
       <BedHistoryModal
         isOpen={showBedHistoryModal}
-        onClose={() =>
-          setShowBedHistoryModal(false)
-        }
+        onClose={() => setShowBedHistoryModal(false)}
         client={selectedClient}
       />
-
-
 
       <ClientsFilter
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         apiData={bookings}
-        onApply={(data) => setFilters(data)}
+        onApply={(data, labels) => {
+          setFilters(data);
+          setFilterLabels(labels);
+          setCurrentPage(1);
+        }}
         handleReset={handleReset}
         resetTrigger={resetTrigger}
       />
-
     </>
   );
 };
 
-export default ClientsTable;  
+export default ClientsTable;

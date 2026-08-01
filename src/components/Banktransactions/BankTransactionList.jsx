@@ -13,6 +13,7 @@ import useDebounce from "../hooks/useDebounce";
 import { useBankTransactionData } from "./services";
 import BedFilter from "../beds/BedFilter";
 import MapBankTransactionDrawer from "./MapBankTransactionDrawer";
+import TableSkeleton from "../common/TableSkelton";
 
 const BankTransactionList = () => {
   const [search, setSearch] = useState("");
@@ -124,10 +125,13 @@ const BankTransactionList = () => {
                   <th className="p-3 text-center">Source</th>
                   <th className="p-3 text-center">Uploaded By</th>
                   <th className="p-3 text-center">Created At</th>
+                  <th className="p-3 text-center">Payment Link</th>
                   <th className="p-3 text-center">Actions</th>
                 </tr>
               </thead>
-
+  {isLoading ? (
+                  <TableSkeleton rows={20} columns={17} />
+                ) : (
               <tbody>
                 {paginatedData.length > 0 ? (
                   paginatedData.map((item) => (
@@ -182,16 +186,9 @@ const BankTransactionList = () => {
                       <td className="p-3 text-center">
                         {formatDate(item.createdAt)}
                       </td>
-
-                      <td className="p-3">
-                        <div className="flex justify-center gap-2">
-                          <button className="p-2 bg-blue-100 rounded hover:bg-blue-200">
-                            <Eye size={16} />
-                          </button>
-
-                          <button className="p-2 bg-yellow-100 rounded hover:bg-yellow-200">
-                            <Pencil size={16} />
-                          </button>
+                      <td className="p-3 text-center">
+                            {item.deposit > 0 &&
+                     (
 
                           <button
                             onClick={() => {
@@ -202,6 +199,19 @@ const BankTransactionList = () => {
                           >
                             Link Payment
                           </button>
+                     ) }
+                      </td>
+
+                      <td className="p-3">
+                        <div className="flex justify-center gap-2">
+                          <button className="p-2 bg-blue-100 rounded hover:bg-blue-200">
+                            <Eye size={16} />
+                          </button>
+
+                          <button className="p-2 bg-yellow-100 rounded hover:bg-yellow-200">
+                            <Pencil size={16} />
+                          </button>
+              
                         </div>
                       </td>
                     </tr>
@@ -219,7 +229,9 @@ const BankTransactionList = () => {
                   </tr>
                 )}
               </tbody>
+                )}
             </table>
+            
           </div>
 
           {/* PAGINATION */}

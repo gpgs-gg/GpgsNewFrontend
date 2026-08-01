@@ -2,20 +2,30 @@
 import { useState, useMemo } from "react";
 import { Eye, Pencil, Filter, Phone, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import Pagination from "../Common/Pagination";
-import NoDataFound from "../common/NoDataFound";
-import { formatDate } from "../../utils/dateFormatter";
 import { useForm } from "react-hook-form";
 import { IoIosCall } from "react-icons/io";
 import { FaWhatsapp } from "react-icons/fa";
-import RentLadgerFiilter from "./RentLadgerFiilter";
+// import RentLadgerFiilter from "./RentLadgerFiilter";
 import { useParams } from "react-router-dom";
-import { useRentHistoryData } from "./services";
+import { useRentHistoryForBooking } from "./services";
 import { IoIosArrowBack } from "react-icons/io";
+import { useAuth } from "../../context/authContext";
+import { formatDate } from "../../utils/dateFormatter";
+import NoDataFound from "../../components/common/NoDataFound";
+import Pagination from "../../components/Common/Pagination";
 
-const RentLadgerTable = () => {
-  const { clientId } = useParams();
-  const { data: apiResponse } = useRentHistoryData(clientId);
+const RentHistory = () => {
+  const { user } = useAuth();
+  // Booking ID
+  const bookingId = user?.bookingId; // ya user?.booking?._id (jo bhi tumhare user object me ho)
+
+  const {
+    data: apiResponse,
+    isLoading,
+    isError,
+    error,
+  } = useRentHistoryForBooking(bookingId);
+
   // API response
   const client = apiResponse?.data?.[0]?.clientId ?? {};
   const property = apiResponse?.data?.[0]?.propertyId ?? {};
@@ -51,7 +61,7 @@ const RentLadgerTable = () => {
         matchesSearch
       );
     });
-  }, [apiData, filters, search, clientId]);
+  }, [apiData, filters, search, bookingId]);
 
 
 
@@ -85,25 +95,26 @@ const RentLadgerTable = () => {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3">
           <div className="flex items-center justify-between mb-2  ">
             <div className="flex w-full justify-between items-center">
-             <div>
-               <h1 className="text-2xl font-bold text-gray-900 uppercase">
-             Payment History & Details 
-              </h1>
-            
-              {!clientId && (
-                <p className="text-sm text-gray-500 mt-1">
-                  Manage all PG Rent
-                </p>
-              )}
-             </div>
-                <button onClick={()=>window.history.back()} className="text-lg border px-2 rounded-md border-gray-300 flex gap-2 justify-center items-center mr-3">
-                  <IoIosArrowBack/> cancel
-              </button>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 uppercase">
+                  Payment History & Details
+                </h1>
 
+                {!bookingId && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Manage all PG Rent
+                  </p>
+                )}
+              </div>
+              {!bookingId && (
+                <button onClick={() => window.history.back()} className="text-lg border px-2 rounded-md border-gray-300 flex gap-2 justify-center items-center mr-3">
+                  <IoIosArrowBack /> cancel
+                </button>
+              )}
             </div>
           </div>
 
-          {clientId && client && (
+          {bookingId && client && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
 
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
@@ -235,11 +246,6 @@ const RentLadgerTable = () => {
                   <th className="p-3 text-center">Rent Last Date</th>
                   <th className="p-3 text-center">Payment Comments</th>
                   <th className="p-3 text-center">Remarks</th>
-
-                  {/* Sticky Header */}
-                  <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
-                    Actions
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -249,7 +255,7 @@ const RentLadgerTable = () => {
                     <tr
                       key={item._id}
                       className={`border-t border-gray-200 whitespace-nowrap text-center
-    ${item.monthName === currentMonth && item.year === currentYear  && item.paymentStatus !== "Shifted"
+    ${item.monthName === currentMonth && item.year === currentYear && item.paymentStatus !== "Shifted"
                           ? "bg-green-100 hover:bg-green-100"
                           : "hover:bg-gray-50"
                         }`}
@@ -323,46 +329,6 @@ const RentLadgerTable = () => {
                       <td className="p-3">{item.paymentComments || "-"}</td>
 
                       <td className="p-3">{item.remarks || "-"}</td>
-
-                      {/* Sticky Actions Column */}
-                      <td
-                        className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${item.monthName === currentMonth && Number(item.year) === currentYear && item.paymentStatus !== "Shifted"
-                            ? "bg-green-100"
-                            : "bg-white"
-                          }`}
-                      > 
-                        <div className="flex justify-center gap-2">
-                          <Link
-                            to={`/rent-ledger/view/${item._id}`}
-                          >
-                            <button 
-                             disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
-                            className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
-                              <Eye size={16} />
-                            </button>
-                          </Link>
-
-                          <Link
-                            to={`/rent-ledger/edit/${item._id}`}
-                          >
-                            <button
-                                // disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
-                            className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
-                              <Pencil size={16} />
-                            </button>
-                          </Link>
-                          {/* 
-                          <button
-                            onClick={() =>
-                              handleDelete(item._id)
-                            }
-                            className="p-2 bg-red-100 rounded-lg hover:bg-red-200"
-                          >
-                            <Trash2 size={16} />
-                          </button> */}
-                        </div>
-                      </td>
-
                     </tr>
                   ))
                 ) : (
@@ -402,16 +368,16 @@ const RentLadgerTable = () => {
         </div>
       </div>
 
-      <RentLadgerFiilter
+      {/* <RentLadgerFiilter
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         apiData={apiData}
         onApply={(data) => setFilters(data)}
         handleReset={handleReset}
         resetTrigger={resetTrigger}
-      />
+      /> */}
     </>
   );
 };
 
-export default RentLadgerTable;
+export default RentHistory;

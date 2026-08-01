@@ -16,7 +16,11 @@ import Clients from "../pages/Clients";
 import AvailableBeds from "../pages/AvailableBeds";
 import RentLedger from "../pages/RentLedger";
 import BankTransaction from "../pages/BankTransaction";
+import User from "../pages/User";
 
+import UserEdit from "../components/User/UserEdit";
+import LeadsList from "../components/leads/LeadsList";
+import LeadsCreateEdit  from "../components/leads/LeadsCreateEdit";
 import PropertyCreateEdit from "../components/properties/PropertyCreateEdit";
 import BedsTable from "../components/beds/BedsTable";
 import BedCreateEdit from "../components/beds/BedCreateEdit";
@@ -26,6 +30,9 @@ import ClientCreateEdit from "../components/Clients/ClientCreateEdit";
 import RentLadgerEdit from "../components/RentLedger/RentLadgerEdit";
 import TicketCreateEdit from "../components/tickets/TicketCreateEdit";
 import TicketView from "../components/tickets/TicketView";
+import Options from "../pages/Options";
+import OptionsCreateEdit from "../components/Options/OptionsCreateEdit";
+import ClientRentHistory from "../pages/ClientRentHistory";
 
 const AppRoutes = () => {
   return (
@@ -75,6 +82,15 @@ const AppRoutes = () => {
           <Route path="/tickets/view/:id" element={<TicketView/>} />
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/bank-transactions" element={<BankTransaction />} />
+          <Route path="/options" element={<Options />} />
+          <Route path="/options/create" element={<OptionsCreateEdit />} />
+          <Route path="/options/edit/:id" element={<OptionsCreateEdit />} />
+          <Route path="/users" element={<User/>} />
+          <Route path="/Users/edit/:id" element={<UserEdit />} />
+           <Route path="/leads" element={<LeadsList/>} />
+           <Route path="/leads/edit/:id" element={<LeadsCreateEdit/>} />
+           <Route path="/leads/create" element={<LeadsCreateEdit/>} />
+           <Route path="/renthistory" element={<ClientRentHistory/>} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>

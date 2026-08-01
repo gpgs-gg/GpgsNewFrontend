@@ -254,6 +254,7 @@ const handleDelete = () => {
           <div className="flex-1 overflow-auto">
             <table className="w-full">
               <thead className="sticky top-0 bg-gray-100 whitespace-nowrap">
+                
                 <tr>
                   <th className="p-3 text-center">
                     <input

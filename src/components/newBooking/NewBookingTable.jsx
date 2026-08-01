@@ -11,6 +11,8 @@ import TableSkeleton from "../../components/common/TableSkelton";
 import NewBookingFilter from "./NewBookingFilter";
 import useDebounce from "../hooks/useDebounce";
 import { FaEllipsisV } from "react-icons/fa";
+import { RiTelegram2Line } from "react-icons/ri";
+
 const NewBookingTable = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -294,6 +296,14 @@ const NewBookingTable = () => {
               ))}
             </div>
             <div className="flex gap-2">
+           <Link to="/clients">
+              <button
+                className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
+              >
+                <RiTelegram2Line size={19} />
+                Clients List
+              </button>
+           </Link>
               {Object.keys(filters).length > 0 && (
                 <button
                   onClick={handleReset}
@@ -528,8 +538,8 @@ const NewBookingTable = () => {
                                   );
                                 }}
                                 className={`p-2 rounded-md transition-colors ${openMenuId === item._id
-                                    ? "bg-blue-100 text-blue-600"
-                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                  ? "bg-blue-100 text-blue-600"
+                                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                                   }`}
                               >
                                 <FaEllipsisV />
@@ -584,6 +594,7 @@ const NewBookingTable = () => {
                     </tr>
                   )}
                 </tbody>
+
               </table>
             </div>
           </div>
@@ -629,7 +640,7 @@ const NewBookingTable = () => {
         }}
         handleReset={handleReset}
         resetTrigger={resetTrigger}
-      />  
+      />
     </>
   );
 };

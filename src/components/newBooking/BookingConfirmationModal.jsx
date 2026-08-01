@@ -142,8 +142,8 @@ const BookingConfirmationModal = ({
                   {(
                     (Number(data?.clientCalculatedRent) || 0) +
                     (Number(data?.depositAmount) || 0) +
-                    (Number(data?.ProcessingFees) || 0) +
-                    (Number(data?.ParkingCharges) || 0) +
+                    (Number(data?.processingFees) || 0) +
+                    (Number(data?.parkingCharges) || 0) +
                     (Number(data?.temporaryParkingCharges) || 0) +
                     (Number(data?.temporaryclientCalculatedRent) || 0)
                     - Number(data?.monthlyRent || 0))?.toLocaleString("en-IN")

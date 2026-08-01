@@ -160,3 +160,23 @@ export const useDeleteTicketData = () => {
     },
   });
 };
+
+
+// Get Previous / Next Ticket
+export const getTicketNavigation = async ({
+  id,
+  search = "",
+  ...filters
+}) => {
+  const response = await apiClient.get(
+    `/tickets/navigation/${id}`,
+    {
+      params: {
+        search,
+        ...filters,
+      },
+    }
+  );
+
+  return response.data;
+};
