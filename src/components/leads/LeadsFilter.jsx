@@ -7,6 +7,7 @@ import { useLeadDropdown } from "./services";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { convertStringFormatDate, formatDate } from "../../utils/dateFormatter";
+import { useBatchOptions } from "../Options/services";
 const LeadsFilter = ({
     isOpen,
     onClose,
@@ -31,11 +32,15 @@ const LeadsFilter = ({
         }
     });
 
-    const { data: dropdownData } = useLeadDropdown({
-        page: 1,
-        limit: 10,
-        search: ""
-    });
+ const { data: options = {} } = useBatchOptions([
+        "gender",
+        "leadsource",
+        "leadstatus",
+        "leadsreason",
+        "locations",
+        "teamcode",
+        "yesno",
+    ]);
 
 
     useEffect(() => {
@@ -56,50 +61,25 @@ const LeadsFilter = ({
     }, [defaultFilterData, reset]);
 
 
-    const teamCodeOptions = [
-        { value: "Sales-1", label: "Sales-1" },
-        { value: "Sales-2", label: "Sales-2" },
-    ];
-
-    const leadSourceOptions = [
-        { value: "Website", label: "Website" },
-        { value: "Walk In", label: "Walk In" },
-        { value: "Reference", label: "Reference" },
-        { value: "Facebook", label: "Facebook" },
-    ];
-
-    const leadStatusOptions = [
-        { value: "New", label: "New" },
-        { value: "Follow Up", label: "Follow Up" },
-        { value: "Interested", label: "Interested" },
-        { value: "Booked", label: "Booked" },
-        { value: "Lost", label: "Lost" },
-    ];
-
+const genderOptions = options.gender || [];
+    const leadSourceOptions = options.leadsource || [];
+    const leadStatusOptions = options.leadstatus || [];
+    const reasonOptions = options.leadsreason || [];
+    const locationOptions = options.locations || [];
+    const teamCodeOptions = options.teamcode || [];
+    
     const assigneeOptions = [
         { value: "Akash", label: "Akash" },
         { value: "Rahul", label: "Rahul" },
         { value: "Priya", label: "Priya" },
     ];
-
-
-    const reasonOptions = [
-        { value: "Interested", label: "Interested" },
-        { value: "Not Interested", label: "Not Interested" },
-        { value: "Call Later", label: "Call Later" }
-    ];
-
-
     const fieldMemberOptions = [
         { value: "Akash", label: "Akash" },
         { value: "Rahul", label: "Rahul" },
         { value: "Priya", label: "Priya" },
     ];
 
-    const genderOptions = [
-        { value: "Male", label: "Male" },
-        { value: "Female", label: "Female" },
-    ];
+
 
     const renderSelect = (name, label, options) => (
         <Controller

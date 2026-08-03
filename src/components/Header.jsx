@@ -49,7 +49,7 @@ const Header = ({
           <Menu size={24} />
         </button>
 
-        <h1 className="ml-4 text-lg md:text-2xl font-semibold">
+        <h1 className="ml-4 text-lg md:text-2xl hidden md:block font-semibold">
           Gopal's Paying Guest Services
         </h1>
       </div>

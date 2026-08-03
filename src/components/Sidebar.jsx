@@ -106,6 +106,8 @@ import {
   UserCog,
   Boxes,
   Database,
+  BrushCleaning,
+  Wrench,
 } from "lucide-react";
 import { CiLogout } from "react-icons/ci";
 import { useLogout } from "../auth/services";
@@ -113,7 +115,7 @@ import { BsBank } from "react-icons/bs";
 import { useAuth } from "../context/authContext";
 import { useQueryClient } from "@tanstack/react-query";
 const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
-    const { user , setUser} = useAuth();
+  const { user, setUser } = useAuth();
   const queryClient = useQueryClient();
   const [hovered, setHovered] = useState(false);
   const { mutate: logoutUser, isPending } = useLogout();
@@ -129,14 +131,8 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
       },
     });
   };
-  // Sidebar expands when:
-  // 1. collapsed = false
-  // 2. OR mouse is hovering
   const expanded = !collapsed || hovered;
-  // const { user } = useAuth();
-
   const isAdmin = user?.role?.toLowerCase() === "admin";
-
   const menuItems = isAdmin
     ? [
       { name: "Dashboard", path: "/", icon: <LayoutDashboard size={22} /> },
@@ -151,6 +147,9 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
       { name: "PG Leads", path: "/leads", icon: <Users size={22} /> },
       { name: "Users", path: "/users", icon: <Users size={22} /> },
       { name: "Dynamic Options", path: "/options", icon: <Database size={22} /> },
+      { name: "HouseKeeping", path: "/house-keeping", icon: <BrushCleaning size={22} /> },
+      { name: "Maintenance", path: "/maintenance", icon: <Wrench size={22} /> }
+
     ]
     : [
       { name: "Dashboard", path: "/", icon: <LayoutDashboard size={22} /> },
@@ -159,6 +158,8 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
         path: "/renthistory",
         icon: <ClipboardList size={22} />,
       },
+      { name: "Property Details", path: "/d", icon: <Users size={22} /> },
+      { name: "Personal Details", path: "/22", icon: <Database size={22} /> },
     ];
 
   return (

@@ -27,7 +27,7 @@ const ClientsTable = () => {
   const [selectedClient, setSelectedClient] = useState();
   const debouncedSearch = useDebounce(search, 500);
   const [filterLabels, setFilterLabels] = useState([]);
-  const [resetTrigger, setResetTrigger] = useState(0);
+  const [resetTrigger, setResetTrigger] = useState(0);            
 
   const rowsPerPage = 10;
   const { data: clients, isPending: isClients } = useClients({

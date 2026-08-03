@@ -6,6 +6,7 @@ import { selectStyles } from "../../utils/selectStyles";
 import { getTicketDropdown, useTicketDropdown } from "./services";
 import { AsyncPaginate } from "react-select-async-paginate";
 import { getPropertyDropdown } from "../properties/services";
+import { useBatchOptions } from "../Options/services";
 
 const TicketsFilter = ({
     isOpen,
@@ -34,11 +35,14 @@ const TicketsFilter = ({
         },
     });
 
-    const { data: dropdownData } = useTicketDropdown({
-        page: 1,
-        limit: 10,
-        search: "",
-    });
+  const { data: options = {} } = useBatchOptions([
+        "department",
+        "categories",
+        "priority",
+        "ticketstatus",
+        "yesno",
+        "locations"
+    ]);
 
     const loadPropertyOptions = async (
         search,
@@ -72,144 +76,27 @@ const TicketsFilter = ({
         };
     };
 
-    
-    // const propertyCodeOptions = useMemo(() => {
-    //     return [
-    //         ...new Set(
-    //             apiData?.map((item) => item.propertyCode).filter(Boolean)
-    //         ),
-    //     ].map((item) => ({
-    //         value: item,
-    //         label: item,
-    //     }));
-    // }, [apiData]);
+const locationOptions = options.locations || [];
+    const categoryOptions = options.categories || [];
+    const priorityOptions = options.priority || [];
+    const statusOptions = options.ticketstatus || [];
+    const YesNoOptions = options.yesno || [];
+    const departmentOptions = options.department || [];
+    // const assigneeOptions  = options.department || [];
+    // const managerOptions   = options.department || [];
 
-
-    // const locationOptions = useMemo(() => {
-    //     return [
-    //         ...new Set(
-    //             apiData?.map((item) => item.propertyLocation).filter(Boolean)
-    //         ),
-    //     ].map((item) => ({
-    //         value: item,
-    //         label: item,
-    //     }));
-    // }, [apiData]);
-
-    // const priorityOptions = [
-    //     ...new Set(apiData.map(x => x.priority).filter(Boolean))
-    // ].map(item => ({
-    //     value: item,
-    //     label: item
-    // }));
-
-    // const departmentOptions = [
-    //     ...new Set(apiData.map(x => x.department).filter(Boolean))
-    // ].map(item => ({
-    //     value: item,
-    //     label: item
-    // }));
-
-    // const categoryOptions = [
-    //     ...new Set(apiData.map(x => x.category).filter(Boolean))
-    // ].map(item => ({
-    //     value: item,
-    //     label: item
-    // }));
-
-    // const assigneeOptions = [
-    //     ...new Set(apiData.map(x => x.assignee).filter(Boolean))
-    // ].map(item => ({
-    //     value: item,
-    //     label: item
-    // }));
-
-    // const managerOptions = [
-    //     ...new Set(apiData.map(x => x.manager).filter(Boolean))
-    // ].map(item => ({
-    //     value: item,
-    //     label: item
-    // }));
-
-    // const statusOptions = [
-    //     ...new Set(apiData.map(x => x.status).filter(Boolean))
-    // ].map(item => ({
-    //     value: item,
-    //     label: item,
-    // }));
-
-
-    const locationOptions = useMemo(
-        () =>
-            (dropdownData?.propertyLocations || []).map((item) => ({
-                value: item,
-                label: item,
-            })),
-        [dropdownData]
-    );
-
-    const statusOptions = useMemo(
-        () =>
-            (dropdownData?.statuses || []).map((item) => ({
-                value: item,
-                label: item,
-            })),
-        [dropdownData]
-    );
-
-    const priorityOptions = useMemo(
-        () =>
-            (dropdownData?.priorities || []).map((item) => ({
-                value: item,
-                label: item,
-            })),
-        [dropdownData]
-    );
-
-    const departmentOptions = useMemo(
-        () =>
-            (dropdownData?.departments || []).map((item) => ({
-                value: item,
-                label: item,
-            })),
-        [dropdownData]
-    );
-
-    const categoryOptions = useMemo(
-        () =>
-            (dropdownData?.categories || []).map((item) => ({
-                value: item,
-                label: item,
-            })),
-        [dropdownData]
-    );
-
-    const assigneeOptions = useMemo(
-        () =>
-            (dropdownData?.assignees || []).map((item) => ({
-                value: item,
-                label: item,
-            })),
-        [dropdownData]
-    );
-
-    const managerOptions = useMemo(
-        () =>
-            (dropdownData?.managers || []).map((item) => ({
-                value: item,
-                label: item,
-            })),
-        [dropdownData]
-    );
-    const customerImpactedOptions = [
-        { value: "Yes", label: "Yes" },
-        { value: "No", label: "No" },
+     const managerOptions = [
+        { value: "Akash", label: "Akash" },
+        { value: "Rahul", label: "Rahul" },
+        { value: "Priya", label: "Priya" }
     ];
-
-    const escalatedOptions = [
-        { value: "Yes", label: "Yes" },
-        { value: "No", label: "No" },
+     const assigneeOptions = [
+        { value: "Akash", label: "Akash" },
+        { value: "Rahul", label: "Rahul" },
+        { value: "Priya", label: "Priya" }
     ];
+  
+
     const lateStatusOptions = [
         { value: "LateAcknowledged", label: "Late Acknowledged", },
         { value: "LateResolved", label: "Late Resolved", },
@@ -500,10 +387,10 @@ const TicketsFilter = ({
 
                                     <Select
                                         {...field}
-                                        options={customerImpactedOptions}
+                                        options={YesNoOptions}
                                         isClearable
                                         value={
-                                            customerImpactedOptions.find(
+                                            YesNoOptions.find(
                                                 (option) => option.value === field.value
                                             ) || null
                                         }
@@ -526,10 +413,10 @@ const TicketsFilter = ({
 
                                     <Select
                                         {...field}
-                                        options={escalatedOptions}
+                                        options={YesNoOptions}
                                         isClearable
                                         value={
-                                            escalatedOptions.find(
+                                            YesNoOptions.find(
                                                 (option) => option.value === field.value
                                             ) || null
                                         }

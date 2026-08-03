@@ -12,6 +12,8 @@ import NewBookingFilter from "./NewBookingFilter";
 import useDebounce from "../hooks/useDebounce";
 import { FaEllipsisV } from "react-icons/fa";
 import { RiTelegram2Line } from "react-icons/ri";
+import PaymentVerificationModal from "./PaymentVerificationModal";
+import { useForm } from "react-hook-form";
 
 const NewBookingTable = () => {
   const [search, setSearch] = useState("");
@@ -24,6 +26,8 @@ const NewBookingTable = () => {
   const [resetTrigger, setResetTrigger] = useState(0);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const rowsPerPage = 10;
   const { data: newBooking, isLoading } = useNewBooking({
     page: currentPage,
@@ -31,6 +35,31 @@ const NewBookingTable = () => {
     search: debouncedSearch,
     ...filters,
   });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    watch,
+    setValue,
+  } = useForm();
+
+  const onSubmit = (data) => {
+  createClientFromBooking(
+    {
+      bookingId: selectedBooking._id,
+      ...data,
+    },
+    {
+      onSuccess: () => {
+        reset();
+        setShowPaymentModal(false);
+      },
+    }
+  );
+};
+
   const { mutate: toggleClientLogin, isPendingToggleClientLogin } = useToggleClientLogin();
   const { mutate: updateNewBookingForBooked, isPending } = useUpdateNewBookingForBooked();
   const { mutate: deleteNewBooking, isPending: isLoadingDelete } = useDeleteNewBookingData();
@@ -144,56 +173,51 @@ const NewBookingTable = () => {
   };
 
   const handlePaymentVerification = (item) => {
-    // Verify karna hai
+    // Verify
     if (!item.loginEnabled) {
       if (item.status !== "Booked") {
-        toast.dismiss();
         toast.error("Booking must be marked as 'Booked'.");
         return;
       }
 
-      createClientFromBooking(
-        { bookingId: item._id },
-        {
-          onSuccess: (response) => {
-            toast.dismiss();
-            toast.success(
-              response?.message ||
-              response?.data?.message ||
-              "Client created successfully"
-            );
-          },
-          onError: (error) => {
-            toast.dismiss();
-            toast.error(
-              error?.response?.data?.message ||
-              "Failed to create client"
-            );
-          },
-        }
-      );
+      setSelectedBooking(item);
+      setShowPaymentModal(true);
     }
 
-    // Unverify karna hai
+    // Unverify
     else {
       cancelBooking(item._id, {
         onSuccess: (response) => {
-          toast.dismiss();
-          toast.success(
-            response?.message ||
-            response?.data?.message ||
-            "Booking cancelled successfully"
-          );
+          toast.success(response?.message || "Booking cancelled successfully");
         },
         onError: (error) => {
-          toast.dismiss();
           toast.error(
-            error?.response?.data?.message ||
-            "Failed to cancel booking"
+            error?.response?.data?.message || "Failed to cancel booking"
           );
         },
       });
     }
+  };
+  const handleVerifySubmit = (formData) => {
+    createClientFromBooking(
+      {
+        bookingId: selectedBooking._id,
+        ...formData,
+      },
+      {
+        onSuccess: (response) => {
+          toast.success(response?.message || "Client created successfully");
+
+          setShowPaymentModal(false);
+          setSelectedBooking(null);
+        },
+        onError: (error) => {
+          toast.error(
+            error?.response?.data?.message || "Failed to create client"
+          );
+        },
+      }
+    );
   };
 
   const handleStatusToggle = (item) => {
@@ -296,14 +320,14 @@ const NewBookingTable = () => {
               ))}
             </div>
             <div className="flex gap-2">
-           <Link to="/clients">
-              <button
-                className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
-              >
-                <RiTelegram2Line size={19} />
-                Clients List
-              </button>
-           </Link>
+              <Link to="/clients">
+                <button
+                  className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
+                >
+                  <RiTelegram2Line size={19} />
+                  Clients List
+                </button>
+              </Link>
               {Object.keys(filters).length > 0 && (
                 <button
                   onClick={handleReset}
@@ -325,7 +349,7 @@ const NewBookingTable = () => {
           <div className="flex-1 overflow-hidden">
             <div className="overflow-auto h-full">
               <table className="w-full whitespace-nowrap border-collapse">
-                <thead className="sticky top-0 bg-gray-100 z-20">
+                <thead className="sticky top-0 bg-gray-100 z-10">
                   <tr>
                     <th className="p-3 text-center">Sr No.</th>
                     <th className="p-3 text-center">Client Name</th>
@@ -337,10 +361,9 @@ const NewBookingTable = () => {
                     <th className="p-3 text-center">P.Bed</th>
                     <th className="p-3 text-center">P.Room</th>
                     <th className="p-3 text-center">Client DOJ</th>
-                    <th className="p-3 text-center">Booking Amt Received</th>
+                    <th className="p-3 text-center">Payment Verification</th>
                     <th className="p-3 text-center">Monthly Rent</th>
                     <th className="p-3 text-center">Deposit</th>
-
                     <th className="p-3 text-center">Proc. Fee</th>
                     <th className="p-3 text-center">T.Property</th>
                     <th className="p-3 text-center">T.Bed</th>
@@ -349,252 +372,253 @@ const NewBookingTable = () => {
                     <th className="p-3 text-center">Booking Amt</th>
                     <th className="p-3 text-center">Balance Amt</th>
 
-
                     {/* Sticky Header */}
                     <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
                       Actions
                     </th>
                   </tr>
                 </thead>
+                {isLoading ? (
+                  <TableSkeleton rows={20} columns={17} />
+                ) : (
+                  <tbody>
+                    {bookings?.length > 0 ? (
+                      bookings.map((item, index) => {
 
-                <tbody>
-                  {bookings?.length > 0 ? (
-                    bookings.map((item, index) => {
+                        return (
+                          <tr
+                            key={item._id}
+                            className="border-t border-gray-300 hover:bg-gray-50"
+                          >
+                            <td className="p-3 font-medium">
+                              {(currentPage - 1) *
+                                rowsPerPage +
+                                index +
+                                1}
+                            </td>
 
-                      return (
-                        <tr
-                          key={item._id}
-                          className="border-t border-gray-300 hover:bg-gray-50"
-                        >
-                          <td className="p-3 font-medium">
-                            {(currentPage - 1) *
-                              rowsPerPage +
-                              index +
-                              1}
-                          </td>
+                            <td className="p-3">
+                              {item.fullName || "-"}
+                            </td>
 
-                          <td className="p-3">
-                            {item.fullName || "-"}
-                          </td>
-
-                          <td className="p-3 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  className="sr-only peer"
-                                  checked={item.status === "Booked"}
-                                  onChange={() => handleStatusToggle(item)}
-                                />
-                                <div className="w-11 h-5 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors">
-                                  <div
-                                    className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${item.status === "Booked"
-                                      ? "translate-x-5"
-                                      : "translate-x-0.5"
-                                      }`}
+                            <td className="p-3 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    className="sr-only peer"
+                                    checked={item.status === "Booked"}
+                                    onChange={() => handleStatusToggle(item)}
                                   />
-                                </div>
-                              </label>
+                                  <div className="w-11 h-5 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors">
+                                    <div
+                                      className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${item.status === "Booked"
+                                        ? "translate-x-5"
+                                        : "translate-x-0.5"
+                                        }`}
+                                    />
+                                  </div>
+                                </label>
 
-                              <span
-                                className={`text-sm font-medium ${item.status === "Booked"
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                                  }`}
-                              >
-                                {item.status === "Booked"
-                                  ? "Booked"
-                                  : "Not Booked"}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            {item.callingNo || "-"}
-                          </td>
-
-                          <td className="p-3">
-                            {item.whatsappNo || "-"}
-                          </td>
-
-                          <td className="p-3">
-                            {item.propertyId?.propertyCode ||
-                              "-"}
-                          </td>
-                          <td className="p-3">
-                            {item.propertyId?.propertyLocation ||
-                              "-"}
-                          </td>
-
-                          <td className="p-3">
-                            {item.bedId?.bedNo || "-"}
-                          </td>
-                          <td className="p-3">
-                            {item.bedId?.roomNo || "-"}
-                          </td>
-
-                          <td className="p-3">
-                            {item.clientDoj
-                              ? formatDate(
-                                item.clientDoj
-                              )
-                              : "-"}
-                          </td>
-                          <td className="p-3">
-                            <div className="flex items-center justify-center gap-3">
-                              <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  className="sr-only peer"
-                                  checked={item.loginEnabled}
-                                  onChange={() => handlePaymentVerification(item)}
-                                  disabled={isPending}
-                                />
-
-                                <div className="w-11 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
-
-                                <div className="absolute left-0.5 top-0.5 w-5 h-4 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
-                              </label>
-
-                              <span
-                                className={`text-sm font-semibold ${item.loginEnabled
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                                  }`}
-                              >
-                                {item.loginEnabled ? "Received" : "Pending"}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            ₹
-                            {(
-                              item.monthlyRent || 0
-                            ).toLocaleString("en-IN")}
-                          </td>
-
-                          <td className="p-3">
-                            ₹
-                            {(
-                              item.depositAmount || 0
-                            ).toLocaleString("en-IN")}
-                          </td>
-
-                          <td className="p-3">
-                            ₹
-                            {(
-                              item.processingFees || 0
-                            ).toLocaleString("en-IN")}
-                          </td>
-
-                          <td className="p-3">
-                            {item
-                              .temporaryPropertyId
-                              ?.propertyCode || "-"}
-                          </td>
-
-                          <td className="p-3">
-                            {item.temporaryBedId?.bedNo ||
-                              "-"}
-                          </td>
-
-                          <td className="p-3">
-                            {item.temporaryClientDoj
-                              ? formatDate(
-                                item.temporaryClientDoj
-                              )
-                              : "-"}
-                          </td>
-
-                          <td className="p-3 font-medium">
-                            ₹
-                            {item.totalAmount?.toLocaleString(
-                              "en-IN"
-                            ) || 0}
-                          </td>
-
-                          <td className="p-3 text-green-600 font-medium">
-                            ₹
-                            {item.bookingAmount?.toLocaleString(
-                              "en-IN"
-                            ) || 0}
-                          </td>
-
-                          <td className="p-3 text-red-600 font-medium">
-                            ₹
-                            {item.balanceAmount?.toLocaleString(
-                              "en-IN"
-                            ) || 0}
-                          </td>
-
-
-                          {/* Sticky Actions Column */}
-                          <td className="p-3 sticky right-0 bg-white z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)]">
-                            <div className="flex justify-center relative">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOpenMenuId(
-                                    openMenuId === item._id ? null : item._id,
-                                  );
-                                }}
-                                className={`p-2 rounded-md transition-colors ${openMenuId === item._id
-                                  ? "bg-blue-100 text-blue-600"
-                                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                  }`}
-                              >
-                                <FaEllipsisV />
-                              </button>
-
-                              {openMenuId === item._id && (
-                                <div
-                                  className="absolute right-22 top-8 w-44 bg-white border border-gray-300 rounded-lg shadow-xl z-[9999]"
-                                  onClick={(e) => e.stopPropagation()}
+                                <span
+                                  className={`text-sm font-medium ${item.status === "Booked"
+                                    ? "text-green-600"
+                                    : "text-red-600"
+                                    }`}
                                 >
-                                  <Link
-                                    to={`/new-bookings/view/${item._id}`}
-                                    className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
-                                  >
-                                    <span>👁</span>
-                                    <span>View</span>
-                                  </Link>
+                                  {item.status === "Booked"
+                                    ? "Booked"
+                                    : "Not Booked"}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              {item.callingNo || "-"}
+                            </td>
 
-                                  <Link
-                                    to={`/new-bookings/edit/${item._id}`}
-                                    className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
-                                  >
-                                    <span>✏️</span>
-                                    <span>Edit</span>
-                                  </Link>
+                            <td className="p-3">
+                              {item.whatsappNo || "-"}
+                            </td>
 
-                                  <button
-                                    onClick={() => {
-                                      setOpenMenuId(null);
-                                      handleDelete(item._id);
-                                    }}
-                                    className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 text-red-600"
-                                  >
-                                    <span>🗑</span>
-                                    <span>Delete</span>
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={18}>
-                        <NoDataFound
-                          title="No Bookings Found"
-                          description="No booking records available"
-                        />
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
+                            <td className="p-3">
+                              {item.propertyId?.propertyCode ||
+                                "-"}
+                            </td>
+                            <td className="p-3">
+                              {item.propertyId?.propertyLocation ||
+                                "-"}
+                            </td>
 
+                            <td className="p-3">
+                              {item.bedId?.bedNo || "-"}
+                            </td>
+                            <td className="p-3">
+                              {item.bedId?.roomNo || "-"}
+                            </td>
+
+                            <td className="p-3">
+                              {item.clientDoj
+                                ? formatDate(
+                                  item.clientDoj
+                                )
+                                : "-"}
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center justify-center gap-3">
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    className="sr-only peer"
+                                    checked={item.loginEnabled}
+                                    onChange={() => handlePaymentVerification(item)}
+                                    disabled={isPending}
+                                  />
+
+                                  <div className="w-11 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
+
+                                  <div className="absolute left-0.5 top-0.5 w-5 h-4 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
+                                </label>
+
+                                <span
+                                  className={`text-sm font-semibold ${item.loginEnabled
+                                    ? "text-green-600"
+                                    : "text-red-600"
+                                    }`}
+                                >
+                                  {item.loginEnabled ? "Verified" : "Pending"}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="p-3">
+                              ₹
+                              {(
+                                item.monthlyRent || 0
+                              ).toLocaleString("en-IN")}
+                            </td>
+
+                            <td className="p-3">
+                              ₹
+                              {(
+                                item.depositAmount || 0
+                              ).toLocaleString("en-IN")}
+                            </td>
+
+                            <td className="p-3">
+                              ₹
+                              {(
+                                item.processingFees || 0
+                              ).toLocaleString("en-IN")}
+                            </td>
+
+                            <td className="p-3">
+                              {item
+                                .temporaryPropertyId
+                                ?.propertyCode || "-"}
+                            </td>
+
+                            <td className="p-3">
+                              {item.temporaryBedId?.bedNo ||
+                                "-"}
+                            </td>
+
+                            <td className="p-3">
+                              {item.temporaryClientDoj
+                                ? formatDate(
+                                  item.temporaryClientDoj
+                                )
+                                : "-"}
+                            </td>
+
+                            <td className="p-3 font-medium">
+                              ₹
+                              {item.totalAmount?.toLocaleString(
+                                "en-IN"
+                              ) || 0}
+                            </td>
+
+                            <td className="p-3 text-green-600 font-medium">
+                              ₹
+                              {item.bookingAmount?.toLocaleString(
+                                "en-IN"
+                              ) || 0}
+                            </td>
+
+                            <td className="p-3 text-red-600 font-medium">
+                              ₹
+                              {item.balanceAmount?.toLocaleString(
+                                "en-IN"
+                              ) || 0}
+                            </td>
+
+
+                            {/* Sticky Actions Column */}
+                            <td className="p-3 sticky right-0 bg-white z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)]">
+                              <div className="flex justify-center relative">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuId(
+                                      openMenuId === item._id ? null : item._id,
+                                    );
+                                  }}
+                                  className={`p-2 rounded-md transition-colors ${openMenuId === item._id
+                                    ? "bg-blue-100 text-blue-600"
+                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                    }`}
+                                >
+                                  <FaEllipsisV />
+                                </button>
+
+                                {openMenuId === item._id && (
+                                  <div
+                                    className="absolute right-22 top-8 w-44 bg-white border border-gray-300 rounded-lg shadow-xl z-[9999]"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <Link
+                                      to={`/new-bookings/view/${item._id}`}
+                                      className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
+                                    >
+                                      <span>👁</span>
+                                      <span>View</span>
+                                    </Link>
+
+                                    <Link
+                                      to={`/new-bookings/edit/${item._id}`}
+                                      className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
+                                    >
+                                      <span>✏️</span>
+                                      <span>Edit</span>
+                                    </Link>
+
+                                    <button
+                                      onClick={() => {
+                                        setOpenMenuId(null);
+                                        handleDelete(item._id);
+                                      }}
+                                      className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 text-red-600"
+                                    >
+                                      <span>🗑</span>
+                                      <span>Delete</span>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={18}>
+                          <NoDataFound
+                            title="No Bookings Found"
+                            description="No booking records available"
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                )}
               </table>
             </div>
           </div>
@@ -617,7 +641,23 @@ const NewBookingTable = () => {
         </div>
       </div>
 
-
+      {
+        showPaymentModal && (
+          <PaymentVerificationModal
+            booking={selectedBooking}
+            register={register}
+            handleSubmit={handleSubmit}
+            errors={errors}
+            onSubmit={onSubmit}
+            onClose={() => {
+              reset();
+              setShowPaymentModal(false);
+            }}
+            watch={watch}
+            setValue={setValue}
+          />
+        )
+      }
       <ConfirmModal
         isOpen={showDeleteModal}
         title="Delete Booking"

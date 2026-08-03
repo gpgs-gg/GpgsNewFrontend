@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import { Outlet } from "react-router-dom";
 
 const MainLayout = () => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (

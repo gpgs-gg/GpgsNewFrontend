@@ -23,6 +23,7 @@ const FilePreview = ({
                         url: file,
                         uploadedBy: "",
                         uploadedAt: "",
+                        role: "",
                     };
                 }
 
@@ -30,6 +31,7 @@ const FilePreview = ({
                     url: file?.url || "",
                     uploadedBy: file?.uploadedBy || "",
                     uploadedAt: file?.uploadedAt || "",
+                    role: file?.role || "",
                 };
             });
         }
@@ -40,6 +42,7 @@ const FilePreview = ({
                 url: url.trim(),
                 uploadedBy: "",
                 uploadedAt: "",
+                role: "",
             }))
             .filter((x) => x.url);
     }, [existingFiles]);
@@ -208,6 +211,7 @@ const FilePreview = ({
                 {existing.map((file, index) => {
                     const fileUrl = file.url;
                     const uploadedBy = file.uploadedBy;
+                    const role = file.role;
                     const uploadedAt = formatDateAndTime(file.uploadedAt);
 
                     const isImage = /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(fileUrl);
@@ -301,10 +305,9 @@ const FilePreview = ({
                                 <div className="mt-2 text-center text-[10px] leading-4 text-gray-600 w-full">
                                     {uploadedBy && (
                                         <div className="font-semibold truncate">
-                                            {uploadedBy}
+                                            {uploadedBy} | {role}
                                         </div>
                                     )}
-
                                     {uploadedAt && (
                                         <div>
                                             {uploadedAt}

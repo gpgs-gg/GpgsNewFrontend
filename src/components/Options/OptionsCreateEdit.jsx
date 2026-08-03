@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -8,6 +8,7 @@ import {
     useSingleMasterData,
 } from "./services/index";
 import { toast } from "react-toastify";
+import ConfirmModal from "../Common/ConfirmModal";
 
 const defaultValues = {
     categoryKey: "",
@@ -30,7 +31,8 @@ const defaultValues = {
 const OptionsCreateEdit = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-
+    const [deleteOptionIndex, setDeleteOptionIndex] = useState(null);
+    const [showDeleteOptionModal, setShowDeleteOptionModal] = useState(false);
     const editId = id;
     const isEdit = Boolean(id);
 
@@ -112,65 +114,72 @@ const OptionsCreateEdit = () => {
             reset(defaultValues);
         }
     }, [singleMaster, isEdit, reset]);
+    const handleDeleteOption = () => {
+        if (deleteOptionIndex === null) return;
 
+        remove(deleteOptionIndex);
+
+        setDeleteOptionIndex(null);
+        setShowDeleteOptionModal(false);
+    };
     // ================================
     // Submit
     // ================================
-  const onSubmit = async (formData) => {
-  try {
-    if (isEdit) {
-      const response = await updateMutation.mutateAsync({
-        id,
-        data: {
-          categoryName: formData.categoryName,
-          description: formData.description,
-          items: formData.items,
-        },
-      });
+    const onSubmit = async (formData) => {
+        try {
+            if (isEdit) {
+                const response = await updateMutation.mutateAsync({
+                    id,
+                    data: {
+                        categoryName: formData.categoryName,
+                        description: formData.description,
+                        items: formData.items,
+                    },
+                });
 
-      toast.success(
-        response?.message || "updated successfully."
-      );
-    } else {
-      const response = await createMutation.mutateAsync({
-        categoryKey: formData.categoryKey,
-        categoryName: formData.categoryName,
-        description: formData.description,
-        items: formData.items,
-      });
+                toast.success(
+                    response?.message || "updated successfully."
+                );
+            } else {
+                const response = await createMutation.mutateAsync({
+                    categoryKey: formData.categoryKey,
+                    categoryName: formData.categoryName,
+                    description: formData.description,
+                    items: formData.items,
+                });
 
-      toast.success(
-        response?.message || "created successfully."
-      );
-    }
+                toast.success(
+                    response?.message || "created successfully."
+                );
+            }
 
-    reset(defaultValues);
-    navigate("/options");
-  } catch (error) {
-    toast.error(
-      error?.response?.data?.message ||
-      error?.message ||
-      "Something went wrong."
-    );
-  }
-};
+            reset(defaultValues);
+            navigate("/options");
+        } catch (error) {
+            toast.error(
+                error?.response?.data?.message ||
+                error?.message ||
+                "Something went wrong."
+            );
+        }
+    };
 
     return (
         <div className="max-w-12xl mx-auto px-6">
             {/* ================= Form ================= */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* ================= Header ================= */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3">
                     <div className="flex justify-between items-center">
                         <div>
                             <h1 className="text-2xl font-bold">
-                                {isEdit ? "Update Master Data" : "Create Master Data"}
+                                {isEdit ? "Update Dynamic Data" : "Create Dynamic Data"}
                             </h1>
 
                             <p className="text-sm text-gray-500">
                                 {isEdit
-                                    ? "Update existing master values"
-                                    : "Create application master values"}
+                                    ? "Update existing Dynamic values"
+                                    : "Create application Dynamic values"}
                             </p>
                         </div>
 
@@ -194,12 +203,11 @@ const OptionsCreateEdit = () => {
                     </div>
                 </div>
                 {/* details */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-xl font-semibold mb-4">Category Details</h2>
-                    {/* input fields */}
-                    <div className="grid grid-cols-1 gap-6 px-4 md:grid-cols-2 bg-white">
-                        {/* Category Name */}
-                        <div className="form-group">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200   ">
+                 <div className=" border-b shadow border-gray-200 px-3 ">
+                       <h2 className="text-xl font-semibold py-1">Category Details</h2>
+                     <div className="flex gap-10 px-3 py-3">
+                               <div className="form-group">
                             <input
                                 {...register("categoryName", {
                                     required: "Category Name is required",
@@ -231,8 +239,14 @@ const OptionsCreateEdit = () => {
                             <label className="form-label">Category Key</label>
                         </div>
 
+                     </div>
+                 </div>
+                    {/* input fields */}
+                    <div className="grid grid-cols-1 gap-6 px-4 md:grid-cols-2 bg-white max-h-[76vh] overflow-y-auto ">
+                        {/* Category Name */}
+                   
                         <div className="md:col-span-2">
-                            <h3 className="font-semibold text-lg">Options</h3>
+                            <h3 className="font-semibold text-lg p-2">Options</h3>
 
                             <div className="space-y-5 ">
                                 {fields.map((field, index) => (
@@ -271,8 +285,11 @@ const OptionsCreateEdit = () => {
                                                 {fields.length > 1 && (
                                                     <button
                                                         type="button"
-                                                        onClick={() => remove(index)}
-                                                        className=" inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition-all duration-200 hover:border-red-300 hover:bg-red-100 hover:text-red-700"
+                                                        onClick={() => {
+                                                            setDeleteOptionIndex(index);
+                                                            setShowDeleteOptionModal(true);
+                                                        }}
+                                                        className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition-all duration-200 hover:border-red-300 hover:bg-red-100 hover:text-red-700"
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -354,7 +371,7 @@ const OptionsCreateEdit = () => {
 
                 {/* ================= Footer ================= */}
 
-                <div className="flex justify-end gap-3  px-6 py-4">
+                {/* <div className="flex justify-end gap-3  px-6 py-4">
                     <button
                         type="button"
                         onClick={() => {
@@ -381,8 +398,18 @@ const OptionsCreateEdit = () => {
                                 ? "Update"
                                 : "Create"}
                     </button>
-                </div>
+                </div> */}
             </form>
+            <ConfirmModal
+                isOpen={showDeleteOptionModal}
+                title="Delete Option"
+                message="This option will be permanently removed. Do you want to continue and update the data?"
+                onConfirm={handleDeleteOption}
+                onCancel={() => {
+                    setShowDeleteOptionModal(false);
+                    setDeleteOptionIndex(null);
+                }}
+            />
         </div>
     );
 };

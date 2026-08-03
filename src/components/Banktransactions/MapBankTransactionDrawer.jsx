@@ -62,6 +62,7 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
         control,
         handleSubmit,
         watch,
+        formState: { errors },
     } = useForm({
         defaultValues: {
             propertyId: null,
@@ -70,7 +71,6 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
             paymentType: paymentTypeOptions[0],
         },
     });
-
     const selectedProperty = watch("propertyId");
     const selectedClient = watch("client");
     const propertyId = selectedProperty?.value;
@@ -93,6 +93,7 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
     //     roomNo: item.bedId.roomNo,
     //     bedNo: item.bedId.bedNo,
     // }));
+
     const clientOptions = clientData?.data?.map((item) => ({
         value: item._id,
         label: item.fullName,
@@ -115,11 +116,9 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
 
         if (clientMonth !== selectedMonth) {
             toast.dismiss();
-
             toast.error(
                 `The latest rent history for this client is ${latestRentHistoryMonthName} ${latestRentHistoryYear}. Please select ${latestRentHistoryMonthName} ${latestRentHistoryYear} from the Month field before mapping this transaction.`
             );
-
             return;
         }
 
@@ -132,6 +131,7 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
             year: new Date().getFullYear(),
             paymentType: data.paymentType.value,
             amount: Number(transaction.deposit || 0),
+            paymentComment : transaction.narration,
             transactionDate: transaction.date,
             narration: transaction.narration,
         };
@@ -142,12 +142,10 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
                 toast.success(
                     response?.message || "Bank transaction updated successfully."
                 );
-
                 // Optional
-                // reset();
+                reset();
                 // navigate("/bank-transactions");
             },
-
             onError: (error) => {
                 toast.dismiss()
                 toast.error(
@@ -221,6 +219,9 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
                     <Controller
                         name="propertyId"
                         control={control}
+                        rules={{
+                            required: "Property is required.",
+                        }}
                         render={({ field }) => (
                             <div
                                 className={`select-group ${field.value ? "has-value" : ""}`}
@@ -238,6 +239,11 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
                                         field.onChange(selectedOption)
                                     }
                                 />
+                                {errors.propertyId && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                        {errors.propertyId.message}
+                                    </p>
+                                )}
                             </div>
                         )}
                     />
@@ -245,6 +251,9 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
                     <Controller
                         name="client"
                         control={control}
+                        rules={{
+                            required: "Client is required.",
+                        }}
                         render={({ field }) => (
                             <div
                                 className={`select-group ${field.value ? "has-value" : ""
@@ -263,6 +272,11 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
                                     value={field.value}
                                     onChange={field.onChange}
                                 />
+                                {errors.client && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                        {errors.client.message}
+                                    </p>
+                                )}
                             </div>
                         )}
                     />
@@ -270,6 +284,9 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
                     {/* Month */}
                     <Controller
                         name="month"
+                        rules={{
+                            required: "Month is required.",
+                        }}
                         control={control}
                         render={({ field }) => (
                             <div
@@ -281,11 +298,17 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
                                 </label>
 
                                 <Select
+                                    isClearable
                                     options={monthOptions}
                                     styles={selectStyles}
                                     value={field.value}
                                     onChange={field.onChange}
                                 />
+                                {errors.month && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                        {errors.month.message}
+                                    </p>
+                                )}
                             </div>
                         )}
                     />
@@ -293,6 +316,9 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
                     {/* Payment Type */}
                     <Controller
                         name="paymentType"
+                            rules={{
+                            required: "PaymentType is required.",
+                        }}
                         control={control}
                         render={({ field }) => (
                             <div
@@ -304,11 +330,17 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
                                 </label>
 
                                 <Select
+                                    isClearable
                                     options={paymentTypeOptions}
                                     styles={selectStyles}
                                     value={field.value}
                                     onChange={field.onChange}
                                 />
+                                {errors.paymentType && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                        {errors.paymentType.message}
+                                    </p>
+                                )}
                             </div>
                         )}
                     />

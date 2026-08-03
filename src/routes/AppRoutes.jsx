@@ -33,7 +33,8 @@ import TicketView from "../components/tickets/TicketView";
 import Options from "../pages/Options";
 import OptionsCreateEdit from "../components/Options/OptionsCreateEdit";
 import ClientRentHistory from "../pages/ClientRentHistory";
-
+import HousekeepingPage from "../components/Daily/DailyToDoHouseKeeping/HouseKeeping";
+import Maintenance from "../components/Daily/DailyToDoMaintenace/Maintenance";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -92,6 +93,8 @@ const AppRoutes = () => {
            <Route path="/leads/create" element={<LeadsCreateEdit/>} />
            <Route path="/renthistory" element={<ClientRentHistory/>} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/house-keeping" element={<HousekeepingPage />} />
+          <Route path="/maintenance" element={<Maintenance />} />
         </Route>
       </Route>
 

@@ -159,16 +159,50 @@ export const usePropertiesDropdown = ( enabled = true ) => {
 
 // ............................................................................................................................ //
 
-const getBankTransactionData= async () => {
-  const response = await apiClient.get("/bank");
+const getBankTransactionData = async ({
+  page = 1,
+  limit = 10,
+  search = "",
+  filters = {},
+}) => {
+  const params = {
+    page,
+    limit,
+  };
+
+  if (search?.trim()) params.search = search.trim();
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      params[key] = value;
+    }
+  });
+
+  const response = await apiClient.get("/bank", {
+    params,
+  });
+
   return response.data;
 };
 
-export const useBankTransactionData = ( enabled = true ) => {
+export const useBankTransactionData = ({
+  page = 1,
+  limit = 10,
+  search = "",
+  filters = {},
+  enabled = true,
+} = {}) => {
   return useQuery({
-    queryKey: ["bank-transaction-data"],
-    queryFn: getBankTransactionData,
-    enabled ,// Only fetch when enabled is true
+    queryKey: ["bank-transaction-data", page, limit, search, filters],
+    queryFn: () =>
+      getBankTransactionData({
+        page,
+        limit,
+        search,
+        filters,
+      }),
+    enabled,
+    placeholderData: (previousData) => previousData, // React Query v5 replacement for keepPreviousData
   });
 };
 

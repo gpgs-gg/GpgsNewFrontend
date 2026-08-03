@@ -40,7 +40,7 @@ export const useMasterData = ({
 }) => {
   return useQuery({
     queryKey: [
-      "master-data",
+      "options",
       page,
       limit,
       search,
@@ -83,7 +83,7 @@ const getSingleMasterData = async (id) => {
 
 export const useSingleMasterData = (id) => {
   return useQuery({
-    queryKey: ["master-data", id],
+    queryKey: ["options", id],
     queryFn: () => getSingleMasterData(id),
     enabled: !!id,
   });
@@ -157,5 +157,43 @@ export const useSharingTypes = () => {
   return useQuery({
     queryKey: ["sharing-types"],
     queryFn: getSharingTypes,
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+// akash code  ......................................
+const getBatchOptions = async (categories = []) => {
+  const { data } = await apiClient.get("/options/batch", {
+    params: {
+      categories: categories.join(","),
+    },
+  });
+
+  return data.data;
+};
+
+export const useBatchOptions = (categories = []) => {
+  const sortedCategories = [...categories].sort();
+
+  return useQuery({
+    queryKey: ["batch-options", sortedCategories.join(",")],
+    queryFn: () => getBatchOptions(sortedCategories),
+    enabled: sortedCategories.length > 0,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
   });
 };

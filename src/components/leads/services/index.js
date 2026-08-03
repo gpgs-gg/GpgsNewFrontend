@@ -209,37 +209,38 @@ queryClient.invalidateQueries(["leads-data"]);
 });
 
 };
-
-
-const getLeadAutoTransfer = async () => {
-  const response = await apiClient.get("/lead-auto-transfer");
+const getGlobalSettings = async () => {
+  const response = await apiClient.get("/global-settings");
   return response.data;
 };
 
-export const useLeadAutoTransfer = () => {
+export const useGlobalSettings = () => {
   return useQuery({
-    queryKey: ["lead-auto-transfer"],
-    queryFn: getLeadAutoTransfer,
+    queryKey: ["global-settings"],
+    queryFn: getGlobalSettings,
   });
 };
 
-const updateLeadAutoTransfer = async (leadAutoTransfer) => {
-  const response = await apiClient.put("/lead-auto-transfer", {
-    leadAutoTransfer,
-  });
 
+// ================= UPDATE GLOBAL SETTINGS =================
+
+const updateGlobalSettings = async (data) => {
+  const response = await apiClient.put(
+    "/global-settings",
+    data
+  );
   return response.data;
 };
 
-export const useUpdateLeadAutoTransfer = () => {
+export const useUpdateGlobalSettings = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: updateLeadAutoTransfer,
+    mutationFn: updateGlobalSettings,
 
     onSuccess: () => {
       queryClient.invalidateQueries([
-        "lead-auto-transfer",
+        "global-settings",
       ]);
     },
   });

@@ -16,6 +16,7 @@ import { getPropertyDropdown } from '../properties/services';
 import { AsyncPaginate } from 'react-select-async-paginate';
 import { Link } from "react-router-dom";
 import FilePreview from '../common/FilePreview';
+import { useBatchOptions } from '../Options/services';
 function TicketCreateEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -35,6 +36,13 @@ function TicketCreateEdit() {
   const { data: singleTicket } = useSingleTicketData(id);
   const { data: propertiesDropdown, isPending: ispropertiesDropdown } = usePropertiesDropdown()
   const { data: currentUser, isLoading } = useCurrentUser();
+  const { data: options = {} } = useBatchOptions([
+    "department",
+    "categories",
+    "priority",
+    "ticketstatus",
+    "yesno",
+  ]);
   const [navigation, setNavigation] = useState({
     previousId: null,
     nextId: null,
@@ -92,22 +100,12 @@ function TicketCreateEdit() {
   }, [id, search, filters]);
 
 
-  const StatusOptions = [
-    { value: "Open", label: "Open" },
-    { value: "Acknowledged", label: "Acknowledged" },
-    { value: "In Progress", label: "In Progress" },
-    { value: "On Hold", label: "On Hold" },
-    { value: "Resolved", label: "Resolved" },
-    { value: "Closed", label: "Closed" },
-    { value: "Cancelled", label: "Cancelled" },
-    { value: "ReOpen", label: "ReOpen" },
-  ];
-
-  const LocationOptions = [
-    { value: "Nerul ( E )", label: "Nerul ( E )" },
-    { value: "Nerul ( W )", label: "Nerul ( W )" },
-  ];
-
+  const DepartmentOptions = options.department || [];
+  const CategoryOptions = options.categories || [];
+  const PriorityOptions = options.priority || [];
+  const StatusOptions = options.ticketstatus || [];
+  const YesNoOptions = options.yesno || [];
+  
   const propertiesOptions =
     propertiesDropdown?.data?.map((property) => ({
       value: property.propertyCode,
@@ -150,20 +148,6 @@ function TicketCreateEdit() {
     };
   };
 
-  const DepartmentOptions = [
-    { value: "Nerul ( E )", label: "Nerul ( E )" },
-    { value: "Nerul ( W )", label: "Nerul ( W )" },
-  ];
-  const CategoryOptions = [
-    { value: "Nerul ( E )", label: "Nerul ( E )" },
-    { value: "Nerul ( W )", label: "Nerul ( W )" },
-  ];
-  const PriorityOptions = [
-    { value: "Critical", label: "Critical" },
-    { value: "High", label: "High" },
-    { value: "Medium", label: "Medium" },
-    { value: "Low", label: "Low" },
-  ];
   const ManagerOptions = [
     { value: "Nerul ( E )", label: "Nerul ( E )" },
     { value: "Nerul ( W )", label: "Nerul ( W )" },
@@ -653,21 +637,16 @@ function TicketCreateEdit() {
                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                   <label className="select-label form-label required-label">Customer Impacted</label>
 
-                  <Select
+               <Select
                     {...field}
-                    options={[
-                      { value: "Yes", label: "Yes" },
-                      { value: "No", label: "No" }
-                    ]}
+                    options={YesNoOptions}
                     placeholder=""
                     isClearable
-                    value={[
-                      { value: "Yes", label: "Yes" },
-                      { value: "No", label: "No" }
-                    ].find(x => x.value === field.value)}
+                    value={YesNoOptions.find(x => x.value === field.value)}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
                   />
+
                   {errors.customerImpacted && (
                     <p className="text-red-500 text-sm mt-1">
                       {errors.customerImpacted.message}
@@ -684,18 +663,12 @@ function TicketCreateEdit() {
                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                   <label className="select-label">Escalated</label>
 
-                  <Select
+                 <Select
                     {...field}
-                    options={[
-                      { value: "Yes", label: "Yes" },
-                      { value: "No", label: "No" }
-                    ]}
+                    options={YesNoOptions}
                     placeholder=""
                     isClearable
-                    value={[
-                      { value: "Yes", label: "Yes" },
-                      { value: "No", label: "No" }
-                    ].find(x => x.value === field.value)}
+                    value={YesNoOptions.find(x => x.value === field.value)}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
                   />

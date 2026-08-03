@@ -11,9 +11,8 @@ import { useBedsData } from "./services";
 import { PAGINATION } from "../../constants/appConfig";
 import useDebounce from "../hooks/useDebounce";
 import { useBankTransactionData } from "./services";
-import BedFilter from "../beds/BedFilter";
 import MapBankTransactionDrawer from "./MapBankTransactionDrawer";
-import TableSkeleton from "../common/TableSkelton";
+import BankTransactionFilter from "./BankTranscationFilter";
 
 const BankTransactionList = () => {
   const [search, setSearch] = useState("");
@@ -24,24 +23,82 @@ const BankTransactionList = () => {
   const rowsPerPage = PAGINATION.BEDS_PER_PAGE || 10;
   const debouncedSearch = useDebounce(search);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  // Filter chips state
+  const [filterLabels, setFilterLabels] = useState([]);
 
-  const { data: apiResponse, isLoading } = useBankTransactionData();
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [defaultFilterData, setDefaultFilterData] = useState(null);
+  // fetch data with pagination, search and filters
+  const { data: apiResponse } = useBankTransactionData({
+    page: currentPage,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    filters,
+  });
   const apiData = apiResponse?.data || [];
 
   const totalPages = apiResponse?.totalPages || 1;
+
   const totalRecords = apiResponse?.totalRecords || 0;
 
   const paginatedData = apiData;
+  const applyTransactionType = (type) => {
+    setFilters((prev) => ({
+      ...prev,
+      transactionType: type,
+    }));
 
+    setFilterLabels((prev) => {
+      const remaining = prev.filter((item) => item.key !== "transactionType");
+
+      return [
+        ...remaining,
+        {
+          key: "transactionType",
+          label: `Type : ${type === "deposit" ? "Deposit" : "Withdrawal"}`,
+        },
+      ];
+    });
+
+    setCurrentPage(1);
+  };
   const handleReset = () => {
     setFilters({});
+    setFilterLabels([]);
     setSearch("");
     setCurrentPage(1);
+    setDefaultFilterData(null);
 
     setResetTrigger((prev) => prev + 1);
   };
 
+  const removeFilter = (key) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: "",
+    }));
+
+    setFilterLabels((prev) => prev.filter((item) => item.key !== key));
+
+    setCurrentPage(1);
+  };
+  const handleTodayTransactions = () => {
+    const today = formatDate(new Date()); // should return YYYY-MM-DD
+
+    const data = {
+      fromDate: today,
+      toDate: today,
+      defaultFilter: true,
+    };
+
+    setFilters(data);
+    setDefaultFilterData(data);
+    setCurrentPage(1);
+  };
+  const convertToApiDate = (date) => {
+    return date.toISOString().split("T")[0];
+  };
+  const today = convertToApiDate(new Date());
   return (
     <>
       <div className="space-y-5">
@@ -50,7 +107,9 @@ const BankTransactionList = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold uppercase">Bank Transactions</h1>
+              <h1 className="text-2xl font-bold uppercase">
+                Bank Transactions
+              </h1>
               <p className="text-sm text-gray-500">Manage All Transactions</p>
             </div>
 
@@ -66,10 +125,11 @@ const BankTransactionList = () => {
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
           {/* SEARCH */}
           <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
+            {/* Search */}
             <div className="relative w-80">
               <input
                 className="border px-3 py-2 pr-10 rounded-lg w-full"
-                placeholder="Search property..."
+                placeholder="Search transaction..."
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -90,18 +150,75 @@ const BankTransactionList = () => {
                 </button>
               )}
             </div>
+
+            {/* Filter Chips */}
+            <div className="flex flex-wrap items-center gap-2 flex-1">
+              {filterLabels.map((filter) => (
+                <div
+                  key={filter.key}
+                  className="group inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-100"
+                >
+                  <span className="mr-2 font-medium text-slate-700">
+                    {filter.label}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => removeFilter(filter.key)}
+                    className="flex h-5 w-5 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+            {/* todays transaction */}
+            {/* <button
+              onClick={handleTodayTransactions}
+              className="theme-btn px-4 py-2 rounded-lg whitespace-nowrap"
+            >
+              Today's Transactions
+            </button> */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => applyTransactionType("deposit")}
+                className={`px-4 py-2 rounded-lg border ${
+                  filters.transactionType === "deposit"
+                    ? "bg-green-600 text-white"
+                    : "bg-white"
+                }`}
+              >
+                Deposit
+              </button>
+
+              <button
+                onClick={() => applyTransactionType("withdrawal")}
+                className={`px-4 py-2 rounded-lg border ${
+                  filters.transactionType === "withdrawal"
+                    ? "bg-red-600 text-white"
+                    : "bg-white"
+                }`}
+              >
+                Withdrawal
+              </button>
+            </div>
+            {/* Buttons */}
             <div className="flex gap-2">
-              {Object.keys(filters).length > 0 && (
+              {(Object.keys(filters).length > 0 ||
+                filters.transactionType ||
+                search) && (
                 <button
                   onClick={handleReset}
                   className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
                 >
-                  {/* <Filter size={16} /> */}
                   Reset
                 </button>
               )}
+
               <button
-                onClick={() => setFilterOpen(true)}
+                onClick={() => {
+                  setFilterOpen(true);
+                }}
                 className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
               >
                 <Filter size={16} />
@@ -125,13 +242,10 @@ const BankTransactionList = () => {
                   <th className="p-3 text-center">Source</th>
                   <th className="p-3 text-center">Uploaded By</th>
                   <th className="p-3 text-center">Created At</th>
-                  <th className="p-3 text-center">Payment Link</th>
                   <th className="p-3 text-center">Actions</th>
                 </tr>
               </thead>
-  {isLoading ? (
-                  <TableSkeleton rows={20} columns={17} />
-                ) : (
+
               <tbody>
                 {paginatedData.length > 0 ? (
                   paginatedData.map((item) => (
@@ -149,9 +263,7 @@ const BankTransactionList = () => {
                         </div>
                       </td>
 
-                      <td className="p-3 text-center">
-                        {item.chqNo || "-"}
-                      </td>
+                      <td className="p-3 text-center">{item.chqNo || "-"}</td>
 
                       <td className="p-3 text-right text-red-600 font-medium">
                         {item.withdrawal
@@ -186,21 +298,6 @@ const BankTransactionList = () => {
                       <td className="p-3 text-center">
                         {formatDate(item.createdAt)}
                       </td>
-                      <td className="p-3 text-center">
-                            {item.deposit > 0 &&
-                     (
-
-                          <button
-                            onClick={() => {
-                              setSelectedTransaction(item);
-                              setDrawerOpen(true);
-                            }}
-                            className="px-3 py-1 rounded bg-green-600 text-white text-sm hover:bg-green-700"
-                          >
-                            Link Payment
-                          </button>
-                     ) }
-                      </td>
 
                       <td className="p-3">
                         <div className="flex justify-center gap-2">
@@ -211,7 +308,16 @@ const BankTransactionList = () => {
                           <button className="p-2 bg-yellow-100 rounded hover:bg-yellow-200">
                             <Pencil size={16} />
                           </button>
-              
+
+                          <button
+                            onClick={() => {
+                              setSelectedTransaction(item);
+                              setDrawerOpen(true);
+                            }}
+                            className="px-3 py-1 rounded bg-green-600 text-white text-sm hover:bg-green-700"
+                          >
+                            Link Payment
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -229,9 +335,7 @@ const BankTransactionList = () => {
                   </tr>
                 )}
               </tbody>
-                )}
             </table>
-            
           </div>
 
           {/* PAGINATION */}
@@ -250,12 +354,14 @@ const BankTransactionList = () => {
           </div>
         </div>
       </div>
-      <BedFilter
+      <BankTransactionFilter
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         apiData={apiData}
-        onApply={(data) => {
+        filters={filters}
+        onApply={(data, labels) => {
           setFilters(data);
+          setFilterLabels(labels);
           setCurrentPage(1);
         }}
         handleReset={handleReset}

@@ -21,6 +21,7 @@ import { selectStyles } from "../../utils/selectStyles";
 import { convertStringFormatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { Link } from "react-router-dom";
 import Loader from "../common/Loader";
+import { useBatchOptions } from "../Options/services";
 
 
 // Validation
@@ -77,7 +78,7 @@ const schema = yup.object().shape({
     ClientName: yup.string().when("mode", {
         is: "single",
         then: (schema) =>
-            schema.required("ClientName is required"),
+            schema.required("Client Name is required"),
         otherwise: (schema) =>
             schema.notRequired()
     })
@@ -89,38 +90,26 @@ const schema = yup.object().shape({
 function LeadsCreateEdit() {
     const { id } = useParams();
     const navigate = useNavigate();
-
     const location = useLocation();
-
-    const {
-        data: currentUser
-    } = useCurrentUser();
-
-    const {
-        data: singleLead
-    } = useSingleLeadData(id);
-
-    const {
-        mutateAsync: createLead
-    } = useCreateLeadData();
-
-    const {
-        mutateAsync: updateLead
-    } = useUpdateLeadData();
-
-    const {
-        mutateAsync: bulkCreateLead
-    } = useBulkCreateLead();
-
-    const [mode, setMode] = useState(
-        id ? "single" : "bulk"
-    );
-
+    const { data: currentUser } = useCurrentUser();
+    const { data: singleLead } = useSingleLeadData(id);
+    const { mutateAsync: createLead } = useCreateLeadData();
+    const { mutateAsync: updateLead } = useUpdateLeadData();
+    const { mutateAsync: bulkCreateLead } = useBulkCreateLead();
+    const [mode, setMode] = useState(id ? "single" : "bulk");
     const [navigation, setNavigation] = useState({
         previousId: null,
         nextId: null
     });
-
+    const { data: options = {} } = useBatchOptions([
+        "gender",
+        "leadsource",
+        "leadstatus",
+        "leadsreason",
+        "locations",
+        "teamcode",
+        "yesno",
+    ]);
 
     // const filters = useMemo(
     //     () => location.state?.filters || {},
@@ -142,13 +131,9 @@ function LeadsCreateEdit() {
             errors,
             isSubmitting
         }
-
     } = useForm({
-
         resolver: yupResolver(schema),
-
         defaultValues: {
-
             mode: id ? "single" : "bulk",
             ClientName: "",
             CallingNo: "",
@@ -164,62 +149,28 @@ function LeadsCreateEdit() {
             TeamCode: null,
             BulkCallingNo: "",
             BulkLeadSource: null,
+            BulkFollowupDate: null,
             Comments: "",
             WorkLogs: ""
-
         }
-
     });
+    const GenderOptions = options.gender || [];
+    const LeadSourceOptions = options.leadsource || [];
+    const LeadStatusOptions = options.leadstatus || [];
+    const ReasonOptions = options.leadsreason || [];
+    const LocationOptions = options.locations || [];
+    const TeamCodeOptions = options.teamcode || [];
     const ManagerOptions = [
         { value: "Akash", label: "Akash" },
         { value: "Rahul", label: "Rahul" },
         { value: "Priya", label: "Priya" }
     ];
 
-    const GenderOptions = [
-        { value: "Male", label: "Male" },
-        { value: "Female", label: "Female" }
-    ];
-
-    const TeamCodeOptions = [
-        { value: "Sales-1", label: "Sales-1" },
-        { value: "Sales-2", label: "Sales-2" }
-    ];
-
-    const LeadSourceOptions = [
-        { value: "Website", label: "Website" },
-        { value: "Walk In", label: "Walk In" },
-        { value: "Reference", label: "Reference" },
-        { value: "Advertisement", label: "Advertisement" }
-    ];
-
-    const LocationOptions = [
-        { value: "Nerul East", label: "Nerul East" },
-        { value: "Nerul West", label: "Nerul West" }
-    ];
-
-    const LeadStatusOptions = [
-        { value: "New", label: "New" },
-        { value: "Follow Up", label: "Follow Up" },
-        { value: "Interested", label: "Interested" },
-        { value: "Booked", label: "Booked" },
-        { value: "Lost", label: "Lost" }
-    ];
-
-    const ReasonOptions = [
-        { value: "Interested", label: "Interested" },
-        { value: "Not Interested", label: "Not Interested" },
-        { value: "Call Later", label: "Call Later" }
-    ];
-
     // Edit Data Load
-
     useEffect(() => {
 
         if (id && singleLead?.data) {
-
             const lead = singleLead.data;
-
             reset({
                 mode: "single",
                 ...lead,
@@ -228,52 +179,39 @@ function LeadsCreateEdit() {
                     : null,
                 Comments: "",
             });
-
         }
-
     }, [id, singleLead, reset]);
 
-
     // Previous Next Navigation
-
     useEffect(() => {
-
         if (!id) return;
-
         const loadNavigation = async () => {
-
             try {
-
                 const res = await getLeadNavigation({
                     id,
                     search,
                     ...filters
                 });
-
                 setNavigation({
                     previousId: res.previousId,
                     nextId: res.nextId
                 });
-
             } catch (err) {
                 console.log(err);
             }
-
         };
-
         loadNavigation();
-
     }, [id, search, filters]);
+
     useEffect(() => {
         console.log("Location State:", location.state);
     }, [location.state]);
+
     const onSubmit = async (data) => {
         try {
             // UPDATE
             if (id) {
-
                 const oldData = singleLead?.data;
-
                 const updatedData = {
                     ClientName: data.ClientName || "",
                     CallingNo: data.CallingNo || "",
@@ -297,7 +235,6 @@ function LeadsCreateEdit() {
                 });
                 toast.success("Lead updated successfully");
                 return;
-
             }
             // BULK CREATE
             if (mode === "bulk") {
@@ -310,10 +247,10 @@ function LeadsCreateEdit() {
                     return;
                 }
                 const payload = {
-
                     leads: numbers.map(number => ({
                         CallingNo: number,
                         WhatsAppNo: number,
+                        FollowupDate: convertStringFormatDate(data.BulkFollowupDate),
                         LeadSource: data.BulkLeadSource || "",
                         workLogs: [
                             {
@@ -354,21 +291,15 @@ function LeadsCreateEdit() {
             reset();
             navigate("/leads");
         } catch (err) {
-
             toast.error(
                 err?.response?.data?.message || "Something went wrong"
             );
-
         }
-
     };
     return (
         <div className="max-w-12xl mx-auto my-5 bg-white shadow border border-gray-300 p-4 rounded-xl">
-
             <form onSubmit={handleSubmit(onSubmit)}>
-
                 <div className="flex gap-4 mb-10 justify-center">
-
                     {!id && (
                         <button
                             type="button"
@@ -384,7 +315,6 @@ function LeadsCreateEdit() {
                             Bulk Upload Leads
                         </button>
                     )}
-
                     <button
                         type="button"
                         onClick={() => {
@@ -398,13 +328,10 @@ function LeadsCreateEdit() {
                     >
                         {id ? "Update Lead" : "Add Single Lead"}
                     </button>
-
                 </div>
-
 
                 {id && (
                     <div className="flex justify-end gap-3 mb-4">
-
                         <button
                             type="button"
                             disabled={!navigation.previousId}
@@ -413,7 +340,6 @@ function LeadsCreateEdit() {
                         >
                             Previous
                         </button>
-
                         <button
                             type="button"
                             disabled={!navigation.nextId}
@@ -422,17 +348,11 @@ function LeadsCreateEdit() {
                         >
                             Next
                         </button>
-
                     </div>
                 )}
 
-
-
                 {mode === "bulk" && !id && (
-
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-
                         <Controller
                             name="BulkLeadSource"
                             control={control}
@@ -449,16 +369,32 @@ function LeadsCreateEdit() {
                                         onChange={(e) => field.onChange(e?.value)}
                                         styles={selectStyles}
                                     />
-
                                 </div>
                             )}
                         />
-
+                        <Controller
+                            name="BulkFollowupDate"
+                            control={control}
+                            render={({ field }) => (
+                                <div className={`datepicker-group ${field.value ? "has-value" : ""}`}>
+                                    <label className="datepicker-label">
+                                        Followup Date
+                                    </label>
+                                    <DatePicker
+                                        selected={field.value}
+                                        isClearable
+                                        onChange={(date) => field.onChange(date)}
+                                        dateFormat="dd MMM yyyy"
+                                        className="custom-datepicker"
+                                    />
+                                </div>
+                            )}
+                        />
                         <div className="form-group md:col-span-2">
                             <textarea
                                 disabled={id ? true : false}
                                 rows={5}
-                               placeholder="Enter mobile numbers separated by spaces or commas (e.g. 1234567890 9876543210 or 1234567890,9876543210)"
+                                placeholder="Enter mobile numbers separated by spaces or commas (e.g. 1234567890 9876543210 or 1234567890,9876543210)"
                                 {...register("BulkCallingNo", {
                                     required: "BulkCallingNo is required",
                                 })}
@@ -472,19 +408,12 @@ function LeadsCreateEdit() {
                             <label className="form-label form-label required-label">
                                 Calling No
                             </label>
-
                         </div>
-
                     </div>
-
                 )}
 
-
-
                 {mode === "single" && (
-
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-
                         <div className="form-group md:col-span-1">
                             <input
                                 {...register("ClientName",)}
@@ -498,7 +427,6 @@ function LeadsCreateEdit() {
                             )}
                             <label className="form-label form-label required-label">Client Name</label>
                         </div>
-
                         <div className="form-group md:col-span-1">
                             <input
                                 {...register("CallingNo", {
@@ -535,7 +463,6 @@ function LeadsCreateEdit() {
                             render={({ field }) => (
                                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                                     <label className="select-label">Gender</label>
-
                                     <Select
                                         {...field}
                                         options={GenderOptions}
@@ -545,7 +472,6 @@ function LeadsCreateEdit() {
                                         onChange={(e) => field.onChange(e?.value)}
                                         styles={selectStyles}
                                     />
-
                                 </div>
                             )}
                         />
@@ -555,7 +481,6 @@ function LeadsCreateEdit() {
                             render={({ field }) => (
                                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                                     <label className="select-label">LeadSource</label>
-
                                     <Select
                                         {...field}
                                         options={LeadSourceOptions}
@@ -565,7 +490,6 @@ function LeadsCreateEdit() {
                                         onChange={(e) => field.onChange(e?.value)}
                                         styles={selectStyles}
                                     />
-
                                 </div>
                             )}
                         />
@@ -575,7 +499,6 @@ function LeadsCreateEdit() {
                             render={({ field }) => (
                                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                                     <label className="select-label">Location</label>
-
                                     <Select
                                         {...field}
                                         options={LocationOptions}
@@ -585,7 +508,6 @@ function LeadsCreateEdit() {
                                         onChange={(e) => field.onChange(e?.value)}
                                         styles={selectStyles}
                                     />
-
                                 </div>
                             )}
                         />
@@ -595,7 +517,6 @@ function LeadsCreateEdit() {
                             render={({ field }) => (
                                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                                     <label className="select-label">Assignee</label>
-
                                     <Select
                                         {...field}
                                         options={ManagerOptions}
@@ -605,7 +526,6 @@ function LeadsCreateEdit() {
                                         onChange={(e) => field.onChange(e?.value)}
                                         styles={selectStyles}
                                     />
-
                                 </div>
                             )}
                         />
@@ -615,7 +535,6 @@ function LeadsCreateEdit() {
                             render={({ field }) => (
                                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                                     <label className="select-label">FieldMember</label>
-
                                     <Select
                                         {...field}
                                         options={ManagerOptions}
@@ -625,7 +544,6 @@ function LeadsCreateEdit() {
                                         onChange={(e) => field.onChange(e?.value)}
                                         styles={selectStyles}
                                     />
-
                                 </div>
                             )}
                         />
@@ -637,7 +555,6 @@ function LeadsCreateEdit() {
                                     <label className="datepicker-label">
                                         Followup Date
                                     </label>
-
                                     <DatePicker
                                         selected={field.value}
                                         isClearable
@@ -648,14 +565,12 @@ function LeadsCreateEdit() {
                                 </div>
                             )}
                         />
-
                         <Controller
                             name="LeadStatus"
                             control={control}
                             render={({ field }) => (
                                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                                     <label className="select-label">LeadStatus</label>
-
                                     <Select
                                         {...field}
                                         options={LeadStatusOptions}
@@ -665,7 +580,6 @@ function LeadsCreateEdit() {
                                         onChange={(e) => field.onChange(e?.value)}
                                         styles={selectStyles}
                                     />
-
                                 </div>
                             )}
                         />
@@ -675,7 +589,6 @@ function LeadsCreateEdit() {
                             render={({ field }) => (
                                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                                     <label className="select-label">Reason</label>
-
                                     <Select
                                         {...field}
                                         options={ReasonOptions}
@@ -685,19 +598,17 @@ function LeadsCreateEdit() {
                                         onChange={(e) => field.onChange(e?.value)}
                                         styles={selectStyles}
                                     />
-
                                 </div>
                             )}
                         />
 
-                        {id &&
+                        
                             <Controller
                                 name="TeamCode"
                                 control={control}
                                 render={({ field }) => (
                                     <div className={`select-group ${field.value ? "has-value" : ""}`}>
                                         <label className="select-label">TeamCode</label>
-
                                         <Select
                                             {...field}
                                             options={TeamCodeOptions}
@@ -707,15 +618,13 @@ function LeadsCreateEdit() {
                                             onChange={(e) => field.onChange(e?.value)}
                                             styles={selectStyles}
                                         />
-
                                     </div>
                                 )}
                             />
-                        }
+                        
 
                         <div className="form-group md:col-span-1">
                             <textarea
-
                                 rows={5}
                                 {...register("Comments", {
                                     required: "Comments is required",
@@ -730,7 +639,6 @@ function LeadsCreateEdit() {
                             <label className="form-label form-label required-label">
                                 Comments
                             </label>
-
                         </div>
 
                         {id && (
@@ -738,7 +646,6 @@ function LeadsCreateEdit() {
                                 <h3 className="text-md mb-1 bg-white absolute -mt-5">
                                     Work Log History
                                 </h3>
-
                                 <div className="flex-1 overflow-y-auto">
                                     {singleLead?.data?.workLogs?.length > 0 ? (
                                         singleLead.data.workLogs
@@ -756,8 +663,6 @@ function LeadsCreateEdit() {
                                                     <p className="whitespace-pre-line text-md font-bold ">
                                                         {log.message}
                                                     </p>
-
-
                                                 </div>
                                             ))
                                     ) : (
@@ -768,16 +673,10 @@ function LeadsCreateEdit() {
                                 </div>
                             </div>
                         )}
-
                     </div>
-
                 )}
 
-
-
                 <div className="flex justify-end gap-3 mt-5">
-
-
                     <Link to="/leads">
                         <button
                             type="button"
@@ -786,8 +685,6 @@ function LeadsCreateEdit() {
                             Cancel
                         </button>
                     </Link>
-
-
                     <button
                         type="submit"
                         disabled={isSubmitting}
@@ -795,17 +692,10 @@ function LeadsCreateEdit() {
                     >
                         {isSubmitting ? <div className='flex justify-center items-center gap-2'><Loader /> Processing...</div> : id ? "Update Lead" : "Create Lead"}
                     </button>
-
-
                 </div>
-
-
             </form>
-
         </div>
-
     );
-
 }
 
 export default LeadsCreateEdit;

@@ -14,7 +14,8 @@ import { TableFilePreview } from "../common/FilePreview";
 import useDebounce from "../hooks/useDebounce";
 import ExportDrawer from "./ExportDrawer";
 import TableSkeleton from "../common/TableSkelton";
-
+import ConfirmModal from "../Common/ConfirmModal";
+import { toast } from "react-toastify";
 
 const priorityColors = {
     Critical: "text-red-700",
@@ -47,6 +48,8 @@ const TicketsList = () => {
     const [resetTrigger, setResetTrigger] = useState(0);
     const [selectedTickets, setSelectedTickets] = useState(new Set());
     const [selectedColumns, setSelectedColumns] = useState(new Set());
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
     const [showColumnSelector, setShowColumnSelector] = useState(false);
     const [previewFiles, setPreviewFiles] = useState([]);
     const rowsPerPage = 10;
@@ -193,19 +196,26 @@ const TicketsList = () => {
     ];
 
     const handleDelete = (id) => {
-        if (window.confirm("Are you sure you want to delete this ticket?")) {
-            deleteTicket(id, {
-                onSuccess: (data) => {
-                    toast.dismiss();
-                    toast.success(data.message);
-                },
-                onError: (error) => {
-                    toast.error(error.response?.data?.message || "Delete failed");
-                },
-            });
-        }
+        setDeleteId(id);
+        setShowDeleteModal(true);
     };
-
+    const confirmDelete = () => {
+        deleteTicket(deleteId, {
+            onSuccess: () => {
+                toast.dismiss();
+                toast.success("Ticket deleted successfully");
+                setShowDeleteModal(false);
+                setDeleteId(null);
+            },
+            onError: (error) => {
+                toast.dismiss();
+                toast.error(
+                    error?.response?.data?.message ||
+                    "Failed to delete ticket"
+                );
+            },
+        });
+    };
     const handleSelectAll = () => {
         setSelectedTickets((prev) => {
             const newSet = new Set(prev);
@@ -686,6 +696,16 @@ const TicketsList = () => {
                 onApply={(data) => setFilters(data)}
                 handleReset={handleReset}
                 resetTrigger={resetTrigger}
+            />
+            <ConfirmModal
+                isOpen={showDeleteModal}
+                title="Delete Ticket"
+                message="Are you sure you want to delete this Ticket? This action cannot be undone."
+                onConfirm={confirmDelete}
+                onCancel={() => {
+                    setShowDeleteModal(false);
+                    setDeleteId(null);
+                }}
             />
 
             <ExportDrawer

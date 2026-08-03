@@ -3,7 +3,7 @@ import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
 import NoDataFound from "../common/NoDataFound";
-import { useDeleteLeadData, useLeadAutoTransfer, useLeadsData, useUpdateLeadAutoTransfer } from "./services";
+import { useDeleteLeadData, useGlobalSettings, useLeadsData, useUpdateGlobalSettings, } from "./services";
 import useDebounce from "../hooks/useDebounce";
 import LeadsFilter from "./LeadsFilter";
 import { IoIosCall } from "react-icons/io";
@@ -11,7 +11,7 @@ import { FaWhatsapp } from "react-icons/fa";
 import { convertStringFormatDate, formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { useCurrentUser } from "../../auth/services";
 import { toast } from "react-toastify";
-
+import ConfirmModal from "../Common/ConfirmModal";
 const statusColors = {
     New: "bg-blue-100 text-blue-700",
     Followup: "bg-yellow-100 text-yellow-700",
@@ -27,12 +27,14 @@ const LeadsList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterOpen, setFilterOpen] = useState(false);
     const [filters, setFilters] = useState({});
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
     const [defaultFilterData, setDefaultFilterData] = useState(null);
     const [resetTrigger, setResetTrigger] = useState(0);
     const rowsPerPage = 10;
     const debouncedSearch = useDebounce(search);
-    const { data: autoTransfer } = useLeadAutoTransfer();
-    const { mutate: updateLeadAutoTransfer, isPending } = useUpdateLeadAutoTransfer();
+    const { data: globalSettings } = useGlobalSettings();
+    const { mutate: updateGlobalSettings, isPending } = useUpdateGlobalSettings();
 
     const { data: apiResponse } = useLeadsData({
         page: currentPage,
@@ -71,28 +73,94 @@ const LeadsList = () => {
     };
 
     const handleDelete = (id) => {
-        if (window.confirm("Are you sure you want to delete this lead?")) {
-            deleteLead(id);
-        }
+        setDeleteId(id);
+        setShowDeleteModal(true);
     };
 
-
+    const confirmDelete = () => {
+        deleteLead(deleteId, {
+            onSuccess: () => {
+                toast.success("Lead deleted successfully");
+                setShowDeleteModal(false);
+                setDeleteId(null);
+            },
+            onError: (error) => {
+                toast.error(
+                    error?.response?.data?.message ||
+                    "Failed to delete lead"
+                );
+            },
+        });
+    };
     const handleAutoTransfer = () => {
-        updateLeadAutoTransfer(
-            !autoTransfer?.data?.leadAutoTransfer,
+
+        const isTeamAssignmentEnabled =
+            globalSettings?.data?.teamAutoAssignment;
+
+        if (!isTeamAssignmentEnabled) {
+            toast.dismiss();
+            toast.error(
+                "Please enable Team Assignment first to turn on Auto Transfer"
+            );
+            return;
+        }
+
+        const newValue =
+            !globalSettings?.data?.leadAutoTransfer;
+
+        updateGlobalSettings(
             {
-                onSuccess: (response) => {
-                    toast.dismiss()
+                leadAutoTransfer: newValue,
+            },
+            {
+                onSuccess: () => {
+                    toast.dismiss();
+
                     toast.success(
-                        response?.message || "Lead Auto Transfer Updated Successfully"
+                        newValue
+                            ? "Lead Auto Transfer Enabled Successfully"
+                            : "Lead Auto Transfer Disabled Successfully"
                     );
                 },
 
                 onError: (error) => {
-                      toast.dismiss()
+                    toast.dismiss();
+
                     toast.error(
                         error?.response?.data?.message ||
                         "Failed to update Lead Auto Transfer"
+                    );
+                },
+            }
+        );
+    };
+
+    const handleTeamAssignment = () => {
+        const newValue =
+            !globalSettings?.data?.teamAutoAssignment;
+
+        updateGlobalSettings(
+            {
+                teamAutoAssignment: newValue,
+
+                // Team Assignment OFF => Auto Transfer OFF
+                ...(newValue === false && {
+                    leadAutoTransfer: false,
+                }),
+            },
+            {
+                onSuccess: (response) => {
+                    toast.dismiss();
+                    toast.success(
+                        "Team Assignment Updated Successfully"
+                    );
+                },
+
+                onError: (error) => {
+                    toast.dismiss();
+                    toast.error(
+                        error?.response?.data?.message ||
+                        "Failed to update Team Assignment"
                     );
                 },
             }
@@ -158,36 +226,74 @@ const LeadsList = () => {
 
 
                         <div className="flex gap-2">
-<label className="inline-flex items-center cursor-pointer gap-2">
-                            <div className="relative">
-                                <input
-                                    type="checkbox"
-                                    className="sr-only peer"
-                                    checked={autoTransfer?.data?.leadAutoTransfer || false}
-                                    onChange={handleAutoTransfer}
-                                    disabled={isPending}
-                                />
+                            <label className="inline-flex items-center cursor-pointer gap-2">
+                                <div className="relative">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only peer"
+                                        checked={
+                                            globalSettings?.data?.leadAutoTransfer || false
+                                        }
+                                        onChange={handleAutoTransfer}
+                                    // disabled={
+                                    //     isPending ||
+                                    //     !globalSettings?.data?.teamAutoAssignment
+                                    // }
+                                    />
 
-                                {/* Track */}
-                                <div className="w-9 h-5 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors duration-300"></div>
+                                    {/* Track */}
+                                    <div className="w-9 h-5 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors duration-300"></div>
 
-                                {/* Knob */}
-                                <div
-                                    className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${autoTransfer?.data?.leadAutoTransfer
+                                    {/* Knob */}
+                                    <div
+                                        className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${globalSettings?.data?.leadAutoTransfer
                                             ? "translate-x-4"
                                             : "translate-x-0"
-                                        }`}
-                                />
-                            </div>
+                                            }`}
+                                    />
+                                </div>
 
-                            <span className="text-xs font-medium">
-                                {isPending
-                                    ? "Updating..."
-                                    : autoTransfer?.data?.leadAutoTransfer
-                                        ? "Auto Transfer ON"
-                                        : "Auto Transfer OFF"}
-                            </span>
-                        </label>
+                                <span className="text-xs font-medium">
+                                    {isPending
+                                        ? "Updating..."
+                                        : !globalSettings?.data?.teamAutoAssignment
+                                            ? "Auto Transfer Disabled"
+                                            : globalSettings?.data?.leadAutoTransfer
+                                                ? "Auto Transfer ON"
+                                                : "Auto Transfer OFF"}
+                                </span>
+                            </label>
+                            <label className="inline-flex items-center cursor-pointer gap-2">
+                                <div className="relative">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only peer"
+                                        checked={
+                                            globalSettings?.data?.teamAutoAssignment || false
+                                        }
+                                        onChange={handleTeamAssignment}
+                                        disabled={isPending}
+                                    />
+
+                                    <div className="w-9 h-5 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors duration-300"></div>
+
+                                    <div
+                                        className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${globalSettings?.data?.teamAutoAssignment
+                                            ? "translate-x-4"
+                                            : "translate-x-0"
+                                            }`}
+                                    />
+                                </div>
+
+                                <span className="text-xs font-medium">
+                                    {isPending
+                                        ? "Updating..."
+                                        : globalSettings?.data?.teamAutoAssignment
+                                            ? "Team Assignment ON"
+                                            : "Team Assignment OFF"}
+                                </span>
+                            </label>
+
                             <button
                                 onClick={handleDefaultFilter}
                                 className={` ${filters.default ? "border border-green-500 text-green-500" : "border"} border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2`}
@@ -478,7 +584,16 @@ const LeadsList = () => {
                 resetTrigger={resetTrigger}
                 defaultFilterData={defaultFilterData}
             />
-
+            <ConfirmModal
+                isOpen={showDeleteModal}
+                title="Delete Lead"
+                message="Are you sure you want to delete this lead? This action cannot be undone."
+                onConfirm={confirmDelete}
+                onCancel={() => {
+                    setShowDeleteModal(false);
+                    setDeleteId(null);
+                }}
+            />
 
         </>
     );

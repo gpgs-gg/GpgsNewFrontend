@@ -23,6 +23,7 @@ import Pagination from "../Common/Pagination";
 import useDebounce from "../hooks/useDebounce";
 import ConfirmModal from "../Common/ConfirmModal";
 import OptionsFilter from "./OptionsFilter";
+import { toast } from "react-toastify";
 
 const OptionsTable = () => {
   const navigate = useNavigate();
@@ -84,9 +85,8 @@ const OptionsTable = () => {
     deleteMaster(deleteId, {
       onSuccess: (data) => {
         toast.success(data?.message || "Master data deleted successfully.");
-
-        setShowDeleteModal(false);
         setDeleteId(null);
+        setShowDeleteModal(false);
       },
 
       onError: (error) => {
@@ -217,7 +217,7 @@ const OptionsTable = () => {
           {/* TABLE CONTENT */}
           <div className="flex-1 overflow-auto">
             <table className="w-full">
-              <thead className="sticky top-0 bg-gray-100">
+              <thead className="sticky top-0 bg-gray-100 z-20">
                 <tr>
                   <th className="p-3 text-left">Category</th>
 
@@ -234,7 +234,7 @@ const OptionsTable = () => {
                 {isLoading ? (
                   <tr>
                     <td colSpan={5} className="py-10 text-center">
-                      <TableSkeleton rows={8} columns={5} />
+                      <TableSkeleton rows={8} columns={13} />
                     </td>
                   </tr>
                 ) : apiData.length === 0 ? (
@@ -301,7 +301,7 @@ const OptionsTable = () => {
 
                           {/* Expanded Row */}
                           {expandedRow === category._id && (
-                            <div className="flex justify-center border border-gray-300 rounded-2xl italic items-start text-start">
+                            <div className="flex justify-center   rounded-2xl italic items-start text-start">
                               <div className="space-y-2">
                                 {category.items?.length > 0 ? (
                                   category.items.map((item, index) => (
@@ -412,8 +412,8 @@ const OptionsTable = () => {
       />
       <ConfirmModal
         isOpen={showDeleteModal}
-        title="Delete Master Data"
-        message="This master data category will be permanently deleted. This action cannot be undone."
+        title="Delete this options data"
+        message="This data category will be permanently deleted. This action cannot be undone."
         onConfirm={handleDelete}
         onCancel={() => {
           setShowDeleteModal(false);
