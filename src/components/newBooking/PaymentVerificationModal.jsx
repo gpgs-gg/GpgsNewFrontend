@@ -51,7 +51,7 @@ const PaymentVerificationModal = ({
                         <input
                             type="number"
                             {...register("paymentAmount", {
-                                required: "Payment amount is required",
+                                required: "Paid amount is required",
                             })}
                             //   disabled
                             placeholder=" "
@@ -76,11 +76,11 @@ const PaymentVerificationModal = ({
                     </div>
 
 
-                    <div className="flex justify-end gap-3 pt-2">
+                    <div className="flex justify-end gap-3  pt-2">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded border px-4 py-2"
+                            className="rounded-md border px-4 py-2"
                         >
                             Cancel
                         </button>

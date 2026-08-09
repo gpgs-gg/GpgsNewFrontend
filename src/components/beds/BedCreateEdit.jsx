@@ -63,9 +63,7 @@ const BedCreateEdit = () => {
 
     const statusOptions = [
         { value: "Active", label: "Active" },
-        { value: "Inactive", label: "Inactive" },
-        { value: "Booked", label: "Booked" },
-        { value: "Maintenance", label: "Maintenance" },
+        { value: "Inactive", label: "Inactive" }
     ];
 
     const loadPropertyOptions = async (search, loadedOptions, { page }) => {

@@ -31,7 +31,7 @@ const BedHistoryModal = ({
 
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg"
+            className="p-2 hover:bg-gray-100 hover:text-black rounded-lg"
           >
             <X size={20} />
           </button>

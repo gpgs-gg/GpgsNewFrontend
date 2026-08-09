@@ -42,7 +42,7 @@ const UserEdit = () => {
       reset({
         name: userData.data.name,
         email: userData.data.email,
-        password: "",
+        password: userData.data.password,
         role: userData.data.role,
         // bookingId: userData.data.bookingId
         //   ? {

@@ -7,7 +7,7 @@ import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
-
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
     useCreateLeadData,
     useBulkCreateLead,
@@ -297,7 +297,7 @@ function LeadsCreateEdit() {
         }
     };
     return (
-        <div className="max-w-12xl mx-auto my-5 bg-white shadow border border-gray-300 p-4 rounded-xl">
+        <div className="max-w-12xl h-[80vh] mx-auto my-5 bg-white shadow border border-gray-300 p-4 rounded-xl">
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="flex gap-4 mb-10 justify-center">
                     {!id && (
@@ -307,7 +307,7 @@ function LeadsCreateEdit() {
                                 setMode("bulk");
                                 setValue("mode", "bulk");
                             }}
-                            className={`px-20 py-2 rounded text-xl ${mode === "bulk"
+                            className={`px-10 py-2 whitespace-nowrap rounded text-xl ${mode === "bulk"
                                 ? "bg-black text-white"
                                 : "bg-gray-300"
                                 }`}
@@ -321,7 +321,7 @@ function LeadsCreateEdit() {
                             setMode("single");
                             setValue("mode", "single");
                         }}
-                        className={`px-20 py-2 rounded text-xl ${mode === "single"
+                        className={`px-10 py-2 whitespace-nowrap rounded text-xl ${mode === "single"
                             ? "bg-black text-white"
                             : "bg-gray-300"
                             }`}
@@ -336,24 +336,26 @@ function LeadsCreateEdit() {
                             type="button"
                             disabled={!navigation.previousId}
                             onClick={() => navigate(`/leads/edit/${navigation.previousId}`, { state: location.state })}
-                            className="border px-4 py-2 rounded  theme-btn"
+                            className="border px-4 py-2 flex items-center gap-1 rounded  theme-btn"
                         >
-                            Previous
+                           <ChevronLeft size={20} /> Previous   
                         </button>
                         <button
                             type="button"
                             disabled={!navigation.nextId}
                             onClick={() => navigate(`/leads/edit/${navigation.nextId}`, { state: location.state })}
-                            className="border px-4 py-2 rounded  theme-btn"
+                            className="border px-4 py-2 rounded flex items-center gap-1  theme-btn"
                         >
-                            Next
+                            Next   <ChevronRight size={20} />
+
                         </button>
                     </div>
                 )}
 
                 {mode === "bulk" && !id && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Controller
+                     <div className="flex flex-col gap-2">
+                             <Controller
                             name="BulkLeadSource"
                             control={control}
                             render={({ field }) => (
@@ -390,6 +392,7 @@ function LeadsCreateEdit() {
                                 </div>
                             )}
                         />
+                     </div>
                         <div className="form-group md:col-span-2">
                             <textarea
                                 disabled={id ? true : false}

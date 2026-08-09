@@ -87,7 +87,7 @@ const ClientCreateEdit = () => {
             propertyId: ClientData.propertyId?._id,
             roomNo: ClientData?.bedId?.roomNo,
             bedId: ClientData.bedId?._id,
-            stayType : ClientData?.stayType,
+            stayType: ClientData?.stayType,
             fullName: ClientData.fullName,
             whatsappNo: ClientData.whatsappNo,
             callingNo: ClientData.callingNo,
@@ -263,7 +263,7 @@ const ClientCreateEdit = () => {
 
 
     return (
-        <div className="max-w-12xl mx-auto px-6">
+        <div className="max-w-12xl mx-auto px-6 h-screen">
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-4 py-2">
@@ -313,6 +313,7 @@ const ClientCreateEdit = () => {
                             Permanent Client Details
                         </h2>
                     </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
 
                         <Controller
@@ -376,7 +377,8 @@ const ClientCreateEdit = () => {
                                 {...register("roomNo")}
                                 placeholder=" "
                                 type="text"
-                                className="form-input"
+                                disabled
+                                className="form-input bg-gray-100!"
                             />
                             <label className="form-label required-label">Room No</label>
 
@@ -389,13 +391,14 @@ const ClientCreateEdit = () => {
                                 <div className={`select-group ${field.value != null ? "has-value" : ""
                                     }`}>
                                     <label className="select-label required-label">
-                                       Stay Type
+                                        Stay Type
                                     </label>
 
                                     <Select
                                         {...field}
                                         options={isStayTypeOptions}
                                         isClearable
+                                        isDisabled
                                         placeholder=""
                                         value={isStayTypeOptions.find(
                                             (option) => option.value === field.value
@@ -408,8 +411,29 @@ const ClientCreateEdit = () => {
                                 </div>
                             )}
                         />
+    
+                        <div className="form-group">
+                            <input
+                                {...register("parkingCharges")}
+                                placeholder=" "
+                                disabled
+                                type="text"
+                                className="form-input bg-gray-100!"
+                            />
+                            <label className="form-label required-label">Parking Charges </label>
 
+                        </div>
+                        <div className="form-group">
+                            <input
+                                {...register("processingFees")}
+                                placeholder=" "
+                                disabled
+                                type="text"
+                                className="form-input bg-gray-100!"
+                            />
+                            <label className="form-label required-label">Processing Fees</label>
 
+                        </div>
                         <div className="form-group">
                             <input
                                 {...register("fullName")}
@@ -450,26 +474,7 @@ const ClientCreateEdit = () => {
                             <label className="form-label required-label">Email Id </label>
 
                         </div>
-                        <div className="form-group">
-                            <input
-                                {...register("parkingCharges")}
-                                placeholder=" "
-                                type="text"
-                                className="form-input"
-                            />
-                            <label className="form-label required-label">Parking Charges </label>
 
-                        </div>
-                        <div className="form-group">
-                            <input
-                                {...register("processingFees")}
-                                placeholder=" "
-                                type="text"
-                                className="form-input"
-                            />
-                            <label className="form-label required-label">Processing Fees</label>
-
-                        </div>
                         <Controller
                             name="isBookingCancelled"
                             control={control}
@@ -695,6 +700,7 @@ const ClientCreateEdit = () => {
                             )}
                         />
                     </div>
+
                 </div>
                 {/* Client Document Details */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

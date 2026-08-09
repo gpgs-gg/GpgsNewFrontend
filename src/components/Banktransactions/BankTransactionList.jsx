@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { FiCopy } from "react-icons/fi";
 import { Eye, Pencil, Filter, Phone, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
@@ -13,6 +14,7 @@ import useDebounce from "../hooks/useDebounce";
 import { useBankTransactionData } from "./services";
 import MapBankTransactionDrawer from "./MapBankTransactionDrawer";
 import BankTransactionFilter from "./BankTranscationFilter";
+import { toast } from "react-toastify";
 
 const BankTransactionList = () => {
   const [search, setSearch] = useState("");
@@ -99,6 +101,17 @@ const BankTransactionList = () => {
     return date.toISOString().split("T")[0];
   };
   const today = convertToApiDate(new Date());
+
+  const handleCopy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.dismiss()
+      toast.success(`${text} copied!`);
+    } catch (error) {
+      toast.error("Failed to copy.");
+    }
+  };
+
   return (
     <>
       <div className="space-y-5">
@@ -182,22 +195,20 @@ const BankTransactionList = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => applyTransactionType("deposit")}
-                className={`px-4 py-2 rounded-lg border ${
-                  filters.transactionType === "deposit"
-                    ? "bg-green-600 text-white"
-                    : "bg-white"
-                }`}
+                className={`px-4 py-2 rounded-lg border ${filters.transactionType === "deposit"
+                  ? "bg-green-600 text-white"
+                  : "bg-white"
+                  }`}
               >
                 Deposit
               </button>
 
               <button
                 onClick={() => applyTransactionType("withdrawal")}
-                className={`px-4 py-2 rounded-lg border ${
-                  filters.transactionType === "withdrawal"
-                    ? "bg-red-600 text-white"
-                    : "bg-white"
-                }`}
+                className={`px-4 py-2 rounded-lg border ${filters.transactionType === "withdrawal"
+                  ? "bg-red-600 text-white"
+                  : "bg-white"
+                  }`}
               >
                 Withdrawal
               </button>
@@ -207,13 +218,13 @@ const BankTransactionList = () => {
               {(Object.keys(filters).length > 0 ||
                 filters.transactionType ||
                 search) && (
-                <button
-                  onClick={handleReset}
-                  className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
-                >
-                  Reset
-                </button>
-              )}
+                  <button
+                    onClick={handleReset}
+                    className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
+                  >
+                    Reset
+                  </button>
+                )}
 
               <button
                 onClick={() => {
@@ -242,6 +253,7 @@ const BankTransactionList = () => {
                   <th className="p-3 text-center">Source</th>
                   <th className="p-3 text-center">Uploaded By</th>
                   <th className="p-3 text-center">Created At</th>
+                  <th className="p-3 text-center">Link Payment</th>
                   <th className="p-3 text-center">Actions</th>
                 </tr>
               </thead>
@@ -258,8 +270,23 @@ const BankTransactionList = () => {
                       </td>
 
                       <td className="p-3 max-w-md">
-                        <div className="truncate" title={item.narration}>
-                          {item.narration}
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="flex-1 truncate"
+                            title={item.narration}
+                          >
+                            {item.narration}
+                          </div>
+                        
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(item.narration)}
+                              className="text-gray-500 hover:text-blue-600 transition-colors"
+                              title="Copy narration"
+                            >
+                              <FiCopy size={16} />
+                            </button>
+                          
                         </div>
                       </td>
 
@@ -298,6 +325,19 @@ const BankTransactionList = () => {
                       <td className="p-3 text-center">
                         {formatDate(item.createdAt)}
                       </td>
+                      <td className="p-3 text-center">
+                     
+                          <button
+                            onClick={() => {
+                              setSelectedTransaction(item);
+                              setDrawerOpen(true);
+                            }}
+                            className={`px-3 py-1 rounded ${item?.isMapped ? "bg-gray-300" : "bg-green-600 hover:bg-green-700"}  text-white text-sm `}
+                          >
+                            {item?.isMapped ? "Link Payment" : "Link Payment"} 
+                          </button>
+            
+                      </td>
 
                       <td className="p-3">
                         <div className="flex justify-center gap-2">
@@ -309,15 +349,7 @@ const BankTransactionList = () => {
                             <Pencil size={16} />
                           </button>
 
-                          <button
-                            onClick={() => {
-                              setSelectedTransaction(item);
-                              setDrawerOpen(true);
-                            }}
-                            className="px-3 py-1 rounded bg-green-600 text-white text-sm hover:bg-green-700"
-                          >
-                            Link Payment
-                          </button>
+
                         </div>
                       </td>
                     </tr>

@@ -3,242 +3,139 @@ import { X } from "lucide-react";
 import Select from "react-select";
 import { useForm, Controller } from "react-hook-form";
 import { selectStyles } from "../../utils/selectStyles";
-
-const RentLadgerFiilter= ({
+import { usePropertyDropdown } from "../../components/properties/services/index";
+import { useRentHistoryData } from "./services/index";
+const RentLadgerFiilter = ({
   isOpen,
   onClose,
-  apiData = [],
+
   onApply,
   handleReset,
   resetTrigger,
 }) => {
-  const {
-    control,
-    handleSubmit,
-    reset,
-  } = useForm({
+  const { control, handleSubmit, reset, watch, setValue } = useForm({
     defaultValues: {
       propertyCode: "",
-      propertyLocation: "",
-      bedCount: "",
-      status: "",
+      propertyId: "",
+      clientId: "",
     },
   });
-  const propertyCodeOptions = useMemo(() => {
-    return [
-      ...new Set(
-        apiData?.map((item) => item?.propertyId?.propertyCode).filter(Boolean)
-      ),
-    ].map((item) => ({
-      value: item,
-      label: item,
-    }));
-  }, [apiData]);
 
-  const locationOptions = useMemo(() => {
-    return [
-      ...new Set(
-        apiData?.map((item) => item?.propertyId?.propertyLocation).filter(Boolean)
-      ),
-    ].map((item) => ({
-      value: item,
-      label: item,
-    }));
-  }, [apiData]);
+  const selectedProperty = watch("propertyId");
 
-  const bedCountOptions = useMemo(() => {
-    return [
-      ...new Set(
-        apiData?.map((item) => item.bedCount).filter(Boolean)
-      ),
-    ]
-      .sort((a, b) => a - b)
-      .map((item) => ({
-        value: item,
-        label: String(item),
-      }));
-  }, [apiData]);
+  const { data: properties } = usePropertyDropdown({
+    page: 1,
+    limit: 1000,
+    search: "",
+  });
+  const { data: rentHistory } = useRentHistoryData({
+    propertyId: selectedProperty,
+  });
+  const clientOptions = useMemo(() => {
+    if (!rentHistory?.data) return [];
 
-  const statusOptions = [
-    { value: "Active", label: "Active" },
-    { value: "Inactive", label: "Inactive" },
-  ];
+    const uniqueClients = new Map();
 
+    rentHistory.data.forEach((item) => {
+      if (item.clientId?._id) {
+        uniqueClients.set(item.clientId._id, {
+          value: item.clientId._id,
+          label: item.clientId.fullName,
+        });
+      }
+    });
+
+    return Array.from(uniqueClients.values());
+  }, [rentHistory]);
+  const propertyOptions = useMemo(() => {
+    return (
+      properties?.data?.map((item) => ({
+        value: item._id,
+        label: item.propertyCode,
+      })) || []
+    );
+  }, [properties]);
   const onSubmit = (data) => {
     console.log(2222222, data);
-    
+
     onApply(data);
     onClose();
   };
   useEffect(() => {
     reset({
-      propertyCode: null,
-      propertyLocation: null,
-      bedCount: null,
-      status: null,
+      propertyId: "",
+      clientId: "",
     });
   }, [resetTrigger, reset]);
   return (
     <>
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 ${isOpen
-          ? "translate-x-0"
-          : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         <div className="flex justify-between items-center p-5 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600">
-          <h2 className="font-bold text-lg">
-            Filters
-          </h2>
+          <h2 className="font-bold text-lg">Filters</h2>
 
           <button onClick={onClose}>
             <X size={20} />
           </button>
         </div>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="p-5 space-y-5"
-        >
+        <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-5">
           {/* Property Code */}
           <Controller
-            name="propertyCode"
+            name="propertyId"
             control={control}
             render={({ field }) => (
-              <div
-                className={`select-group ${field.value ? "has-value" : ""
-                  }`}
-              >
-                <label className="select-label">
-                  Property Code
-                </label>
+              <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <label className="select-label">Property Code</label>
 
                 <Select
                   {...field}
-                  options={propertyCodeOptions}
+                  options={propertyOptions}
                   isClearable
                   placeholder=""
                   value={
-                    propertyCodeOptions.find(
-                      (option) => option.value === field.value
+                    propertyOptions.find(
+                      (option) => option.value === field.value,
                     ) || null
                   }
-                  onChange={(selectedOption) =>
-                    field.onChange(
-                      selectedOption?.value || ""
-                    )
-                  }
+                  onChange={(option) => {
+                    field.onChange(option?.value || "");
+                    setValue("clientId", "");
+                  }}
                   styles={selectStyles}
                 />
               </div>
             )}
           />
-
-          {/* Location */}
+          {/* client */}
+          {/* Client */}
           <Controller
-            name="propertyLocation"
+            name="clientId"
             control={control}
             render={({ field }) => (
-              <div
-                className={`select-group ${field.value ? "has-value" : ""
-                  }`}
-              >
-                <label className="select-label">
-                  Location
-                </label>
+              <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <label className="select-label">Client</label>
 
                 <Select
                   {...field}
-                  options={locationOptions}
+                  options={clientOptions}
                   isClearable
+                  // isDisabled={!selectedProperty}
                   placeholder=""
+                  styles={selectStyles}
                   value={
-                    locationOptions.find(
-                      (option) => option.value === field.value
+                    clientOptions.find(
+                      (option) => option.value === field.value,
                     ) || null
                   }
-                  onChange={(selectedOption) =>
-                    field.onChange(
-                      selectedOption?.value || ""
-                    )
-                  }
-                  styles={selectStyles}
-                />
-              </div>
-            )}
-          />
-
-          {/* Bed Count */}
-          <Controller
-            name="bedCount"
-            control={control}
-            render={({ field }) => (
-              <div
-                className={`select-group ${field.value ? "has-value" : ""
-                  }`}
-              >
-                <label className="select-label">
-                  Bed Count
-                </label>
-
-                <Select
-                  {...field}
-                  options={bedCountOptions}
-                  isClearable
-                  placeholder=""
-                  value={
-                    bedCountOptions.find(
-                      (option) =>
-                        String(option.value) === String(field.value)
-                    ) || null
-                  }
-                  onChange={(selectedOption) =>
-                    field.onChange(
-                      selectedOption?.value || ""
-                    )
-                  }
-                  styles={selectStyles}
-                />
-              </div>
-            )}
-          />
-
-          {/* Status */}
-          <Controller
-            name="status"
-            control={control}
-            render={({ field }) => (
-              <div
-                className={`select-group ${field.value ? "has-value" : ""
-                  }`}
-              >
-                <label className="select-label">
-                  Status
-                </label>
-
-                <Select
-                  {...field}
-                  options={statusOptions}
-                  isClearable
-                  placeholder=""
-                  value={
-                    statusOptions.find(
-                      (option) => option.value === field.value
-                    ) || null
-                  }
-                  onChange={(selectedOption) =>
-                    field.onChange(
-                      selectedOption?.value || ""
-                    )
-                  }
-                  styles={selectStyles}
+                  onChange={(option) => field.onChange(option?.value || "")}
                 />
               </div>
             )}
@@ -259,7 +156,6 @@ const RentLadgerFiilter= ({
             >
               Apply Filters
             </button>
-
           </div>
         </form>
       </div>

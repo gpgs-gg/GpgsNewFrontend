@@ -32,6 +32,7 @@ export default function DailyTodoTable({
   const [rows, setRows] = useState([]);
   const [editedRows, setEditedRows] = useState([]);
   const [headers, setHeaders] = useState([]);
+  const [propertyMap, setPropertyMap] = useState({});
   const [editingCell, setEditingCell] = useState(null);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -80,15 +81,29 @@ export default function DailyTodoTable({
   useEffect(() => {
     if (!data?.success) return;
 
-    const apiHeaders = data.headers.map((h) => (h === "" ? "S.No" : h));
+    const visibleHeaders = [];
+    const propertyIdMap = {};
 
-    //setHeaders(apiHeaders);
-    setHeaders(apiHeaders.filter((h) => !HIDDEN_COLUMNS.includes(h)));
+    data.headers.forEach((header) => {
+      if (typeof header === "string") {
+        visibleHeaders.push(header === "" ? "S.No" : header);
+      } else {
+        visibleHeaders.push(header.title);
 
+        propertyIdMap[header.title] = header.propertyId;
+      }
+    });
+    // console.log("Headers:", visibleHeaders);
+    // console.log("Property Map:", propertyIdMap);
+    setHeaders(visibleHeaders.filter((h) => !HIDDEN_COLUMNS.includes(h)));
+
+    setPropertyMap(propertyIdMap);
     setRows(data.data);
     // console.log(data.data);
     setEditedRows(JSON.parse(JSON.stringify(data.data)));
     setHasChanges(false);
+    // console.log("Headers:", visibleHeaders);
+    // console.log("Property Map:", propertyIdMap);
   }, [data]);
 
   // Apply filtering logic
@@ -273,9 +288,9 @@ export default function DailyTodoTable({
 
         if (editedVal !== originalVal) {
           columnUpdates.push({
-            columnName: h,
+            propertyId: propertyMap[h],
             value: editedVal,
-            name: user?.name || "pooja",
+            updatedByName: user?.name,
           });
         }
       }
@@ -284,6 +299,7 @@ export default function DailyTodoTable({
       if (columnUpdates.length > 0) {
         batchUpdates.push({
           rowIndex: r, // frontend row index (0-based)
+          activityId: editedRows[r].activityId,
           columns: columnUpdates,
         });
       }
@@ -297,7 +313,8 @@ export default function DailyTodoTable({
 
     try {
       // 🔥 SINGLE API CALL
-      console.log("Sending payload", batchUpdates);
+      //console.log("Sending payload", batchUpdates);
+
       await updateMutation.mutateAsync({
         updates: batchUpdates,
       });
@@ -621,7 +638,7 @@ export default function DailyTodoTable({
         </div>
       </div>
 
-      <div className="relative lg:h-[79vh] h-auto overflow-x-auto overflow-y-auto bg-white shadow-lg rounded-lg ">
+      <div className="relative lg:h-[79vh] h-auto overflow-x-auto overflow-y-auto bg-white shadow-lg rounded-md ">
         {showNoDataFound && (
           <div className=" absolute top-[198px] left-[640px] z-[200] flex items-center gap-3 bg-white/90 backdrop-blur px-32 py-8 border border-gray-200 rounded-xl shadow-lg text-gray-600 font-semibold pointer-events-none animate-fadeIn">
             <span className="text-orange-400 text-xl">📭</span>
@@ -630,7 +647,7 @@ export default function DailyTodoTable({
         )}
 
         <table className="border-collapse text-sm table-fixed overflow-visible">
-          <thead className="sticky top-0 z-100 text-white">
+          <thead className="sticky top-0 z-40 bg-gray-100">
             <tr>
               {headers.map((head, i) => {
                 const isFilteredColumn =
@@ -644,10 +661,10 @@ export default function DailyTodoTable({
                 return (
                   <th
                     key={i}
-                    className={`border bg-black ${
+                    className={`  ${
                       i === 0 || i === 2 ? "" : "px-5"
-                    } py-3  font-semibold border-gray-100     ${
-                      i < 3 ? "sticky z-50 bg-black" : ""
+                    } py-3  font-semibold      ${
+                      i < 3 ? "sticky z-50 bg-gray-100" : ""
                     }      ${
                       !isFilteredColumn && i >= 3 ? "hidden border-none" : ""
                     }`}
@@ -928,5 +945,3 @@ export default function DailyTodoTable({
     </div>
   );
 }
-
-

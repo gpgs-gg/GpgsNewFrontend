@@ -1,22 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../../../api/ApiClient";
 
-const getRentHistoryData = async (clientId) => {
+const getRentHistoryData = async (filters) => {
   const response = await apiClient.get("/rent-history", {
-    params: clientId ? { clientId } : {},
+    params: {
+      clientId: filters?.clientId,
+      propertyId: filters?.propertyId,
+      search: filters?.search,
+    },
   });
 
   return response.data;
 };
 
-
-export const useRentHistoryData = (clientId) => {
+export const useRentHistoryData = (filters) => {
   return useQuery({
-    queryKey: ["rent-history-data", clientId],
-    queryFn: () => getRentHistoryData(clientId),
+    queryKey: ["rent-history-data", filters],
+    queryFn: () => getRentHistoryData(filters),
   });
 };
-
 
 
 

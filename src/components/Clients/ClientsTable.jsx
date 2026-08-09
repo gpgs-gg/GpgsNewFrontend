@@ -28,7 +28,6 @@ const ClientsTable = () => {
   const debouncedSearch = useDebounce(search, 500);
   const [filterLabels, setFilterLabels] = useState([]);
   const [resetTrigger, setResetTrigger] = useState(0);            
-
   const rowsPerPage = 10;
   const { data: clients, isPending: isClients } = useClients({
     page: currentPage,
@@ -519,8 +518,17 @@ const ClientsTable = () => {
                             )}
                           </td> */}
 
-                          <td className="p-3 sticky right-0 bg-white z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)]">
+                          <td className="p-3 sticky right-0 bg-white z-50 shadow-[-4px_0_6px_rgba(0,0,0,0.05)]">
+                            
                             <div className="flex justify-center">
+                                     <Link
+                                    to={`/rent-ledger/client/${item?._id}`}
+                                    className="w-full flex items-center gap-1 px-2 py-1 rounded border border-gray-300 hover:bg-gray-100 text-left"
+                                  >
+                                    <span>💰</span>
+                                    <span>Rent</span>
+                                  </Link>
+
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -537,15 +545,8 @@ const ClientsTable = () => {
                                 <FaEllipsisV />
                               </button>
                               {openMenuId === item._id && (
-                                <div className="absolute right-30 top-0 mt-2 w-fit bg-white font-bold border border-gray-300 rounded-lg shadow-xl z-9999">
-                                  <Link
-                                    to={`/rent-ledger/client/${item?._id}`}
-                                    className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
-                                  >
-                                    <span>💰</span>
-                                    <span>Rent History</span>
-                                  </Link>
-
+                                <div className="absolute right-33 top-0 mt-2 w-fit bg-white font-bold border border-gray-300 rounded-lg shadow-xl z-9999">
+                           
                                   <button
                                     onClick={() => {
                                       setSelectedClient(item);
@@ -573,7 +574,6 @@ const ClientsTable = () => {
                                     <span>Bed History</span>
                                   </button>
 
-                                  <div className="flex">
                                     <Link
                                       to={`/clients/view/${item._id}`}
                                       className="flex items-center border-b border-r border-gray-200 gap-1 px-4 py-3 hover:bg-gray-100"
@@ -590,7 +590,7 @@ const ClientsTable = () => {
                                       <span>Edit</span>
                                     </Link>
                                   </div>
-                                </div>
+                            
                               )}
                             </div>
                           </td>

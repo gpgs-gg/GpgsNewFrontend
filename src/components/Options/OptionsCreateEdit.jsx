@@ -204,47 +204,58 @@ const OptionsCreateEdit = () => {
                 </div>
                 {/* details */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200   ">
-                 <div className=" border-b shadow border-gray-200 px-3 ">
-                       <h2 className="text-xl font-semibold py-1">Category Details</h2>
-                     <div className="flex gap-10 px-3 py-3">
-                               <div className="form-group">
-                            <input
-                                {...register("categoryName", {
-                                    required: "Category Name is required",
-                                })}
-                                placeholder=" "
-                                className="form-input"
-                            />
+                    <div className=" border-b shadow border-gray-200 px-3 ">
+                        <h2 className="text-xl font-semibold py-1">Category Details</h2>
+                        <div className="flex gap-10 px-3 py-3">
+                            <div className="form-group">
+                                <input
+                                    {...register("categoryName", {
+                                        required: "Category Name is required",
+                                    })}
+                                    placeholder=" "
+                                    className="form-input"
+                                />
 
-                            <label className="form-label">
-                                Category Name <span className="text-red-500">*</span>
-                            </label>
+                                <label className="form-label">
+                                    Category Name <span className="text-red-500">*</span>
+                                </label>
 
-                            {errors.categoryName && (
-                                <p className="mt-1 text-xs text-red-500">
-                                    {errors.categoryName.message}
-                                </p>
-                            )}
+                                {errors.categoryName && (
+                                    <p className="mt-1 text-xs text-red-500">
+                                        {errors.categoryName.message}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Category Key */}
+                            <div className="form-group">
+                                <input
+                                    {...register("categoryKey")}
+                                    placeholder=" "
+                                    readOnly={isEdit}
+                                    className="form-input bg-gray-100"
+                                />
+
+                                <label className="form-label">Category Key</label>
+                            </div>
+                            {/* Description */}
+                       
+                                <div className="form-group">
+                                    <textarea
+                            
+                                        {...register("description")}
+                                        placeholder=" "
+                                        className="form-input "
+                                    />
+
+                                    <label className="form-label">Description</label>
+                                </div>
                         </div>
-
-                        {/* Category Key */}
-                        <div className="form-group">
-                            <input
-                                {...register("categoryKey")}
-                                placeholder=" "
-                                readOnly={isEdit}
-                                className="form-input bg-gray-100"
-                            />
-
-                            <label className="form-label">Category Key</label>
-                        </div>
-
-                     </div>
-                 </div>
+                    </div>
                     {/* input fields */}
                     <div className="grid grid-cols-1 gap-6 px-4 md:grid-cols-2 bg-white max-h-[76vh] overflow-y-auto ">
                         {/* Category Name */}
-                   
+
                         <div className="md:col-span-2">
                             <h3 className="font-semibold text-lg p-2">Options</h3>
 
@@ -335,19 +346,7 @@ const OptionsCreateEdit = () => {
                             </div>
                         </div>
 
-                        {/* Description */}
-                        <div className="md:col-span-2">
-                            <div className="form-group md:col-span-2">
-                                <textarea
-                                    rows={3}
-                                    {...register("description")}
-                                    placeholder=" "
-                                    className="form-input resize-none"
-                                />
 
-                                <label className="form-label">Description</label>
-                            </div>
-                        </div>
 
                         {/* Default */}
                         {/* <div>

@@ -45,16 +45,27 @@ const NewBookingTable = () => {
     setValue,
   } = useForm();
 
-  const onSubmit = (data) => {
+const onSubmit = (data) => {
   createClientFromBooking(
     {
       bookingId: selectedBooking._id,
       ...data,
     },
     {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        toast.success(
+          response?.message || "Client created successfully!"
+        );
+
         reset();
         setShowPaymentModal(false);
+      },
+
+      onError: (error) => {
+        toast.error(
+          error?.response?.data?.message ||
+            "Failed to create client. Please try again."
+        );
       },
     }
   );
@@ -220,33 +231,48 @@ const NewBookingTable = () => {
     );
   };
 
-  const handleStatusToggle = (item) => {
-    updateNewBookingForBooked(
-      {
-        id: item._id,
-        data: {
-          status: item.status === "Booked" ? "Not Booked" : "Booked",
-        },
+
+const handleStatusToggle = (item) => {
+  if (item.status === "Booked" && item.loginEnabled) {
+    toast.dismiss();
+toast.error(
+  "This booking cannot be marked as Not Booked because the client's payment has already been verified."
+);
+
+    return;
+  }
+
+  updateNewBookingForBooked(
+    {
+      id: item._id, 
+      data: {
+        status:
+          item.status === "Booked"
+            ? "Not Booked"
+            : "Booked",
       },
-      {
-        onSuccess: (response) => {
-          toast.dismiss()
-          toast.success(
-            response?.message ||
-            response?.data?.message ||
-            "Status updated successfully"
-          );
-        },
-        onError: (error) => {
-          toast.dismiss()
-          toast.error(
-            error?.response?.data?.message ||
-            "Failed to update status"
-          );
-        },
-      }
-    );
-  };
+    },
+    {
+      onSuccess: (response) => {
+        toast.dismiss();
+        toast.success(
+          response?.message ||
+          response?.data?.message ||
+          "Status updated successfully"
+        );
+      },
+      onError: (error) => {
+        toast.dismiss();
+        toast.error(
+          error?.response?.data?.message ||
+          "Failed to update status"
+        );
+      },
+    }
+  );
+};
+
+
 
   return (
     <>

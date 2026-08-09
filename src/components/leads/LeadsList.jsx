@@ -92,6 +92,7 @@ const LeadsList = () => {
             },
         });
     };
+
     const handleAutoTransfer = () => {
 
         const isTeamAssignmentEnabled =
@@ -226,7 +227,8 @@ const LeadsList = () => {
 
 
                         <div className="flex gap-2">
-                            <label className="inline-flex items-center cursor-pointer gap-2">
+                           <div className="border border-gray-400 flex flex-col px-2 gap-1 justify-center items-center rounded-lg">
+                             <label className="inline-flex items-center cursor-pointer gap-2">
                                 <div className="relative">
                                     <input
                                         type="checkbox"
@@ -242,18 +244,18 @@ const LeadsList = () => {
                                     />
 
                                     {/* Track */}
-                                    <div className="w-9 h-5 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors duration-300"></div>
+                                    <div className="w-9 h-4 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors duration-300"></div>
 
                                     {/* Knob */}
                                     <div
-                                        className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${globalSettings?.data?.leadAutoTransfer
+                                        className={`absolute top-0.5 left-0.5 w-4 h-3 bg-white rounded-full shadow transition-transform duration-300 ${globalSettings?.data?.leadAutoTransfer
                                             ? "translate-x-4"
                                             : "translate-x-0"
                                             }`}
                                     />
                                 </div>
 
-                                <span className="text-xs font-medium">
+                                <span className="text-xs text-gray-500 font-medium">
                                     {isPending
                                         ? "Updating..."
                                         : !globalSettings?.data?.teamAutoAssignment
@@ -275,17 +277,17 @@ const LeadsList = () => {
                                         disabled={isPending}
                                     />
 
-                                    <div className="w-9 h-5 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors duration-300"></div>
+                                    <div className="w-9 h-4 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors duration-300"></div>
 
                                     <div
-                                        className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${globalSettings?.data?.teamAutoAssignment
+                                        className={`absolute top-0.5 left-0.5 w-4 h-3 bg-white rounded-full shadow transition-transform duration-300 ${globalSettings?.data?.teamAutoAssignment
                                             ? "translate-x-4"
                                             : "translate-x-0"
                                             }`}
                                     />
                                 </div>
 
-                                <span className="text-xs font-medium">
+                                <span className="text-xs text-gray-500 font-medium">
                                     {isPending
                                         ? "Updating..."
                                         : globalSettings?.data?.teamAutoAssignment
@@ -293,6 +295,7 @@ const LeadsList = () => {
                                             : "Team Assignment OFF"}
                                 </span>
                             </label>
+                           </div>
 
                             <button
                                 onClick={handleDefaultFilter}

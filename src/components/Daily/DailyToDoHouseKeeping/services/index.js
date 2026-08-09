@@ -19,8 +19,9 @@ export const useHouseKeepingData = () => {
 /* ================= UPDATE (ROW BASED – FINAL) ================= */
 
 const updateHouseKeepingRow = async (payload) => {
+  //console.log("Payload going to backend:", payload);
   const res = await apiClient.post("/housekeeping/update", payload);
-
+  // console.log("Response from backend:", res.data);
   return res.data;
 };
 

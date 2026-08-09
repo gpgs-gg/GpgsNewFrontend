@@ -63,6 +63,7 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
         handleSubmit,
         watch,
         formState: { errors },
+        reset
     } = useForm({
         defaultValues: {
             propertyId: null,

@@ -114,6 +114,7 @@ import { useLogout } from "../auth/services";
 import { BsBank } from "react-icons/bs";
 import { useAuth } from "../context/authContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { FaCalendarCheck, FaUsers } from "react-icons/fa";
 const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
   const { user, setUser } = useAuth();
   const queryClient = useQueryClient();
@@ -141,14 +142,24 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
       { name: "Available Beds", path: "/available-beds", icon: <Bed size={22} /> },
       { name: "New Booking", path: "/new-bookings", icon: <UserPlus size={22} /> },
       { name: "Clients", path: "/clients", icon: <Users size={22} /> },
-      { name: "Rent Ledger", path: "/rent-ledger", icon: <Wallet size={22} /> },
+      // { name: "Rent Ledger", path: "/rent-ledger", icon: <Wallet size={22} /> },
       { name: "Tickets", path: "/tickets", icon: <Ticket size={22} /> },
       { name: "Bank Transactions", path: "/bank-transactions", icon: <BsBank size={22} /> },
       { name: "PG Leads", path: "/leads", icon: <Users size={22} /> },
       { name: "Users", path: "/users", icon: <Users size={22} /> },
       { name: "Dynamic Options", path: "/options", icon: <Database size={22} /> },
       { name: "HouseKeeping", path: "/house-keeping", icon: <BrushCleaning size={22} /> },
-      { name: "Maintenance", path: "/maintenance", icon: <Wrench size={22} /> }
+      { name: "Maintenance", path: "/maintenance", icon: <Wrench size={22} /> },
+      {
+          name: "Employees",
+          path: "/employees",
+          icon: <FaUsers size={22} />,
+        },
+        {
+          name: "Attendance",
+          path: "/attendance",
+          icon: <FaCalendarCheck size={22} />,
+        },
 
     ]
     : [

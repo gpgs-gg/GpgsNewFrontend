@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { Eye, Pencil, Filter, Phone, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -12,100 +11,85 @@ import RentLadgerFiilter from "./RentLadgerFiilter";
 import { useParams } from "react-router-dom";
 import { useRentHistoryData } from "./services";
 import { IoIosArrowBack } from "react-icons/io";
-
+import useDebounce from "../../components/hooks/useDebounce";
 const RentLadgerTable = () => {
   const { clientId } = useParams();
-  const { data: apiResponse } = useRentHistoryData(clientId);
+
+  const [filters, setFilters] = useState({});
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 500);
+  const { data: apiResponse } = useRentHistoryData({
+    clientId: filters.clientId || clientId,
+    propertyId: filters.propertyId,
+    search: debouncedSearch,
+  });
   // API response
   const client = apiResponse?.data?.[0]?.clientId ?? {};
   const property = apiResponse?.data?.[0]?.propertyId ?? {};
   const bed = apiResponse?.data?.[0]?.bedId ?? {};
   // ✅ safe extraction
   const apiData = apiResponse?.data || [];
-  const [search, setSearch] = useState("");
+
   const [currentPage, setCurrentPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [filters, setFilters] = useState({});
+
   const [resetTrigger, setResetTrigger] = useState(0);
   const rowsPerPage = 10;
-  // ✅ filter & search logic
-  const filteredData = useMemo(() => {
-    return apiData?.filter((item) => {
-      console.log(item)
-      const matchesSearch =
-        !search ||
-        Object.values(item).some((value) =>
-          String(value).toLowerCase().includes(search.toLowerCase())
-        );
-
-
-      return (
-        (!filters.propertyCode ||
-          item.propertyCode === filters.propertyCode) &&
-        (!filters.propertyLocation ||
-          item.propertyLocation === filters.propertyLocation) &&
-        (!filters.bedCount ||
-          String(item.bedCount) === String(filters.bedCount)) &&
-        (!filters.status ||
-          item.status === filters.status) &&
-        matchesSearch
-      );
-    });
-  }, [apiData, filters, search, clientId]);
-
-
-
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  const filteredData = apiData;
+  const totalPages = Math.ceil(apiData.length / rowsPerPage);
 
   const paginatedData = useMemo(() => {
-    return filteredData.slice(
+    return apiData.slice(
       (currentPage - 1) * rowsPerPage,
-      currentPage * rowsPerPage
+      currentPage * rowsPerPage,
     );
-  }, [filteredData, currentPage]);
-
+  }, [apiData, currentPage]);
 
   const handleReset = () => {
-    setFilters({});
+    setFilters({
+      propertyId: "",
+      clientId: "",
+    });
+
     setSearch("");
     setCurrentPage(1);
-
     setResetTrigger((prev) => prev + 1);
   };
   const currentMonth = new Date().toLocaleString("en-US", {
     month: "long",
   });
   const currentYear = new Date().getFullYear();
+
   return (
     <>
       <div className="space-y-5">
-
         {/* HEADER */}
 
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3">
           <div className="flex items-center justify-between mb-2  ">
             <div className="flex w-full justify-between items-center">
-             <div>
-               <h1 className="text-2xl font-bold text-gray-900 uppercase">
-             Payment History & Details 
-              </h1>
-            
-              {!clientId && (
-                <p className="text-sm text-gray-500 mt-1">
-                  Manage all PG Rent
-                </p>
-              )}
-             </div>
-                <button onClick={()=>window.history.back()} className="text-lg border px-2 rounded-md border-gray-300 flex gap-2 justify-center items-center mr-3">
-                  <IoIosArrowBack/> cancel
-              </button>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 uppercase">
+                  Payment History & Details
+                </h1>
 
+                {!clientId && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Manage all PG Rent
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => window.history.back()}
+                className="text-lg border px-2 rounded-md border-gray-300 flex gap-2 justify-center items-center mr-3"
+              >
+                <IoIosArrowBack /> cancel
+              </button>
             </div>
           </div>
 
           {clientId && client && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
                 <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
                   Client Name
@@ -150,17 +134,14 @@ const RentLadgerTable = () => {
                   {bed?.roomNo} / {bed?.bedNo}
                 </p>
               </div>
-
             </div>
           )}
         </div>
 
         {/* TABLE */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
-
           {/* SEARCH */}
           <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
-
             <div className="relative w-80">
               <input
                 className="border px-3 py-2 pr-10 rounded-lg w-full"
@@ -203,12 +184,10 @@ const RentLadgerTable = () => {
                 Filters
               </button>
             </div>
-
           </div>
 
           {/* TABLE CONTENT */}
           <div className="flex-1 overflow-auto">
-
             <table className="w-full">
               <thead className="sticky top-0 bg-gray-100 whitespace-nowrap">
                 <tr>
@@ -245,28 +224,32 @@ const RentLadgerTable = () => {
               <tbody>
                 {paginatedData.length > 0 ? (
                   paginatedData.map((item) => (
-
                     <tr
                       key={item._id}
                       className={`border-t border-gray-200 whitespace-nowrap text-center
-    ${item.monthName === currentMonth && item.year === currentYear  && item.paymentStatus !== "Shifted"
-                          ? "bg-green-100 hover:bg-green-100"
-                          : "hover:bg-gray-50"
-                        }`}
+    ${
+      item.monthName === currentMonth &&
+      item.year === currentYear &&
+      item.paymentStatus !== "Shifted"
+        ? "bg-green-100 hover:bg-green-100"
+        : "hover:bg-gray-50"
+    }`}
                     >
-
-                      <td className="p-3 font-bold">{item.propertyId?.propertyCode}</td>
+                      <td className="p-3 font-bold">
+                        {item.propertyId?.propertyCode}
+                      </td>
                       <td className="p-3">
                         <span
                           className={`px-3 py-1 text-sm rounded-full font-semibold
-                             ${item.paymentStatus === "Paid"
-                              ? "bg-green-100 text-green-700"
-                              : item.paymentStatus === "Partial"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : item.paymentStatus === "Shifted"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-red-100 text-red-700"
-                            }`}
+                             ${
+                               item.paymentStatus === "Paid"
+                                 ? "bg-green-100 text-green-700"
+                                 : item.paymentStatus === "Partial"
+                                   ? "bg-yellow-100 text-yellow-700"
+                                   : item.paymentStatus === "Shifted"
+                                     ? "bg-blue-100 text-blue-700"
+                                     : "bg-red-100 text-red-700"
+                             }`}
                         >
                           {item.paymentStatus}
                         </span>
@@ -276,17 +259,22 @@ const RentLadgerTable = () => {
                       <td className="p-3">{item.year}</td>
                       {/* <td className="p-3">{item.stayType}</td> */}
                       <td
-                        className={`p-3 font-semibold ${item.currentDue > 0
-                          ? "text-red-600"
-                          : item.currentDue < 0
-                            ? "text-green-600"
-                            : "text-gray-700"
-                          }`}
+                        className={`p-3 font-semibold ${
+                          item.currentDue > 0
+                            ? "text-red-600"
+                            : item.currentDue < 0
+                              ? "text-green-600"
+                              : "text-gray-700"
+                        }`}
                       >
                         ₹{item.currentDue}
                       </td>
-                      <td className="p-3 text-green-600">₹{item.totalReceived}</td>
-                      <td className="p-3 font-semibold">₹{item.totalReceivable}</td>
+                      <td className="p-3 text-green-600">
+                        ₹{item.totalReceived}
+                      </td>
+                      <td className="p-3 font-semibold">
+                        ₹{item.totalReceivable}
+                      </td>
                       <td className="p-3">₹{item.rentAmt}</td>
                       <td className="p-3">{item.daysCount}</td>
                       <td className="p-3">₹{item.ebAmt}</td>
@@ -299,7 +287,6 @@ const RentLadgerTable = () => {
                       <td className="p-3">₹{item.flatEB}</td>
                       <td className="p-3">₹{item.monthlyRent}</td>
 
-
                       {/* <td className="p-3">₹{item.parkingChargesReceived}</td> */}
                       {/* <td className="p-3">₹{item.parkingChargesDue}</td> */}
 
@@ -309,8 +296,6 @@ const RentLadgerTable = () => {
                       {/* <td className="p-3">₹{item.depositAmountReceived}</td> */}
                       {/* <td className="p-3">₹{item.depositAmountDue}</td> */}
 
-
-
                       <td className="p-3">
                         {item.startDate ? formatDate(item.startDate) : "-"}
                       </td>
@@ -319,35 +304,40 @@ const RentLadgerTable = () => {
                         {item.endDate ? formatDate(item.endDate) : "-"}
                       </td>
 
-
                       <td className="p-3">{item.paymentComments || "-"}</td>
 
                       <td className="p-3">{item.remarks || "-"}</td>
 
                       {/* Sticky Actions Column */}
                       <td
-                        className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${item.monthName === currentMonth && Number(item.year) === currentYear && item.paymentStatus !== "Shifted"
+                        className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${
+                          item.monthName === currentMonth &&
+                          Number(item.year) === currentYear &&
+                          item.paymentStatus !== "Shifted"
                             ? "bg-green-100"
                             : "bg-white"
-                          }`}
-                      > 
+                        }`}
+                      >
                         <div className="flex justify-center gap-2">
-                          <Link
-                            to={`/rent-ledger/view/${item._id}`}
-                          >
-                            <button 
-                             disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
-                            className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
+                          <Link to={`/rent-ledger/view/${item._id}`}>
+                            <button
+                              disabled={
+                                !(
+                                  item.monthName === currentMonth &&
+                                  item.year === currentYear
+                                )
+                              }
+                              className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200"
+                            >
                               <Eye size={16} />
                             </button>
                           </Link>
 
-                          <Link
-                            to={`/rent-ledger/edit/${item._id}`}
-                          >
+                          <Link to={`/rent-ledger/edit/${item._id}`}>
                             <button
-                                // disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
-                            className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
+                              // disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
+                              className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
+                            >
                               <Pencil size={16} />
                             </button>
                           </Link>
@@ -362,7 +352,6 @@ const RentLadgerTable = () => {
                           </button> */}
                         </div>
                       </td>
-
                     </tr>
                   ))
                 ) : (
@@ -379,12 +368,10 @@ const RentLadgerTable = () => {
                 )}
               </tbody>
             </table>
-
           </div>
 
           {/* PAGINATION */}
           <div className="border-t p-3 flex justify-between items-center">
-
             <span className="text-sm text-gray-500">
               Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
               {Math.min(currentPage * rowsPerPage, filteredData.length)} of{" "}
@@ -396,17 +383,17 @@ const RentLadgerTable = () => {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
             />
-
           </div>
-
         </div>
       </div>
 
       <RentLadgerFiilter
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
-        apiData={apiData}
-        onApply={(data) => setFilters(data)}
+        onApply={(data) => {
+          setFilters(data);
+          setCurrentPage(1);
+        }}
         handleReset={handleReset}
         resetTrigger={resetTrigger}
       />

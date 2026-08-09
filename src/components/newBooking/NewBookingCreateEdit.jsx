@@ -103,39 +103,140 @@ const NewBookingCreateEdit = () => {
     // setValue("comments", bedData.comment);
   }, [selectedbedId, bedOptions, setValue]);
   // Auto Calculate Client Rent
-  useEffect(() => {
-    if (watchClientDoj && watchMonthlyRent) {
-      const start = new Date(watchClientDoj);
-      const end = watchClientLastDate
-        ? new Date(watchClientLastDate)
-        : null;
-      start.setHours(0, 0, 0, 0);
-      if (end) end.setHours(0, 0, 0, 0);
-      if (isNaN(start.getTime())) {
-        setValue("clientCalculatedRent", "");
-        return;
-      }
-      const dailyRent = Number(watchMonthlyRent) / 30;
-      let totalRent = 0;
-      if (end && !isNaN(end.getTime())) {
-        const startDay = start.getDate();
-        const endDay = end.getDate();
-        const monthDiff =
-          (end.getFullYear() - start.getFullYear()) * 12 +
-          (end.getMonth() - start.getMonth());
-        const diffDays =
-          monthDiff * 30 + (endDay - startDay + 1);
-        totalRent = Math.round(dailyRent * diffDays);
-      } else {
-        const startDay = start.getDate();
-        const remainingDays = 30 - startDay + 1;
-        totalRent = Math.round(dailyRent * remainingDays);
-      }
-      setValue("clientCalculatedRent", totalRent);
-    } else {
+
+useEffect(() => {
+  if (watchClientDoj && watchMonthlyRent) {
+    const start = new Date(watchClientDoj);
+    const end = watchClientLastDate
+      ? new Date(watchClientLastDate)
+      : null;
+
+    start.setHours(0, 0, 0, 0);
+    if (end) end.setHours(0, 0, 0, 0);
+
+    if (isNaN(start.getTime())) {
       setValue("clientCalculatedRent", "");
+      return;
     }
-  }, [watchClientDoj, watchClientLastDate, watchMonthlyRent, setValue,]);
+
+    const getBillingDays = (year, month) => {
+      const actualDays = new Date(year, month + 1, 0).getDate();
+
+      // Business rule:
+      // 31 -> 30
+      // 30 -> 30
+      // 29 -> 29
+      // 28 -> 28
+      return actualDays === 31 ? 30 : actualDays;
+    };
+
+    let totalRent = 0;
+
+    if (end && !isNaN(end.getTime())) {
+      let currentDate = new Date(start);
+      let remainingDays = 0;
+
+      while (
+        currentDate.getFullYear() < end.getFullYear() ||
+        (
+          currentDate.getFullYear() === end.getFullYear() &&
+          currentDate.getMonth() <= end.getMonth()
+        )
+      ) {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        const billingDays = getBillingDays(year, month);
+
+        const startDay =
+          currentDate.getFullYear() === start.getFullYear() &&
+          currentDate.getMonth() === start.getMonth()
+            ? start.getDate()
+            : 1;
+
+        const endDay =
+          currentDate.getFullYear() === end.getFullYear() &&
+          currentDate.getMonth() === end.getMonth()
+            ? end.getDate()
+            : new Date(year, month + 1, 0).getDate();
+
+        const daysInPeriod =
+          endDay - startDay + 1;
+
+        remainingDays += Math.max(daysInPeriod, 0);
+
+        currentDate = new Date(year, month + 1, 1);
+      }
+
+      // Rent calculation month-wise
+      currentDate = new Date(start);
+
+      while (
+        currentDate.getFullYear() < end.getFullYear() ||
+        (
+          currentDate.getFullYear() === end.getFullYear() &&
+          currentDate.getMonth() <= end.getMonth()
+        )
+      ) {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        const billingDays = getBillingDays(year, month);
+
+        const startDay =
+          currentDate.getFullYear() === start.getFullYear() &&
+          currentDate.getMonth() === start.getMonth()
+            ? start.getDate()
+            : 1;
+
+        const endDay =
+          currentDate.getFullYear() === end.getFullYear() &&
+          currentDate.getMonth() === end.getMonth()
+            ? end.getDate()
+            : new Date(year, month + 1, 0).getDate();
+
+        const daysInPeriod =
+          endDay - startDay + 1;
+
+        const dailyRent =
+          Number(watchMonthlyRent) / billingDays;
+
+        totalRent += dailyRent * Math.max(daysInPeriod, 0);
+
+        currentDate = new Date(year, month + 1, 1);
+      }
+
+      totalRent = Math.round(totalRent);
+    } else {
+      const year = start.getFullYear();
+      const month = start.getMonth();
+
+      const billingDays = getBillingDays(year, month);
+
+      const startDay = start.getDate();
+
+      const remainingDays =
+        billingDays - startDay + 1;
+
+      const dailyRent =
+        Number(watchMonthlyRent) / billingDays;
+
+      totalRent = Math.round(
+        dailyRent * remainingDays
+      );
+    }
+
+    setValue("clientCalculatedRent", totalRent);
+  } else {
+    setValue("clientCalculatedRent", "");
+  }
+}, [
+  watchClientDoj,
+  watchClientLastDate,
+  watchMonthlyRent,
+  setValue,
+]);
+
 
   useEffect(() => {
     if (!selectedPropertyId) {
@@ -160,6 +261,8 @@ const NewBookingCreateEdit = () => {
       label: `${bed.bedNo}`,
       bedData: bed,
     })) || [];
+
+
   useEffect(() => {
 
     if (!selectedTempbedId) {
@@ -182,38 +285,132 @@ const NewBookingCreateEdit = () => {
     // setValue("temporaryComments", bedData.comment);
   }, [selectedTempbedId, TempBedOptions, setValue]);
   // Auto Calculate Client Rent
-  useEffect(() => {
-    if (watchTempClientDoj && watchTempMonthlyRent) {
-      const start = new Date(watchTempClientDoj);
-      const end = watchTempClientLastDate
-        ? new Date(watchTempClientLastDate)
-        : null;
-      start.setHours(0, 0, 0, 0);
-      if (end) end.setHours(0, 0, 0, 0);
-      if (isNaN(start.getTime())) {
-        setValue("tempclientCalculatedRent", "");
-        return;
-      } const dailyRent = Number(watchTempMonthlyRent) / 30;
-      let totalTempRent = 0;
-      if (end && !isNaN(end.getTime())) {
-        const startDay = start.getDate();
-        const endDay = end.getDate();
-        const monthDiff =
-          (end.getFullYear() - start.getFullYear()) * 12 +
-          (end.getMonth() - start.getMonth());
-        const diffDays =
-          monthDiff * 30 + (endDay - startDay + 1);
-        totalTempRent = Math.round(dailyRent * diffDays);
-      } else {
-        const startDay = start.getDate();
-        const remainingDays = 30 - startDay + 1;
-        totalTempRent = Math.round(dailyRent * remainingDays);
-      }
-      setValue("temporaryclientCalculatedRent", totalTempRent);
-    } else {
-      setValue("temporaryclientCalculatedRent", "");
+
+useEffect(() => {
+  if (watchTempClientDoj && watchTempMonthlyRent) {
+    const start = new Date(watchTempClientDoj);
+    const end = watchTempClientLastDate
+      ? new Date(watchTempClientLastDate)
+      : null;
+
+    start.setHours(0, 0, 0, 0);
+
+    if (end) {
+      end.setHours(0, 0, 0, 0);
     }
-  }, [watchTempClientDoj, watchTempClientLastDate, watchTempMonthlyRent, setValue,]);
+
+    if (isNaN(start.getTime())) {
+      setValue("temporaryclientCalculatedRent", "");
+      return;
+    }
+
+    const getBillingDays = (year, month) => {
+      const actualDays = new Date(
+        year,
+        month + 1,
+        0
+      ).getDate();
+
+      return actualDays === 31 ? 30 : actualDays;
+    };
+
+    let totalTempRent = 0;
+
+    if (end && !isNaN(end.getTime())) {
+      let currentDate = new Date(start);
+
+      while (
+        currentDate.getFullYear() < end.getFullYear() ||
+        (
+          currentDate.getFullYear() === end.getFullYear() &&
+          currentDate.getMonth() <= end.getMonth()
+        )
+      ) {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        const billingDays = getBillingDays(
+          year,
+          month
+        );
+
+        const startDay =
+          year === start.getFullYear() &&
+          month === start.getMonth()
+            ? start.getDate()
+            : 1;
+
+        const actualLastDay = new Date(
+          year,
+          month + 1,
+          0
+        ).getDate();
+
+        const endDay =
+          year === end.getFullYear() &&
+          month === end.getMonth()
+            ? end.getDate()
+            : actualLastDay;
+
+        const diffDays =
+          endDay - startDay + 1;
+
+        const dailyRent =
+          Number(watchTempMonthlyRent) /
+          billingDays;
+
+        totalTempRent +=
+          dailyRent * Math.max(diffDays, 0);
+
+        currentDate = new Date(
+          year,
+          month + 1,
+          1
+        );
+      }
+
+      totalTempRent = Math.round(totalTempRent);
+    } else {
+      const year = start.getFullYear();
+      const month = start.getMonth();
+
+      const billingDays = getBillingDays(
+        year,
+        month
+      );
+
+      const startDay = start.getDate();
+
+      const remainingDays =
+        billingDays - startDay + 1;
+
+      const dailyRent =
+        Number(watchTempMonthlyRent) /
+        billingDays;
+
+      totalTempRent = Math.round(
+        dailyRent * remainingDays
+      );
+    }
+
+    setValue(
+      "temporaryclientCalculatedRent",
+      totalTempRent
+    );
+  } else {
+    setValue(
+      "temporaryclientCalculatedRent",
+      ""
+    );
+  }
+}, [
+  watchTempClientDoj,
+  watchTempClientLastDate,
+  watchTempMonthlyRent,
+  setValue,
+]);
+
+
 
   useEffect(() => {
     if (!selectedTempPropertyId) {

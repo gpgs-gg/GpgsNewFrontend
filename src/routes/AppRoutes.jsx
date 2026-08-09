@@ -35,6 +35,9 @@ import OptionsCreateEdit from "../components/Options/OptionsCreateEdit";
 import ClientRentHistory from "../pages/ClientRentHistory";
 import HousekeepingPage from "../components/Daily/DailyToDoHouseKeeping/HouseKeeping";
 import Maintenance from "../components/Daily/DailyToDoMaintenace/Maintenance";
+import EmployeesTable from "../components/EmployeeDetails/EmployeesTable";
+import EmployeesCreate from "../components/EmployeeDetails/EmployeesCreate";
+import AttendanceTable from "../components/Attendance/AttendanceTable";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -95,6 +98,10 @@ const AppRoutes = () => {
           <Route path="/settings" element={<Settings />} />
           <Route path="/house-keeping" element={<HousekeepingPage />} />
           <Route path="/maintenance" element={<Maintenance />} />
+          <Route path="/employees" element={<EmployeesTable />} />
+          <Route path="/employees/create" element={<EmployeesCreate />} />
+          <Route path="/employees/edit/:id" element={<EmployeesCreate />} />
+          <Route path="/attendance" element={<AttendanceTable />} />
         </Route>
       </Route>
 
