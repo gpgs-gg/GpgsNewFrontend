@@ -16,13 +16,11 @@ import TableSkeleton from "../../components/common/TableSkelton";
 import {
   useMasterData,
   useDeleteMasterData,
-  useLocations,
-  useSharingTypes,
 } from "./services/index";
 import Pagination from "../Common/Pagination";
 import useDebounce from "../hooks/useDebounce";
 import ConfirmModal from "../Common/ConfirmModal";
-import OptionsFilter from "./OptionsFilter";
+// import OptionsFilter from "./OptionsFilter";
 import { toast } from "react-toastify";
 
 const OptionsTable = () => {
@@ -51,18 +49,6 @@ const OptionsTable = () => {
 
   const [deleteId, setDeleteId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  // get locations
-  const { data, error } = useLocations();
-  const { data: sharingTypeData } = useSharingTypes();
-
-  const sharingTypes = sharingTypeData?.[0]?.items || [];
-
-  //console.log("Sharing Types", sharingTypes);
-  const locations = data?.[0]?.items || [];
-
-  //console.log("locations", locations);
-
   const { mutate: deleteMaster, isPending: deleting } = useDeleteMasterData();
   const apiData = masterData?.data || [];
 
@@ -399,7 +385,7 @@ const OptionsTable = () => {
           </div>
         </div>
       </div>
-      <OptionsFilter
+      {/* <OptionsFilter
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         onApply={(filters, labels) => {
@@ -409,7 +395,7 @@ const OptionsTable = () => {
         }}
         resetTrigger={resetTrigger}
         apiData={apiData}
-      />
+      /> */}
       <ConfirmModal
         isOpen={showDeleteModal}
         title="Delete this options data"

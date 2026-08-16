@@ -4,7 +4,7 @@ import { useAuth } from "../context/authContext";
 import { useLogout } from "../auth/services";
 import { CiLogout } from "react-icons/ci";
 import { IoIosNotificationsOutline } from "react-icons/io";
-import { FaUserCircle } from "react-icons/fa";
+import { FaCalendarCheck, FaUserCircle } from "react-icons/fa";
 const Header = ({
   collapsed,
   setCollapsed,
@@ -20,6 +20,9 @@ const Header = ({
         navigate("/login", { replace: true });
       },
     });
+  };
+  const handleAttendanceClick = () => {
+    navigate("/check-in-out");
   };
   const notificationCount = 2
   return (
@@ -57,7 +60,23 @@ const Header = ({
       {/* Right Side */}
       {/* Right Side */}
       <div className="flex justify-center items-center gap-10">
+           {/* TODAY'S ATTENDANCE */}
+
+        <button
+          type="button"
+          onClick={handleAttendanceClick}
+          className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 transition hover:bg-green-100"
+        >
+          <FaCalendarCheck className="text-green-600" />
+
+          <span className="hidden sm:inline">Today's Attendance</span>
+
+          <span className="sm:hidden">Attendance</span>
+        </button>
+
         <div className="relative cursor-pointer">
+          {/* daily attendance check in check out */}
+     
           <IoIosNotificationsOutline className="text-2xl" />
 
           {notificationCount > 0 && (

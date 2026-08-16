@@ -425,7 +425,7 @@ const AvailableBedsFilter = ({
            
           
             {/* Room No */}
-            <Controller
+            {/* <Controller
               name="roomNo"
               control={control}
               render={({ field }) => (
@@ -449,10 +449,10 @@ const AvailableBedsFilter = ({
                   />
                 </div>
               )}
-            />
+            /> */}
 
             {/* Bed No */}
-            <Controller
+            {/* <Controller
               name="bedNo"
               control={control}
               render={({ field }) => (
@@ -476,7 +476,7 @@ const AvailableBedsFilter = ({
                   />
                 </div>
               )}
-            />
+            /> */}
 
             {/* Sharing Type */}
             <Controller

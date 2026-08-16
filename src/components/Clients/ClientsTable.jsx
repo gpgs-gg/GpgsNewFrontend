@@ -349,7 +349,7 @@ const ClientsTable = () => {
 
                           if (vacatedDate <= today) {
                             return {
-                              text: "Vacated",
+                              text: "Ready For Handover",
                               className: "bg-gray-200 text-gray-700",
                             };
                           }
@@ -385,7 +385,7 @@ const ClientsTable = () => {
 
                               return (
                                 <span
-                                  className={`px-3 py-1 rounded-full text-xs font-semibold ${status.className}`}
+                                  className={`px-3 py-1 rounded-full text-sm font-semibold ${status.className}`}
                                 >
                                   {status.text}
                                 </span>
@@ -518,7 +518,7 @@ const ClientsTable = () => {
                             )}
                           </td> */}
 
-                          <td className="p-3 sticky right-0 bg-white z-50 shadow-[-4px_0_6px_rgba(0,0,0,0.05)]">
+                          <td className="p-3 sticky right-0 bg-white z-50 shadow-[4px_0_6px_rgba(0,0,0,0.05)]">
                             
                             <div className="flex justify-center">
                                      <Link

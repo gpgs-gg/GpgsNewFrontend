@@ -115,6 +115,121 @@ export const useCheckOutAttendance = () => {
 };
 
 // ======================================================
+// GET ALL EMPLOYEE ATTENDANCE
+// ======================================================
+
+const getAllAttendance = async ({
+  page = 1,
+  limit = 10,
+  month = "",
+  date = "",
+  status = "",
+  employeeId = "",
+  search = "",
+}) => {
+  const response = await apiClient.get("/attendance", {
+    params: {
+      page,
+      limit,
+
+      ...(month && { month }),
+      ...(date && { date }),
+      ...(status !== "" && { status }),
+      ...(employeeId && { employeeId }),
+      ...(search && { search }),
+    },
+  });
+
+  return response.data;
+};
+
+export const useAllAttendance = ({
+  page = 1,
+  limit = 10,
+  month = "",
+  date = "",
+  status = "",
+  employeeId = "",
+  search = "",
+}) => {
+  return useQuery({
+    queryKey: [
+      "attendance-all",
+      page,
+      limit,
+      month,
+      date,
+      status,
+      employeeId,
+      search,
+    ],
+
+    queryFn: () =>
+      getAllAttendance({
+        page,
+        limit,
+        month,
+        date,
+        status,
+        employeeId,
+        search,
+      }),
+
+    placeholderData: (previousData) => previousData,
+  });
+};
+
+//  regularize attendance
+export const useRegularizeAttendance = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (formData) => {
+      const response = await apiClient.post(
+        "/attendance/admin/regularize",
+        formData,
+      );
+
+      return response.data;
+    },
+
+    onSuccess: () => {
+      // Refresh All Attendance table
+      queryClient.invalidateQueries({
+        queryKey: ["attendance-all"],
+      });
+
+      // Optional: refresh single attendance if you use it elsewhere
+      queryClient.invalidateQueries({
+        queryKey: ["attendance"],
+      });
+
+      // Optional if regularization can affect today's attendance
+      queryClient.invalidateQueries({
+        queryKey: ["attendance-today"],
+      });
+
+      // Optional if regularization can affect employee attendance history
+      queryClient.invalidateQueries({
+        queryKey: ["attendance-history"],
+      });
+    },
+  });
+};
+// export const useRegularizeAttendance = () => {
+//   return useMutation({
+//     mutationFn: async (formData) => {
+//       const response = await apiClient.post(
+//         "/attendance/admin/regularize",
+//         formData,
+//       );
+
+//       return response.data;
+//     },
+//   });
+// };
+// ---
+// ======================================================
 // GET SINGLE ATTENDANCE
 // ======================================================
 
@@ -131,37 +246,5 @@ export const useSingleAttendance = (id) => {
     queryFn: () => getSingleAttendance(id),
 
     enabled: !!id,
-  });
-};
-
-// ======================================================
-// UPDATE ATTENDANCE
-// ======================================================
-
-const updateAttendance = async ({ id, data }) => {
-  const response = await apiClient.put(`/attendance/${id}`, data);
-
-  return response.data;
-};
-
-export const useUpdateAttendance = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: updateAttendance,
-
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["attendance-history"],
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ["attendance-today"],
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ["attendance", variables.id],
-      });
-    },
   });
 };

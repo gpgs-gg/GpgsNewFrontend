@@ -317,6 +317,7 @@ const EmployeesTable = () => {
 
     deleteEmployee(deleteId, {
       onSuccess: (data) => {
+        toast.dismiss();
         toast.success(data?.message || "Employee deleted successfully.");
 
         setDeleteId(null);
@@ -454,6 +455,8 @@ const EmployeesTable = () => {
     { key: "PermanentAddress", label: "Permanent Address" },
     { key: "TemporaryAddress", label: "Temporary Address" },
     { key: "LoginID", label: "Login ID" },
+    { key: "workingHours", label: "Working Hours" },
+    { key: "halfDayHours", label: "Half Hours" },
   ];
 
   // 🔹 Get current index of editing row
@@ -519,39 +522,39 @@ const EmployeesTable = () => {
   };
 
   const { mutate: uploadEmployeeDocs } = useUploadEmployeeDocs();
-  const {
-    data: employeeDetailsForDocuments,
-    isLoading: isDocument,
-    refetch,
-  } = useEmployeeDetailsData();
+  // const {
+  //   data: employeeDetailsForDocuments,
+  //   isLoading: isDocument,
+  //   refetch,
+  // } = useEmployeeDetailsData();
   // 🔁 Load existing documents on component mount
-  useEffect(() => {
-    if (!employeeDetailsForDocuments?.data || !editingRow) {
-      setExistingDocs({
-        aadhaar: [],
-        photo: [],
-        bank: [],
-      });
-      return;
-    }
+  // useEffect(() => {
+  //   if (!employeeDetailsForDocuments?.data || !editingRow) {
+  //     setExistingDocs({
+  //       aadhaar: [],
+  //       photo: [],
+  //       bank: [],
+  //     });
+  //     return;
+  //   }
 
-    const selectedEmployee = employeeDetailsForDocuments.data.find(
-      (ele) => ele.EmployeeID === editingRow.EmployeeID,
-    );
+  //   const selectedEmployee = employeeDetailsForDocuments.data.find(
+  //     (ele) => ele.EmployeeID === editingRow.EmployeeID,
+  //   );
 
-    if (selectedEmployee) {
-      setExistingDocs({
-        //aadhaar: selectedEmployee.AadharCard ? [selectedEmployee.AadharCard] : [],
-        aadhaar: selectedEmployee.AadharCard
-          ? selectedEmployee.AadharCard.split(",")
-          : [],
-        photo: selectedEmployee.Photo ? [selectedEmployee.Photo] : [],
-        bank: selectedEmployee.BankDetails
-          ? [selectedEmployee.BankDetails]
-          : [],
-      });
-    }
-  }, [employeeDetailsForDocuments, editingRow]);
+  //   if (selectedEmployee) {
+  //     setExistingDocs({
+  //       //aadhaar: selectedEmployee.AadharCard ? [selectedEmployee.AadharCard] : [],
+  //       aadhaar: selectedEmployee.AadharCard
+  //         ? selectedEmployee.AadharCard.split(",")
+  //         : [],
+  //       photo: selectedEmployee.Photo ? [selectedEmployee.Photo] : [],
+  //       bank: selectedEmployee.BankDetails
+  //         ? [selectedEmployee.BankDetails]
+  //         : [],
+  //     });
+  //   }
+  // }, [employeeDetailsForDocuments, editingRow]);
 
   useEffect(() => {
     // Employee change → clear unsaved uploads
@@ -666,6 +669,7 @@ const EmployeesTable = () => {
 
     uploadEmployeeDocs(formData, {
       onSuccess: async () => {
+        toast.dismiss();
         toast.success("Documents uploaded successfully");
         await refetch();
         setUploadedDocs({
@@ -733,7 +737,7 @@ const EmployeesTable = () => {
   ];
 
   return (
-    <div className="min-h-screen w-auto bg-gray-50 ">
+    <div className=" w-auto bg-gray-50 ">
       <>
         {/* ================= HEADER ================= */}
         {/* ================= HEADER ================= */}
@@ -859,18 +863,23 @@ const EmployeesTable = () => {
 
           <div className="flex-1 overflow-auto">
             <table className="w-full">
-              <thead className="sticky top-0 bg-gray-100 z-10">
+              <thead className="sticky top-0 bg-gray-100 z-30">
                 <tr>
                   {TABLE_COLUMNS.map((col) => (
                     <th
                       key={col.key}
-                      className="p-3 text-left whitespace-nowrap"
+                      className={`p-3 text-left whitespace-nowrap ${
+                        col.key === "EmployeeID"
+                          ? "sticky left-0 z-20 bg-gray-100"
+                          : ""
+                      }`}
                     >
                       {col.label}
                     </th>
                   ))}
-
-                  <th className="p-3 text-center">Actions</th>
+                  <th className="p-3 text-center sticky right-0 z-20 bg-gray-100">
+                    Actions
+                  </th>
                 </tr>
               </thead>
 
@@ -889,7 +898,14 @@ const EmployeesTable = () => {
                         className="border-t border-gray-300 hover:bg-gray-50"
                       >
                         {TABLE_COLUMNS.map((col) => (
-                          <td key={col.key} className="p-3 whitespace-nowrap">
+                          <td
+                            key={col.key}
+                            className={`p-3 text-left whitespace-nowrap ${
+                              col.key === "EmployeeID"
+                                ? "sticky left-0 z-10 bg-white"
+                                : ""
+                            }`}
+                          >
                             {col.key === "SrNo" ? (
                               (currentPage - 1) * rowsPerPage + idx + 1
                             ) : ["Photo", "AadharCard", "BankDetails"].includes(
@@ -899,7 +915,7 @@ const EmployeesTable = () => {
                             ) : col.key === "status" ? (
                               <span
                                 className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                  row.status === "ACTIVE"
+                                  row.status === "active"
                                     ? "bg-green-100 text-green-700"
                                     : "bg-red-100 text-red-700"
                                 }`}
@@ -918,6 +934,7 @@ const EmployeesTable = () => {
                                     onClick={() => {
                                       toggleEmployeeLogin(row._id, {
                                         onSuccess: (data) => {
+                                          toast.dismiss();
                                           toast.success(
                                             data?.message ||
                                               (isLoginEnabled
@@ -967,6 +984,18 @@ const EmployeesTable = () => {
                             ) : col.key === "dateOfJoining" ||
                               col.key === "dateOfBirth" ? (
                               formatDate(row?.[col.key])
+                            ) : col.key === "workingHours" ? (
+                              row?.workingHours != null ? (
+                                `${row.workingHours} hr`
+                              ) : (
+                                "-"
+                              )
+                            ) : col.key === "halfDayHours" ? (
+                              row?.halfDayHours != null ? (
+                                `${row.halfDayHours} hr`
+                              ) : (
+                                "-"
+                              )
                             ) : (
                               (row?.[col.key] ?? "-")
                             )}
@@ -975,7 +1004,7 @@ const EmployeesTable = () => {
 
                         {/* ACTIONS */}
 
-                        <td className="p-3">
+                        <td className="p-3 sticky right-0 z-10 bg-white">
                           <div className="flex justify-center gap-2">
                             {/* EDIT */}
                             <Link to={`/employees/edit/${row._id}`}>

@@ -14,6 +14,7 @@ import { FaEllipsisV } from "react-icons/fa";
 import { RiTelegram2Line } from "react-icons/ri";
 import PaymentVerificationModal from "./PaymentVerificationModal";
 import { useForm } from "react-hook-form";
+import image from "../../assets/icons8-verified-account.gif"
 
 const NewBookingTable = () => {
   const [search, setSearch] = useState("");
@@ -45,31 +46,31 @@ const NewBookingTable = () => {
     setValue,
   } = useForm();
 
-const onSubmit = (data) => {
-  createClientFromBooking(
-    {
-      bookingId: selectedBooking._id,
-      ...data,
-    },
-    {
-      onSuccess: (response) => {
-        toast.success(
-          response?.message || "Client created successfully!"
-        );
-
-        reset();
-        setShowPaymentModal(false);
+  const onSubmit = (data) => {
+    createClientFromBooking(
+      {
+        bookingId: selectedBooking._id,
+        ...data,
       },
+      {
+        onSuccess: (response) => {
+          toast.success(
+            response?.message || "Client created successfully!"
+          );
 
-      onError: (error) => {
-        toast.error(
-          error?.response?.data?.message ||
+          reset();
+          setShowPaymentModal(false);
+        },
+
+        onError: (error) => {
+          toast.error(
+            error?.response?.data?.message ||
             "Failed to create client. Please try again."
-        );
-      },
-    }
-  );
-};
+          );
+        },
+      }
+    );
+  };
 
   const { mutate: toggleClientLogin, isPendingToggleClientLogin } = useToggleClientLogin();
   const { mutate: updateNewBookingForBooked, isPending } = useUpdateNewBookingForBooked();
@@ -232,45 +233,45 @@ const onSubmit = (data) => {
   };
 
 
-const handleStatusToggle = (item) => {
-  if (item.status === "Booked" && item.loginEnabled) {
-    toast.dismiss();
-toast.error(
-  "This booking cannot be marked as Not Booked because the client's payment has already been verified."
-);
+  const handleStatusToggle = (item) => {
+    if (item.status === "Booked" && item.loginEnabled) {
+      toast.dismiss();
+      toast.error(
+        "This booking cannot be marked as Not Booked because the client's payment has already been verified."
+      );
 
-    return;
-  }
-
-  updateNewBookingForBooked(
-    {
-      id: item._id, 
-      data: {
-        status:
-          item.status === "Booked"
-            ? "Not Booked"
-            : "Booked",
-      },
-    },
-    {
-      onSuccess: (response) => {
-        toast.dismiss();
-        toast.success(
-          response?.message ||
-          response?.data?.message ||
-          "Status updated successfully"
-        );
-      },
-      onError: (error) => {
-        toast.dismiss();
-        toast.error(
-          error?.response?.data?.message ||
-          "Failed to update status"
-        );
-      },
+      return;
     }
-  );
-};
+
+    updateNewBookingForBooked(
+      {
+        id: item._id,
+        data: {
+          status:
+            item.status === "Booked"
+              ? "Not Booked"
+              : "Booked",
+        },
+      },
+      {
+        onSuccess: (response) => {
+          toast.dismiss();
+          toast.success(
+            response?.message ||
+            response?.data?.message ||
+            "Status updated successfully"
+          );
+        },
+        onError: (error) => {
+          toast.dismiss();
+          toast.error(
+            error?.response?.data?.message ||
+            "Failed to update status"
+          );
+        },
+      }
+    );
+  };
 
 
 
@@ -489,21 +490,25 @@ toast.error(
                                 )
                                 : "-"}
                             </td>
+
+                            
                             <td className="p-3">
                               <div className="flex items-center justify-center gap-3">
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    className="sr-only peer"
-                                    checked={item.loginEnabled}
-                                    onChange={() => handlePaymentVerification(item)}
-                                    disabled={isPending}
-                                  />
+                                {/* {!item.loginEnabled && ( */}
+                                  <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      className="sr-only peer"
+                                      checked={item.loginEnabled}
+                                      onChange={() => handlePaymentVerification(item)}
+                                      disabled={isPending}
+                                    />
 
-                                  <div className="w-11 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
+                                    <div className="w-11 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
 
-                                  <div className="absolute left-0.5 top-0.5 w-5 h-4 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
-                                </label>
+                                    <div className="absolute left-0.5 top-0.5 w-5 h-4 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
+                                  </label>
+                                {/* )} */}
 
                                 <span
                                   className={`text-sm font-semibold ${item.loginEnabled
@@ -511,10 +516,30 @@ toast.error(
                                     : "text-red-600"
                                     }`}
                                 >
-                                  {item.loginEnabled ? "Verified" : "Pending"}
+                                  <td className="p-3">
+                                    {item.loginEnabled ? (
+                                      <div className="flex items-center gap-2">
+                                        {/* Verified Image */}
+                                        <img
+                                          src={image}
+                                          alt="Verified"
+                                          className="w-7 h-7 object-contain"
+                                        />
+
+                                        <span className="text-sm font-semibold text-green-600">
+                                          Verified
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-sm font-semibold text-red-600">
+                                        Pending
+                                      </span>
+                                    )}
+                                  </td>
                                 </span>
                               </div>
                             </td>
+                            
                             <td className="p-3">
                               ₹
                               {(

@@ -251,7 +251,7 @@ const handleDelete = () => {
             </button>
           )}
           {/* TABLE CONTENT */}
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto ">
             <table className="w-full">
               <thead className="sticky top-0 bg-gray-100 whitespace-nowrap">
                 
@@ -266,7 +266,7 @@ const handleDelete = () => {
                   </th>
                   <th className="p-3 text-center">Property Code</th>
                   <th className="p-3 text-center">Room No</th>
-                  <th className="p-3 text-center">Bed No</th>
+                  <th className="p-3 text-center">Bed No</th> 
                   <th className="p-3 text-center">Gender</th>
                   <th className="p-3 text-center">Sharing Type</th>
                   <th className="p-3 text-center">Bath Attached</th>

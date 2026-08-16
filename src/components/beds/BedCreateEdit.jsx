@@ -225,7 +225,7 @@ const BedCreateEdit = () => {
                                     <div
                                         className={`select-group ${field.value ? "has-value" : ""}`}
                                     >
-                                        <label className="select-label">Property Code</label>
+                                        <label className="select-label required-label">Property Code</label>
 
                                         <AsyncPaginate
                                             additional={{ page: 1 }}

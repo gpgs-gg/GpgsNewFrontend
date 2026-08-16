@@ -2,157 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { apiClient } from "../../../api/ApiClient";
 
-// ============================================================
-// API CLIENT
-// ============================================================
-
-// ============================================================
-// EMPLOYEE LIST
-// ============================================================
-
-// Get Departments
-export const getDepartments = async () => {
-  const { data } = await apiClient.get("/options", {
-    params: {
-      categoryKey: "department",
-    },
-  });
-
-  return data.data;
-};
-
-export const useDepartments = () => {
-  return useQuery({
-    queryKey: ["department"],
-    queryFn: getDepartments,
-  });
-};
-
-// Get Employee Status
-export const getEmployeeStatuses = async () => {
-  const { data } = await apiClient.get("/options", {
-    params: {
-      categoryKey: "employeeStatus",
-    },
-  });
-
-  return data.data;
-};
-
-export const useEmployeeStatuses = () => {
-  return useQuery({
-    queryKey: ["employeeStatus"],
-    queryFn: getEmployeeStatuses,
-  });
-};
-
-// Get Department Companies
-export const getDepartmentCompanies = async () => {
-  const { data } = await apiClient.get("/options", {
-    params: {
-      categoryKey: "departmentCompanies",
-    },
-  });
-
-  return data.data;
-};
-
-export const useDepartmentCompanies = () => {
-  return useQuery({
-    queryKey: ["departmentCompanies"],
-    queryFn: getDepartmentCompanies,
-  });
-};
-
-// Get Designations
-export const getDesignations = async () => {
-  const { data } = await apiClient.get("/options", {
-    params: {
-      categoryKey: "designationoptions",
-    },
-  });
-
-  return data.data;
-};
-
-export const useDesignations = () => {
-  return useQuery({
-    queryKey: ["designations"],
-    queryFn: getDesignations,
-  });
-};
-
-// Get Parent Companies
-export const getParentCompanies = async () => {
-  const { data } = await apiClient.get("/options", {
-    params: {
-      categoryKey: "parentcompanyoptions",
-    },
-  });
-
-  return data.data;
-};
-
-export const useParentCompanies = () => {
-  return useQuery({
-    queryKey: ["parentcompanyoptions"],
-    queryFn: getParentCompanies,
-  });
-};
-
-// Get Roles
-export const getRoles = async () => {
-  const { data } = await apiClient.get("/options", {
-    params: {
-      categoryKey: "roleoptions",
-    },
-  });
-
-  return data.data;
-};
-
-export const useRoles = () => {
-  return useQuery({
-    queryKey: ["roleoptions"],
-    queryFn: getRoles,
-  });
-};
-
-// Get Subsidiaries
-export const getSubsidiaries = async () => {
-  const { data } = await apiClient.get("/options", {
-    params: {
-      categoryKey: "subsidiaryoptions",
-    },
-  });
-
-  return data.data;
-};
-
-export const useSubsidiaries = () => {
-  return useQuery({
-    queryKey: ["subsidiaryoptions"],
-    queryFn: getSubsidiaries,
-  });
-};
-export const getTeamCodes = async () => {
-  const { data } = await apiClient.get("/options", {
-    params: {
-      categoryKey: "teamCode",
-    },
-  });
-
-  return data.data;
-};
-
-export const useTeamCodes = () => {
-  return useQuery({
-    queryKey: ["teamCode"],
-    queryFn: getTeamCodes,
-  });
-};
-// Enable employee login
-
 export const toggleEmployeeLoginApi = async (employeeId) => {
   const response = await apiClient.patch("/employees/toggle-login", {
     employeeId,
@@ -170,6 +19,9 @@ export const useToggleEmployeeLogin = () => {
       queryClient.invalidateQueries({
         queryKey: ["EmployeeDetails"],
       });
+       queryClient.invalidateQueries({
+      queryKey: ["Employee"],
+    });
     },
   });
 };
@@ -185,26 +37,16 @@ export const useLoginEnabledEmployees = () => {
 };
 
 export const getEmployeeDetails = async (params) => {
-  // ============================================================
-  // SINGLE EMPLOYEE
-  // ============================================================
-
   if (typeof params === "string") {
     const response = await apiClient.get(`/employees/${params}`);
-
     return response.data;
   }
-
-  // ============================================================
-  // EMPLOYEE LIST
-  // ============================================================
-
   const response = await apiClient.get("/employees", {
     params,
   });
-
   return response.data;
 };
+
 export const useEmployeeDetailsData = (params) => {
   const isSingleEmployee = typeof params === "string";
 
@@ -212,9 +54,7 @@ export const useEmployeeDetailsData = (params) => {
     queryKey: isSingleEmployee
       ? ["Employee", params]
       : ["EmployeeDetails", params],
-
     queryFn: () => getEmployeeDetails(params),
-
     enabled: isSingleEmployee ? !!params : true,
 
     staleTime: 0,

@@ -17,10 +17,14 @@ import AvailableBeds from "../pages/AvailableBeds";
 import RentLedger from "../pages/RentLedger";
 import BankTransaction from "../pages/BankTransaction";
 import User from "../pages/User";
+import FandFsettlement from "../pages/FandFsettlement";
 
+
+import SalaryTable from "../components/Salary/SalaryTable";
+import SalaryEdit from "../components/Salary/SalaryEdit";
 import UserEdit from "../components/User/UserEdit";
 import LeadsList from "../components/leads/LeadsList";
-import LeadsCreateEdit  from "../components/leads/LeadsCreateEdit";
+import LeadsCreateEdit from "../components/leads/LeadsCreateEdit";
 import PropertyCreateEdit from "../components/properties/PropertyCreateEdit";
 import BedsTable from "../components/beds/BedsTable";
 import BedCreateEdit from "../components/beds/BedCreateEdit";
@@ -37,7 +41,9 @@ import HousekeepingPage from "../components/Daily/DailyToDoHouseKeeping/HouseKee
 import Maintenance from "../components/Daily/DailyToDoMaintenace/Maintenance";
 import EmployeesTable from "../components/EmployeeDetails/EmployeesTable";
 import EmployeesCreate from "../components/EmployeeDetails/EmployeesCreate";
-import AttendanceTable from "../components/Attendance/AttendanceTable";
+import CheckinOut from "../components/Attendance/CheckinOut";
+import AllAttendanceTable from "../components/Attendance/AllAttendanceTable";
+import Rnr from "../pages/Rnr";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -83,25 +89,31 @@ const AppRoutes = () => {
           <Route path="/clients/view/:clientId" element={<ClientCreateEdit />} />
           <Route path="/tickets/create" element={<TicketCreateEdit />} />
           <Route path="/tickets/edit/:id" element={<TicketCreateEdit />} />
-          <Route path="/tickets/view/:id" element={<TicketView/>} />
+          <Route path="/tickets/view/:id" element={<TicketView />} />
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/bank-transactions" element={<BankTransaction />} />
           <Route path="/options" element={<Options />} />
           <Route path="/options/create" element={<OptionsCreateEdit />} />
           <Route path="/options/edit/:id" element={<OptionsCreateEdit />} />
-          <Route path="/users" element={<User/>} />
+          <Route path="/users" element={<User />} />
           <Route path="/Users/edit/:id" element={<UserEdit />} />
-           <Route path="/leads" element={<LeadsList/>} />
-           <Route path="/leads/edit/:id" element={<LeadsCreateEdit/>} />
-           <Route path="/leads/create" element={<LeadsCreateEdit/>} />
-           <Route path="/renthistory" element={<ClientRentHistory/>} />
+          <Route path="/leads" element={<LeadsList />} />
+          <Route path="/leads/edit/:id" element={<LeadsCreateEdit />} />
+          <Route path="/leads/create" element={<LeadsCreateEdit />} />
+          <Route path="/renthistory" element={<ClientRentHistory />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/house-keeping" element={<HousekeepingPage />} />
           <Route path="/maintenance" element={<Maintenance />} />
           <Route path="/employees" element={<EmployeesTable />} />
           <Route path="/employees/create" element={<EmployeesCreate />} />
           <Route path="/employees/edit/:id" element={<EmployeesCreate />} />
-          <Route path="/attendance" element={<AttendanceTable />} />
+          <Route path="/check-in-out" element={<CheckinOut />} />
+          <Route path="/attendance/all" element={<AllAttendanceTable />} />
+          <Route path="/full-&-final-settlement" element={<FandFsettlement />} />
+          <Route path="/rent-not-received" element={<Rnr />} />
+          {/* salary */}
+          <Route path="/salary/all" element={<SalaryTable />} />
+          <Route path="/salary/edit/:employeeId" element={<SalaryEdit />} />
         </Route>
       </Route>
 

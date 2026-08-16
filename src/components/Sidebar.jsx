@@ -108,13 +108,14 @@ import {
   Database,
   BrushCleaning,
   Wrench,
+  CircleDollarSign,
 } from "lucide-react";
 import { CiLogout } from "react-icons/ci";
 import { useLogout } from "../auth/services";
 import { BsBank } from "react-icons/bs";
 import { useAuth } from "../context/authContext";
 import { useQueryClient } from "@tanstack/react-query";
-import { FaCalendarCheck, FaUsers } from "react-icons/fa";
+import { FaCalendarCheck, FaMoneyBillWave, FaUsers } from "react-icons/fa";
 const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
   const { user, setUser } = useAuth();
   const queryClient = useQueryClient();
@@ -142,6 +143,8 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
       { name: "Available Beds", path: "/available-beds", icon: <Bed size={22} /> },
       { name: "New Booking", path: "/new-bookings", icon: <UserPlus size={22} /> },
       { name: "Clients", path: "/clients", icon: <Users size={22} /> },
+      { name: "F & F Settlement", path: "/full-&-final-settlement", icon: <Users size={22} /> },
+      { name: "R N R", path: "/rent-not-received", icon: <CircleDollarSign  size={22} /> },
       // { name: "Rent Ledger", path: "/rent-ledger", icon: <Wallet size={22} /> },
       { name: "Tickets", path: "/tickets", icon: <Ticket size={22} /> },
       { name: "Bank Transactions", path: "/bank-transactions", icon: <BsBank size={22} /> },
@@ -155,10 +158,16 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
           path: "/employees",
           icon: <FaUsers size={22} />,
         },
+      
         {
-          name: "Attendance",
-          path: "/attendance",
+        name: " All Attendance",
+          path: "/attendance/all",
           icon: <FaCalendarCheck size={22} />,
+        },
+        {
+          name: "All Salary",
+          path: "/salary/all",
+          icon: <FaMoneyBillWave size={22} />,
         },
 
     ]
@@ -187,7 +196,7 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         className={`
-          fixed top-0 left-0 z-50
+          fixed top-0 left-0 z-[100]
           bg-slate-800 text-white
           h-screen overflow-hidden
           shadow-xl

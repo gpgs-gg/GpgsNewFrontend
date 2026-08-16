@@ -63,7 +63,7 @@ const UserEdit = () => {
   // Api Hooks
   const RoleOptions = [
     { value: "Admin", label: "Admin" },
-    { value: "User", label: "User" },
+    { value: "Employee", label: "Employee" },
     { value: "Client", label: "Client" },
   ];
   const StatusOptions = [

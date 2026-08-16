@@ -101,6 +101,8 @@ const EmployeesCreateEdit = () => {
     defaultValues: {
       status: "ACTIVE",
       Role: "Employee",
+      workingHours: "9",
+      halfDayHours: "5",
       emergencyContacts: [
         {
           fullName: "",
@@ -177,12 +179,12 @@ const EmployeesCreateEdit = () => {
     "roleoptions",
     "subsidiaryoptions",
     "teamcode",
+    "activeinactivestatus"
   ]);
 
   const DepartmentOptions = options.department || [];
 
-  const EmployeeStatusOptions = options.employeeStatus || [];
-
+  const ActiveInactiveStatus = options.activeinactivestatus || [];
   const DepartmentCompanyOptions = options.departmentCompanies || [];
 
   const DesignationOptions = options.designationoptions || [];
@@ -215,6 +217,8 @@ const EmployeesCreateEdit = () => {
       Subsidiary: employee.subsidiary || "",
       status: employee.status || "",
       Role: employee.role || "",
+      workingHours: String(employee.workingHours ?? 9),
+      halfDayHours: String(employee.halfDayHours ?? 5),
 
       DOJ: employee.dateOfJoining ? new Date(employee.dateOfJoining) : null,
 
@@ -276,7 +280,8 @@ const EmployeesCreateEdit = () => {
       parentCompany: data.ParentCompany,
       subsidiary: data.Subsidiary,
       role: data.Role,
-
+      workingHours: data.workingHours || "9",
+      halfDayHours: data.halfDayHours || "5",
       dateOfJoining: data.DOJ || null,
       dateOfBirth: data.DOB || null,
       status: isEdit ? data.status : "ACTIVE",
@@ -320,6 +325,7 @@ const EmployeesCreateEdit = () => {
         },
         {
           onSuccess: () => {
+            toast.dismiss();
             toast.success("Employee Updated");
             navigate("/employees");
           },
@@ -341,6 +347,7 @@ const EmployeesCreateEdit = () => {
     // CREATE EMPLOYEE
     createEmployee(payload, {
       onSuccess: () => {
+        toast.dismiss();
         toast.success("Employee Created");
         navigate("/employees");
       },
@@ -381,6 +388,7 @@ const EmployeesCreateEdit = () => {
       },
       {
         onSuccess: () => {
+          toast.dismiss();
           toast.success("Documents uploaded successfully");
 
           // Clear newly selected files
@@ -405,18 +413,31 @@ const EmployeesCreateEdit = () => {
       },
     );
   };
-
+  const workingHoursOptions = [
+    { value: "8", label: "8 Hr" },
+    { value: "9", label: "9 Hr" },
+    { value: "10", label: "10 Hr" },
+    { value: "11", label: "11 Hr" },
+    { value: "12", label: "12 Hr" },
+  ];
+  const halfDayHoursOptions = [
+    { value: "4", label: "4 Hr" },
+    { value: "4.5", label: "4.5 Hr" },
+    { value: "5", label: "5 Hr" },
+    { value: "5.5", label: "5.5 Hr" },
+    { value: "6", label: "6 Hr" },
+  ];
   const inputClass =
     "w-full px-3  py-2 mt-1 border border-orange-500 rounded-md shadow focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 disabled:cursor-not-allowed";
 
   const isActiveOptions = [
     {
-      value: "ACTIVE",
-      label: "Active",
+      value: "active",
+      label: "active",
     },
     {
-      value: "INACTIVE",
-      label: "Inactive",
+      value: "inactive",
+      label: "inactive",
     },
   ];
   const removeFile = (type, index, isExisting = false) => {
@@ -560,7 +581,7 @@ const EmployeesCreateEdit = () => {
                   disabled
                 />
 
-                <label className="form-label">Employee ID</label>
+                <label className="form-label required-label">Employee ID</label>
               </div>
             )}
             {/* Active */}
@@ -576,12 +597,12 @@ const EmployeesCreateEdit = () => {
                     <label className="select-label">Status</label>
 
                     <Select
-                      options={EmployeeStatusOptions}
+                      options={ActiveInactiveStatus}
                       isClearable
                       // isLoading={isEmployeeStatusesLoading}
                       placeholder=""
                       value={
-                        EmployeeStatusOptions.find(
+                        ActiveInactiveStatus.find(
                           (option) => option.value === field.value,
                         ) || null
                       }
@@ -600,8 +621,8 @@ const EmployeesCreateEdit = () => {
                 className="form-input"
               />
 
-              <label className="form-label">
-                Full Name <span className="text-red-500">*</span>
+              <label className="form-label required-label">
+                Full Name 
               </label>
               {errors.Name && (
                 <p className="text-red-500 text-xs mt-1">
@@ -618,8 +639,8 @@ const EmployeesCreateEdit = () => {
                 <div
                   className={`select-group ${field.value ? "has-value" : ""}`}
                 >
-                  <label className="select-label">
-                    Department <span className="text-red-500">*</span>
+                  <label className="select-label required-label">
+                    Department 
                   </label>
 
                   <Select
@@ -647,8 +668,8 @@ const EmployeesCreateEdit = () => {
                 <div
                   className={`select-group ${field.value ? "has-value" : ""}`}
                 >
-                  <label className="select-label">
-                    Designation <span className="text-red-500">*</span>
+                  <label className="select-label required-label">
+                    Designation
                   </label>
 
                   <Select
@@ -825,6 +846,81 @@ const EmployeesCreateEdit = () => {
                   />
                 </div>
               )}
+            />
+            {/* Working Hours */}
+            <Controller
+              name="workingHours"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">
+                    Working Hours <span className="text-red-500">*</span>
+                  </label>
+
+                  <Select
+                    options={workingHoursOptions}
+                    isClearable
+                    placeholder=""
+                    value={
+                      workingHoursOptions.find(
+                        (option) => option.value === field.value,
+                      ) || null
+                    }
+                    onChange={(option) => field.onChange(option?.value || "")}
+                    styles={selectStyles}
+                  />
+
+                  {errors.workingHours && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.workingHours.message}
+                    </p>
+                  )}
+                </div>
+              )}
+            />
+
+            {/* Half Day Hours */}
+            <Controller
+              name="halfDayHours"
+              control={control}
+              render={({ field }) => {
+                const selectedWorkingHours = Number(watch("workingHours") || 0);
+
+                const availableHalfDayOptions = halfDayHoursOptions.filter(
+                  (option) => Number(option.value) <= selectedWorkingHours,
+                );
+
+                return (
+                  <div
+                    className={`select-group ${field.value ? "has-value" : ""}`}
+                  >
+                    <label className="select-label">
+                      Half Day Hours <span className="text-red-500">*</span>
+                    </label>
+
+                    <Select
+                      options={availableHalfDayOptions}
+                      isClearable
+                      placeholder=""
+                      value={
+                        availableHalfDayOptions.find(
+                          (option) => option.value === field.value,
+                        ) || null
+                      }
+                      onChange={(option) => field.onChange(option?.value || "")}
+                      styles={selectStyles}
+                    />
+
+                    {errors.halfDayHours && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.halfDayHours.message}
+                      </p>
+                    )}
+                  </div>
+                );
+              }}
             />
           </div>
         </div>
