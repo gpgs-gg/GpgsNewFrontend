@@ -22,6 +22,7 @@ const RentLadgerEdit = () => {
     const property = singleClientRentData?.data?.propertyId ?? {};
     const bed = singleClientRentData?.data?.bedId ?? {};
     const totalReceivedHistory = singleClientRentData?.data?.totalReceivedHistory ?? {};
+    const adjustedAmountHistory = singleClientRentData?.data?.adjustedAmountHistory ?? {};
     const [aadhaarFiles, setAadhaarFiles] = useState([]);
     const [companyFiles, setCompanyFiles] = useState([]);
     const [nocFiles, setNocFiles] = useState([]);
@@ -133,7 +134,7 @@ const RentLadgerEdit = () => {
 
 
     return (
-        <div className="max-w-12xl mx-auto px-6">
+        <div className="max-w-12xl h-screen mx-auto px-6">
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="bg-white rounded-xl shadow-sm   px-4 py-2">
@@ -196,13 +197,13 @@ const RentLadgerEdit = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
 
                             <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
                                     Client Name
-                                  </p>
-                                  <p className="mt-1 text-lg font-semibold text-gray-900">
+                                </p>
+                                <p className="mt-1 text-lg font-semibold text-gray-900">
                                     {client.fullName}
-                                  </p>
-                                </div>
+                                </p>
+                            </div>
 
                             <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
                                 <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -423,17 +424,61 @@ const RentLadgerEdit = () => {
                             />
                             <label className="form-label required-label">Processing Fees</label>
                         </div>
-                        <div className="form-group">
+
+
+                        <div className="form-group relative">
                             <input
                                 {...register("adjAmt")}
                                 placeholder=" "
-                                type="text"
+                                type="number"
                                 className="form-input"
+                                onFocus={() => setValue("adjAmt", "")}
                             />
+
                             <label className="form-label required-label">Adj. Amount</label>
+
+                            <div className="absolute right-3 top-3 group cursor-pointer z-50">
+                                <span className="w-5 h-5 flex items-center justify-center rounded-full bg-gray-400 text-white text-xs">
+                                    i
+                                </span>
+
+                                <div className="absolute right-0 top-5 hidden group-hover:block w-72 max-h-50 overflow-y-auto bg-white rounded-lg shadow-lg px-2">
+                                    <h4 className="font-semibold text-sm sticky top-0 p-2 bg-white">
+                                        Adj. Amount History
+                                    </h4>
+
+                                    {adjustedAmountHistory?.length ? (
+                                        [...adjustedAmountHistory]
+                                            .reverse()
+                                            .map((item) => (
+                                                <div
+                                                    key={item._id}
+                                                    className="flex justify-between border-b border-gray-200 py-1 text-sm"
+                                                >
+                                                    <span>₹{item.amount}</span>
+                                                    <span>{formatDate(item.date)}</span>
+                                                </div>
+                                            ))
+                                    ) : (
+                                        <p className="text-sm text-gray-500 p-2">No history found</p>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
 
+
+                        <div className="form-group">
+                            <textarea
+                                {...register("paymentComments")}
+                                placeholder=" "
+                                rows={2}
+                                className="form-input resize-none"
+                            />
+                            <label className="form-label">
+                                Payment Comment
+                            </label>
+                        </div>
                     </div>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm   px-4 py-2">

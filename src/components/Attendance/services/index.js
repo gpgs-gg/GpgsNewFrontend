@@ -248,3 +248,43 @@ export const useSingleAttendance = (id) => {
     enabled: !!id,
   });
 };
+
+// ======================================================
+// DELETE ATTENDANCE
+// ======================================================
+
+const deleteAttendance = async (id) => {
+  const response = await apiClient.delete(`/attendance/${id}`);
+
+  return response.data;
+};
+
+export const useDeleteAttendance = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteAttendance,
+
+    onSuccess: () => {
+      // Refresh All Attendance table
+      queryClient.invalidateQueries({
+        queryKey: ["attendance-all"],
+      });
+
+      // Refresh single attendance if used elsewhere
+      queryClient.invalidateQueries({
+        queryKey: ["attendance"],
+      });
+
+      // Refresh employee attendance history
+      queryClient.invalidateQueries({
+        queryKey: ["attendance-history"],
+      });
+
+      // Refresh today's attendance
+      queryClient.invalidateQueries({
+        queryKey: ["attendance-today"],
+      });
+    },
+  });
+};

@@ -96,7 +96,6 @@ const AvailableBedsTable = () => {
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this booking?")) {
       // Add your delete API call here
-      console.log("Delete booking with id:", id);
       // Example: await deleteBooking(id);
     }
   };
@@ -301,7 +300,6 @@ const AvailableBedsTable = () => {
                       paginatedData.map((item, index) => {
                         const getRedFlagStatus = (item) => {
                           const nld = item?.client?.noticeLastDate;
-                          console.log(item);
                           if (!nld) return "-";
 
                           const today = new Date();

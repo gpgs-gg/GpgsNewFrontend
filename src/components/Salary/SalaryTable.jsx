@@ -3,7 +3,7 @@ import { Eye, Pencil } from "lucide-react";
 import { Link } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import { useSalaryDetailsData } from "./services/index";
-
+import { useAuthorization } from "../../context/AuthorizationContext";
 import TableSkeleton from "../../components/common/TableSkelton";
 import NoDataFound from "../common/NoDataFound";
 import Pagination from "../Common/Pagination";
@@ -12,29 +12,12 @@ import Pagination from "../Common/Pagination";
 // CONSTANTS
 // ============================================================
 
-const ROWS_PER_PAGE = 12;
+const ROWS_PER_PAGE = 8;
 
 const CURRENT_DATE = new Date();
 
 const CURRENT_MONTH = CURRENT_DATE.getMonth() + 1;
 const CURRENT_YEAR = CURRENT_DATE.getFullYear();
-
-const MONTHS = [
-  { value: 1, label: "January" },
-  { value: 2, label: "February" },
-  { value: 3, label: "March" },
-  { value: 4, label: "April" },
-  { value: 5, label: "May" },
-  { value: 6, label: "June" },
-  { value: 7, label: "July" },
-  { value: 8, label: "August" },
-  { value: 9, label: "September" },
-  { value: 10, label: "October" },
-  { value: 11, label: "November" },
-  { value: 12, label: "December" },
-];
-
-const YEARS = Array.from({ length: 5 }, (_, index) => CURRENT_YEAR - 2 + index);
 
 // ============================================================
 // HELPERS
@@ -131,7 +114,10 @@ const SalaryTable = ({ params = {}, onView }) => {
   const [selectedYear, setSelectedYear] = useState(
     Number(params?.year) || CURRENT_YEAR,
   );
-
+  const { canView, canAdd, canEdit, canDelete, canSingleView } =
+    useAuthorization();
+  const canEditSalary = canEdit("all_salary");
+  const showActions = (onView && canViewSalary) || canEditSalary;
   // ==========================================================
   // MONTH INFORMATION
   // ==========================================================
@@ -258,134 +244,11 @@ const SalaryTable = ({ params = {}, onView }) => {
     const date = new Date(year, month - 1, day);
     return date.getDay() === 4; // Thursday
   };
-  // ==========================================================
-  // LOADING
-  // ==========================================================
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen w-auto bg-gray-50">
-        {/* HEADER */}
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold uppercase">Salary Master</h1>
-
-              <p className="text-sm text-gray-500">
-                Manage employee salary details
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* TABLE */}
-
-        <div className="bg-white rounded-xl border border-gray-300 shadow-sm overflow-hidden flex flex-col h-[75vh] mt-2">
-          <div className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-            <table className="w-max min-w-full border-collapse text-lg">
-              <thead className="sticky top-0 z-40 bg-gray-100 whitespace-nowrap">
-                <tr className="bg-[#111827] text-white">
-                  {/* SR NO */}
-                  <th
-                    className="sticky left-0 z-40 bg-[#111827] border-r border-gray-600 px-2 py-2 text-center  font-bold whitespace-nowrap
-      "
-                  >
-                    Sr
-                  </th>
-
-                  {/* EMPLOYEE ID */}
-                  <th
-                    className="sticky left-[42px] z-40 bg-[#111827]  border-r border-gray-600 px-2 py-2 text-left  font-bold whitespace-nowrap
-      "
-                  >
-                    Employee ID
-                  </th>
-
-                  {/* EMPLOYEE NAME */}
-                  <th
-                    className="sticky left-[130px] z-40 bg-[#111827] border-r border-gray-600 px-3 py-2 text-left  font-bold whitespace-nowrap
-        
-      "
-                  >
-                    Employee Name
-                  </th>
-
-                  {/* DAYS */}
-                  {DAYS.map((day) => {
-                    const thursday = isThursday(
-                      day,
-                      selectedMonth,
-                      selectedYear,
-                    );
-
-                    return (
-                      <th
-                        key={day}
-                        className={`w-[36px] min-w-[36px] max-w-[36px] px-1 py-2 text-center  font-bold border-r border-gray-600 whitespace-nowrap
-            ${thursday ? "bg-blue-700 text-white" : "bg-[#111827] text-white"}
-          `}
-                      >
-                        {day}
-                      </th>
-                    );
-                  })}
-
-                  {/* TOTAL DAYS */}
-                  <th
-                    className="sticky right-0 z-40 bg-[#111827] border-l border-gray-600 px-3 py-2 text-center  font-bold whitespace-nowrap
-      "
-                  >
-                    Total Days
-                  </th>
-
-                  {/* SALARY */}
-                  <th className="bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
-                    Fix Salary
-                  </th>
-
-                  <th className="bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
-                    Per Day
-                  </th>
-
-                  <th className="bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
-                    Paid Leaves
-                  </th>
-
-                  <th className="bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
-                    Payable Salary
-                  </th>
-
-                  <th className="bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
-                    Paid Amount
-                  </th>
-
-                  <th className="bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
-                    Comments
-                  </th>
-
-                  <th className="bg-[#111827] px-3 py-2 text-center  font-bold whitespace-nowrap">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-
-              <TableSkeleton
-                rows={8}
-                columns={3 + DAYS.length + 15}
-                showActions
-              />
-            </table>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // ==========================================================
   // UI
   // ==========================================================
-
+  const totalColumns = 3 + DAYS.length + 8 + (showActions ? 1 : 0);
   return (
     <div className="w-auto bg-gray-50">
       {/* =====================================================
@@ -583,56 +446,72 @@ const SalaryTable = ({ params = {}, onView }) => {
                 <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
                   Paid Amount
                 </th>
-
+                {/* previous due  */}
+                <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
+                  Previous Due
+                </th>
+                {/*Current due  */}
+                <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
+                  Current Due
+                </th>
                 <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
                   Comments
                 </th>
 
-                <th
-                  className="
-    sticky top-0 right-0 z-50
-    w-[80px] min-w-[80px] max-w-[80px]
-    bg-[#111827]
-    border-l border-gray-600
-    px-3 py-2
-    text-center
-     font-bold
-    whitespace-nowrap
-  "
-                >
-                  Actions
-                </th>
+                {showActions && (
+                  <th
+                    className="
+      sticky top-0 right-0 z-50
+      w-[80px] min-w-[80px] max-w-[80px]
+      bg-[#111827]
+      border-l border-gray-600
+      px-3 py-2
+      text-center
+      font-bold
+      whitespace-nowrap
+    "
+                  >
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             {/* =================================================
                 BODY
             ================================================= */}
+            {isLoading ? (
+              <TableSkeleton
+                rows={8}
+                columns={3 + DAYS.length + 8}
+                showActions
+              />
+            ) : (
+              <>
+                <tbody>
+                  {salaries.length > 0 ? (
+                    salaries.map((salary, idx) => {
+                      // ------------------------------------------
+                      // CALCULATE PRESENT DAYS FROM ATTENDANCE
+                      // ------------------------------------------
 
-            <tbody>
-              {salaries.length > 0 ? (
-                salaries.map((salary, idx) => {
-                  // ------------------------------------------
-                  // CALCULATE PRESENT DAYS FROM ATTENDANCE
-                  // ------------------------------------------
+                      const totalPresentDays = getTotalPresentDays(salary);
 
-                  const totalPresentDays = getTotalPresentDays(salary);
-
-                  return (
-                    <tr
-                      key={salary?._id || salary?.employeeId || idx}
-                      className="
+                      return (
+                        <tr
+                          key={salary?._id || salary?.employeeId || idx}
+                          className="
     group
     border-b border-gray-300
     bg-white
     hover:bg-gray-50 text-md
   "
-                    >
-                      {/* =================================================
+                        >
+                          {/* =================================================
                           SR NO
                       ================================================= */}
 
-                      <td
-                        className="
+                          <td
+                            className="
     sticky left-0 z-20
     bg-white
     group-hover:bg-gray-50
@@ -642,15 +521,15 @@ const SalaryTable = ({ params = {}, onView }) => {
    
     whitespace-nowrap
   "
-                      >
-                        {(currentPage - 1) * ROWS_PER_PAGE + idx + 1}
-                      </td>
-                      {/* =================================================
+                          >
+                            {(currentPage - 1) * ROWS_PER_PAGE + idx + 1}
+                          </td>
+                          {/* =================================================
                           EMPLOYEE ID
                       ================================================= */}
 
-                      <td
-                        className="
+                          <td
+                            className="
     sticky left-[42px] z-20
     bg-white
     group-hover:bg-gray-50
@@ -660,16 +539,16 @@ const SalaryTable = ({ params = {}, onView }) => {
     font-semibold
     whitespace-nowrap
   "
-                      >
-                        {salary.employeeId || "-"}
-                      </td>
+                          >
+                            {salary.employeeId || "-"}
+                          </td>
 
-                      {/* =================================================
+                          {/* =================================================
                           EMPLOYEE NAME
                       ================================================= */}
 
-                      <td
-                        className="
+                          <td
+                            className="
     sticky left-[130px] z-20
     bg-white
     group-hover:bg-gray-50
@@ -678,37 +557,37 @@ const SalaryTable = ({ params = {}, onView }) => {
   
     whitespace-nowrap
   "
-                      >
-                        <div className="flex flex-col leading-tight">
-                          <span className="text-md font-semibold text-gray-800">
-                            {salary.employeeName || "-"}
-                          </span>
+                          >
+                            <div className="flex flex-col leading-tight">
+                              <span className="text-md font-semibold text-gray-800">
+                                {salary.employeeName || "-"}
+                              </span>
 
-                          {/* {salary.employee?.designation && (
+                              {/* {salary.employee?.designation && (
                             <span className="text-[10px] text-gray-500 mt-0.5">
                               {salary.employee.designation}
                             </span>
                           )} */}
-                        </div>
-                      </td>
+                            </div>
+                          </td>
 
-                      {/* =================================================
+                          {/* =================================================
                           ATTENDANCE DAYS
                       ================================================= */}
 
-                      {DAYS.map((day) => {
-                        const status = getAttendanceStatus(salary, day);
+                          {DAYS.map((day) => {
+                            const status = getAttendanceStatus(salary, day);
 
-                        const thursday = isThursday(
-                          day,
-                          selectedMonth,
-                          selectedYear,
-                        );
+                            const thursday = isThursday(
+                              day,
+                              selectedMonth,
+                              selectedYear,
+                            );
 
-                        return (
-                          <td
-                            key={day}
-                            className={`
+                            return (
+                              <td
+                                key={day}
+                                className={`
         w-[36px]
         min-w-[36px]
         max-w-[36px]
@@ -719,33 +598,34 @@ const SalaryTable = ({ params = {}, onView }) => {
        
         font-semibold
         whitespace-nowrap
-        ${thursday && status === 1
-                                ? "bg-blue-50"
-                                : status === 1
-                                  ? "bg-white"
-                                  : status === 0.5
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : "bg-red-100 text-red-600"
-                              }
+        ${
+          thursday && status === 1
+            ? "bg-blue-50"
+            : status === 1
+              ? "bg-white"
+              : status === 0.5
+                ? "bg-yellow-100 text-yellow-700"
+                : "bg-red-100 text-red-600"
+        }
       `}
-                            title={
-                              status === 1
-                                ? `Day ${day}: Present`
-                                : status === 0.5
-                                  ? `Day ${day}: Half Day`
-                                  : `Day ${day}: Absent`
-                            }
-                          >
-                            {status === 0 ? "0" : status}
-                          </td>
-                        );
-                      })}
-                      {/* =================================================
+                                title={
+                                  status === 1
+                                    ? `Day ${day}: Present`
+                                    : status === 0.5
+                                      ? `Day ${day}: Half Day`
+                                      : `Day ${day}: Absent`
+                                }
+                              >
+                                {status === 0 ? "0" : status}
+                              </td>
+                            );
+                          })}
+                          {/* =================================================
                           TOTAL PRESENT DAYS
                       ================================================= */}
 
-                      <td
-                        className="
+                          <td
+                            className="
     px-3 py-1.5
     text-center
    
@@ -756,160 +636,162 @@ const SalaryTable = ({ params = {}, onView }) => {
     bg-gray-50
     group-hover:bg-gray-100
   "
-                      >
-                        {totalPresentDays}
-                      </td>
-                      {/* =================================================
+                          >
+                            {totalPresentDays}
+                          </td>
+                          {/* =================================================
                           MONTHLY SALARY
                       ================================================= */}
 
-                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
-                        {formatCurrency(salary.monthlySalary)}
-                      </td>
-                      {/* =================================================
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                            {formatCurrency(salary.monthlySalary)}
+                          </td>
+                          {/* =================================================
                           PAID LEAVES
                       ================================================= */}
-                      {/* =================================================
+                          {/* =================================================
                           PER DAY
                       ================================================= */}
 
-                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
-                        {formatCurrency(salary.perDaySalary)}
-                      </td>
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                            {formatCurrency(salary.perDaySalary)}
+                          </td>
 
-                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
-                        {salary.paidLeaveDays ?? 0}
-                      </td>
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                            {salary.paidLeaveDays ?? 0}
+                          </td>
 
-                      {/* =================================================
+                          {/* =================================================
                           ADJUSTMENT
                       ================================================= */}
 
-                      {/* <td className="p-3 whitespace-nowrap max-w-[220px]">
+                          {/* <td className="p-3 whitespace-nowrap max-w-[220px]">
                         <div className="truncate">
                           {salary.adjustmentDetails || "-"}
                         </div>
                       </td> */}
 
-                      {/* =================================================
+                          {/* =================================================
                           ADJUSTED AMOUNT
                       ================================================= */}
 
-                      {/* <td className="p-3 whitespace-nowrap">
+                          {/* <td className="p-3 whitespace-nowrap">
                         {formatCurrency(salary.adjustedAmount)}
                       </td> */}
 
-                      {/* =================================================
+                          {/* =================================================
                           PAYABLE
                       ================================================= */}
 
-                      <td className="px-3 py-1.5 whitespace-nowrap font-bold text-gray-800">
-                        {formatCurrency(salary.payableSalary)}
-                      </td>
-                      {/* =================================================
+                          <td className="px-3 py-1.5 whitespace-nowrap font-bold text-gray-800">
+                            {formatCurrency(salary.payableSalary)}
+                          </td>
+                          {/* =================================================
                           PAID
                       ================================================= */}
 
-                      <td className="px-3 py-1.5 whitespace-nowrap font-semibold text-green-700">
-                        {formatCurrency(salary.paidAmount)}
-                      </td>
+                          <td className="px-3 py-1.5 whitespace-nowrap font-semibold text-green-700">
+                            {formatCurrency(salary.paidAmount)}
+                          </td>
 
-                      {/* =================================================
+                          {/* =================================================
                           PREVIOUS DUE
                       ================================================= */}
 
-                      {/* <td className="p-3 whitespace-nowrap">
-                        {formatCurrency(salary.previousDue)}
-                      </td> */}
+                          <td className="p-3 whitespace-nowrap">
+                            {formatCurrency(salary.previousDue)}
+                          </td>
 
-                      {/* =================================================
+                          {/* =================================================
                           CURRENT DUE
                       ================================================= */}
 
-                      {/* <td className="p-3 whitespace-nowrap font-semibold text-red-600">
-                        {formatCurrency(salary.currentDue)}
-                      </td> */}
+                          <td className="p-3 whitespace-nowrap font-semibold text-red-600">
+                            {formatCurrency(salary.currentDue)}
+                          </td>
 
-                      {/* =================================================
+                          {/* =================================================
                           COMMENTS
                       ================================================= */}
 
-                      <td className="px-3 py-1.5 whitespace-nowrap max-w-[180px]">
-                        <div
-                          className="truncate text-gray-600"
-                          title={salary.comments || ""}
-                        >
-                          {salary.comments || "-"}
-                        </div>
-                      </td>
-                      {/* =================================================
+                          <td className="px-3 py-1.5 whitespace-nowrap max-w-[180px]">
+                            <div
+                              className="truncate text-gray-600"
+                              title={salary.comments || ""}
+                            >
+                              {salary.comments || "-"}
+                            </div>
+                          </td>
+                          {/* =================================================
                           ACTIONS
                       ================================================= */}
 
-                      <td
-                        className="
-    sticky right-0 z-20
-    w-[80px] min-w-[80px] max-w-[80px]
-    bg-white
-    group-hover:bg-gray-50
-    border-l border-gray-300
-    px-3 py-1.5
-    whitespace-nowrap
-  "
-                      >
-                        <div className="flex justify-center gap-1.5">
-                          {onView && (
-                            <button
-                              type="button"
-                              onClick={() => onView(salary)}
+                          {showActions && (
+                            <td
                               className="
-          p-1.5
-          bg-blue-50
-          text-blue-600
-          rounded-md
-          hover:bg-blue-100
-          transition
-        "
-                              title="View Salary"
+      sticky right-0 z-20
+      w-[80px] min-w-[80px] max-w-[80px]
+      bg-white
+      group-hover:bg-gray-50
+      border-l border-gray-300
+      px-3 py-1.5
+      whitespace-nowrap
+    "
                             >
-                              <Eye size={15} />
-                            </button>
-                          )}
+                              <div className="flex justify-center gap-1.5">
+                                {onView && canViewSalary && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onView(salary)}
+                                    className="
+            p-1.5
+            bg-blue-50
+            text-blue-600
+            rounded-md
+            hover:bg-blue-100
+            transition
+          "
+                                    title="View Salary"
+                                  >
+                                    <Eye size={15} />
+                                  </button>
+                                )}
 
-                          <Link
-                            to={`/salary/edit/${salary.employeeId}?month=${selectedMonth}&year=${selectedYear}`}
-                          >
-                            <button
-                              type="button"
-                              className="
-          p-1.5
-          bg-yellow-50
-          text-yellow-600
-          rounded-md
-          hover:bg-yellow-100
-          transition
-        "
-                              title="Edit Salary"
-                            >
-                              <Pencil size={15} />
-                            </button>
-                          </Link>
-                        </div>
+                                {canEditSalary && (
+                                  <Link
+                                    to={`/salary/edit/${salary.employeeId}?month=${selectedMonth}&year=${selectedYear}`}
+                                    className="
+            p-1.5
+            bg-yellow-50
+            text-yellow-600
+            rounded-md
+            hover:bg-yellow-100
+            transition
+          "
+                                    title="Edit Salary"
+                                  >
+                                    <Pencil size={15} />
+                                  </Link>
+                                )}
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={totalColumns}>
+                        <NoDataFound
+                          title="No Salary Records Found"
+                          description="Try changing the selected month or search filters"
+                        />
                       </td>
                     </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={3 + DAYS.length + 15}>
-                    <NoDataFound
-                      title="No Salary Records Found"
-                      description="Try changing the selected month or search filters"
-                    />
-                  </td>
-                </tr>
-              )}
-            </tbody>
+                  )}
+                </tbody>
+              </>
+            )}
           </table>
         </div>
 

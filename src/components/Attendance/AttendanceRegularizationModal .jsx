@@ -8,7 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 import { selectStyles } from "../../utils/selectStyles";
 import { useRegularizeAttendance } from "./services/index";
-
+import FilePreview from "../common/FilePreview";
 // ============================================================
 // CONSTANTS
 // ============================================================
@@ -49,9 +49,9 @@ const AttendanceRegularizationModal = ({
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [employeeResults, setEmployeeResults] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-
+  const [existingDocuments, setExistingDocuments] = useState([]);
   const [supportingDocuments, setSupportingDocuments] = useState([]);
-
+  const [isEmployeeDropdownOpen, setIsEmployeeDropdownOpen] = useState(false);
   const regularizeMutation = useRegularizeAttendance();
 
   const isEditing = Boolean(attendance);
@@ -97,6 +97,7 @@ const AttendanceRegularizationModal = ({
 
     setSupportingDocuments([]);
     setSelectedEmployee(null);
+    setExistingDocuments([]);
     setEmployeeSearch("");
     setEmployeeResults(employees);
   };
@@ -217,6 +218,10 @@ const AttendanceRegularizationModal = ({
       );
 
       setSupportingDocuments([]);
+
+      // ✅ Load existing attendance documents
+      setExistingDocuments(attendance.regularizationDocuments || []);
+
       setEmployeeResults([]);
     } else {
       resetForm();
@@ -251,7 +256,8 @@ const AttendanceRegularizationModal = ({
       shouldValidate: false,
       shouldDirty: true,
     });
-
+    // Open dropdown only after user starts interacting
+    setIsEmployeeDropdownOpen(true);
     const search = value.trim().toLowerCase();
 
     if (!search) {
@@ -288,6 +294,8 @@ const AttendanceRegularizationModal = ({
     );
 
     setEmployeeResults([]);
+    // Close dropdown after selection
+    setIsEmployeeDropdownOpen(false);
   };
 
   // ============================================================
@@ -304,6 +312,9 @@ const AttendanceRegularizationModal = ({
 
     setEmployeeSearch("");
     setEmployeeResults(employees);
+
+    // Don't open automatically after clearing
+    setIsEmployeeDropdownOpen(false);
   };
 
   // ============================================================
@@ -315,25 +326,25 @@ const AttendanceRegularizationModal = ({
 
     if (!files.length) return;
 
-    if (files.length > MAX_DOCUMENTS) {
-      toast.error(`You can upload maximum ${MAX_DOCUMENTS} documents`);
-
-      event.target.value = "";
-      return;
-    }
-
     const invalidFile = files.find((file) => file.size > MAX_FILE_SIZE);
 
     if (invalidFile) {
       toast.error(`${invalidFile.name} is larger than 5 MB`);
-
       event.target.value = "";
       return;
     }
 
-    setSupportingDocuments(files);
+    setSupportingDocuments((prev) => {
+      const updated = [...prev, ...files];
 
-    // Allow selecting the same files again later.
+      if (updated.length > MAX_DOCUMENTS) {
+        toast.error(`You can upload maximum ${MAX_DOCUMENTS} documents`);
+        return prev;
+      }
+
+      return updated;
+    });
+
     event.target.value = "";
   };
 
@@ -510,9 +521,9 @@ const AttendanceRegularizationModal = ({
                   Attendance Details
                 </h3>
 
-                <p className="mt-1 text-xs text-gray-500">
+                {/* <p className="mt-1 text-xs text-gray-500">
                   Select the employee and attendance information.
-                </p>
+                </p> */}
               </div>
 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
@@ -520,7 +531,7 @@ const AttendanceRegularizationModal = ({
                     EMPLOYEE
                 ================================================== */}
 
-                <div className="md:col-span-2">
+                <div className="">
                   {isEditing ? (
                     <div className="form-group">
                       <input
@@ -555,6 +566,7 @@ const AttendanceRegularizationModal = ({
                           autoComplete="off"
                           onFocus={() => {
                             if (!selectedEmployee) {
+                              setIsEmployeeDropdownOpen(true);
                               setEmployeeResults(employees);
                             }
                           }}
@@ -582,7 +594,7 @@ const AttendanceRegularizationModal = ({
 
                       {/* Employee search dropdown */}
 
-                      {!selectedEmployee && (
+                      {!selectedEmployee && isEmployeeDropdownOpen && (
                         <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
                           {employeeResults.length > 0 ? (
                             employeeResults.map((employee) => (
@@ -740,16 +752,16 @@ const AttendanceRegularizationModal = ({
                 REMARKS
             ==================================================== */}
 
-            <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+            <section className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
               <div className="mb-5 flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-semibold text-gray-800">
                     Remarks
                   </h3>
 
-                  <p className="mt-1 text-xs text-gray-500">
+                  {/* <p className="mt-1 text-xs text-gray-500">
                     Add a reason or note for this attendance regularization.
-                  </p>
+                  </p> */}
                 </div>
 
                 <span className="shrink-0 text-xs text-gray-400">
@@ -763,9 +775,9 @@ const AttendanceRegularizationModal = ({
                     maxLength: 500,
                   })}
                   placeholder=" "
-                  rows={3}
+                  rows={2}
                   maxLength={500}
-                  className="form-input min-h-[90px] resize-none"
+                  className="form-input min-h-[20px] resize-none"
                 />
 
                 <label className="form-label">
@@ -776,131 +788,74 @@ const AttendanceRegularizationModal = ({
                 </label>
               </div>
             </section>
-
             {/* ====================================================
-                SUPPORTING DOCUMENTS
-            ==================================================== */}
+    SUPPORTING DOCUMENTS
+==================================================== */}
 
-            <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-              <div className="mb-5 flex items-center justify-between gap-3">
+            <section className="rounded-xl border border-gray-200 bg-white p-2 shadow-sm">
+              <div className=" flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-semibold text-gray-800">
                     Supporting Documents
                   </h3>
 
-                  <p className="mt-1 text-xs text-gray-500">
+                  {/* <p className="mt-1 text-xs text-gray-500">
                     Upload documents related to attendance regularization.
-                  </p>
+                  </p> */}
                 </div>
 
-                <span className="shrink-0 text-xs text-gray-400">
-                  Max 5 files
-                </span>
+                {/* <span className="shrink-0 text-xs text-gray-400">
+                      Max 5 files
+                    </span> */}
               </div>
-
-              <div className="form-group">
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  multiple
-                  onChange={handleSupportingDocuments}
-                  className="form-input cursor-pointer file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-gray-700 hover:file:bg-gray-200"
-                />
-
-                <label className="form-label">
-                  Supporting Documents
-                  <span className="ml-1 text-xs font-normal text-gray-400">
-                    (Optional)
-                  </span>
-                </label>
-              </div>
-
-              <p className="mt-2 text-xs text-gray-400">
-                PDF, JPG, JPEG or PNG · Maximum 5 MB per file
-              </p>
-
-              {/* Selected files */}
-
-              {supportingDocuments.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  {supportingDocuments.map((file, index) => (
-                    <div
-                      key={`${file.name}-${index}`}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-gray-700">
-                          {file.name}
-                        </p>
-
-                        <p className="text-xs text-gray-400">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSupportingDocument(index)}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-gray-400 transition hover:bg-red-50 hover:text-red-500"
-                        aria-label={`Remove ${file.name}`}
-                      >
-                        <X size={16} />
-                      </button>
+              <div className="grid grid-cols-9">
+                <div className="form-group  col-span-1">
+                  <label
+                    htmlFor="supporting-documents"
+                    className="mt-2 flex h-26 w-26 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition hover:border-blue-400 hover:bg-blue-50"
+                  >
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                      <span className="text-2xl font-light">+</span>
                     </div>
-                  ))}
+
+                    <span className="mt-2 text-xs font-medium text-gray-600">
+                      Add Document
+                    </span>
+
+                    <span className="mt-1 text-[10px] text-gray-400">
+                      PDF, JPG, PNG
+                    </span>
+
+                    <input
+                      id="supporting-documents"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      multiple
+                      onChange={handleSupportingDocuments}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
-              )}
+                <div className=" col-span-6">
+                  <FilePreview
+                    files={supportingDocuments}
+                    existingFiles={existingDocuments}
+                    onRemoveExisting={(index) => {
+                      setExistingDocuments((prev) =>
+                        prev.filter((_, i) => i !== index),
+                      );
+                    }}
+                    onRemoveNew={handleRemoveSupportingDocument}
+                  />
+                </div>
+              </div>
             </section>
-
-            {/* ====================================================
-                EXISTING DOCUMENTS
-            ==================================================== */}
-
-            {isEditing && attendance?.regularizationDocuments?.length > 0 && (
-              <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                <div className="mb-5">
-                  <h3 className="text-base font-semibold text-gray-800">
-                    Existing Documents
-                  </h3>
-
-                  <p className="mt-1 text-xs text-gray-500">
-                    Documents already attached to this attendance record.
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  {attendance.regularizationDocuments.map((document, index) => (
-                    <a
-                      key={document.publicId || index}
-                      href={document.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 transition hover:border-blue-200 hover:bg-blue-50"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-gray-700">
-                          {document.originalName}
-                        </p>
-
-                        <p className="truncate text-xs text-gray-400">
-                          {document.mimeType}
-                        </p>
-                      </div>
-
-                      <span className="shrink-0 rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-600">
-                        View
-                      </span>
-                    </a>
-                  ))}
-                </div>
-              </section>
-            )}
 
             {/* ====================================================
                 EDIT INFORMATION
             ==================================================== */}
 
-            {isEditing && (
+            {/* {isEditing && (
               <section className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
                 <div className="flex gap-3">
                   <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-blue-100">
@@ -919,7 +874,7 @@ const AttendanceRegularizationModal = ({
                   </div>
                 </div>
               </section>
-            )}
+            )} */}
           </div>
 
           {/* ======================================================

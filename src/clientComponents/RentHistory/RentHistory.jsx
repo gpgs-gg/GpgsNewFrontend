@@ -27,6 +27,7 @@ const RentHistory = () => {
   } = useRentHistoryForBooking(bookingId);
 
   // API response
+  const currentRent = apiResponse?.data?.[0] ?? {};
   const client = apiResponse?.data?.[0]?.clientId ?? {};
   const property = apiResponse?.data?.[0]?.propertyId ?? {};
   const bed = apiResponse?.data?.[0]?.bedId ?? {};
@@ -114,56 +115,179 @@ const RentHistory = () => {
             </div>
           </div>
 
-          {bookingId && client && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {bookingId && client && (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
 
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Client Name
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
-                  {client.fullName}
-                </p>
-              </div>
+    {/* Client Name */}
+    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        Client Name
+      </p>
+      <p className="mt-1 text-lg font-semibold text-gray-900">
+        {client.fullName || "-"}
+      </p>
+    </div>
 
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Contact No.
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
-                  {client.callingNo}
-                </p>
-              </div>
+    {/* Contact */}
+    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        Contact No.
+      </p>
+      <p className="mt-1 text-lg font-semibold text-gray-900">
+        {client.callingNo || "-"}
+      </p>
+    </div>
 
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                <p className="text-xs font-medium uppercase  tracking-wider text-gray-500">
-                  Date of Joining
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
-                  {formatDate(client.clientDoj)}
-                </p>
-              </div>
+    {/* DOJ */}
+    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        Date of Joining
+      </p>
+      <p className="mt-1 text-lg font-semibold text-gray-900">
+        {formatDate(client.clientDoj)}
+      </p>
+    </div>
 
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                <p className="text-xs font-medium uppercase  tracking-wider text-gray-500">
-                  Property Code
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
-                  {property?.propertyCode ?? "-"}
-                </p>
-              </div>
+    {/* Property */}
+    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        Property Code
+      </p>
+      <p className="mt-1 text-lg font-semibold text-gray-900">
+        {property?.propertyCode || "-"}
+      </p>
+    </div>
 
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                <p className="text-xs font-medium uppercase  tracking-wider text-gray-500">
-                  Room / Bed
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
-                  {bed?.roomNo} / {bed?.bedNo}
-                </p>
-              </div>
+    {/* Room / Bed */}
+    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        Room / Bed
+      </p>
+      <p className="mt-1 text-lg font-semibold text-gray-900">
+        {bed?.roomNo || "-"} / {bed?.bedNo || "-"}
+      </p>
+    </div>
 
-            </div>
-          )}
+    {/* Current Due */}
+    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-red-600">
+        Current Due
+      </p>
+      <p
+        className={`mt-1 text-lg font-bold ${
+          Number(currentRent.currentDue) > 0
+            ? "text-red-600"
+            : Number(currentRent.currentDue) < 0
+              ? "text-green-600"
+              : "text-gray-700"
+        }`}
+      >
+        ₹{currentRent.currentDue || 0}
+      </p>
+    </div>
+
+    {/* Total Received */}
+    <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-green-600">
+        Total Received
+      </p>
+      <p className="mt-1 text-lg font-bold text-green-600">
+        ₹{currentRent.totalReceived || 0}
+      </p>
+    </div>
+
+    {/* Total Receivable */}
+    <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-blue-600">
+        Total Receivable
+      </p>
+      <p className="mt-1 text-lg font-bold text-blue-600">
+        ₹{currentRent.totalReceivable || 0}
+      </p>
+    </div>
+
+    {/* Rent Amount */}
+    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        Rent Amount
+      </p>
+      <p className="mt-1 text-lg font-bold text-gray-900">
+        ₹{currentRent.rentAmt || 0}
+      </p>
+    </div>
+
+    {/* EB Amount */}
+    <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-orange-600">
+        EB Amount
+      </p>
+      <p className="mt-1 text-lg font-bold text-orange-600">
+        ₹{currentRent.ebAmt || 0}
+      </p>
+    </div>
+
+    {/* Deposit */}
+    <div className="rounded-lg border border-purple-200 bg-purple-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-purple-600">
+        Deposit
+      </p>
+      <p className="mt-1 text-lg font-bold text-purple-600">
+        ₹{currentRent.depositAmount || 0}
+      </p>
+    </div>
+
+    {/* Parking */}
+    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        Parking Charges
+      </p>
+      <p className="mt-1 text-lg font-bold text-gray-900">
+        ₹{currentRent.parkingCharges || 0}
+      </p>
+    </div>
+
+    {/* Processing Fee */}
+    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        Processing Fee
+      </p>
+      <p className="mt-1 text-lg font-bold text-gray-900">
+        ₹{currentRent.processingFees || 0}
+      </p>
+    </div>
+
+    {/* Previous Due */}
+    <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-yellow-700">
+        Previous Due
+      </p>
+      <p className="mt-1 text-lg font-bold text-yellow-700">
+        ₹{currentRent.previousDue || 0}
+      </p>
+    </div>
+
+    {/* Adjustment */}
+    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        Adjusted Amount
+      </p>
+      <p className="mt-1 text-lg font-bold text-gray-900">
+        ₹{currentRent.adjAmt || 0}
+      </p>
+    </div>
+
+    {/* Days */}
+    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        Days Count
+      </p>
+      <p className="mt-1 text-lg font-bold text-gray-900">
+        {currentRent.daysCount || 0}
+      </p>
+    </div>
+
+  </div>
+)}
         </div>
 
         {/* TABLE */}
@@ -326,7 +450,108 @@ const RentHistory = () => {
                       </td>
 
 
-                      <td className="p-3">{item.paymentComments || "-"}</td>
+                            <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          {/* Payment Comments */}
+                          <div className="relative group flex-1 min-w-0">
+                            {item?.paymentComments?.length > 0 ? (
+                              <>
+                                {/* Latest Comment */}
+                                <div className="text-sm text-gray-700 cursor-pointer">
+                                  {(() => {
+                                    const latestComment =
+                                      item.paymentComments[
+                                      item.paymentComments.length - 1
+                                      ];
+
+                                    const date = latestComment?.date
+                                      ? new Date(latestComment.date)
+                                      : null;
+
+                                    const formattedDate =
+                                      date && !isNaN(date.getTime())
+                                        ? date.toLocaleDateString("en-GB", {
+                                          day: "2-digit",
+                                          month: "short",
+                                          year: "numeric",
+                                        })
+                                        : "";
+
+                                    const formattedTime =
+                                      date && !isNaN(date.getTime())
+                                        ? date.toLocaleTimeString("en-US", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                          hour12: true,
+                                        })
+                                        : "";
+
+                                    const text = latestComment?.comment || "";
+                                    const words = text.trim().split(/\s+/);
+
+                                    return (
+                                      <>
+                                        <span className="font-semibold text-gray-700">
+                                          [{formattedDate} {formattedTime}]
+                                        </span>{" "}
+                                        {words.slice(0, 2).join(" ")}
+                                        {words.length > 2 ? "..." : ""}
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+
+                                {/* Hover Worklog */}
+                                <div className="hidden group-hover:block absolute right-full top-0 w-[420px] max-h-[300px] overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-3 text-left">
+                                  <div className="space-y-3 text-left">
+                                    {[...item.paymentComments]
+                                      .reverse()
+                                      .map((comment, index) => {
+                                        const date = comment?.date
+                                          ? new Date(comment.date)
+                                          : null;
+
+                                        const formattedDate =
+                                          date && !isNaN(date.getTime())
+                                            ? date.toLocaleDateString("en-GB", {
+                                              day: "2-digit",
+                                              month: "short",
+                                              year: "numeric",
+                                            })
+                                            : "";
+
+                                        const formattedTime =
+                                          date && !isNaN(date.getTime())
+                                            ? date.toLocaleTimeString("en-US", {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                              hour12: true,
+                                            })
+                                            : "";
+
+                                        return (
+                                          <div
+                                            key={comment?._id || index}
+                                            className="w-full text-left text-sm text-gray-700 leading-relaxed whitespace-normal break-words"
+                                          >
+                                            <span className="font-semibold text-gray-800">
+                                              [{formattedDate} {formattedTime}]
+                                            </span>{" "}
+                                            {comment?.comment}
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <span className="text-gray-400 text-sm">
+                                No comment
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
 
                       <td className="p-3">{item.remarks || "-"}</td>
                     </tr>

@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import ConfirmModal from "../common/ConfirmModal";
+import { toast } from "react-toastify";
 import { FaUserClock } from "react-icons/fa";
 import { Filter } from "lucide-react";
 import Pagination from "../Common/Pagination";
@@ -8,23 +10,35 @@ import { PAGINATION } from "../../constants/appConfig";
 import useDebounce from "../hooks/useDebounce";
 import AttendanceFilter from "./AttendanceFilter";
 import { useEmployeeDetailsData } from "../EmployeeDetails/Services/index";
-import { useAllAttendance, useRegularizeAttendance } from "./services/index";
+import { useAllAttendance, useDeleteAttendance } from "./services/index";
 import { TableFilePreview } from "../../components/common/FilePreview";
 import AttendanceRegularizationModal from "./AttendanceRegularizationModal ";
+import { useAuthorization } from "../../context/AuthorizationContext";
+import { Trash2 } from "lucide-react";
+import usePersistedFilters from "../hooks/usePersistedFilters";
 const AllAttendanceTable = () => {
+  const DEFAULT_ATTENDANCE_FILTERS = {
+    month: "",
+    date: "",
+    status: "",
+    employeeId: "",
+  };
+
+  const { filters, setFilters, updateFilters, removeFilter, resetFilters } =
+    usePersistedFilters("attendance_filters", DEFAULT_ATTENDANCE_FILTERS);
+  const [search, setSearch] = useState("");
+
   // ======================================================
   // STATE
   // ======================================================
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [month, setMonth] = useState("");
-  const [date, setDate] = useState("");
-  const [status, setStatus] = useState("");
-  const [employeeId, setEmployeeId] = useState("");
-  const [search, setSearch] = useState("");
   const [regularizeOpen, setRegularizeOpen] = useState(false);
   const [selectedAttendance, setSelectedAttendance] = useState(null);
-  const [filterLabels, setFilterLabels] = useState([]);
+
+  const [deleteId, setDeleteId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const [resetTrigger, setResetTrigger] = useState(0);
   const debouncedSearch = useDebounce(search);
 
@@ -32,8 +46,15 @@ const AllAttendanceTable = () => {
   const DATE_WIDTH = 120;
   const EMPLOYEE_ID_WIDTH = 120;
   const EMPLOYEE_NAME_WIDTH = 160;
-  const ACTION_WIDTH = 120;
+  const ACTION_WIDTH = 190;
+  const { canEdit, canDelete } = useAuthorization();
+
+  const canEditAttendance = canEdit("attendance");
+  const canDeleteAttendance = canDelete("attendance");
+
+  const showActions = canEditAttendance || canDeleteAttendance;
   const [filterOpen, setFilterOpen] = useState(false);
+
   // ======================================================
   // API
   // ======================================================
@@ -45,11 +66,8 @@ const AllAttendanceTable = () => {
   } = useAllAttendance({
     page: currentPage,
     limit: rowsPerPage,
-    month,
-    date,
-    status,
+    ...filters,
     search: debouncedSearch,
-    employeeId,
   });
 
   // ======================================================
@@ -68,10 +86,56 @@ const AllAttendanceTable = () => {
     limit: 1000,
   });
   const employees = employeeResponse?.data || [];
+  const deleteAttendanceMutation = useDeleteAttendance();
   // ======================================================
   // STATUS
   // ======================================================
+  const filterLabels = useMemo(() => {
+    const labels = [];
 
+    if (filters.month) {
+      labels.push({
+        key: "month",
+        label: `Month : ${filters.month}`,
+      });
+    }
+
+    if (filters.date) {
+      labels.push({
+        key: "date",
+        label: `Date : ${filters.date}`,
+      });
+    }
+
+    if (filters.status) {
+      const statusLabel =
+        filters.status === "1"
+          ? "Present"
+          : filters.status === "0.5"
+            ? "Half Day"
+            : "Absent";
+
+      labels.push({
+        key: "status",
+        label: `Status : ${statusLabel}`,
+      });
+    }
+
+    if (filters.employeeId) {
+      const employee = employees.find(
+        (item) => item._id === filters.employeeId,
+      );
+
+      if (employee) {
+        labels.push({
+          key: "employeeId",
+          label: `Employee : ${employee.employeeName}`,
+        });
+      }
+    }
+
+    return labels;
+  }, [filters, employees]);
   const getAttendanceStatus = (attendance) => {
     const numericStatus = Number(attendance.status);
 
@@ -115,7 +179,41 @@ const AllAttendanceTable = () => {
       year: "numeric",
     });
   };
+  const handleDeleteAttendance = (attendance) => {
+    if (!attendance?._id) return;
 
+    setDeleteId(attendance._id);
+    setSelectedAttendance(attendance);
+    setShowDeleteModal(true);
+  };
+  const handleConfirmDelete = () => {
+    if (!deleteId) return;
+
+    deleteAttendanceMutation.mutate(deleteId, {
+      onSuccess: (data) => {
+        toast.dismiss();
+        toast.success(data?.message || "Attendance deleted successfully.");
+
+        // If deleting the only record on a page,
+        // move to previous page.
+        if (attendanceList.length === 1 && currentPage > 1) {
+          setCurrentPage((prev) => prev - 1);
+        }
+
+        setDeleteId(null);
+        setSelectedAttendance(null);
+        setShowDeleteModal(false);
+      },
+
+      onError: (error) => {
+        console.error("Delete Attendance Error:", error);
+
+        toast.error(
+          error?.response?.data?.message || "Failed to delete attendance.",
+        );
+      },
+    });
+  };
   // ======================================================
   // FORMAT TIME
   // ======================================================
@@ -149,103 +247,15 @@ const AllAttendanceTable = () => {
   // ======================================================
 
   const handleReset = () => {
-    setSearch("");
-    setMonth("");
-    setDate("");
-    setStatus("");
-    setEmployeeId("");
-    setFilterLabels([]);
+    resetFilters();
 
+    setSearch("");
     setCurrentPage(1);
-    // Reset AttendanceFilter form
+
     setResetTrigger((prev) => prev + 1);
   };
-  const removeFilter = (key) => {
-    if (key === "month") {
-      setMonth("");
-    }
-    if (key === "employeeId") {
-      setEmployeeId("");
-    }
-    if (key === "date") {
-      setDate("");
-    }
 
-    if (key === "status") {
-      setStatus("");
-    }
-
-    if (key === "search") {
-      setSearch("");
-    }
-
-    setFilterLabels((prev) => prev.filter((item) => item.key !== key));
-
-    setCurrentPage(1);
-  };
-
-  const handleMonthChange = (value) => {
-    setMonth(value);
-    setDate("");
-    setCurrentPage(1);
-
-    setFilterLabels((prev) => {
-      const withoutMonth = prev.filter((item) => item.key !== "month");
-
-      if (!value) return withoutMonth;
-
-      return [
-        ...withoutMonth,
-        {
-          key: "month",
-          label: `Month: ${value}`,
-        },
-      ];
-    });
-  };
-
-  const handleDateChange = (value) => {
-    setDate(value);
-    setMonth("");
-    setCurrentPage(1);
-
-    setFilterLabels((prev) => {
-      const withoutDate = prev.filter((item) => item.key !== "date");
-
-      if (!value) return withoutDate;
-
-      return [
-        ...withoutDate,
-        {
-          key: "date",
-          label: `Date: ${value}`,
-        },
-      ];
-    });
-  };
-
-  const handleStatusChange = (value) => {
-    setStatus(value);
-    setCurrentPage(1);
-
-    setFilterLabels((prev) => {
-      const withoutStatus = prev.filter((item) => item.key !== "status");
-
-      if (!value) return withoutStatus;
-
-      const statusLabel =
-        value === "1" ? "Present" : value === "0.5" ? "Half Day" : "Absent";
-
-      return [
-        ...withoutStatus,
-        {
-          key: "status",
-          label: `Status: ${statusLabel}`,
-        },
-      ];
-    });
-  };
-
+  const totalColumns = 14 + (showActions ? 1 : 0);
   // ======================================================
   // UI
   // ======================================================
@@ -309,12 +319,6 @@ const AllAttendanceTable = () => {
               onChange={(e) => {
                 setSearch(e.target.value);
                 setCurrentPage(1);
-
-                if (!e.target.value) {
-                  setFilterLabels((prev) =>
-                    prev.filter((item) => item.key !== "search"),
-                  );
-                }
               }}
             />
 
@@ -325,9 +329,7 @@ const AllAttendanceTable = () => {
                   setSearch("");
                   setCurrentPage(1);
 
-                  setFilterLabels((prev) =>
-                    prev.filter((item) => item.key !== "search"),
-                  );
+                 
                 }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
               >
@@ -386,8 +388,8 @@ const AllAttendanceTable = () => {
           TABLE CONTENT
       ================================================== */}
         <div className="flex-1 overflow-auto">
-          <table className="min-w-max w-full">
-            <thead className="sticky top-0 bg-gray-100 z-10">
+          <table className="min-w-max w-full border-separate border-spacing-0">
+            <thead className="sticky top-0 bg-gray-100 z-30">
               <tr>
                 <th
                   className="p-3 text-left whitespace-nowrap sticky left-0 z-20 bg-gray-100"
@@ -439,20 +441,22 @@ const AllAttendanceTable = () => {
 
                 <th className="p-3 text-center whitespace-nowrap">Status</th>
                 <th className="p-3 text-center whitespace-nowrap">Document</th>
-                <th
-                  className="p-3 text-center whitespace-nowrap sticky right-0 z-20 bg-gray-100"
-                  style={{
-                    width: `${ACTION_WIDTH}px`,
-                    minWidth: `${ACTION_WIDTH}px`,
-                  }}
-                >
-                  Action
-                </th>
+                {showActions && (
+                  <th
+                    className="p-3 text-center whitespace-nowrap sticky right-0 z-20 bg-gray-100"
+                    style={{
+                      width: `${ACTION_WIDTH}px`,
+                      minWidth: `${ACTION_WIDTH}px`,
+                    }}
+                  >
+                    Action
+                  </th>
+                )}
               </tr>
             </thead>
 
             {isLoading ? (
-              <TableSkeleton rows={8} columns={14} />
+              <TableSkeleton rows={8} columns={15} />
             ) : (
               <tbody>
                 {attendanceList.length > 0 ? (
@@ -594,30 +598,74 @@ const AllAttendanceTable = () => {
                           )}
                         </td>
                         {/* Regularize Attendance */}
-                        <td
-                          className="p-3 text-center sticky right-0 z-10 bg-white"
-                          style={{
-                            width: `${ACTION_WIDTH}px`,
-                            minWidth: `${ACTION_WIDTH}px`,
-                          }}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedAttendance(attendance);
-                              setRegularizeOpen(true);
+                        {showActions && (
+                          <td
+                            className="p-3 text-center sticky right-0 z-10 bg-white"
+                            style={{
+                              width: `${ACTION_WIDTH}px`,
+                              minWidth: `${ACTION_WIDTH}px`,
                             }}
-                            className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-100"
                           >
-                            Regularize
-                          </button>
-                        </td>
+                            <div className="flex items-center justify-center gap-2">
+                              {/* EDIT / REGULARIZE */}
+                              {canEditAttendance && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedAttendance(attendance);
+                                    setRegularizeOpen(true);
+                                  }}
+                                  disabled={deleteAttendanceMutation.isPending}
+                                  className="
+            rounded-lg
+            border border-blue-200
+            bg-blue-50
+            px-3 py-1.5
+            text-xs
+            font-semibold
+            text-blue-600
+            hover:bg-blue-100
+            cursor-pointer
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+          "
+                                >
+                                  Regularize
+                                </button>
+                              )}
+
+                              {/* DELETE */}
+                              {canDeleteAttendance && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDeleteId(attendance._id);
+                                    setSelectedAttendance(attendance);
+                                    setShowDeleteModal(true);
+                                  }}
+                                  disabled={deleteAttendanceMutation.isPending}
+                                  className="
+            p-2
+            cursor-pointer
+            bg-red-100
+            rounded-lg
+            hover:bg-red-200
+            disabled:opacity-50
+          "
+                                  title="Delete Attendance"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })
                 ) : (
                   <tr>
-                    <td colSpan={14}>
+                    <td colSpan={totalColumns}>
                       <NoDataFound
                         title="No Attendance Found"
                         description="Try searching or changing the attendance filters"
@@ -650,13 +698,16 @@ const AllAttendanceTable = () => {
           isOpen={filterOpen}
           employees={employees}
           resetTrigger={resetTrigger}
+          initialFilters={filters}
           onClose={() => setFilterOpen(false)}
-          onApply={(data, labels) => {
-            setMonth(data.month || "");
-            setDate(data.date || "");
-            setStatus(data.status || "");
-            setEmployeeId(data.employeeId || "");
-            setFilterLabels(labels);
+          onApply={(data) => {
+            setFilters({
+              month: data.month || "",
+              date: data.date || "",
+              status: data.status || "",
+              employeeId: data.employeeId || "",
+            });
+
             setCurrentPage(1);
           }}
           handleReset={handleReset}
@@ -673,6 +724,23 @@ const AllAttendanceTable = () => {
           onSuccess={() => {
             // React Query refetch can happen here
             // depending on your query configuration.
+          }}
+        />
+        <ConfirmModal
+          isOpen={showDeleteModal}
+          title="Delete Attendance"
+          message={
+            selectedAttendance
+              ? `Are you sure you want to permanently delete attendance for ${
+                  selectedAttendance.employeeId?.employeeName || "this employee"
+                } on ${formatDate(selectedAttendance.attendanceDate)}? This action cannot be undone.`
+              : "This attendance record will be permanently deleted."
+          }
+          onConfirm={handleConfirmDelete}
+          onCancel={() => {
+            setShowDeleteModal(false);
+            setDeleteId(null);
+            setSelectedAttendance(null);
           }}
         />
       </div>

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import Select from "react-select";
+import { TableFilePreview } from "../../components/common/FilePreview";
 import { Link } from "react-router-dom";
 import {
   useEmployeeDetailsData,
@@ -24,12 +25,14 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Dashboard from "./Dashboard";
 import { useAuth } from "../../context/authContext";
+import { useAuthorization } from "../../context/AuthorizationContext";
 import EmployeeTabs from "./EmployeeTabs";
 import { MobileCardSkeleton } from "../common/MobileCardSkelton";
 import useDebounce from "../hooks/useDebounce";
-import { Filter, Eye, Pencil, Trash2 } from "lucide-react";
+import { Filter, Eye, Pencil, Trash2, ShieldCheck } from "lucide-react";
+
 import Pagination from "../Common/Pagination";
-import ConfirmModal from "../Common/ConfirmModal";
+import ConfirmModal from "../common/ConfirmModal";
 const MAX_FILES = { aadhaar: 2, photo: 1, bank: 1 };
 
 const schema = yup.object().shape({
@@ -78,198 +81,6 @@ const TOOLTIP_FIELDS = [
   "Worklogs",
 ];
 
-const CellWithTooltip = ({ value, columnKey }) => {
-  const [show, setShow] = useState(false);
-
-  const shouldShowTooltip = TOOLTIP_FIELDS.includes(columnKey);
-
-  if (!shouldShowTooltip) {
-    return (
-      <div className="truncate overflow-hidden text-ellipsis">
-        {value ?? ""}
-      </div>
-    );
-  }
-
-  const isWorklog = typeof value === "string" && value.includes("[");
-
-  const previewLine = isWorklog ? value.split("\n").filter(Boolean)[0] : value;
-
-  return (
-    <div
-      className="relative w-full"
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
-    >
-      {/* ===== TABLE PREVIEW (NO STYLE CHANGE) ===== */}
-      <div className="truncate overflow-hidden text-ellipsis">
-        {previewLine ?? ""}
-      </div>
-
-      {/* ===== WORKLOG TOOLTIP ===== */}
-      {show && isWorklog && (
-        <div
-          className="absolute left-10 ml-3 z-[9999]
-          bg-white border border-gray-300 rounded-lg shadow-xl
-          p-3 max-w-[450px] max-h-[350px] overflow-auto"
-          style={{
-            width: "max-content",
-            minWidth: "280px",
-            top: "95%",
-            transform: "translateY(0%)",
-          }}
-        >
-          {value.split("\n").map((line, i) => {
-            const isHeader = line.startsWith("[");
-            const isEmpty = line.trim() === "";
-
-            if (isEmpty) {
-              return <div key={i} style={{ height: "12px" }} />;
-            }
-
-            return (
-              <div
-                key={i}
-                style={{
-                  fontWeight: isHeader ? "normal" : "600",
-                  color: isHeader ? "#374151" : "#000",
-                  fontSize: "13px",
-                }}
-              >
-                {line}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ===== NORMAL TOOLTIP FOR OTHER COLUMNS ===== */}
-      {show && !isWorklog && (
-        <div
-          className="absolute left-10 ml-3 top-5 z-[9999] bg-white border border-gray-300 rounded-lg shadow-xl p-3 text-xs break-words max-w-[400px] max-h-[400px] overflow-auto"
-          style={{ width: "max-content", minWidth: "150px" }}
-        >
-          <pre className="whitespace-pre-wrap">{value ?? ""}</pre>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const FileCell = ({ url }) => {
-  const [previewImage, setPreviewImage] = useState(null);
-
-  // ============================================================
-  // NORMALIZE URL VALUE
-  // API can return:
-  // null
-  // ""
-  // string
-  // array of strings
-  // ============================================================
-
-  if (!url) return null;
-
-  let urls = [];
-
-  if (Array.isArray(url)) {
-    urls = url
-      .flat(Infinity)
-      .map((item) => {
-        if (typeof item === "string") return item;
-
-        // If backend returns objects
-        if (item && typeof item === "object") {
-          return item.url || item.fileUrl || item.path || "";
-        }
-
-        return "";
-      })
-      .map((item) => item.trim())
-      .filter(Boolean);
-  } else if (typeof url === "string") {
-    urls = url
-      .split(/\n|,/)
-      .map((u) => u.trim())
-      .filter(Boolean);
-  }
-
-  if (!urls.length) return null;
-
-  return (
-    <>
-      <div className="flex gap-2 items-center">
-        {urls.map((fileUrl, index) => {
-          const cleanUrl = fileUrl.split("?")[0];
-
-          const ext = cleanUrl.split(".").pop()?.toLowerCase() || "";
-
-          const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
-
-          const isPDF = ext === "pdf";
-
-          const handleClick = () => {
-            if (isImage) {
-              setPreviewImage(fileUrl);
-            } else {
-              window.open(fileUrl, "_blank", "noopener,noreferrer");
-            }
-          };
-
-          return (
-            <div
-              key={index}
-              onClick={handleClick}
-              title="Open document"
-              className="w-10 h-10 rounded-md overflow-hidden
-              hover:ring-2 hover:ring-blue-400 relative cursor-pointer
-              flex items-center justify-center bg-gray-100"
-            >
-              {isImage ? (
-                <img
-                  src={fileUrl}
-                  alt="document"
-                  className="w-full h-full object-cover"
-                />
-              ) : isPDF ? (
-                <i className="fa-solid fa-file-pdf text-red-600 text-2xl" />
-              ) : (
-                <i className="fa-solid fa-file text-gray-500 text-2xl" />
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* IMAGE PREVIEW */}
-      {previewImage && (
-        <div
-          className="fixed inset-0 bg-black/70 flex items-center
-          justify-center z-[9999]"
-          onClick={() => setPreviewImage(null)}
-        >
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={previewImage}
-              alt="preview"
-              className="max-h-[90vh] max-w-[90vw] rounded-lg shadow-xl"
-            />
-
-            <button
-              onClick={() => setPreviewImage(null)}
-              className="absolute top-2 right-2 bg-white
-              text-red-500 rounded-full w-7 h-7 flex items-center
-              justify-center font-bold text-lg shadow-lg"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
-    </>
-  );
-};
-
 const EmployeesTable = () => {
   //const employeesData = useMemo(() => employeesDetail?.data || [], [employeesDetail]);
 
@@ -312,6 +123,15 @@ const EmployeesTable = () => {
   const { mutate: deleteEmployee, isPending: deletingEmployee } =
     useDeleteEmployee();
 
+  const { canView, canAdd, canEdit, canDelete, canSingleView } =
+    useAuthorization();
+
+  const canViewEmployees = canView("employees");
+  const canAddEmployee = canAdd("employees");
+  const canEditEmployee = canEdit("employees");
+  const canDeleteEmployee = canDelete("employees");
+  const canViewEmployee = canSingleView("employees");
+  const hasEmployeeActions = canEditEmployee || canDeleteEmployee;
   const handleDelete = () => {
     if (!deleteId) return;
 
@@ -631,68 +451,6 @@ const EmployeesTable = () => {
     return newBlock;
   };
 
-  const handleSave = () => {
-    if (!watch("EmployeeID") || !watch("Name")) {
-      return toast.error("Create employee first");
-    }
-
-    if (!allDocsUploaded) {
-      return toast.error("All documents are mandatory");
-    }
-
-    const formData = new FormData();
-
-    if (uploadedDocs.aadhaar.length)
-      //formData.append("aadharCard", uploadedDocs.aadhaar[0]);
-      uploadedDocs.aadhaar.forEach((file) => {
-        formData.append("aadharCard", file);
-      });
-
-    if (uploadedDocs.photo.length)
-      formData.append("photo", uploadedDocs.photo[0]);
-
-    if (uploadedDocs.bank.length)
-      formData.append("bankPassbook", uploadedDocs.bank[0]);
-
-    if ([...formData.keys()].length === 0) {
-      return toast.warning("Upload at least one document");
-    }
-
-    formData.append("EmployeeID", watch("EmployeeID"));
-    formData.append("Name", watch("Name"));
-
-    // ✅ WORKLOG ADD HERE
-    const worklog = generateDocumentWorklog();
-    formData.append("Worklogs", worklog);
-
-    setPendingDocType("all");
-
-    uploadEmployeeDocs(formData, {
-      onSuccess: async () => {
-        toast.dismiss();
-        toast.success("Documents uploaded successfully");
-        await refetch();
-        setUploadedDocs({
-          aadhaar: [],
-          photo: [],
-          bank: [],
-        });
-
-        setPendingDocType(null);
-      },
-      onError: () => {
-        toast.error("Upload failed");
-        setPendingDocType(null);
-      },
-    });
-  };
-
-  const handleRemoveFile = (type, index) => {
-    setUploadedDocs((prev) => ({
-      ...prev,
-      [type]: prev[type].filter((_, i) => i !== index),
-    }));
-  };
   const handleReset = () => {
     setFilters({});
     setFilterLabels([]);
@@ -712,29 +470,6 @@ const EmployeesTable = () => {
 
     setCurrentPage(1);
   };
-  const documentsList = [
-    {
-      type: "aadhaar",
-      label: "Aadhaar Card",
-      desc: "Upload Aadhaar Card",
-      icon: "fa-id-card",
-      required: true,
-    },
-    {
-      type: "photo",
-      label: "Employee Photo",
-      desc: "Upload Passport Size Photo",
-      icon: "fa-user",
-      required: true,
-    },
-    {
-      type: "bank",
-      label: "Bank Details",
-      desc: "Upload Bank Passbook",
-      icon: "fa-university",
-      required: true,
-    },
-  ];
 
   return (
     <div className=" w-auto bg-gray-50 ">
@@ -749,9 +484,11 @@ const EmployeesTable = () => {
               <p className="text-sm text-gray-500">Manage all employees</p>
             </div>
 
-            <Link to="/employees/create">
-              <button className="theme-btn">+ Add Employee</button>
-            </Link>
+            {canAddEmployee && (
+              <Link to="/employees/create">
+                <button className="theme-btn">+ Add Employee</button>
+              </Link>
+            )}
           </div>
         </div>
         {/* ================= TABLE ================= */}
@@ -877,17 +614,19 @@ const EmployeesTable = () => {
                       {col.label}
                     </th>
                   ))}
-                  <th className="p-3 text-center sticky right-0 z-20 bg-gray-100">
-                    Actions
-                  </th>
+                  {hasEmployeeActions && (
+                    <th className="p-3 text-center sticky right-0 z-20 bg-gray-100">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
 
               {isPending ? (
                 <TableSkeleton
                   rows={8}
-                  columns={TABLE_COLUMNS.length + 1}
-                  showActions
+                  columns={TABLE_COLUMNS.length + (hasEmployeeActions ? 1 : 0)}
+                  showActions={hasEmployeeActions}
                 />
               ) : (
                 <tbody>
@@ -911,7 +650,67 @@ const EmployeesTable = () => {
                             ) : ["Photo", "AadharCard", "BankDetails"].includes(
                                 col.key,
                               ) ? (
-                              <FileCell url={row[col.key]} />
+                              (() => {
+                                const value = row?.[col.key];
+
+                                if (!value) {
+                                  return (
+                                    <span className="text-xs text-gray-400">
+                                      --
+                                    </span>
+                                  );
+                                }
+
+                                let files = [];
+
+                                if (Array.isArray(value)) {
+                                  files = value
+                                    .flat(Infinity)
+                                    .map((item) => {
+                                      if (typeof item === "string") {
+                                        return {
+                                          url: item,
+                                          originalName: item.split("/").pop(),
+                                        };
+                                      }
+
+                                      if (item && typeof item === "object") {
+                                        return {
+                                          url:
+                                            item.url ||
+                                            item.fileUrl ||
+                                            item.path ||
+                                            "",
+                                          publicId: item.publicId,
+                                          originalName:
+                                            item.originalName || item.name,
+                                          mimeType: item.mimeType || item.type,
+                                          size: item.size,
+                                        };
+                                      }
+
+                                      return null;
+                                    })
+                                    .filter((file) => file?.url);
+                                } else if (typeof value === "string") {
+                                  files = value
+                                    .split(/\n|,/)
+                                    .map((url) => url.trim())
+                                    .filter(Boolean)
+                                    .map((url) => ({
+                                      url,
+                                      originalName: url.split("/").pop(),
+                                    }));
+                                }
+
+                                return files.length > 0 ? (
+                                  <TableFilePreview files={files} />
+                                ) : (
+                                  <span className="text-xs text-gray-400">
+                                    --
+                                  </span>
+                                );
+                              })()
                             ) : col.key === "status" ? (
                               <span
                                 className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -923,64 +722,70 @@ const EmployeesTable = () => {
                                 {row.status || "-"}
                               </span>
                             ) : col.key === "loginEnabled" ? (
-                              (() => {
-                                const isLoginEnabled =
-                                  row.loginEnabled === true;
+                              canEditEmployee ? (
+                                (() => {
+                                  const isLoginEnabled =
+                                    row.loginEnabled === true;
 
-                                return (
-                                  <button
-                                    type="button"
-                                    disabled={isTogglingLogin}
-                                    onClick={() => {
-                                      toggleEmployeeLogin(row._id, {
-                                        onSuccess: (data) => {
-                                          toast.dismiss();
-                                          toast.success(
-                                            data?.message ||
-                                              (isLoginEnabled
-                                                ? "Employee login disabled successfully."
-                                                : "Employee login enabled successfully."),
-                                          );
-                                        },
+                                  return (
+                                    <button
+                                      type="button"
+                                      disabled={isTogglingLogin}
+                                      onClick={() => {
+                                        toggleEmployeeLogin(row._id, {
+                                          onSuccess: (data) => {
+                                            toast.dismiss();
+                                            toast.success(
+                                              data?.message ||
+                                                (isLoginEnabled
+                                                  ? "Employee login disabled successfully."
+                                                  : "Employee login enabled successfully."),
+                                            );
+                                          },
 
-                                        onError: (error) => {
-                                          console.error(
-                                            "Toggle employee login error:",
-                                            error,
-                                          );
+                                          onError: (error) => {
+                                            console.error(
+                                              "Toggle employee login error:",
+                                              error,
+                                            );
 
-                                          toast.error(
-                                            error?.response?.data?.message ||
-                                              "Failed to update employee login.",
-                                          );
-                                        },
-                                      });
-                                    }}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                                      isLoginEnabled
-                                        ? "bg-green-500 hover:bg-green-600"
-                                        : "bg-gray-300 hover:bg-gray-400"
-                                    } ${
-                                      isTogglingLogin
-                                        ? "opacity-50 cursor-not-allowed"
-                                        : "cursor-pointer"
-                                    }`}
-                                    title={
-                                      isLoginEnabled
-                                        ? "Disable Login"
-                                        : "Enable Login"
-                                    }
-                                  >
-                                    <span
-                                      className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                                            toast.error(
+                                              error?.response?.data?.message ||
+                                                "Failed to update employee login.",
+                                            );
+                                          },
+                                        });
+                                      }}
+                                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                                         isLoginEnabled
-                                          ? "translate-x-6"
-                                          : "translate-x-1"
+                                          ? "bg-green-500 hover:bg-green-600"
+                                          : "bg-gray-300 hover:bg-gray-400"
+                                      } ${
+                                        isTogglingLogin
+                                          ? "opacity-50 cursor-not-allowed"
+                                          : "cursor-pointer"
                                       }`}
-                                    />
-                                  </button>
-                                );
-                              })()
+                                      title={
+                                        isLoginEnabled
+                                          ? "Disable Login"
+                                          : "Enable Login"
+                                      }
+                                    >
+                                      <span
+                                        className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                                          isLoginEnabled
+                                            ? "translate-x-6"
+                                            : "translate-x-1"
+                                        }`}
+                                      />
+                                    </button>
+                                  );
+                                })()
+                              ) : (
+                                <span className="text-xs text-gray-400">
+                                  --
+                                </span>
+                              )
                             ) : col.key === "dateOfJoining" ||
                               col.key === "dateOfBirth" ? (
                               formatDate(row?.[col.key])
@@ -1004,34 +809,54 @@ const EmployeesTable = () => {
 
                         {/* ACTIONS */}
 
-                        <td className="p-3 sticky right-0 z-10 bg-white">
-                          <div className="flex justify-center gap-2">
-                            {/* EDIT */}
-                            <Link to={`/employees/edit/${row._id}`}>
-                              <button
-                                type="button"
-                                className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
-                                title="Edit Employee"
-                              >
-                                <Pencil size={16} />
-                              </button>
-                            </Link>
+                        {/* ACTIONS */}
+                        {hasEmployeeActions && (
+                          <td className="p-3 sticky right-0 z-10 bg-white">
+                            <div className="flex justify-center gap-2">
+                              {/* EDIT EMPLOYEE */}
+                              {canEditEmployee && (
+                                <Link to={`/employees/edit/${row._id}`}>
+                                  <button
+                                    type="button"
+                                    className="p-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200"
+                                    title="Edit Employee"
+                                  >
+                                    <Pencil size={16} />
+                                  </button>
+                                </Link>
+                              )}
 
-                            {/* DELETE */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setDeleteId(row._id);
-                                setShowDeleteModal(true);
-                              }}
-                              disabled={deletingEmployee}
-                              className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 disabled:opacity-50"
-                              title="Delete Employee"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
+                              {/* PERMISSIONS */}
+                              {canEditEmployee && (
+                                <Link to={`/permissions/employee/${row._id}`}>
+                                  <button
+                                    type="button"
+                                    className="p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200"
+                                    title="Manage Permissions"
+                                  >
+                                    <ShieldCheck size={16} />
+                                  </button>
+                                </Link>
+                              )}
+
+                              {/* DELETE EMPLOYEE */}
+                              {canDeleteEmployee && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDeleteId(row._id);
+                                    setShowDeleteModal(true);
+                                  }}
+                                  disabled={deletingEmployee}
+                                  className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                                  title="Delete Employee"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))
                   ) : (

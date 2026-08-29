@@ -8,6 +8,8 @@ import {
     CheckCircle,
 } from "lucide-react";
 import { selectStyles } from "../../utils/selectStyles";
+import { useUpdateClientData } from "../Clients/services";
+import { toast } from "react-toastify";
 
 // ============================================================
 // STATUS OPTIONS
@@ -15,19 +17,23 @@ import { selectStyles } from "../../utils/selectStyles";
 
 const fnfStatusOptions = [
     {
-        value: "HandoverDone",
+        value: "Handover Done",
         label: "Handover Done",
     },
     {
-        value: "BankDetailsReceived",
+        value: "F & F Details Sent",
+        label: "F & F Details Sent",
+    },
+    {
+        value: "Bank Details Received",
         label: "Bank Details Received",
     },
+    // {
+    //     value: "F&FPaid",
+    //     label: "F & F Paid",
+    // },
     {
-        value: "Done",
-        label: "F & F Done",
-    },
-    {
-        value: "Closed",
+        value: "F & F Closed",
         label: "F & F Closed",
     },
 ];
@@ -45,11 +51,11 @@ const fnfStatusOptions = [
 function FnfEditForm({
     client,
     onClose,
-    onSubmit,
 }) {
     // ============================================================
     // REACT HOOK FORM
     // ============================================================
+    const { mutate: updateClientData, isPending: isUpdateClientData } = useUpdateClientData()
 
     const {
         register,
@@ -95,10 +101,7 @@ function FnfEditForm({
     // ============================================================
 
     const fnfAmount =
-        currentDue +
-        adjustmentAmount +
-        adjustmentEB -
-        totalPaidDeposit;
+        totalPaidDeposit - currentDue;
 
     // ============================================================
     // LOAD CLIENT DATA
@@ -117,22 +120,10 @@ function FnfEditForm({
 
         reset({
             currentDue: due,
-
             totalPaidDeposit: deposit,
-
-            adjustmentAmount: 0,
-
-            adjustmentEB: 0,
-
-            fnfAmount:
-                due -
-                deposit,
-
-            bankDetailReceived: "",
-
-            remarks: "",
-
-            status: "HandoverDone",
+            bankDetailReceived:client?.fnf?.bankDetailReceived,
+            remarks: client?.fnf?.remarks,
+            status: client?.fnf?.status,
         });
     }, [client, reset]);
 
@@ -140,13 +131,10 @@ function FnfEditForm({
     // SUBMIT
     // ============================================================
 
-    const submitForm = (formData) => {
-        const data = {
-            clientId: client?._id,
-
-            currentDue: Number(
-                formData.currentDue || 0
-            ),
+   const submitForm = (formData) => {
+    const data = {
+        fnf: {
+            currentDue: Number(formData.currentDue || 0),
 
             totalPaidDeposit: Number(
                 formData.totalPaidDeposit || 0
@@ -169,11 +157,29 @@ function FnfEditForm({
                 formData.remarks || "",
 
             status:
-                formData.status || "HandoverDone",
-        };
-
-        onSubmit(data);
+                formData.status || "",
+        },
     };
+
+    updateClientData(
+        {
+            clientId: client?._id,
+            data: data,
+        },  
+        {
+            onSuccess: (response) => {
+                toast.dismiss()
+                toast.success( "F&F Updated Successfully")
+                onClose();
+            },
+
+            onError: (error) => {
+                toast.dismiss()
+                toast.error(response || "F&F Update Error")
+            },
+        }
+    );
+};
 
     // ============================================================
     // UI
@@ -228,7 +234,7 @@ function FnfEditForm({
 
                         <h3 className="mb-5 flex items-center gap-2 font-semibold text-gray-800">
                             <Wallet size={18} />
-                            F&F Calculation
+                            F&F Details
                         </h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -266,7 +272,7 @@ function FnfEditForm({
                                     type="number"
                                     className="form-input cursor-not-allowed"
                                 />
-                                <label className="form-label"> Total Paid Deposit
+                                <label className="form-label"> Total Deposit
                                 </label>
                             </div>
 
@@ -281,12 +287,12 @@ function FnfEditForm({
                                     type="number"
                                     value={fnfAmount}
                                     readOnly
-                                     disabled
+                                    disabled
                                     className={`form-input cursor-not-allowed font-bold ${fnfAmount > 0
+                                        ? "text-red-600"
+                                        : fnfAmount < 0
                                             ? "text-red-600"
-                                            : fnfAmount < 0
-                                                ? "text-green-600"
-                                                : "text-gray-600"
+                                            : "text-green-600"
                                         }`}
                                 />
 
@@ -299,7 +305,7 @@ function FnfEditForm({
 
                             {/* ADJUSTMENT AMOUNT */}
 
-                            <div className="form-group">
+                            {/* <div className="form-group">
 
                                 <input
                                     {...register(
@@ -310,12 +316,12 @@ function FnfEditForm({
                                     className="form-input"
                                 />
                                 <label className="form-label">   Adjustment Amount</label>
-                            </div>
+                            </div> */}
                             {/* ADJUSTMENT EB */}
 
 
 
-
+                            {/* 
                             <div className="form-group">
 
                                 <input
@@ -327,7 +333,7 @@ function FnfEditForm({
                                     className="form-input"
                                 />
                                 <label className="form-label">Adjustment EB</label>
-                            </div>
+                            </div> */}
                             {/* BANK DETAILS */}
 
                             <div className="form-group">
@@ -336,12 +342,35 @@ function FnfEditForm({
                                         "bankDetailReceived"
                                     )}
                                     placeholder=" "
-                                    type="number"
+                                    type="text"
                                     className="form-input"
                                 />
                                 <label className="form-label">   Bank / UPI Details</label>
                             </div>
+
+                            <Controller
+                                name="status"
+                                control={control}
+                                defaultValue={null}
+                                render={({ field }) => (
+                                    <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                                        <label className="select-label">Status</label>
+                                        <Select
+                                            {...field}
+                                            options={fnfStatusOptions}
+                                            isClearable
+                                            placeholder=""
+                                            value={fnfStatusOptions.find(option => option.value === field.value)}
+                                            onChange={(selectedOption) => field.onChange(selectedOption?.value)}
+                                            styles={selectStyles}
+                                        />
+                                    </div>
+                                )}
+                            />
+
                         </div>
+
+
 
                     </div>
 
@@ -349,10 +378,7 @@ function FnfEditForm({
                         REMARKS + STATUS
                     ================================================== */}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                        {/* REMARKS */}
-
+                    {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
 
                             <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -367,56 +393,7 @@ function FnfEditForm({
                             />
 
                         </div>
-
-                        {/* STATUS */}
-
-                        <Controller
-                            name="status"
-                            control={control}
-                            render={({ field }) => (
-                                <div
-                                    className={`select-group ${field.value
-                                        ? "has-value"
-                                        : ""
-                                        }`}
-                                >
-
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                                        F&F Status
-                                    </label>
-
-                                    <Select
-                                        {...field}
-                                        options={
-                                            fnfStatusOptions
-                                        }
-
-                                        isClearable={true}
-                                        placeholder="Select status"
-                                        value={
-                                            fnfStatusOptions.find(
-                                                (option) =>
-                                                    option.value ===
-                                                    field.value
-                                            ) || null
-                                        }
-                                        onChange={(
-                                            selectedOption
-                                        ) =>
-                                            field.onChange(
-                                                selectedOption?.value
-                                            )
-                                        }
-                                        styles={
-                                            selectStyles
-                                        }
-                                    />
-
-                                </div>
-                            )}
-                        />
-
-                    </div>
+                    </div> */}
 
 
                     {/* ==================================================

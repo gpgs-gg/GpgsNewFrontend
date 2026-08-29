@@ -1,11 +1,11 @@
 import { Eye, Pencil } from "lucide-react";
 import Main from "../components/beds/Main";
 
-const Properties = () => {
+const Beds = () => {
   return (
         <>
         <Main/>
         </>
   );
 };
-export default Properties;
+export default Beds;

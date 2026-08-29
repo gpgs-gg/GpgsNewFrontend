@@ -164,3 +164,40 @@ export const useClientFromNewBooking = () => {
   });
 };
 
+
+const createVacationDates = async (data) => {
+    const response = await apiClient.post("/vacation-history", data);
+    return response.data;
+};
+
+export const useVacationDates = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: createVacationDates,
+        onSuccess: () => {
+            queryClient.invalidateQueries(["create-client-data"]);
+        },
+    });
+};
+
+
+const updateVacationDates = async ({ id, data }) => {
+    const response = await apiClient.put(
+        `/vacation-history/${id}`,
+        data
+    );
+
+    return response.data;
+};
+
+export const useUpdateVacationDates = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: updateVacationDates,
+        onSuccess: () => {
+            queryClient.invalidateQueries(["create-client-data"]);
+        },
+    });
+};

@@ -14,7 +14,7 @@ import { TableFilePreview } from "../common/FilePreview";
 import useDebounce from "../hooks/useDebounce";
 import ExportDrawer from "./ExportDrawer";
 import TableSkeleton from "../common/TableSkelton";
-import ConfirmModal from "../Common/ConfirmModal";
+import ConfirmModal from "../common/ConfirmModal";
 import { toast } from "react-toastify";
 
 const priorityColors = {
@@ -179,6 +179,8 @@ const TicketsList = () => {
         { label: "Target Date", key: "targetDate" },
         { label: "Category", key: "category" },
         { label: "Priority", key: "priority" },
+        { label: "BedNo", key: "bedNo" },
+        { label: "RoomNo", key: "roomNo" },
         { label: "Department", key: "department" },
         { label: "Manager", key: "manager" },
         { label: "Assignee", key: "assignee" },
@@ -482,10 +484,10 @@ const TicketsList = () => {
                                     <th className="p-3 text-left">Ticket Manager</th>
                                     <th className="p-3 text-left">Assignee</th>
                                     <th className="p-3 text-left">Department</th>
-                                    <th className="p-3 text-left">Created By Id</th>
-                                    <th className="p-3 text-left">Created By Name</th>
-                                    <th className="p-3 text-left">Updated By ID</th>
-                                    <th className="p-3 text-left">Updated By Name</th>
+                                    <th className="p-3 text-left">Bed No</th>
+                                    <th className="p-3 text-left">Room No</th>
+                                    <th className="p-3 text-left">Created By</th>
+                                    <th className="p-3 text-left">Updated By</th>
                                     <th className="p-3 text-left">Updated Date Time</th>
                                     <th className="p-3 text-left">workLogs</th>
                                     <th className="p-3 text-left">Location</th>
@@ -575,17 +577,28 @@ const TicketsList = () => {
                                                 <td className="p-3">{item.escalated}</td>
                                                 <td className="p-3"> {formatDate(item.targetDate)}</td>
                                                 <td className="p-3">{item.category}</td>
-
-
-
                                                 <td className="p-3">{item.manager}</td>
                                                 <td className="p-3">{item.ticketManager}</td>
                                                 <td className="p-3">{item.assignee}</td>
                                                 <td className="p-3">{item.department}</td>
-                                                <td className="p-3">{item.createdById}</td>
-                                                <td className="p-3">{item.createdByName}</td>
-                                                <td className="p-3">{item.updatedById}</td>
-                                                <td className="p-3">{item.updatedByName}</td>
+                                                <td className="p-3">{item.bedNo}</td>
+                                                <td className="p-3">{item.roomNo}</td>
+                                                <td className="p-3">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-medium">{item.createdByName || "-"}</span>
+                                                        <span className="text-xs text-gray-500">{item.createdById || "-"}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="p-3">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-medium">
+                                                            {item.updatedByName || "-"}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500">
+                                                            {item.updatedById || "-"}
+                                                        </span>
+                                                    </div>
+                                                </td>
                                                 <td className="p-3">{item.updatedDateTime}</td>
                                                 <td className="px-2">
                                                     {item.workLogs?.length > 0 ? (

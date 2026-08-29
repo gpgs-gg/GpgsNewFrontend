@@ -12,7 +12,9 @@ import { useFnFnadNoticeData } from './services';
 import Pagination from '../Common/Pagination';
 import { formatDate } from '../../utils/dateFormatter';
 import FnfEditForm from './FnfEditForm';
-
+import { useUpdateClientData } from '../Clients/services';
+import { Copy } from "lucide-react";
+import { toast } from 'react-toastify';
 function FullandFinalSettlement() {
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -24,6 +26,7 @@ function FullandFinalSettlement() {
     const [rentHistories, setRentHistories] = useState([]);
     const debouncedSearch = useDebounce(search);
     const rowsPerPage = PAGINATION.PROPERTIES_PER_PAGE || 10;
+
     //  const { mutate: deleteUserData, isPending } = useDeleteUserData();
 
     const {
@@ -94,7 +97,7 @@ function FullandFinalSettlement() {
                         <div className="relative w-80">
                             <input
                                 className="border px-3 py-2 pr-10 rounded-lg w-full"
-                                placeholder="Search User..."
+                                placeholder="Search ..."
                                 value={search}
                                 onChange={(e) => {
                                     setSearch(e.target.value);
@@ -153,13 +156,15 @@ function FullandFinalSettlement() {
                                     <th className="p-3 text-left">NSD</th>
                                     <th className="p-3 text-left">NLD</th>
                                     <th className="p-3 text-left">CVD</th>
-                                    <th className="p-3 text-left">Monthly Rent</th>
-                                    <th className="p-3 text-left">Rent Amount</th>
-                                    <th className="p-3 text-left">Parking</th>
-                                    <th className="p-3 text-left">Total Receivable</th>
+                                    <th className="p-3 text-left">Total Deposit</th>
+                                    <th className="p-3 text-left">Current Due</th>
+                                    <th className="p-3 text-left">Bank Details</th>
+                                    <th className="p-3 text-left">F & F Amount</th>
+                                    {/* <th className="p-3 text-left">Remarks</th> */}
+                                    {/* <th className="p-3 text-left">Total Receivable</th>
                                     <th className="p-3 text-left">Total Received</th>
                                     <th className="p-3 text-left">Current Due</th>
-                                    <th className="p-3 text-left">Payment Status</th>
+                                    <th className="p-3 text-left">Payment Status</th> */}
                                     <th className="p-3 text-left sticky right-0 bg-gray-100">Action</th>
                                 </tr>
                             </thead>
@@ -168,6 +173,7 @@ function FullandFinalSettlement() {
                                 {data.length > 0 ? (
                                     data.map((item) => {
                                         const rentHistory = item.latestRentHistory || {};
+                                        const fnfHistory = item.fnf || {};
                                         const getClientStatus = (item) => {
                                             const today = new Date();
 
@@ -210,6 +216,16 @@ function FullandFinalSettlement() {
                                             >
                                                 <td className="p-3 text-center">
                                                     {(() => {
+                                                        const fnfStatus = item?.fnf?.status;
+
+                                                        if (fnfStatus && fnfStatus.trim() !== "") {
+                                                            return (
+                                                                <span className="px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700">
+                                                                    {fnfStatus}
+                                                                </span>
+                                                            );
+                                                        }
+
                                                         const status = getClientStatus(item);
 
                                                         return (
@@ -250,7 +266,16 @@ function FullandFinalSettlement() {
                                          </td> */}
 
                                                 <td className="p-3">
-                                                    {item.stayType || "-"}
+                                                    <span
+                                                        className={`px-2 py-1 rounded-full text-md font-semibold ${item.stayType === "P. Booked"
+                                                            ? " text-green-700"
+                                                            : item.stayType === "T. Booked"
+                                                                ? " text-yellow-700"
+                                                                : " text-gray-700"
+                                                            }`}
+                                                    >
+                                                        {item.stayType || "-"}
+                                                    </span>
                                                 </td>
 
                                                 <td className="p-3">
@@ -278,48 +303,54 @@ function FullandFinalSettlement() {
                                                 </td>
 
                                                 <td className="p-3">
-                                                    ₹{rentHistory.monthlyRent || 0}
+                                                    ₹{fnfHistory.totalPaidDeposit || 0}
                                                 </td>
 
                                                 <td className="p-3">
-                                                    ₹{rentHistory.rentAmt || 0}
+                                                    ₹{fnfHistory.currentDue || 0}
                                                 </td>
 
                                                 <td className="p-3">
-                                                    ₹{rentHistory.parkingCharges || 0}
-                                                </td>
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{fnfHistory.bankDetailReceived || "-"}</span>
 
-                                                <td className="p-3">
-                                                    ₹{rentHistory.totalReceivable || 0}
+                                                        {fnfHistory.bankDetailReceived && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(
+                                                                        fnfHistory.bankDetailReceived
+                                                                    );
+                                                                    toast.dismiss()
+                                                                    toast.success("Copied!");
+                                                                }}
+                                                                className="text-gray-500 hover:text-gray-800"
+                                                                title="Copy"
+                                                            >
+                                                                <Copy size={16} />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </td>
+                                                <td
+                                                    className={`p-3 ${Number(fnfHistory.fnfAmount) < 0 ? "text-red-600 font-semibold" : "text-green-600 font-semibold"
+                                                        }`}
+                                                >
+                                                    ₹ {fnfHistory.fnfAmount || 0}
+                                                </td>
+                                                {/* <td className="p-3">
+                                                    {fnfHistory.remarks || "-"}
+                                                </td> */}
 
-                                                <td className="p-3">
-                                                    ₹{rentHistory.totalReceived || 0}
-                                                </td>
 
-                                                <td className="p-3">
-                                                    ₹{rentHistory.currentDue || 0}
-                                                </td>
 
-                                                <td className="p-3">
-                                                    <span
-                                                        className={`px-3 py-1 rounded-full text-xs font-semibold ${rentHistory.paymentStatus === "Paid"
-                                                            ? "bg-green-100 text-green-700"
-                                                            : rentHistory.paymentStatus === "Partial"
-                                                                ? "bg-yellow-100 text-yellow-700"
-                                                                : "bg-red-100 text-red-700"
-                                                            }`}
-                                                    >
-                                                        {rentHistory.paymentStatus || "Pending"}
-                                                    </span>
-                                                </td>
                                                 <td className=' sticky right-0 bg-white'>
                                                     <button
                                                         onClick={() => {
                                                             setSelectedClient(item);
                                                             setShowFnfForm(true);
                                                         }}
-                                                        className="flex border border-gray-200 rounded-lg items-center gap-1 px-2 py-1 hover:bg-gray-100"
+                                                        className="flex border border-gray-200 rounded-lg items-center gap-1 px-4 py-1 hover:bg-gray-100"
                                                     >
                                                         <span>💰</span>
                                                         FNF
@@ -368,11 +399,6 @@ function FullandFinalSettlement() {
                     onClose={() => {
                         setShowFnfForm(false);
                         setSelectedClient(null);
-                    }}
-                    onSubmit={(data) => {
-                        console.log("FNF DATA:", data);
-
-                        // yahan aapki create/update FNF API call hogi
                     }}
                 />
             )}

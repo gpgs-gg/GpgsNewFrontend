@@ -14,7 +14,7 @@ import { FaEllipsisV } from "react-icons/fa";
 import { RiTelegram2Line } from "react-icons/ri";
 import PaymentVerificationModal from "./PaymentVerificationModal";
 import { useForm } from "react-hook-form";
-import image from "../../assets/icons8-verified-account.gif"
+import image from "../../assets/icons8-verified-account (1).gif"
 
 const NewBookingTable = () => {
   const [search, setSearch] = useState("");
@@ -46,11 +46,43 @@ const NewBookingTable = () => {
     setValue,
   } = useForm();
 
+  // const onSubmit = (data) => {
+  //   createClientFromBooking(
+  //     {
+  //       bookingId: selectedBooking._id,
+  //       ...data,
+  //     },
+  //     {
+  //       onSuccess: (response) => {
+  //         toast.success(
+  //           response?.message || "Client created successfully!"
+  //         );
+
+  //         reset();
+  //         setShowPaymentModal(false);
+  //       },
+
+  //       onError: (error) => {
+  //         toast.error(
+  //           error?.response?.data?.message ||
+  //           "Failed to create client. Please try again."
+  //         );
+  //       },
+  //     }
+  //   );
+  // };
+
   const onSubmit = (data) => {
     createClientFromBooking(
       {
         bookingId: selectedBooking._id,
-        ...data,
+        narration: `Amount: ₹${data.paymentAmount || 0} - Narration: ${data.narration || ""}${data.remarks ? ` - Remarks: ${data.remarks}` : ""
+          }`,
+        paymentAmount: data.paymentAmount,
+        remarks: data.remarks,
+
+        // User ne jo Paid Amount dala hai wahi jayega
+        paidAmount: Number(data.paymentAmount || 0),
       },
       {
         onSuccess: (response) => {
@@ -60,17 +92,19 @@ const NewBookingTable = () => {
 
           reset();
           setShowPaymentModal(false);
+          setSelectedBooking(null);
         },
 
         onError: (error) => {
           toast.error(
             error?.response?.data?.message ||
-            "Failed to create client. Please try again."
+            "Failed to create client"
           );
         },
       }
     );
   };
+
 
   const { mutate: toggleClientLogin, isPendingToggleClientLogin } = useToggleClientLogin();
   const { mutate: updateNewBookingForBooked, isPending } = useUpdateNewBookingForBooked();
@@ -210,27 +244,28 @@ const NewBookingTable = () => {
       });
     }
   };
-  const handleVerifySubmit = (formData) => {
-    createClientFromBooking(
-      {
-        bookingId: selectedBooking._id,
-        ...formData,
-      },
-      {
-        onSuccess: (response) => {
-          toast.success(response?.message || "Client created successfully");
 
-          setShowPaymentModal(false);
-          setSelectedBooking(null);
-        },
-        onError: (error) => {
-          toast.error(
-            error?.response?.data?.message || "Failed to create client"
-          );
-        },
-      }
-    );
-  };
+  // const handleVerifySubmit = (formData) => {
+  //   createClientFromBooking(
+  //     {
+  //       bookingId: selectedBooking._id,
+  //       ...formData,
+  //     },
+  //     {
+  //       onSuccess: (response) => {
+  //         toast.success(response?.message || "Client created successfully");
+
+  //         setShowPaymentModal(false);
+  //         setSelectedBooking(null);
+  //       },
+  //       onError: (error) => {
+  //         toast.error(
+  //           error?.response?.data?.message || "Failed to create client"
+  //         );
+  //       },
+  //     }
+  //   );
+  // };
 
 
   const handleStatusToggle = (item) => {
@@ -491,55 +526,45 @@ const NewBookingTable = () => {
                                 : "-"}
                             </td>
 
-                            
                             <td className="p-3">
                               <div className="flex items-center justify-center gap-3">
-                                {/* {!item.loginEnabled && ( */}
-                                  <label className="relative inline-flex items-center cursor-pointer">
-                                    <input
-                                      type="checkbox"
-                                      className="sr-only peer"
-                                      checked={item.loginEnabled}
-                                      onChange={() => handlePaymentVerification(item)}
-                                      disabled={isPending}
+
+                                {!item.loginEnabled && (
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    className="sr-only peer"
+                                    checked={item.loginEnabled}
+                                    onChange={() => handlePaymentVerification(item)}
+                                    disabled={isPending}
+                                  />
+
+                                  <div className="w-11 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
+
+                                  <div className="absolute left-0.5 top-0.5 w-5 h-4 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
+                                </label>
+                                )} 
+
+                                {item.loginEnabled ? (
+                                  <div className="flex items-center gap-2">
+                                    <img
+                                      src={image}
+                                      alt="Verified"
+                                      className="w-6 h-6 object-contain"
                                     />
 
-                                    <div className="w-11 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
+                                    <span className="text-sm font-semibold text-green-600">
+                                      Verified
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-sm font-semibold text-red-600">
+                                    Pending
+                                  </span>
+                                )}
 
-                                    <div className="absolute left-0.5 top-0.5 w-5 h-4 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
-                                  </label>
-                                {/* )} */}
-
-                                <span
-                                  className={`text-sm font-semibold ${item.loginEnabled
-                                    ? "text-green-600"
-                                    : "text-red-600"
-                                    }`}
-                                >
-                                  <td className="p-3">
-                                    {item.loginEnabled ? (
-                                      <div className="flex items-center gap-2">
-                                        {/* Verified Image */}
-                                        <img
-                                          src={image}
-                                          alt="Verified"
-                                          className="w-7 h-7 object-contain"
-                                        />
-
-                                        <span className="text-sm font-semibold text-green-600">
-                                          Verified
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <span className="text-sm font-semibold text-red-600">
-                                        Pending
-                                      </span>
-                                    )}
-                                  </td>
-                                </span>
                               </div>
                             </td>
-                            
                             <td className="p-3">
                               ₹
                               {(
@@ -603,7 +628,10 @@ const NewBookingTable = () => {
 
 
                             {/* Sticky Actions Column */}
-                            <td className="p-3 sticky right-0 bg-white z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)]">
+                            <td
+                              className={`p-3 sticky right-0 bg-white ${openMenuId === item._id ? "z-[9999]" : "z-20"
+                                } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
+                            >
                               <div className="flex justify-center relative">
                                 <button
                                   onClick={(e) => {
@@ -613,8 +641,8 @@ const NewBookingTable = () => {
                                     );
                                   }}
                                   className={`p-2 rounded-md transition-colors ${openMenuId === item._id
-                                    ? "bg-blue-100 text-blue-600"
-                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                      ? "bg-blue-100 text-blue-600"
+                                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                                     }`}
                                 >
                                   <FaEllipsisV />
@@ -622,7 +650,7 @@ const NewBookingTable = () => {
 
                                 {openMenuId === item._id && (
                                   <div
-                                    className="absolute right-22 top-8 w-44 bg-white border border-gray-300 rounded-lg shadow-xl z-[9999]"
+                                    className="absolute right-22 top-8 w-44 bg-white border border-gray-300 rounded-lg shadow-xl "
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     <Link
@@ -655,6 +683,7 @@ const NewBookingTable = () => {
                                 )}
                               </div>
                             </td>
+
                           </tr>
                         );
                       })
@@ -706,6 +735,7 @@ const NewBookingTable = () => {
             }}
             watch={watch}
             setValue={setValue}
+            isCreateClientLoading={isCreateClientLoading}
           />
         )
       }

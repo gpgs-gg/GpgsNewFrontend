@@ -218,11 +218,7 @@ const OptionsTable = () => {
               </thead>
               <tbody>
                 {isLoading ? (
-                  <tr>
-                    <td colSpan={5} className="py-10 text-center">
-                      <TableSkeleton rows={8} columns={13} />
-                    </td>
-                  </tr>
+                  <TableSkeleton rows={8} columns={4} />
                 ) : apiData.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-10 text-center">

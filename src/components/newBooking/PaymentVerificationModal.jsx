@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useBankTransactionData } from "./services";
 import useDebounce from "../hooks/useDebounce";
+import Loader from "../common/Loader";
 
 const PaymentVerificationModal = ({
     booking,
@@ -11,6 +12,7 @@ const PaymentVerificationModal = ({
     errors,
     watch,
     setValue,
+    isCreateClientLoading
 }) => {
     const narration = watch("narration");
     const debouncedNarration = useDebounce(narration, 700);
@@ -51,7 +53,7 @@ const PaymentVerificationModal = ({
                         <input
                             type="number"
                             {...register("paymentAmount", {
-                                required: "Paid amount is required",
+                                required: "Paid Amount is required",
                             })}
                             //   disabled
                             placeholder=" "
@@ -84,12 +86,19 @@ const PaymentVerificationModal = ({
                         >
                             Cancel
                         </button>
-
                         <button
                             type="submit"
-                            className="theme-btn px-4 py-2 text-white"
+                            disabled={isCreateClientLoading}
+                            className="theme-btn px-4 py-2 text-white flex items-center justify-center gap-2"
                         >
-                            Verify Payment
+                            {isCreateClientLoading ? (
+                                <>
+                                    <Loader />
+                                    Verifying...
+                                </>
+                            ) : (
+                                "Verify Payment"
+                            )}
                         </button>
                     </div>
                 </form>

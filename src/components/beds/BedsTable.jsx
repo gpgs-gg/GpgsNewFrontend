@@ -1,12 +1,5 @@
-import { useState, useMemo } from "react";
-import {
-  Eye,
-  Pencil,
-  Filter,
-  Phone,
-  MessageCircle,
-  Trash2,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Eye, Pencil, Filter, MoreVertical, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
 import NoDataFound from "../common/NoDataFound";
@@ -21,7 +14,7 @@ import {
   useDeleteMultipleBedsData,
 } from "./services";
 
-import ConfirmModal from "../Common/ConfirmModal";
+import ConfirmModal from "../common/ConfirmModal";
 import { PAGINATION } from "../../constants/appConfig";
 import useDebounce from "../hooks/useDebounce";
 import TableSkeleton from "../../components/common/TableSkelton";
@@ -52,7 +45,7 @@ const BedsTable = () => {
   const [deleteType, setDeleteType] = useState("single");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedBeds, setSelectedBeds] = useState([]);
-
+  const [openMenuId, setOpenMenuId] = useState(null);
   const { mutate: deleteBed, isPending: deleting } = useDeleteBedData();
 
   const { mutate: deleteMultipleBeds } = useDeleteMultipleBedsData();
@@ -81,42 +74,39 @@ const BedsTable = () => {
     setCurrentPage(1);
   };
 
-const handleDelete = () => {
-  if (deleteType === "single") {
-    deleteBed(deleteId, {
-      onSuccess: (response) => {
-        toast.success(
-          response?.message || "Bed deleted successfully."
-        );
+  const handleDelete = () => {
+    if (deleteType === "single") {
+      deleteBed(deleteId, {
+        onSuccess: (response) => {
+          toast.success(response?.message || "Bed deleted successfully.");
 
-        setDeleteId(null);
-        setShowDeleteModal(false);
-      },
-      onError: (error) => {
-        toast.error(
-          error?.response?.data?.message || "Failed to delete bed."
-        );
-      },
-    });
-  } else {
-    deleteMultipleBeds(selectedBeds, {
-      onSuccess: (response) => {
-        toast.success(
-          response?.message || "Selected beds deleted successfully."
-        );
+          setDeleteId(null);
+          setShowDeleteModal(false);
+        },
+        onError: (error) => {
+          toast.error(
+            error?.response?.data?.message || "Failed to delete bed.",
+          );
+        },
+      });
+    } else {
+      deleteMultipleBeds(selectedBeds, {
+        onSuccess: (response) => {
+          toast.success(
+            response?.message || "Selected beds deleted successfully.",
+          );
 
-        setSelectedBeds([]);
-        setShowDeleteModal(false);
-      },
-      onError: (error) => {
-        toast.error(
-          error?.response?.data?.message ||
-            "Failed to delete selected beds."
-        );
-      },
-    });
-  }
-};
+          setSelectedBeds([]);
+          setShowDeleteModal(false);
+        },
+        onError: (error) => {
+          toast.error(
+            error?.response?.data?.message || "Failed to delete selected beds.",
+          );
+        },
+      });
+    }
+  };
 
   const handleSelect = (id) => {
     setSelectedBeds((prev) =>
@@ -140,6 +130,18 @@ const handleDelete = () => {
     }
   };
 
+  // OUTSIDE-CLICK HANDALING
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setOpenMenuId(null);
+    };
+
+    document.addEventListener("click", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, []);
   return (
     <>
       <div className="space-y-5">
@@ -253,10 +255,9 @@ const handleDelete = () => {
           {/* TABLE CONTENT */}
           <div className="flex-1 overflow-auto ">
             <table className="w-full">
-              <thead className="sticky top-0 bg-gray-100 whitespace-nowrap">
-                
+              <thead className="z-30 sticky top-0 bg-gray-100 whitespace-nowrap">
                 <tr>
-                  <th className="p-3 text-center">
+                  <th className="p-3 text-left whitespace-nowrap sticky left-0 z-20 bg-gray-100">
                     <input
                       type="checkbox"
                       className="h-4 w-4 cursor-pointer accent-red-600"
@@ -264,9 +265,11 @@ const handleDelete = () => {
                       onChange={handleSelectAll}
                     />
                   </th>
-                  <th className="p-3 text-center">Property Code</th>
+                  <th className="p-3 text-left whitespace-nowrap sticky left-7.5 z-20 bg-gray-100">
+                    Property Code
+                  </th>
                   <th className="p-3 text-center">Room No</th>
-                  <th className="p-3 text-center">Bed No</th> 
+                  <th className="p-3 text-center">Bed No</th>
                   <th className="p-3 text-center">Gender</th>
                   <th className="p-3 text-center">Sharing Type</th>
                   <th className="p-3 text-center">Bath Attached</th>
@@ -274,12 +277,15 @@ const handleDelete = () => {
                   <th className="p-3 text-center">Monthly Rent</th>
                   <th className="p-3 text-center">SDMF</th>
                   <th className="p-3 text-center">DA</th>
+                  <th className="p-3 text-center">Free EB</th>
                   <th className="p-3 text-center">URHD</th>
                   <th className="p-3 text-center">URHA</th>
                   <th className="p-3 text-center">PRHD</th>
                   <th className="p-3 text-center">Status</th>
                   {/* <th className="p-3 text-center">Comment</th> */}
-                  <th className="p-3 text-center">Actions</th>
+                  <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               {isLoading ? (
@@ -292,7 +298,7 @@ const handleDelete = () => {
                         key={item._id}
                         className="border-t border-gray-300 whitespace-nowrap text-center hover:bg-gray-50"
                       >
-                        <td className="p-3 text-center">
+                        <td className="p-3 text-center sticky bg-white left-0 z-10">
                           <input
                             type="checkbox"
                             className="h-4 w-4 cursor-pointer accent-red-600"
@@ -300,7 +306,7 @@ const handleDelete = () => {
                             onChange={() => handleSelect(item._id)}
                           />
                         </td>
-                        <td className="p-3 text-center font-semibold">
+                        <td className="p-3 sticky left-[30px] z-10 bg-white text-center font-semibold">
                           {item?.propertyId?.propertyCode}
                         </td>
                         <td className="p-3 text-center">{item.roomNo}</td>
@@ -317,6 +323,9 @@ const handleDelete = () => {
                         </td>
                         <td className="p-3 text-center">
                           {item?.depositAmount}
+                        </td>
+                        <td className="p-3 text-center">
+                          {item?.freeEbAsPerBed}
                         </td>
                         <td className="p-3 text-center">
                           {formatDate(item?.upcomingRentHikeDate)}
@@ -337,30 +346,71 @@ const handleDelete = () => {
                           </span>
                         </td>
                         {/* <td className="p-3">{item?.comment}</td> */}
-                        <td className="p-3">
-                          <div className="flex justify-center gap-2">
-                            <Link to={`/bed/edit/${item._id}`}>
-                              {/* <Link to={`/properties/view/${item._id}`}> */}
-                              <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
-                                <Eye size={16} />
-                              </button>
-                            </Link>
-                            <Link to={`/bed/edit/${item._id}`}>
-                              <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
-                                <Pencil size={16} />
-                              </button>
-                            </Link>
+                        {/* action */}
+                        <td
+                          className={`p-3 sticky right-0 bg-white ${
+                            openMenuId === item._id ? "z-[9999]" : "z-20"
+                          } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
+                        >
+                          <div className="flex font-bold justify-center relative">
                             <button
-                              onClick={() => {
-                                setDeleteType("single");
-                                setDeleteId(item._id);
-                                setShowDeleteModal(true);
+                              onClick={(e) => {
+                                e.stopPropagation();
+
+                                setOpenMenuId(
+                                  openMenuId === item._id ? null : item._id,
+                                );
                               }}
-                              disabled={deleting}
-                              className="p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                              className={`p-2 rounded-md transition-colors ${
+                                openMenuId === item._id
+                                  ? "bg-blue-100 text-blue-600"
+                                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                              }`}
                             >
-                              <Trash2 size={16} />
+                              <MoreVertical size={20} />
                             </button>
+
+                            {openMenuId === item._id && (
+                              <div
+                                className="absolute right-12 top-8 w-44 bg-white border border-gray-300 rounded-lg shadow-xl z-[9999]"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {/* View */}
+                                <Link
+                                  to={`/bed/view/${item._id}`}
+                                  onClick={() => setOpenMenuId(null)}
+                                  className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
+                                >
+                                  <span>👁</span>
+                                  <span>View</span>
+                                </Link>
+
+                                {/* Edit */}
+                                <Link
+                                  to={`/bed/edit/${item._id}`}
+                                  onClick={() => setOpenMenuId(null)}
+                                  className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
+                                >
+                                  <span>✏️</span>
+                                  <span>Edit</span>
+                                </Link>
+
+                                {/* Delete */}
+                                <button
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    setDeleteType("single");
+                                    setDeleteId(item._id);
+                                    setShowDeleteModal(true);
+                                  }}
+                                  disabled={deleting}
+                                  className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 text-red-600 disabled:opacity-50"
+                                >
+                                  <span>🗑</span>
+                                  <span>Delete</span>
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </td>
                       </tr>

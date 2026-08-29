@@ -132,7 +132,6 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
             year: new Date().getFullYear(),
             paymentType: data.paymentType.value,
             amount: Number(transaction.deposit || 0),
-            paymentComment : transaction.narration,
             transactionDate: transaction.date,
             narration: transaction.narration,
         };
@@ -170,7 +169,7 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
             )}
 
             <div
-                className={`fixed top-0 right-0 h-full w-[430px] bg-white z-50 shadow-xl transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
+                className={`fixed top-0 right-0 h-full w-[430px] bg-white z-50 shadow-xl overflow-auto transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
                     }`}
             >
                 {/* Header */}

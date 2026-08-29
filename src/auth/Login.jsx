@@ -4,7 +4,7 @@ import { useLogin } from "./services";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import SetPassword from "./SetPassword";
+import SetPassword from "./setPassword";
 
 const Login = () => {
   const { mutate: sendLoginDetails } = useLogin();

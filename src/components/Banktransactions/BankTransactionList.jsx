@@ -4,7 +4,7 @@ import { Eye, Pencil, Filter, Phone, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
 import NoDataFound from "../common/NoDataFound";
-import { formatDate } from "../../utils/dateFormatter";
+import { formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { useForm } from "react-hook-form";
 import { IoIosCall } from "react-icons/io";
 import { FaWhatsapp } from "react-icons/fa";
@@ -126,9 +126,9 @@ const BankTransactionList = () => {
               <p className="text-sm text-gray-500">Manage All Transactions</p>
             </div>
 
-            <Link to="/bed/create">
+            <Link to="/bank-transactions/upload">
               <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                + Add Bed
+                + Uplaod Transactions
               </button>
             </Link>
           </div>
@@ -248,9 +248,16 @@ const BankTransactionList = () => {
                   <th className="p-3 text-center">Cheque / Ref No.</th>
                   <th className="p-3 text-right">Withdrawal</th>
                   <th className="p-3 text-right">Deposit</th>
+                  <th className="p-3 text-right">Property / Expense Code</th>
+                  <th className="p-3 text-right">Expense Category</th>
+                  <th className="p-3 text-right">Assignee</th>
+                  <th className="p-3 text-right">Status</th>
+                  <th className="p-3 text-right">Reviewer</th>
+                  <th className="p-3 text-right">Auditor</th>
                   <th className="p-3 text-right">Balance</th>
                   <th className="p-3 text-center">Value Date</th>
                   <th className="p-3 text-center">Source</th>
+                  <th className="p-3 text-center">WorkLog</th>
                   <th className="p-3 text-center">Uploaded By</th>
                   <th className="p-3 text-center">Created At</th>
                   <th className="p-3 text-center">Link Payment</th>
@@ -277,16 +284,16 @@ const BankTransactionList = () => {
                           >
                             {item.narration}
                           </div>
-                        
-                            <button
-                              type="button"
-                              onClick={() => handleCopy(item.narration)}
-                              className="text-gray-500 hover:text-blue-600 transition-colors"
-                              title="Copy narration"
-                            >
-                              <FiCopy size={16} />
-                            </button>
-                          
+
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(item.narration)}
+                            className="text-gray-500 hover:text-blue-600 transition-colors"
+                            title="Copy narration"
+                          >
+                            <FiCopy size={16} />
+                          </button>
+
                         </div>
                       </td>
 
@@ -304,6 +311,13 @@ const BankTransactionList = () => {
                           : "-"}
                       </td>
 
+                      <td className="p-3 text-center">{item?.propertyId?.propertyCode || item?.expenseCode?.label}</td>
+                      <td className="p-3 text-center">{item?.expenseCategory || "-"}</td>
+                      <td className="p-3 text-center">{item?.assignee || "-"}</td>
+                      <td className="p-3 text-center">{item?.status || "-"}</td>
+                      <td className="p-3 text-center">{item?.reviewer || "-"}</td>
+                      <td className="p-3 text-center">{item?.auditor || "-"}</td>
+
                       <td className="p-3 text-right font-semibold">
                         {Number(item.balance || 0).toLocaleString("en-IN")}
                       </td>
@@ -318,6 +332,39 @@ const BankTransactionList = () => {
                         </span>
                       </td>
 
+                      <td className="px-2">
+                        {item.workLogs?.length > 0 ? (
+                          <div className="group relative cursor-pointer">
+                            {/* Short Text */}
+                            <div className="truncate max-w-28 text-xs">
+                              {[...item.workLogs]
+                                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]?.message}
+                            </div>
+
+                            {/* Hover Popup */}
+                            <div className="absolute right-0 top-4 hidden group-hover:block bg-white border shadow-xl rounded-lg p-3 w-80 max-h-62.5 overflow-y-auto whitespace-pre-line text-xs z-50">
+                              {[...item.workLogs]
+                                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                .map((log, index) => (
+                                  <div key={log._id || index} className="mb-3">
+                                    <div className="text-gray-700">
+                                      {log.createdBy}
+                                      <span className="mx-1">•</span>
+                                      {formatDateAndTime(log.createdAt)}
+                                    </div>
+
+                                    <div className="mt-1 font-medium">
+                                      {log.message}
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-500">-</div>
+                        )}
+                      </td>
+
                       <td className="p-3 text-center">
                         {item.userId?.fullName || "-"}
                       </td>
@@ -326,17 +373,17 @@ const BankTransactionList = () => {
                         {formatDate(item.createdAt)}
                       </td>
                       <td className="p-3 text-center">
-                     
-                          <button
-                            onClick={() => {
-                              setSelectedTransaction(item);
-                              setDrawerOpen(true);
-                            }}
-                            className={`px-3 py-1 rounded ${item?.isMapped ? "bg-gray-300" : "bg-green-600 hover:bg-green-700"}  text-white text-sm `}
-                          >
-                            {item?.isMapped ? "Link Payment" : "Link Payment"} 
-                          </button>
-            
+
+                        <button
+                          onClick={() => {
+                            setSelectedTransaction(item);
+                            setDrawerOpen(true);
+                          }}
+                          className={`px-3 py-1 rounded ${item?.isMapped ? "bg-gray-300" : "bg-green-600 hover:bg-green-700"}  text-white text-sm `}
+                        >
+                          {item?.isMapped ? "Link Payment" : "Link Payment"}
+                        </button>
+
                       </td>
 
                       <td className="p-3">
@@ -345,9 +392,12 @@ const BankTransactionList = () => {
                             <Eye size={16} />
                           </button>
 
-                          <button className="p-2 bg-yellow-100 rounded hover:bg-yellow-200">
+                          <Link
+                            to={`/bank/edit/${item.account}/${item._id}`}
+                            className="p-2 bg-yellow-100 rounded hover:bg-yellow-200 inline-flex"
+                          >
                             <Pencil size={16} />
-                          </button>
+                          </Link>
 
 
                         </div>

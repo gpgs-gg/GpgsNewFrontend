@@ -79,12 +79,20 @@ const RentLadgerTable = () => {
                   </p>
                 )}
               </div>
-              <button
-                onClick={() => window.history.back()}
-                className="text-lg border px-2 rounded-md border-gray-300 flex gap-2 justify-center items-center mr-3"
-              >
-                <IoIosArrowBack /> cancel
-              </button>
+           <button
+  type="button"
+  onClick={() => window.history.back()}
+  className="inline-flex items-center  px-4 py-1 rounded-lg
+             border border-gray-300 bg-white text-gray-700
+             text-sm font-medium
+             hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900
+             active:bg-gray-100
+             focus:outline-none focus:ring-2 focus:ring-gray-200
+             transition-all duration-200 shadow-sm mr-3"
+>
+  <IoIosArrowBack className="text-base font-bold" />
+  Cancel
+</button>
             </div>
           </div>
 
@@ -227,13 +235,12 @@ const RentLadgerTable = () => {
                     <tr
                       key={item._id}
                       className={`border-t border-gray-200 whitespace-nowrap text-center
-    ${
-      item.monthName === currentMonth &&
-      item.year === currentYear &&
-      item.paymentStatus !== "Shifted"
-        ? "bg-green-100 hover:bg-green-100"
-        : "hover:bg-gray-50"
-    }`}
+    ${item.monthName === currentMonth &&
+                          item.year === currentYear &&
+                          item.paymentStatus !== "Shifted"
+                          ? "bg-green-100 hover:bg-green-100"
+                          : "hover:bg-gray-50"
+                        }`}
                     >
                       <td className="p-3 font-bold">
                         {item.propertyId?.propertyCode}
@@ -241,15 +248,14 @@ const RentLadgerTable = () => {
                       <td className="p-3">
                         <span
                           className={`px-3 py-1 text-sm rounded-full font-semibold
-                             ${
-                               item.paymentStatus === "Paid"
-                                 ? "bg-green-100 text-green-700"
-                                 : item.paymentStatus === "Partial"
-                                   ? "bg-yellow-100 text-yellow-700"
-                                   : item.paymentStatus === "Shifted"
-                                     ? "bg-blue-100 text-blue-700"
-                                     : "bg-red-100 text-red-700"
-                             }`}
+                             ${item.paymentStatus === "Paid"
+                              ? "bg-green-100 text-green-700"
+                              : item.paymentStatus === "Partial"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : item.paymentStatus === "Shifted"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-red-100 text-red-700"
+                            }`}
                         >
                           {item.paymentStatus}
                         </span>
@@ -259,18 +265,45 @@ const RentLadgerTable = () => {
                       <td className="p-3">{item.year}</td>
                       {/* <td className="p-3">{item.stayType}</td> */}
                       <td
-                        className={`p-3 font-semibold ${
-                          item.currentDue > 0
-                            ? "text-red-600"
-                            : item.currentDue < 0
-                              ? "text-green-600"
-                              : "text-gray-700"
-                        }`}
+                        className={`p-3 font-semibold ${item.currentDue > 0
+                          ? "text-red-600"
+                          : item.currentDue < 0
+                            ? "text-green-600"
+                            : "text-gray-700"
+                          }`}
                       >
                         ₹{item.currentDue}
                       </td>
                       <td className="p-3 text-green-600">
-                        ₹{item.totalReceived}
+                        <div className="relative group inline-block">
+
+                          {/* Total */}
+                          <span className="font-semibold cursor-pointer">
+                            ₹{Number(item.totalReceived || 0).toLocaleString("en-IN")}
+                          </span>
+
+                          {/* Hover */}
+                          {item.totalReceivedHistory?.length > 0 && (
+                            <div className="absolute right-0 top-full mt-2 hidden group-hover:block z-[100] w-max">
+                              <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3">
+
+                                <div className="text-xs text-gray-500 mb-1">
+                                  Payment Breakdown
+                                </div>
+
+                                <div className="text-sm font-semibold text-green-600 whitespace-nowrap">
+                                  {item.totalReceivedHistory
+                                    .map((payment) =>
+                                      Number(payment.amount || 0).toLocaleString("en-IN")
+                                    )
+                                    .join(" + ")}
+                                </div>
+
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
                       </td>
                       <td className="p-3 font-semibold">
                         ₹{item.totalReceivable}
@@ -283,7 +316,39 @@ const RentLadgerTable = () => {
                       <td className="p-3">₹{item.parkingCharges}</td>
                       <td className="p-3">₹{item.depositAmount}</td>
                       <td className="p-3">₹{item.processingFees}</td>
-                      <td className="p-3">₹{item.adjAmt}</td>
+
+    <td className="p-3 text-green-600">
+                        <div className="relative group inline-block">
+
+                          {/* Total */}
+                          <span className="font-semibold cursor-pointer">
+                            ₹{Number(item.adjAmt || 0).toLocaleString("en-IN")}
+                          </span>
+
+                          {/* Hover */}
+                          {item.adjustedAmountHistory?.length > 0 && (
+                            <div className="absolute right-0 top-full mt-2 hidden group-hover:block z-[100] w-max">
+                              <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3">
+
+                                <div className="text-xs text-gray-500 mb-1">
+                                  Payment Breakdown
+                                </div>
+
+                                <div className="text-sm font-semibold text-green-600 whitespace-nowrap">
+                                  {item.adjustedAmountHistory
+                                    .map((payment) =>
+                                      Number(payment.amount || 0).toLocaleString("en-IN")
+                                    )
+                                    .join(" + ")}
+                                </div>
+
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
+                      </td>
+
                       <td className="p-3">₹{item.flatEB}</td>
                       <td className="p-3">₹{item.monthlyRent}</td>
 
@@ -304,19 +369,119 @@ const RentLadgerTable = () => {
                         {item.endDate ? formatDate(item.endDate) : "-"}
                       </td>
 
-                      <td className="p-3">{item.paymentComments || "-"}</td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          {/* Payment Comments */}
+                          <div className="relative group flex-1 min-w-0">
+                            {item?.paymentComments?.length > 0 ? (
+                              <>
+                                {/* Latest Comment */}
+                                <div className="text-sm text-gray-700 cursor-pointer">
+                                  {(() => {
+                                    const latestComment =
+                                      item.paymentComments[
+                                      item.paymentComments.length - 1
+                                      ];
+
+                                    const date = latestComment?.date
+                                      ? new Date(latestComment.date)
+                                      : null;
+
+                                    const formattedDate =
+                                      date && !isNaN(date.getTime())
+                                        ? date.toLocaleDateString("en-GB", {
+                                          day: "2-digit",
+                                          month: "short",
+                                          year: "numeric",
+                                        })
+                                        : "";
+
+                                    const formattedTime =
+                                      date && !isNaN(date.getTime())
+                                        ? date.toLocaleTimeString("en-US", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                          hour12: true,
+                                        })
+                                        : "";
+
+                                    const text = latestComment?.comment || "";
+                                    const words = text.trim().split(/\s+/);
+
+                                    return (
+                                      <>
+                                        <span className="font-semibold text-gray-700">
+                                          [{formattedDate} {formattedTime}]
+                                        </span>{" "}
+                                        {words.slice(0, 2).join(" ")}
+                                        {words.length > 2 ? "..." : ""}
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+
+                                {/* Hover Worklog */}
+                                <div className="hidden group-hover:block absolute right-full top-0 w-[420px] max-h-[300px] overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-3 text-left">
+                                  <div className="space-y-3 text-left">
+                                    {[...item.paymentComments]
+                                      .reverse()
+                                      .map((comment, index) => {
+                                        const date = comment?.date
+                                          ? new Date(comment.date)
+                                          : null;
+
+                                        const formattedDate =
+                                          date && !isNaN(date.getTime())
+                                            ? date.toLocaleDateString("en-GB", {
+                                              day: "2-digit",
+                                              month: "short",
+                                              year: "numeric",
+                                            })
+                                            : "";
+
+                                        const formattedTime =
+                                          date && !isNaN(date.getTime())
+                                            ? date.toLocaleTimeString("en-US", {
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                              hour12: true,
+                                            })
+                                            : "";
+
+                                        return (
+                                          <div
+                                            key={comment?._id || index}
+                                            className="w-full text-left text-sm text-gray-700 leading-relaxed whitespace-normal break-words"
+                                          >
+                                            <span className="font-semibold text-gray-800">
+                                              [{formattedDate} {formattedTime}]
+                                            </span>{" "}
+                                            {comment?.comment}
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <span className="text-gray-400 text-sm">
+                                No comment
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
 
                       <td className="p-3">{item.remarks || "-"}</td>
 
                       {/* Sticky Actions Column */}
                       <td
-                        className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${
-                          item.monthName === currentMonth &&
+                        className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${item.monthName === currentMonth &&
                           Number(item.year) === currentYear &&
                           item.paymentStatus !== "Shifted"
-                            ? "bg-green-100"
-                            : "bg-white"
-                        }`}
+                          ? "bg-green-100"
+                          : "bg-white"
+                          }`}
                       >
                         <div className="flex justify-center gap-2">
                           <Link to={`/rent-ledger/view/${item._id}`}>

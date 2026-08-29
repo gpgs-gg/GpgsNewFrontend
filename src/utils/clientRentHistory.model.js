@@ -98,10 +98,18 @@ const clientRentHistorySchema = new mongoose.Schema(
       default: "Pending",
     },
 
-    paymentComments: {
-      type: String,
-      default: "",
-    },
+    paymentComments: [
+      {
+        comment: {
+          type: String,
+          trim: true,
+        },
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
 
     isCancelled: {
       type: Boolean,

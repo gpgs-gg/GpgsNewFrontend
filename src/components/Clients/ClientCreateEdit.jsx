@@ -398,7 +398,7 @@ const ClientCreateEdit = () => {
                                         {...field}
                                         options={isStayTypeOptions}
                                         isClearable
-                                        isDisabled
+                                        // isDisabled
                                         placeholder=""
                                         value={isStayTypeOptions.find(
                                             (option) => option.value === field.value
@@ -550,6 +550,81 @@ const ClientCreateEdit = () => {
 
 
                         <Controller
+                            name="noticeStartDate"
+                            control={control}
+                            render={({ field }) => (
+                                <div
+                                    className={`datepicker-group ${field.value ? "has-value" : ""
+                                        }`}
+                                >
+                                    <label className="datepicker-label required-label">
+                                        Notice Start Date
+                                    </label>
+                                    <DatePicker
+                                        isClearable
+                                        selected={field.value}
+                                        onChange={(date) => field.onChange(date)}
+                                        dateFormat="dd MMM yyyy"
+                                        className="custom-datepicker"
+                                    />
+                                </div>
+                            )}
+                        />
+                        <Controller
+                            name="noticeLastDate"
+                            control={control}
+                            render={({ field }) => (
+                                <div
+                                    className={`datepicker-group ${field.value ? "has-value" : ""
+                                        }`}
+                                >
+                                    <label className="datepicker-label required-label">
+                                        Notice Last Date
+                                    </label>
+                                    <DatePicker
+                                        isClearable
+                                        selected={field.value}
+                                        onChange={(date) => field.onChange(date)}
+                                        dateFormat="dd MMM yyyy"
+                                        className="custom-datepicker"
+                                    />
+                                </div>
+                            )}
+                        />
+                        <Controller
+                            name="clientVacatingDate"
+                            control={control}
+                            render={({ field }) => (
+                                <div
+                                    className={`datepicker-group ${field.value ? "has-value" : ""
+                                        }`}
+                                >
+                                    <label className="datepicker-label required-label">
+                                        Client Vacating Date
+                                    </label>
+                                    <DatePicker
+                                        isClearable
+                                        selected={field.value}
+                                        onChange={(date) => field.onChange(date)}
+                                        dateFormat="dd MMM yyyy"
+                                        className="custom-datepicker"
+                                    />
+                                </div>
+                            )}
+                        />
+                    </div>
+
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex justify-between">
+                        <h2 className="text-xl font-semibold mb-4">
+                            Vacation Details
+                        </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+
+                        <Controller
                             name="vacationStartDate1"
                             control={control}
                             render={({ field }) => (
@@ -636,69 +711,8 @@ const ClientCreateEdit = () => {
 
 
 
-                        <Controller
-                            name="noticeStartDate"
-                            control={control}
-                            render={({ field }) => (
-                                <div
-                                    className={`datepicker-group ${field.value ? "has-value" : ""
-                                        }`}
-                                >
-                                    <label className="datepicker-label required-label">
-                                        Notice Start Date
-                                    </label>
-                                    <DatePicker
-                                        isClearable
-                                        selected={field.value}
-                                        onChange={(date) => field.onChange(date)}
-                                        dateFormat="dd MMM yyyy"
-                                        className="custom-datepicker"
-                                    />
-                                </div>
-                            )}
-                        />
-                        <Controller
-                            name="noticeLastDate"
-                            control={control}
-                            render={({ field }) => (
-                                <div
-                                    className={`datepicker-group ${field.value ? "has-value" : ""
-                                        }`}
-                                >
-                                    <label className="datepicker-label required-label">
-                                        Notice Last Date
-                                    </label>
-                                    <DatePicker
-                                        isClearable
-                                        selected={field.value}
-                                        onChange={(date) => field.onChange(date)}
-                                        dateFormat="dd MMM yyyy"
-                                        className="custom-datepicker"
-                                    />
-                                </div>
-                            )}
-                        />
-                        <Controller
-                            name="clientVacatingDate"
-                            control={control}
-                            render={({ field }) => (
-                                <div
-                                    className={`datepicker-group ${field.value ? "has-value" : ""
-                                        }`}
-                                >
-                                    <label className="datepicker-label required-label">
-                                        Client Vacating Date
-                                    </label>
-                                    <DatePicker
-                                        isClearable
-                                        selected={field.value}
-                                        onChange={(date) => field.onChange(date)}
-                                        dateFormat="dd MMM yyyy"
-                                        className="custom-datepicker"
-                                    />
-                                </div>
-                            )}
-                        />
+                    
+                      
                     </div>
 
                 </div>
