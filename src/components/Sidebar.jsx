@@ -165,22 +165,49 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
     sidebar_module: <LayoutPanelLeft size={22} />,
   };
 
-  // =====================================================
-  // ADMIN / EMPLOYEE MENU
-  // =====================================================
+const MENU_ORDER = [
+  "dashboard",
+  "properties",
+  "beds",
+  "available_beds",
+  "new_booking",
+  "clients",
+  "rent_history",
+  "rent_not_received",
+  "full_final_settlement",
+  "tickets",
+  "pg_leads",
+  "bank_transactions",
+  "house_keeping",
+  "maintenance",
+  "employees",
+  "all_attendance",
+  "all_salary",
+  "users",  
+  "dynamic_options",
+  "module",
+  "permissions",
+];
 
-  const dynamicMenuItems = authorizedModules.map((module) => ({
+const dynamicMenuItems = authorizedModules
+  .map((module) => ({
     key: module._id,
-
     moduleKey: module.key,
-
     name: module.name,
-
     path: module.path,
-
     icon: MODULE_ICONS[module.key] || <Shapes size={22} />,
-  }));
+  }))
+  .sort((a, b) => {
+    const aIndex = MENU_ORDER.indexOf(a.moduleKey);
+    const bIndex = MENU_ORDER.indexOf(b.moduleKey);
 
+    // Jo MENU_ORDER me nahi hai usko last me rakho
+    if (aIndex === -1 && bIndex === -1) return 0;
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+
+    return aIndex - bIndex;
+  });
   // =====================================================
   // CLIENT MENU
   // =====================================================

@@ -10,7 +10,7 @@ import { useACEBReadingData, usePropertyACEBReadingData, useSinglePropertyData }
 import { formatDate } from "../../utils/dateFormatter";
 
 function ACEBReadingList() {
-    const { propertyId } = useParams();
+    const { roomId } = useParams();
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const debouncedSearch = useDebounce(search);
@@ -19,13 +19,13 @@ function ACEBReadingList() {
     const {
         data: propertyResponse,
         isLoading: propertyLoading,
-    } = useSinglePropertyData(propertyId);
+    } = useSinglePropertyData(roomId);
     // Reading History
     const {
         data: apiResponse,
         isLoading: readingLoading,
     } = usePropertyACEBReadingData({
-        propertyId,
+        roomId,
         page: currentPage,
         limit: rowsPerPage,
         search: debouncedSearch,
@@ -57,7 +57,7 @@ function ACEBReadingList() {
                             </p>
                         </div>
                     </div>
-                    <Link to={`/aceb-area/${propertyId}/reading/create`}>
+                    <Link to={`/aceb-area/${roomId}/reading/create`}>
                         <button
                             className="theme-btn text-white px-4 py-2 rounded-lg flex items-center gap-2"
                         >
@@ -163,7 +163,7 @@ function ACEBReadingList() {
                                                 <div className="flex justify-center gap-2">
                                                     {/* VIEW */}
                                                     <Link
-                                                        to={`/aceb-area/${propertyId}/reading/view/${item._id}`}
+                                                        to={`/aceb-area/${roomId}/reading/view/${item._id}`}
                                                     >
                                                         <button
                                                             className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200"
@@ -175,7 +175,7 @@ function ACEBReadingList() {
 
                                                     {/* EDIT */}
                                                     <Link
-                                                        to={`/aceb-area/${propertyId}/reading/edit/${item._id}`}
+                                                        to={`/aceb-area/${roomId}/reading/edit/${item._id}`}
                                                     >
                                                         <button
                                                             className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"

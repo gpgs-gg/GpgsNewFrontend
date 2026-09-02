@@ -372,7 +372,7 @@ export const useSingleACEBReadingData = (
 };
 
 const getPropertyACEBReadingData = async ({
-  propertyId,
+  roomId,
   page = 1,
   limit = 10,
   search = "",
@@ -386,12 +386,12 @@ const getPropertyACEBReadingData = async ({
     params.search = search.trim();
   }
   const response = await apiClient.get(
-    `/aceb-reading/property/${propertyId}`,{params,});
+    `/aceb-reading/roomId/${roomId}`,{params,});
   return response.data;
 };
 
 export const usePropertyACEBReadingData = ({
-  propertyId,
+  roomId,
   page = 1,
   limit = 10,
   search = "",
@@ -399,38 +399,38 @@ export const usePropertyACEBReadingData = ({
   return useQuery({
     queryKey: [
       "property-aceb-readings",
-      propertyId,
+      roomId,
       page,
       limit,
       search,
     ],
     queryFn: () =>
       getPropertyACEBReadingData({
-        propertyId,
+        roomId,
         page,
         limit,
         search,
       }),
-    enabled: !!propertyId,
+    enabled: !!roomId,
     placeholderData: (previousData) => previousData,
   });
 };
 
 export const usePreviousACEBReadingData = ({
-    propertyId,
+    roomId,
     month,
     enabled = true,
 }) => {
     return useQuery({
-        queryKey: ["aceb-previous-reading", propertyId, month],
+        queryKey: ["aceb-previous-reading", roomId , month],
         queryFn: async () => {
             const response = await apiClient.get(
                 "/aceb-reading/previous",
-                { params: { propertyId, month } }
+                { params: { roomId, month } }
             );
             return response.data;
         },
-        enabled: enabled && !!propertyId && !!month,
+        enabled: enabled && !!roomId && !!month,
     });
 };
 

@@ -58,6 +58,7 @@ import ACEBReadingCreateEdit from "../components/acebCalculation/ACEBReadingCrea
 import EBInfoCreateEdit from "../components/EBInfo/EBInfoCreateEdit";
 import BankTransactionEdit from "../components/Banktransactions/BankTransationEdit";
 import BankStatementUpload from "../components/Banktransactions/BankTransactionUpload";
+import EBCalculation from "../components/EbCalculator/EbCalculator";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -66,7 +67,7 @@ const AppRoutes = () => {
       <Route
         path="/login"
         element={
-            <Login />
+          <Login />
         }
       />
       <Route
@@ -105,7 +106,7 @@ const AppRoutes = () => {
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/bank-transactions" element={<BankTransaction />} />
           <Route path="/bank-transactions/upload" element={<BankStatementUpload />} />
-          <Route path="/bank/edit/:account/:id" element={<BankTransactionEdit />}/>
+          <Route path="/bank/edit/:account/:id" element={<BankTransactionEdit />} />
           <Route path="/options" element={<Options />} />
           <Route path="/options/create" element={<OptionsCreateEdit />} />
           <Route path="/options/edit/:id" element={<OptionsCreateEdit />} />
@@ -130,9 +131,9 @@ const AppRoutes = () => {
           <Route path="/aceb-area" element={<ACEBCalculation />} />
           <Route path="/aceb-area/create" element={<AreaCreatEdit />} />
           <Route path="/aceb-area/edit/:id" element={<AreaCreatEdit />} />
-          <Route path="/aceb-area/reading/:propertyId" element={<ACEBReadingList />}/>
-          <Route path="/aceb-area/:propertyId/reading/create" element={<ACEBReadingCreateEdit />} />
-          <Route path="/aceb-area/:propertyId/reading/edit/:id" element={<ACEBReadingCreateEdit />}/>
+          <Route path="/aceb-area/reading/:roomId" element={<ACEBReadingList />} />
+          <Route path="/aceb-area/:roomId/reading/create" element={<ACEBReadingCreateEdit />} />
+          <Route path="/aceb-area/:roomId/reading/edit/:id" element={<ACEBReadingCreateEdit />} />
           <Route path="/eb-info" element={<EBInfoList />} />
           <Route path="/eb-info/create" element={<EBInfoCreateEdit />} />
           <Route path="/eb-info/edit/:id" element={<EBInfoCreateEdit />} />
@@ -143,46 +144,11 @@ const AppRoutes = () => {
           <Route path="/modules/create" element={<ModuleCreateEdit />} />
           <Route path="/modules/edit/:id" element={<ModuleCreateEdit />} />
           <Route path="/permissions" element={<Permission />} />
-          <Route path="/permissions/create" element={<RolePermissionCreateEdit />}/>
-          <Route path="/permissions/employee/:id/edit" element={<RolePermissionCreateEdit />}/>
-          <Route path="/permissions/employee/:id" element={<RolePermissionCreateEdit mode="view" />}/>
-       
+          <Route path="/permissions/create" element={<RolePermissionCreateEdit />} />
+          <Route path="/permissions/employee/:id/edit" element={<RolePermissionCreateEdit />} />
+          <Route path="/permissions/employee/:id" element={<RolePermissionCreateEdit mode="view" />} />
+                    <Route path="/eb-calculator" element={<EBCalculation />} />
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-          
         </Route>
       </Route>
 

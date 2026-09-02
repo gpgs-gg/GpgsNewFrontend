@@ -669,7 +669,7 @@ const NewBookingTable = () => {
                                       <span>Edit</span>
                                     </Link>
 
-                                    <button
+                                    {/* <button
                                       onClick={() => {
                                         setOpenMenuId(null);
                                         handleDelete(item._id);
@@ -678,7 +678,7 @@ const NewBookingTable = () => {
                                     >
                                       <span>🗑</span>
                                       <span>Delete</span>
-                                    </button>
+                                    </button> */}
                                   </div>
                                 )}
                               </div>

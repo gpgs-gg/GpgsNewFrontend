@@ -352,8 +352,8 @@ const ClientsTable = () => {
 
                           if (vacatedDate <= today) {
                             return {
-                              text: "Ready For Handover",
-                              className: "bg-orange-100 text-orange-700 border border-orange-200",
+                              text: "RFH",
+                            className: "bg-slate-100 text-slate-700 border border-slate-300",
                             };
                           }
                         }

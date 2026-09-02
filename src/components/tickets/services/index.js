@@ -15,7 +15,7 @@ import { apiClient } from "../../../api/ApiClient";
 // };
 
 // Get tickets data with pagination, search, and filters
-export const getTicketsData = async ({
+ const getTicketsData = async ({
   page = 1,
   limit = 10,
   search = "",
@@ -179,4 +179,26 @@ export const getTicketNavigation = async ({
   );
 
   return response.data;
+};
+
+export const exportTicketsData = async ({
+    search = "",
+    filters = {},
+    ticketIds = [],
+    columns = [],
+}) => {
+    const response = await apiClient.post(
+        "/tickets/export",
+        {
+            search,
+            filters,
+            ticketIds,
+            columns,
+        },
+        {
+            responseType: "blob",
+        }
+    );
+
+    return response.data;
 };

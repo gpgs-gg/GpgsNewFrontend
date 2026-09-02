@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useFieldArray, useForm, Controller } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Select from "react-select";
@@ -30,8 +30,8 @@ const AreaCreateEdit = () => {
         formState: { errors },
     } = useForm({
         defaultValues: {
-            propertyCode: "",
-            
+            propertyId: "",
+
             location: "",
             areas: [],
         },
@@ -52,7 +52,7 @@ const AreaCreateEdit = () => {
         isPending: updateLoading,
     } = useUpdatePropertyData();
     const loading = createLoading || updateLoading;
-
+    const [selectedProperty, setSelectedProperty] = useState(null);
     const TypeOptions = [
         { value: "ROOM", label: "Room" },
         { value: "KITCHEN", label: "Kitchen" },
@@ -62,6 +62,7 @@ const AreaCreateEdit = () => {
         { value: true, label: "Active" },
         { value: false, label: "Inactive" },
     ];
+    
     const loadPropertyOptions = async (
         search,
         loadedOptions,
@@ -77,7 +78,7 @@ const AreaCreateEdit = () => {
                 res.data.map((item) => [
                     item.propertyCode,
                     {
-                        value: item.propertyCode,
+                        value: item._id,
                         label: item.propertyCode,
                         propLocation: item.propertyLocation, // <-- Add this
                     },
@@ -94,19 +95,32 @@ const AreaCreateEdit = () => {
         };
     };
 
+
     useEffect(() => {
         if (isEdit && propertyData?.data) {
             const property = propertyData.data;
+
+            const selectedPropertyOption = property.propertyId
+                ? {
+                    value: property.propertyId._id,
+                    label: property.propertyId.propertyCode,
+                    propLocation: property.propertyId.propertyLocation,
+                }
+                : null;
+
+            setSelectedProperty(selectedPropertyOption);
+
             reset({
-                propertyCode: property.propertyCode || "",
-                propertyName: property.propertyName || "",
+                propertyId: property.propertyId?._id || "",
                 location: property.location || "",
                 areas: (property.areas || []).map((area) => ({
-                    // areaId: area.areaId || "",
+                    areaId: area.areaId || "",
                     name: area.name || "",
                     type: area.type || "",
                     isActive:
-                        area.isActive !== undefined ? area.isActive : true,
+                        area.isActive !== undefined
+                            ? area.isActive
+                            : true,
                 })),
             });
         }
@@ -122,8 +136,8 @@ const AreaCreateEdit = () => {
 
     const onSubmit = (data) => {
         const payload = {
-            propertyCode: data.propertyCode,
-             location: data.location,
+            propertyId: data.propertyId,
+            location: data.location,
             areas: data.areas.map((area) => ({
                 areaId: area.areaId,
                 name: area.name,
@@ -231,11 +245,11 @@ const AreaCreateEdit = () => {
                         <div className="form-group">
                             {/* Property */}
                             <Controller
-                                name="propertyCode"
+                                name="propertyId"
                                 control={control}
-                                rules={{
-                                    required: "Property is required",
-                                }}
+                                // rules={{
+                                //     required: "Property is required",
+                                // }}
                                 render={({ field }) => (
                                     <div className={`select-group ${field.value ? "has-value" : ""}`}>
                                         <label className="select-label form-label required-label">
@@ -250,26 +264,16 @@ const AreaCreateEdit = () => {
                                             placeholder=""
                                             loadOptions={loadPropertyOptions}
                                             styles={selectStyles}
-                                            value={
-                                                field.value
-                                                    ? {
-                                                        value: field.value,
-                                                        label: field.value,
-                                                    }
-                                                    : null
-                                            }
+                                            value={selectedProperty}
                                             onChange={(selected) => {
-                                                field.onChange(selected?.value || ""); // Sirf value save hogi
-
-                                                setValue(
-                                                    "location",
-                                                    selected?.propLocation || ""
-                                                );
+                                                setSelectedProperty(selected);
+                                                field.onChange(selected?.value || "");
                                             }}
                                         />
-                                        {errors.propertyCode && (
+
+                                        {errors.propertyId && (
                                             <p className="text-red-500 text-sm mt-1">
-                                                {errors.propertyCode.message}
+                                                {errors.propertyId.message}
                                             </p>
                                         )}
                                     </div>

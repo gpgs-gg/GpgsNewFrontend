@@ -3,7 +3,7 @@ import { Eye, Pencil, Filter, Phone, MessageCircle, Trash2 } from "lucide-react"
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
 import NoDataFound from "../common/NoDataFound";
-import { getTicketsData, useDeleteTicketData, useTicketsData } from "./services";
+import { exportTicketsData, useDeleteTicketData, useTicketsData } from "./services";
 import { convertStringFormatDateTime, formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { useForm } from "react-hook-form";
 import { IoIosCall } from "react-icons/io";
@@ -50,6 +50,7 @@ const TicketsList = () => {
     const [selectedColumns, setSelectedColumns] = useState(new Set());
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+    const [isExporting, setIsExporting] = useState(false);
     const [showColumnSelector, setShowColumnSelector] = useState(false);
     const [previewFiles, setPreviewFiles] = useState([]);
     const rowsPerPage = 10;
@@ -64,57 +65,6 @@ const TicketsList = () => {
     const apiData = apiResponse?.data || [];
     const totalPages = apiResponse?.totalPages || 1;
     const totalRecords = apiResponse?.totalRecords || 0;
-    // ✅ filter & search logic
-    // const filteredData = useMemo(() => {
-    //     return apiData?.filter((item) => {
-    //         const matchesSearch =
-    //             !search ||
-    //             Object.values(item).some((value) =>
-    //                 String(value).toLowerCase().includes(search.toLowerCase())
-    //             );
-
-    //         return (
-    //             (!filters.propertyCode ||
-    //                 item.propertyCode === filters.propertyCode) &&
-    //             (!filters.Location ||
-    //                 item.propertyLocation === filters.Location) &&
-    //             (!filters.priority ||
-    //                 item.priority === filters.priority) &&
-    //             (!filters.status ||
-    //                 item.status === filters.status) &&
-    //             (!filters.department ||
-    //                 item.department === filters.department) &&
-    //             (!filters.category ||
-    //                 item.category === filters.category) &&
-    //             (!filters.assignee ||
-    //                 item.assignee === filters.assignee) &&
-    //             (!filters.manager ||
-    //                 item.manager === filters.manager) &&
-    //             (!filters.customerImpacted ||
-    //                 item.customerImpacted === filters.customerImpacted) &&
-    //             (!filters.escalated ||
-    //                 item.escalated === filters.escalated) &&
-    //             (
-    //                 !filters.lateStatus ||
-    //                 (filters.lateStatus === "LateAcknowledged" &&
-    //                     item.lateAcknowledged === "Yes") ||
-    //                 (filters.lateStatus === "LateResolved" &&
-    //                     item.lateResolved === "Yes")
-    //             ) &&
-    //             matchesSearch
-    //         );
-    //     });
-    // }, [apiData, filters, search]);
-
-    // const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-
-    // const paginatedData = useMemo(() => {
-    //     return filteredData.slice(
-    //         (currentPage - 1) * rowsPerPage,
-    //         currentPage * rowsPerPage
-    //     );
-    // }, [filteredData, currentPage]);
-
 
     const handleReset = () => {
         setFilters({});
@@ -218,14 +168,13 @@ const TicketsList = () => {
             },
         });
     };
-    const handleSelectAll = () => {
+const handleSelectAll = () => {
         setSelectedTickets((prev) => {
             const newSet = new Set(prev);
 
             const currentPageIds = apiData.map(ticket => ticket.ticketId);
 
             const allSelected = currentPageIds.every(id => newSet.has(id));
-
             if (allSelected) {
                 // current page unselect
                 currentPageIds.forEach(id => newSet.delete(id));
@@ -233,121 +182,56 @@ const TicketsList = () => {
                 // current page select
                 currentPageIds.forEach(id => newSet.add(id));
             }
-
             return newSet;
         });
     };
 
-    const handleColumnSelect = (columnKey) => {
-        setSelectedColumns(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(columnKey)) {
-                newSet.delete(columnKey);
-            } else {
-                newSet.add(columnKey);
-            }
-            return newSet;
-        });
-    };
-
-    const handleSelectAllColumns = () => {
-        if (selectedColumns.size === fullHeaders.length) {
-            setSelectedColumns(new Set());
-        } else {
-            const allColumnKeys = fullHeaders.map(header => header.key);
-            setSelectedColumns(new Set(allColumnKeys));
-        }
-    };
     // Export functionality
     const handleSelectedColoum = () => { // Get selected tickets data
         setShowColumnSelector(!showColumnSelector)
     };
 
     const handleExport = async () => {
-        // सर्व filtered tickets आण
-        const response = await getTicketsData({
-            page: 1,
-            limit: 100000,
-            search: debouncedSearch,
-            ...filters,
-        });
-
-        const allTickets = response.data || [];
-
-        // जर काही tickets select असतील तर तेवढेच export
-        const ticketsToExport =
-            selectedTickets.size > 0
-                ? allTickets.filter((ticket) =>
-                    selectedTickets.has(ticket.ticketId)
-                )
-                : allTickets;
-
-        const columnsToExport = fullHeaders.filter((header) =>
-            selectedColumns.size > 0
-                ? selectedColumns.has(header.key)
-                : true
-        );
-
-        if (ticketsToExport.length === 0) {
-            toast.error("No tickets selected for export!");
-            return;
+        try {
+            setIsExporting(true);
+            const columnsToExport = fullHeaders.filter((header) =>
+                selectedColumns.size > 0
+                    ? selectedColumns.has(header.key)
+                    : true
+            );
+            if (columnsToExport.length === 0) {
+                toast.dismiss()
+                toast.error("No columns selected for export!");
+                return;
+            }
+            const blob = await exportTicketsData({
+                search: debouncedSearch,
+                filters,
+                ticketIds: [...selectedTickets],
+                columns: columnsToExport.map((column) => column.key),
+            });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `tickets-${new Date()
+                .toISOString()
+                .split("T")[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Tickets exported successfully");
+            setShowColumnSelector(false);
+        } catch (error) {
+            toast.dismiss()
+            toast.error(
+                error?.response?.data?.message ||
+                "Failed to export tickets"
+            );
+        } finally {
+            setIsExporting(false);
         }
-
-        if (columnsToExport.length === 0) {
-            toast.error("No columns selected for export!");
-            return;
-        }
-
-        const headersRow = columnsToExport
-            .map((header) => header.label)
-            .join(",");
-
-        const dataRows = ticketsToExport.map((ticket) =>
-            columnsToExport
-                .map((header) => {
-                    let value = ticket[header.key] ?? "";
-
-                    if (typeof value === "string") {
-                        value = value.replace(/"/g, '""');
-
-                        if (
-                            value.includes(",") ||
-                            value.includes("\n") ||
-                            value.includes("\r")
-                        ) {
-                            value = `"${value}"`;
-                        }
-                    }
-
-                    return value;
-                })
-                .join(",")
-        );
-
-        const csvContent = [headersRow, ...dataRows].join("\n");
-
-        const blob = new Blob([csvContent], {
-            type: "text/csv;charset=utf-8;",
-        });
-
-        const url = window.URL.createObjectURL(blob);
-
-        const link = document.createElement("a");
-
-        link.href = url;
-        link.download = `tickets-${new Date()
-            .toISOString()
-            .split("T")[0]}.csv`;
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        window.URL.revokeObjectURL(url);
-
-        setShowColumnSelector(false);
     };
-
     return (
         <>
             <div className="space-y-5">
@@ -530,7 +414,7 @@ const TicketsList = () => {
                                                     {formatDateAndTime(new Date(item.dateCreated))}
                                                 </td>
 
-                                                <td className="p-3">{item.propertyCode}</td>
+                                                <td className="p-3">{item?.propertyId?.propertyCode}</td>
 
                                                 <td className="p-3">
                                                     <div>
@@ -632,7 +516,7 @@ const TicketsList = () => {
                                                         <div className="text-xs text-gray-500">-</div>
                                                     )}
                                                 </td>
-                                                <td className="p-3">{item.propertyLocation}</td>
+                                                <td className="p-3">{item?.propertyId?.propertyLocation}</td>
 
 
 
@@ -705,7 +589,6 @@ const TicketsList = () => {
             <TicketsFilter
                 isOpen={filterOpen}
                 onClose={() => setFilterOpen(false)}
-                apiData={apiData}
                 onApply={(data) => setFilters(data)}
                 handleReset={handleReset}
                 resetTrigger={resetTrigger}
@@ -730,6 +613,7 @@ const TicketsList = () => {
                 selectedTickets={selectedTickets}
                 totalTickets={apiData.length}
                 onExport={handleExport}
+                isExporting = {isExporting}
             />
         </>
     );

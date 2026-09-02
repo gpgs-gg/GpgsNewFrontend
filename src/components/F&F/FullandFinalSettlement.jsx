@@ -190,8 +190,8 @@ function FullandFinalSettlement() {
 
                                                 if (vacatedDate <= today) {
                                                     return {
-                                                        text: "Ready For Handover",
-                                                        className: "bg-gray-200 text-gray-700",
+                                                        text: "RFH",
+                                                        className: "bg-slate-100 text-slate-700 border border-slate-300",
                                                     };
                                                 }
                                             }
@@ -200,7 +200,7 @@ function FullandFinalSettlement() {
                                             if (item.noticeStartDate) {
                                                 return {
                                                     text: "Notice",
-                                                    className: "bg-orange-200 text-orange-700",
+                                                    className: "bg-orange-100 text-orange-700",
                                                 };
                                             }
 

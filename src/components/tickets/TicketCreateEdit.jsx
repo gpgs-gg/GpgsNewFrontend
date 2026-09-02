@@ -8,9 +8,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useCreateTicketData, useSingleTicketData, useUpdateTicketData, getTicketNavigation } from "./services";
 import { useEffect, useState } from "react";
-import { usePropertiesDropdown } from '../beds/services';
 import { useCurrentUser } from '../../auth/services';
-import { convertStringFormatDate, convertStringFormatDateTime, formatDateAndTime } from '../../utils/dateFormatter';
+import { convertStringFormatDate, formatDateAndTime } from '../../utils/dateFormatter';
 import Loader from '../common/Loader';
 import { getPropertyDropdown } from '../properties/services';
 import { AsyncPaginate } from 'react-select-async-paginate';
@@ -34,8 +33,7 @@ function TicketCreateEdit() {
   const { mutate: createTicket, isPending: isCreateTicket } = useCreateTicketData();
   const { mutate: updateTicket, isPending: isUpdateTicket } = useUpdateTicketData();
   const { data: singleTicket } = useSingleTicketData(id);
-  const { data: propertiesDropdown, isPending: ispropertiesDropdown } = usePropertiesDropdown()
-  const { data: currentUser, isLoading } = useCurrentUser();
+  const { data: currentUser } = useCurrentUser();
   const { data: options = {} } = useBatchOptions([
     "department",
     "categories",
@@ -49,14 +47,26 @@ function TicketCreateEdit() {
   });
   const [attachmentFiles, setAttachmentFiles] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
-
+  const [selectedProperty, setSelectedProperty] = useState(null);
   const assignee = watch("assignee");
   useEffect(() => {
     if (id && singleTicket?.data) {
       const ticket = singleTicket.data;
 
+      setSelectedProperty(
+        ticket.propertyId
+          ? {
+            value: ticket.propertyId._id,
+            label: ticket.propertyId.propertyCode,
+            propLocation: ticket.propertyId.propertyLocation,
+          }
+          : null
+      );
+
       reset({
         ...ticket,
+
+        propertyId: ticket.propertyId?._id || "",
 
         targetDate: ticket.targetDate
           ? new Date(ticket.targetDate)
@@ -105,15 +115,6 @@ function TicketCreateEdit() {
   const PriorityOptions = options.priority || [];
   const StatusOptions = options.ticketstatus || [];
   const YesNoOptions = options.yesno || [];
-  
-  const propertiesOptions =
-    propertiesDropdown?.data?.map((property) => ({
-      value: property.propertyCode,
-      label: property.propertyCode,
-      propLocation: property.propertyLocation,
-    })) || [];
-
-
 
   const loadPropertyOptions = async (
     search,
@@ -125,13 +126,12 @@ function TicketCreateEdit() {
       limit: 10,
       search,
     });
-
     const options = [
       ...new Map(
         res.data.map((item) => [
           item.propertyCode,
           {
-            value: item.propertyCode,
+            value: item._id,
             label: item.propertyCode,
             propLocation: item.propertyLocation, // <-- Add this
           },
@@ -263,10 +263,6 @@ function TicketCreateEdit() {
     }
   };
 
-
-
-  const input =
-    "w-full border border-gray-300 rounded-lg px-3 py-2 hover  focus:ring-2 focus:ring-gray-500 outline-none";
   return (
     <div className="max-w-12xl mx-auto px-6">
 
@@ -316,7 +312,8 @@ function TicketCreateEdit() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex justify-between items-center  mb-4">
             <h2 className="text-xl font-semibold mb-4">Ticket Details</h2>
-            <div className="flex justify-end gap-5">
+            {id && (
+                <div className="flex justify-end gap-5">
               <button
                 type="button"
                 disabled={!navigation.previousId}
@@ -343,13 +340,15 @@ function TicketCreateEdit() {
                 Next
               </button>
             </div>
+            )}
+          
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
             {/* Property */}
             <Controller
-              name="propertyCode"
+              name="propertyId"
               control={control}
               rules={{
                 required: "Property is required",
@@ -357,7 +356,7 @@ function TicketCreateEdit() {
               render={({ field }) => (
                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                   <label className="select-label form-label required-label">
-                    Property
+                    Property Code
                   </label>
 
                   <AsyncPaginate
@@ -368,26 +367,16 @@ function TicketCreateEdit() {
                     placeholder=""
                     loadOptions={loadPropertyOptions}
                     styles={selectStyles}
-                    value={
-                      field.value
-                        ? {
-                          value: field.value,
-                          label: field.value,
-                        }
-                        : null
-                    }
+                    value={selectedProperty}
                     onChange={(selected) => {
-                      field.onChange(selected?.value || ""); // Sirf value save hogi
-
-                      setValue(
-                        "propertyLocation",
-                        selected?.propLocation || ""
-                      );
+                      setSelectedProperty(selected);
+                      field.onChange(selected?.value || "");
                     }}
                   />
-                  {errors.propertyCode && (
+
+                  {errors.propertyId && (
                     <p className="text-red-500 text-sm mt-1">
-                      {errors.propertyCode.message}
+                      {errors.propertyId.message}
                     </p>
                   )}
                 </div>
@@ -637,7 +626,7 @@ function TicketCreateEdit() {
                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                   <label className="select-label form-label required-label">Customer Impacted</label>
 
-               <Select
+                  <Select
                     {...field}
                     options={YesNoOptions}
                     placeholder=""
@@ -663,7 +652,7 @@ function TicketCreateEdit() {
                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
                   <label className="select-label">Escalated</label>
 
-                 <Select
+                  <Select
                     {...field}
                     options={YesNoOptions}
                     placeholder=""
@@ -750,22 +739,22 @@ function TicketCreateEdit() {
               />
             </div>
 
-          {id && (
+            {id && (
               <div className="form-group">
-              <textarea
+                <textarea
 
-                rows={5}
-                {...register("newWorkLog", {
-                 
-                })}
-                className="form-input"
-              />
-              <label className="form-label form-label ">
-                Add WorkLog
-              </label>
+                  rows={5}
+                  {...register("newWorkLog", {
 
-            </div>
-          )}
+                  })}
+                  className="form-input"
+                />
+                <label className="form-label form-label ">
+                  Add WorkLog
+                </label>
+
+              </div>
+            )}
 
             {id && (
               <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col md:col-span-1">

@@ -69,6 +69,7 @@ const BankTransactionEdit = () => {
                 expenseCategory: data.expenseCategory || "",
                 status: data.status || "",
                 comment: data.comment || "",
+                isMapped: data.isMapped ?? false,
             });
 
             if (data.propertyId) {
@@ -120,7 +121,8 @@ const BankTransactionEdit = () => {
             status: data.status || "",
             updatedByName: currentUser?.user?.name,
             comment: data.comment || "",
-            expenseCode: data.expensecode
+            expenseCode: data.expensecode,
+            isMapped: data.isMapped ?? false,
         };
 
         updateTransaction(
@@ -302,6 +304,38 @@ const BankTransactionEdit = () => {
                                     ₹ {Number(transaction.deposit || 0).toLocaleString("en-IN")}
                                 </p>
                             </div>
+                            <div>
+                                <p className="text-[11px] text-gray-600 uppercase tracking-wide mb-1">
+                                    Mapped
+                                </p>
+
+                                <Controller
+                                    name="isMapped"
+                                    control={control}
+                                    defaultValue={false}
+                                    render={({ field }) => (
+                                        <button
+                                            type="button"
+                                            onClick={() => field.onChange(!field.value)}
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${field.value
+                                                ? "bg-green-500"
+                                                : "bg-gray-300"
+                                                }`}
+                                        >
+                                            <span
+                                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${field.value
+                                                    ? "translate-x-6"
+                                                    : "translate-x-1"
+                                                    }`}
+                                            />
+                                        </button>
+                                    )}
+                                />
+
+                                <span className="ml-2 text-sm font-medium text-gray-700">
+                                    {watch("isMapped") ? "Yes" : "No"}
+                                </span>
+                            </div>
                             {transaction?.assignee && (
                                 <div>
                                     <p className="text-[11px] text-gray-600 uppercase tracking-wide mb-1">
@@ -339,7 +373,8 @@ const BankTransactionEdit = () => {
                 </div>
 
                 {/* ================= EDIT SECTION ================= */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                {transaction?.isMapped === false && (
+                     <div className="bg-white rounded-xl shadow-sm border border-gray-200">
                     <div className="px-6 py-4 border-b border-gray-200">
                         <h2 className="text-lg font-semibold text-gray-800">
                             Update Information
@@ -572,6 +607,8 @@ const BankTransactionEdit = () => {
                         )}
                     </div>
                 </div>
+                )}
+               
 
                 {/* ================= FOOTER ================= */}
                 <div className="flex justify-end gap-3 pb-5">

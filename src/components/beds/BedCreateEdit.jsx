@@ -636,26 +636,35 @@ const BedCreateEdit = () => {
               )}
             />
 
-            <div className="form-group">
-              <input
-                {...register("freeEbAsPerBed", 
-                   {
-                  required: "Free EB Amount is required",
-                  validate: (value) =>
-                    value?.trim() !== "" || "Free EB Amount is required",
-                }
-                )}
-                placeholder="eg - 5,6,8"
-                type="number"
-                className="form-input"
-              />
-              <label className="form-label required-label">Free EB As Per Bed</label>
-                 {errors.freeEbAsPerBed && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.freeEbAsPerBed.message}
-                </p>
-              )}
-            </div>
+<div className="form-group">
+  <input
+    {...register("freeEbAsPerBed", {
+      required: "Free EB Amount is required",
+      validate: (value) =>
+        value !== undefined &&
+        value !== null &&
+        value !== "" &&
+        Number(value) >= 0
+          ? true
+          : "Free EB Amount is required",
+    })}
+    placeholder="eg - 5,6,8"
+    type="number"
+    className="form-input"
+  />
+
+  <label className="form-label required-label">
+    Free EB As Per Bed
+  </label>
+
+  {errors.freeEbAsPerBed && (
+    <p className="mt-1 text-xs text-red-500">
+      {errors.freeEbAsPerBed.message}
+    </p>
+  )}
+</div>
+
+
 
 
 

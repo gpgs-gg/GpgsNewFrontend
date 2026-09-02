@@ -1,5 +1,6 @@
 import React from "react";
 import { X } from "lucide-react";
+import Loader from "../common/Loader";
 
 const ExportDrawer = ({
     isOpen,
@@ -10,6 +11,7 @@ const ExportDrawer = ({
     selectedTickets,
     totalTickets,
     onExport,
+    isExporting
 }) => {
 
     const handleColumnSelect = (columnKey) => {
@@ -130,33 +132,33 @@ const ExportDrawer = ({
                 </div>
 
                 {/* Column List */}
-              <div className="flex-1 overflow-auto p-4">
+                <div className="flex-1 overflow-auto p-4">
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 min-w-max">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 min-w-max">
 
-        {fullHeaders.map((header) => (
+                        {fullHeaders.map((header) => (
 
-            <label
-                key={header.key}
-                className="flex items-center gap-1 rounded-lg px-1 py-2 hover:bg-orange-50 cursor-pointer transition min-w-max"
-            >
-                <input
-                    type="checkbox"
-                    checked={selectedColumns.has(header.key)}
-                    onChange={() => handleColumnSelect(header.key)}
-                    className="h-3 w-3 rounded-full accent-gray-500 shrink-0"
-                />
+                            <label
+                                key={header.key}
+                                className="flex items-center gap-1 rounded-lg px-1 py-2 hover:bg-orange-50 cursor-pointer transition min-w-max"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={selectedColumns.has(header.key)}
+                                    onChange={() => handleColumnSelect(header.key)}
+                                    className="h-3 w-3 rounded-full accent-gray-500 shrink-0"
+                                />
 
-                <span className="text-sm font-medium whitespace-nowrap">
-                    {header.label}
-                </span>
-            </label>
+                                <span className="text-sm font-medium whitespace-nowrap">
+                                    {header.label}
+                                </span>
+                            </label>
 
-        ))}
+                        ))}
 
-    </div>
+                    </div>
 
-</div>
+                </div>
 
                 {/* Footer */}
                 <div className="border-t p-4 bg-gray-50 flex gap-3">
@@ -170,9 +172,10 @@ const ExportDrawer = ({
 
                     <button
                         onClick={onExport}
-                        className="flex-1 bg-gradient-to-r theme-btn text-white py-3 rounded-lg font-semibold hover:opacity-90"
+                        disabled={isExporting}
+                        className="flex-1 bg-gradient-to-r theme-btn text-white py-3 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Export CSV
+                        {isExporting ? <div className='flex justify-center items-center gap-2'><Loader /> Exporting...</div> : "Export CSV"}
                     </button>
 
                 </div>

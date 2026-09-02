@@ -141,11 +141,11 @@ function ACEBAreaList() {
                                         >
                                             {/* Employee ID */}
                                             <td className="p-3">
-                                                {item.propertyCode || "-"}
+                                                {item.propertyId?.propertyCode || "-"}
                                             </td>
                                             {/* Name */}
                                             <td className="p-3 font-semibold">
-                                                {item.location}
+                                                {item?.propertyId?.propertyLocation}
                                             </td>
                                             <td className="p-3">
                                                 {Array.isArray(item.areas) ? item.areas.length : 0}

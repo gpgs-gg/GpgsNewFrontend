@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -15,10 +15,11 @@ import {
     usePreviousACEBReadingData,
 } from "./services";
 import { convertStringFormatDate } from "../../utils/dateFormatter";
+import EbAttendance from "./EbAttendance";
 
 const ACEBReadingCreateEdit = () => {
     const navigate = useNavigate();
-    const { propertyId, id } = useParams();
+    const { roomId, id } = useParams();
     const isEdit = !!id;
 
     const {
@@ -30,14 +31,16 @@ const ACEBReadingCreateEdit = () => {
         formState: { errors, isDirty },
     } = useForm({
         defaultValues: {
-            propertyId: propertyId || "",
-            month: "", 
+            roomId: roomId || "",
+            month: "",
             date: "",
             flatTotalEB: "",
             flatTotalUnits: "",
+            eBToBeRecovered : "",
             roomReadings: [],
         },
     });
+const [totalFreeEB, setTotalFreeEB] = useState(0);
 
     const {
         fields: roomFields,
@@ -50,7 +53,7 @@ const ACEBReadingCreateEdit = () => {
     const {
         data: propertyResponse,
         isLoading: propertyLoading,
-    } = useSinglePropertyData(propertyId);
+    } = useSinglePropertyData(roomId);
 
     const property = propertyResponse?.data;
 
@@ -72,7 +75,7 @@ const ACEBReadingCreateEdit = () => {
         data: previousReadingResponse,
         isLoading: previousReadingLoading,
     } = usePreviousACEBReadingData({
-        propertyId,
+        roomId,
         month: watch("month"),
         enabled: !isEdit,
     });
@@ -167,7 +170,7 @@ const ACEBReadingCreateEdit = () => {
             propertyId:
                 existingReading.propertyId?._id ||
                 existingReading.propertyId ||
-                propertyId,
+                roomId,
 
             month: existingReading.month || "",
             date: existingReading.date
@@ -175,6 +178,8 @@ const ACEBReadingCreateEdit = () => {
                 : "",
             flatTotalEB:
                 existingReading.flatTotalEB ?? "",
+            eBToBeRecovered:
+                existingReading.eBToBeRecovered ?? "",
             flatTotalUnits:
                 existingReading.flatTotalUnits ?? "",
             roomReadings: mergedRooms,
@@ -184,7 +189,7 @@ const ACEBReadingCreateEdit = () => {
         existingReading,
         property,
         propertyRooms,
-        propertyId,
+        roomId,
         reset,
     ]);
 
@@ -192,18 +197,20 @@ const ACEBReadingCreateEdit = () => {
         watch("roomReadings") || [];
 
     const onSubmit = (data) => {
-            if (!isDirty) {
-              toast.dismiss();
-              toast.info("No changes detected.");
-              return;
-            }
+        if (!isDirty) {
+            toast.dismiss();
+            toast.info("No changes detected.");
+            return;
+        }
         const payload = {
-            propertyId: propertyId,
+            roomId: roomId,
             month: data.month,
             lastMonth: data.month,
             date: convertStringFormatDate(data.date),
             flatTotalEB:
                 Number(data.flatTotalEB || 0),
+           eBToBeRecovered :
+                Number(data.flatTotalEB || 0) - Number(totalFreeEB || 0),
             flatTotalUnits:
                 Number(data.flatTotalUnits || 0),
             roomReadings:
@@ -234,7 +241,7 @@ const ACEBReadingCreateEdit = () => {
                             "Reading updated successfully"
                         );
                         navigate(
-                            `/aceb-area/reading/${propertyId}`
+                            `/aceb-area/reading/${roomId}`
                         );
                     },
                     onError: (err) => {
@@ -259,7 +266,7 @@ const ACEBReadingCreateEdit = () => {
                         "Reading created successfully"
                     );
                     navigate(
-                        `/aceb-area/reading/${propertyId}`
+                        `/aceb-area/reading/${roomId}`
                     );
                 },
                 onError: (err) => {
@@ -293,7 +300,7 @@ const ACEBReadingCreateEdit = () => {
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
                             <Link
-                                to={`/aceb-area/reading/${propertyId}`}
+                                to={`/aceb-area/reading/${roomId}`}
                                 className="p-2 border rounded-lg hover:bg-gray-100"
                             >
                                 <ArrowLeft size={20} />
@@ -305,15 +312,13 @@ const ACEBReadingCreateEdit = () => {
                                         : "Add Electricity Reading"}
                                 </h1>
                                 <p className="text-sm text-gray-500">
-                                    {property?.propertyCode}{" "}
-                                    -{" "}
-                                    {property?.propertyName}
+                                    {property?.propertyId?.propertyCode}{" "}
                                 </p>
                             </div>
                         </div>
                         <div className="flex gap-3">
                             <Link
-                                to={`/aceb-area/reading/${propertyId}`}
+                                to={`/aceb-area/reading/${roomId}`}
                             >
                                 <button
                                     type="button"
@@ -347,12 +352,12 @@ const ACEBReadingCreateEdit = () => {
                             Reading Details
                         </h2>
                     </div>
-                    <div className="p-6 grid md:grid-cols-4 gap-5">
+                    <div className="px-6 py-2 grid md:grid-cols-7 gap-5">
                         {/* PROPERTY */}
                         <div className="form-group">
                             <input
                                 value={
-                                    property?.propertyCode ||
+                                    property?.propertyId?.propertyCode ||
                                     ""
                                 }
                                 disabled
@@ -440,18 +445,22 @@ const ACEBReadingCreateEdit = () => {
                                 Total Rooms
                             </label>
                         </div>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm">
-                    <div className="px-6 py-4 ">
-                        <h2 className="text-lg font-semibold">
-                            Flat Electricity Details
-                        </h2>
-                    </div>
-                    <div className="p-6 grid md:grid-cols-4 gap-5">
-                        {/* TOTAL EB */}
-                        <div className="form-group">
+                         
+                             <div className="form-group">
+                            <input
+                                type="number"
+                                step="0.01"
+                                {...register("eBToBeRecovered" )}
+                                className="form-input cursor-not-allowed"
+                                placeholder=" "
+                                disabled
+                            />
+                            <label className="form-label required-label">
+                                EB To Be Recovered
+                            </label>
+                         
+                        </div>
+                            <div className="form-group">
                             <input
                                 type="number"
                                 step="0.01"
@@ -521,36 +530,27 @@ const ACEBReadingCreateEdit = () => {
                         </div>
                     </div>
                 </div>
-
+                <EbAttendance  property = {property} onFreeEBChange={setTotalFreeEB}/>
                 <div className="bg-white rounded-xl shadow-sm">
-                    <div className="px-6 py-4 ">
-                        <h2 className="text-lg font-semibold">
-                            Room Readings
-                        </h2>
-                        <p className="text-sm text-gray-500">
-                            Enter current meter reading for
-                            each room
-                        </p>
-                    </div>
                     <div className="p-6 overflow-x-auto">
-                        <table className="w-full border ">
+                        <table className="w-full border  ">
                             <thead className="bg-gray-100">
                                 <tr>
-                                    <th className="p-3 text-left border">
+                                    <th className="p-3 text-left border border-gray-200">
                                         Room
                                     </th>
-                                    <th className="p-3 text-left border">
-                                        Previous Reading
+                                    <th className="p-3 text-left border border-gray-200">
+                                        Previous Meter Reading
                                     </th>
-                                    <th className="p-3 text-left border">
-                                        Current Reading
+                                    <th className="p-3 text-left border border-gray-200">
+                                        Current Meter Reading
                                     </th>
                                     {isEdit && (
                                         <>
-                                            <th className="p-3 text-left border">
+                                            <th className="p-3 text-left border border-gray-200">
                                                 Units
                                             </th>
-                                            <th className="p-3 text-left border">
+                                            <th className="p-3 text-left border border-gray-200">
                                                 ACEB
                                             </th>
                                         </>
@@ -566,7 +566,7 @@ const ACEBReadingCreateEdit = () => {
                                                 className="border-t"
                                             >
                                                 {/* ROOM */}
-                                                <td className="p-3 border font-semibold">
+                                                <td className="p-3 border font-semibold border-gray-200">
                                                     {field.name}
                                                     <input
                                                         type="hidden"
@@ -582,7 +582,7 @@ const ACEBReadingCreateEdit = () => {
                                                     />
                                                 </td>
                                                 {/* PREVIOUS */}
-                                                <td className="p-3 border">
+                                                <td className="p-3 border border-gray-200">
                                                     <input
                                                         type="number"
                                                         step="0.01"
@@ -615,7 +615,7 @@ const ACEBReadingCreateEdit = () => {
                                                     )}
                                                 </td>
                                                 {/* CURRENT */}
-                                                <td className="p-3 border">
+                                                <td className="p-3 border border-gray-200">
                                                     <input
                                                         type="number"
                                                         step="0.01"
@@ -782,7 +782,7 @@ const ACEBReadingCreateEdit = () => {
                 )}
                 <div className="rounded-xl px-6 py-4 flex justify-end gap-3">
                     <Link
-                        to={`/aceb-area/reading/${propertyId}`}
+                        to={`/aceb-area/reading/${roomId}`}
                     >
                         <button
                             type="button"
@@ -808,6 +808,7 @@ const ACEBReadingCreateEdit = () => {
                     </button>
                 </div>
             </form>
+
         </div>
     );
 };
