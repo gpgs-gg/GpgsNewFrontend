@@ -97,13 +97,23 @@ const updatePropertiesData = async ({ id, data }) => {
   const response = await apiClient.put(`/properties/${id}`, data);
   return response.data;
 };
+
 export const useUpdatePropertiesData = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: updatePropertiesData,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["properties-data"]);
+
+    onSuccess: (_, variables) => {
+      // Refresh property list
+      queryClient.invalidateQueries({
+        queryKey: ["properties-data"],
+      });
+
+      // Refresh single property
+      queryClient.invalidateQueries({
+        queryKey: ["property", variables.id],
+      });
     },
   });
 };
@@ -160,8 +170,6 @@ export const useDeletePropertyData = () => {
     },
   });
 };
-
-
 
 // ====================== DELETE MULTIPLE PROPERTIES ======================
 const deleteMultiplePropertiesData = async (ids) => {

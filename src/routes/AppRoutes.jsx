@@ -28,6 +28,7 @@ import Options from "../pages/Options";
 import BedsTable from "../pages/Beds";
 import Sidebar from "../pages/Sidebar";
 import Permission from "../pages/Permission";
+import HomePage from "../pages/HomePage";
 
 import ModuleCreateEdit from "../components/moduleSidebar/ModuleCreateEdit";
 import RolePermissionCreateEdit from "../components/RolePermission/RolePermissionCreateEdit";
@@ -59,10 +60,15 @@ import EBInfoCreateEdit from "../components/EBInfo/EBInfoCreateEdit";
 import BankTransactionEdit from "../components/Banktransactions/BankTransationEdit";
 import BankStatementUpload from "../components/Banktransactions/BankTransactionUpload";
 import EBCalculation from "../components/EbCalculator/EbCalculator";
+import EBCalculationDataPage from "../pages/EBCalculationDataPage";
+import EBCalculationData from "../clientComponents/EBCalculation/EBCalculationData";
+import PropAndPersDetails from "../clientComponents/PropAndPersDetails/PropAndPersDetails";
+
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+      <Route path="/" element={<HomePage/>} />
 
       <Route
         path="/login"
@@ -88,6 +94,7 @@ const AppRoutes = () => {
           <Route path="/beds" element={<BedsTable />} />
           <Route path="/bed/create" element={<BedCreateEdit />} />
           <Route path="/bed/edit/:id" element={<BedCreateEdit />} />
+          <Route path="/bed/view/:id" element={<BedCreateEdit />} />
           <Route path="/new-bookings" element={<NewBookingTable />} />
           <Route path="/new-bookings/create" element={<NewBookingCreateEdit />} />
           <Route path="/new-bookings/edit/:id" element={<NewBookingCreateEdit />} />
@@ -147,7 +154,10 @@ const AppRoutes = () => {
           <Route path="/permissions/create" element={<RolePermissionCreateEdit />} />
           <Route path="/permissions/employee/:id/edit" element={<RolePermissionCreateEdit />} />
           <Route path="/permissions/employee/:id" element={<RolePermissionCreateEdit mode="view" />} />
-                    <Route path="/eb-calculator" element={<EBCalculation />} />
+          <Route path="/eb-calculator" element={<EBCalculation />} />
+          <Route path="/eb-calcul-data-details" element={<EBCalculationDataPage />} />
+          <Route path="/eb-details-for-clients" element={<EBCalculationData />} />
+          <Route path="/prop-perso-details" element={<PropAndPersDetails />} />
 
         </Route>
       </Route>

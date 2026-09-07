@@ -12,6 +12,7 @@ const BedFilter = ({
   onApply,
   handleReset,
   resetTrigger,
+  initialFilters = {},
 }) => {
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
@@ -106,10 +107,10 @@ const BedFilter = ({
   ];
   // Sharing Type Options
   const sharingTypeOptions = [
-    { value: "Single", label: "Single" },
+    { value: "Private", label: "Private" },
     { value: "Double", label: "Double" },
     { value: "Triple", label: "Triple" },
-    { value: "Four Sharing", label: "Four Sharing" },
+    { value: "Quad", label: "Quad" },
   ];
   // Bath Attached Options
   const bathAttachedOptions = [
@@ -123,8 +124,24 @@ const BedFilter = ({
   ];
   const onSubmit = (data) => {
     const filters = {
-      ...data,
       propertyId: data.propertyId?.value || "",
+      propertyCode: data.propertyId?.label || "",
+
+      propertyLocation: data.propertyLocation || "",
+      roomNo: data.roomNo || "",
+      bedNo: data.bedNo || "",
+      gender: data.gender || "",
+      sharingType: data.sharingType || "",
+      bathAttached: data.bathAttached || "",
+      acRoom: data.acRoom || "",
+
+      monthlyRentMin: data.monthlyRentMin || "",
+      monthlyRentMax: data.monthlyRentMax || "",
+
+      depositAmountMin: data.depositAmountMin || "",
+      depositAmountMax: data.depositAmountMax || "",
+
+      status: data.status || "",
     };
     const labels = [
       data.propertyId && {
@@ -211,15 +228,73 @@ const BedFilter = ({
     onClose();
   };
   useEffect(() => {
+    if (!isOpen) return;
+
     reset({
-      propertyId: "",
+      propertyId: initialFilters.propertyId
+        ? {
+            value: initialFilters.propertyId,
+            label: initialFilters.propertyCode || initialFilters.propertyId,
+          }
+        : null,
+
+      propertyLocation: initialFilters.propertyLocation || "",
+      roomNo: initialFilters.roomNo || "",
+      bedNo: initialFilters.bedNo || "",
+      gender: initialFilters.gender || "",
+      sharingType: initialFilters.sharingType || "",
+      bathAttached: initialFilters.bathAttached || "",
+      acRoom: initialFilters.acRoom || "",
+
+      monthlyRentMin: initialFilters.monthlyRentMin || "",
+      monthlyRentMax: initialFilters.monthlyRentMax || "",
+
+      depositAmountMin: initialFilters.depositAmountMin || "",
+      depositAmountMax: initialFilters.depositAmountMax || "",
+
+      upcomingRentHikeDateFrom: initialFilters.upcomingRentHikeDateFrom || "",
+      upcomingRentHikeDateTo: initialFilters.upcomingRentHikeDateTo || "",
+
+      upcomingRentHikeAmountMin: initialFilters.upcomingRentHikeAmountMin || "",
+      upcomingRentHikeAmountMax: initialFilters.upcomingRentHikeAmountMax || "",
+
+      previousRentHikeDateFrom: initialFilters.previousRentHikeDateFrom || "",
+      previousRentHikeDateTo: initialFilters.previousRentHikeDateTo || "",
+
+      status: initialFilters.status || "",
+    });
+  }, [isOpen, reset]);
+  useEffect(() => {
+    if (!resetTrigger) return;
+
+    reset({
+      propertyId: null,
+      propertyLocation: "",
+      roomNo: "",
+      bedNo: "",
       gender: "",
       sharingType: "",
       bathAttached: "",
-      propertyLocation: "",
       acRoom: "",
-      roomNo: "",
-      bedNo: "",
+
+      monthlyRentMin: "",
+      monthlyRentMax: "",
+
+      sdmfMin: "",
+      sdmfMax: "",
+
+      depositAmountMin: "",
+      depositAmountMax: "",
+
+      upcomingRentHikeDateFrom: "",
+      upcomingRentHikeDateTo: "",
+
+      upcomingRentHikeAmountMin: "",
+      upcomingRentHikeAmountMax: "",
+
+      previousRentHikeDateFrom: "",
+      previousRentHikeDateTo: "",
+
       status: "",
     });
   }, [resetTrigger, reset]);

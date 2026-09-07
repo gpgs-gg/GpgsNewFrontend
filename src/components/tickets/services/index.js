@@ -15,7 +15,7 @@ import { apiClient } from "../../../api/ApiClient";
 // };
 
 // Get tickets data with pagination, search, and filters
- const getTicketsData = async ({
+export const getTicketsData = async ({
   page = 1,
   limit = 10,
   search = "",

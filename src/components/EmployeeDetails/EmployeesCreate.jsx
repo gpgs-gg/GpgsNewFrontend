@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useBatchOptions } from "../Options/services";
 import {
-  useEmployeeDetailsData,
+  useEmployeeById,
   useUpdateEmployee,
   useCreateEmployee,
   useUploadEmployeeDocs,
@@ -99,7 +99,7 @@ const EmployeesCreateEdit = () => {
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      status: "ACTIVE",
+      status: "active",
       Role: "Employee",
       workingHours: "9",
       halfDayHours: "5",
@@ -144,7 +144,7 @@ const EmployeesCreateEdit = () => {
     useUpdateEmployee();
   const isUpdating = isCreateEmployee || isUpdateEmployee;
   const { data: employeeData, isPending: isSingleEmployee } =
-    useEmployeeDetailsData(id);
+    useEmployeeById(id);
   const { mutate: uploadEmployeeDocs, isPending: isUploadingDocs } =
     useUploadEmployeeDocs();
 
@@ -179,7 +179,7 @@ const EmployeesCreateEdit = () => {
     "roleoptions",
     "subsidiaryoptions",
     "teamcode",
-    "activeinactivestatus"
+    "activeinactivestatus",
   ]);
 
   const DepartmentOptions = options.department || [];
@@ -284,7 +284,7 @@ const EmployeesCreateEdit = () => {
       halfDayHours: data.halfDayHours || "5",
       dateOfJoining: data.DOJ || null,
       dateOfBirth: data.DOB || null,
-      status: isEdit ? data.status : "ACTIVE",
+      status: isEdit ? data.status : "active",
       // CONTACT
       whatsappNo: data.contact?.whatsappNo || "",
       callingNo: data.contact?.callingNo || "",
@@ -621,9 +621,7 @@ const EmployeesCreateEdit = () => {
                 className="form-input"
               />
 
-              <label className="form-label required-label">
-                Full Name 
-              </label>
+              <label className="form-label required-label">Full Name</label>
               {errors.Name && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.Name.message}
@@ -640,7 +638,7 @@ const EmployeesCreateEdit = () => {
                   className={`select-group ${field.value ? "has-value" : ""}`}
                 >
                   <label className="select-label required-label">
-                    Department 
+                    Department
                   </label>
 
                   <Select

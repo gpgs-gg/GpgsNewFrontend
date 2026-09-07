@@ -5,6 +5,8 @@ import { selectStyles } from "../../utils/selectStyles";
 import { AsyncPaginate } from "react-select-async-paginate";
 import { X } from "lucide-react";
 import { getPropertyDropdown } from "../properties/services/index";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const NewBookingFilter = ({
   isOpen,
@@ -13,6 +15,7 @@ const NewBookingFilter = ({
   onApply,
   handleReset,
   resetTrigger,
+  initialFilters = {},
 }) => {
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
@@ -109,8 +112,13 @@ const NewBookingFilter = ({
   const onSubmit = (data) => {
     const filters = {
       ...data,
+      // Main property
       propertyId: data.propertyId?.value || "",
+      propertyCode: data.propertyId?.label || "",
+
+      // Temporary property
       temporaryPropertyId: data.temporaryPropertyId?.value || "",
+      temporaryPropertyCode: data.temporaryPropertyId?.label || "",
     };
 
     const labels = [
@@ -259,7 +267,65 @@ const NewBookingFilter = ({
     onApply(filters, labels);
     onClose();
   };
+  useEffect(() => {
+    if (!isOpen) return;
 
+    reset({
+      teamCode: initialFilters.teamCode || "",
+      fullName: initialFilters.fullName || "",
+      callingNo: initialFilters.callingNo || "",
+      whatsappNo: initialFilters.whatsappNo || "",
+      status: initialFilters.status || "",
+      bookingType: initialFilters.bookingType || "",
+
+      propertyId: initialFilters.propertyId
+        ? {
+          value: initialFilters.propertyId,
+          label: initialFilters.propertyCode || initialFilters.propertyId,
+        }
+        : null,
+
+      propertyLocation: initialFilters.propertyLocation || "",
+      roomNo: initialFilters.roomNo || "",
+      bedNo: initialFilters.bedNo || "",
+
+      temporaryPropertyId: initialFilters.temporaryPropertyId
+        ? {
+          value: initialFilters.temporaryPropertyId,
+          label:
+            initialFilters.temporaryPropertyCode ||
+            initialFilters.temporaryPropertyId,
+        }
+        : null,
+
+      temporaryBedNo: initialFilters.temporaryBedNo || "",
+
+      clientDojFrom: initialFilters.clientDojFrom || "",
+      clientDojTo: initialFilters.clientDojTo || "",
+
+      temporaryClientDojFrom: initialFilters.temporaryClientDojFrom || "",
+
+      temporaryClientDojTo: initialFilters.temporaryClientDojTo || "",
+
+      monthlyRentMin: initialFilters.monthlyRentMin || "",
+      monthlyRentMax: initialFilters.monthlyRentMax || "",
+
+      depositAmountMin: initialFilters.depositAmountMin || "",
+      depositAmountMax: initialFilters.depositAmountMax || "",
+
+      processingFeesMin: initialFilters.processingFeesMin || "",
+      processingFeesMax: initialFilters.processingFeesMax || "",
+
+      totalAmountMin: initialFilters.totalAmountMin || "",
+      totalAmountMax: initialFilters.totalAmountMax || "",
+
+      bookingAmountMin: initialFilters.bookingAmountMin || "",
+      bookingAmountMax: initialFilters.bookingAmountMax || "",
+
+      balanceAmountMin: initialFilters.balanceAmountMin || "",
+      balanceAmountMax: initialFilters.balanceAmountMax || "",
+    });
+  }, [isOpen, initialFilters, reset]);
   // Reset form when resetTrigger changes
   useEffect(() => {
     reset({
@@ -301,9 +367,8 @@ const NewBookingFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-[380px] bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-[380px] bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="flex justify-between items-center p-5 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600">
           <h2 className="font-bold text-lg">Filters</h2>
@@ -453,62 +518,160 @@ const NewBookingFilter = ({
             />
 
             {/* Client DOJ Range */}
+            {/* Client DOJ Range */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Client DOJ
               </label>
+
               <div className="grid grid-cols-2 gap-3">
+                {/* DOJ From */}
                 <Controller
                   name="clientDojFrom"
                   control={control}
                   render={({ field }) => (
-                    <input
-                      {...field}
-                      type="date"
-                      className="border rounded-lg px-3 py-2 w-full"
-                    />
+                    <div
+                      className={`datepicker-group ${field.value ? "has-value" : ""
+                        }`}
+                    >
+                      <DatePicker
+                        selected={field.value ? new Date(field.value) : null}
+                        onChange={(date) => {
+                          if (date) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(
+                              2,
+                              "0",
+                            );
+                            const day = String(date.getDate()).padStart(2, "0");
+
+                            field.onChange(`${year}-${month}-${day}`);
+                          } else {
+                            field.onChange("");
+                          }
+                        }}
+                        dateFormat="dd MMM yyyy"
+                        isClearable
+                        placeholderText="From Date"
+                        popperPlacement="bottom-start"
+                        className="custom-datepicker w-full"
+                      />
+                    </div>
                   )}
                 />
+
+                {/* DOJ To */}
                 <Controller
                   name="clientDojTo"
                   control={control}
                   render={({ field }) => (
-                    <input
-                      {...field}
-                      type="date"
-                      className="border rounded-lg px-3 py-2 w-full"
-                    />
+                    <div
+                      className={`datepicker-group ${field.value ? "has-value" : ""
+                        }`}
+                    >
+                      <DatePicker
+                        selected={field.value ? new Date(field.value) : null}
+                        onChange={(date) => {
+                          if (date) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(
+                              2,
+                              "0",
+                            );
+                            const day = String(date.getDate()).padStart(2, "0");
+
+                            field.onChange(`${year}-${month}-${day}`);
+                          } else {
+                            field.onChange("");
+                          }
+                        }}
+                        dateFormat="dd MMM yyyy"
+                        isClearable
+                        popperPlacement="bottom-end"
+                        placeholderText="To Date"
+                        className="custom-datepicker w-full"
+                      />
+                    </div>
                   )}
                 />
               </div>
             </div>
 
             {/* Temporary Client DOJ Range */}
+            {/* Temporary Client DOJ Range */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Temp Client DOJ
               </label>
+
               <div className="grid grid-cols-2 gap-3">
+                {/* Temp DOJ From */}
                 <Controller
                   name="temporaryClientDojFrom"
                   control={control}
                   render={({ field }) => (
-                    <input
-                      {...field}
-                      type="date"
-                      className="border rounded-lg px-3 py-2 w-full"
-                    />
+                    <div
+                      className={`datepicker-group ${field.value ? "has-value" : ""
+                        }`}
+                    >
+                      <DatePicker
+                        selected={field.value ? new Date(field.value) : null}
+                        onChange={(date) => {
+                          if (date) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(
+                              2,
+                              "0",
+                            );
+                            const day = String(date.getDate()).padStart(2, "0");
+
+                            field.onChange(`${year}-${month}-${day}`);
+                          } else {
+                            field.onChange("");
+                          }
+                        }}
+                        dateFormat="dd MMM yyyy"
+                        isClearable
+                        placeholderText="From Date"
+                        popperPlacement="bottom-start"
+                        className="custom-datepicker w-full"
+                      />
+                    </div>
                   )}
                 />
+
+                {/* Temp DOJ To */}
                 <Controller
                   name="temporaryClientDojTo"
                   control={control}
                   render={({ field }) => (
-                    <input
-                      {...field}
-                      type="date"
-                      className="border rounded-lg px-3 py-2 w-full"
-                    />
+                    <div
+                      className={`datepicker-group ${field.value ? "has-value" : ""
+                        }`}
+                    >
+                      <DatePicker
+                        selected={field.value ? new Date(field.value) : null}
+                        onChange={(date) => {
+                          if (date) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(
+                              2,
+                              "0",
+                            );
+                            const day = String(date.getDate()).padStart(2, "0");
+
+                            field.onChange(`${year}-${month}-${day}`);
+                          } else {
+                            field.onChange("");
+                          }
+                        }}
+                        dateFormat="dd MMM yyyy"
+                        isClearable
+                        placeholderText="To Date"
+                        className="custom-datepicker w-full"
+                        popperPlacement="bottom-start"
+                      />
+                    </div>
                   )}
                 />
               </div>

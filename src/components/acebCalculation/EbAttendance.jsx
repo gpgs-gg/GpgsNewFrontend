@@ -26,7 +26,6 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
     const [dates, setDates] = useState({});
     const [headerDays, setHeaderDays] = useState([]);
     const [adjustedFreeEB, setAdjustedFreeEB] = useState({});
-    const [adjustedEB, setAdjustedEB] = useState({});
     const [electricityAmt, setElectricityAmt] = useState(0);
     const [ebToBeRecovered, setEbToBeRecovered] = useState(0);
     const [totalUnits, setTotalUnits] = useState(0);
@@ -36,6 +35,7 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
     const [selectedProperty, setSelectedProperty] = useState(null);
     const [sheetData, setSheetData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [adjustedEB, setAdjustedEB] = useState(0);
     const [isACProperty, setIsACProperty] = useState(false);
 
     const {
@@ -269,58 +269,6 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
         return false;
     };
 
-    // Get present count for date
-    const getPresentCountForDate = (date) => {
-        if (!clients?.length) return 0;
-
-        const currentDate = normalizeDate(date);
-
-        return clients
-            .filter(ele => ele.fullName && ele.fullName.trim() !== "")
-            .reduce((count, ele) => {
-                const doj = ele.ebDoj ? normalizeDate(new Date(ele.ebDoj)) : null;
-                if (doj && currentDate < doj) return count;
-                if (isClientOnVacation(ele, currentDate)) return count;
-                return count + 1;
-            }, 0);
-    };
-
-    // Get client EB for date
-    const getClientEBForDate = (client, date) => {
-        const currentDate = normalizeDate(date);
-        const billEnd = endDate ? normalizeDate(endDate) : null;
-
-        // Check DOJ
-        const doj = client.ebDoj ? normalizeDate(new Date(client.ebDoj)) : null;
-        if (doj && billEnd && doj > billEnd) return 0;
-        if (doj && currentDate < doj) return 0;
-
-        // Check vacation
-        if (isClientOnVacation(client, currentDate)) return 0;
-
-        // Get present count
-        const presentCount = getPresentCountForDate(date);
-        if (!presentCount) return 0;
-
-        // Calculate per day EB
-        const totalDaysCount = headerDays.length;
-
-        // For AC property: use CommonTotalEB from sheetData
-        // For non-AC: use the entered electricity amount
-        let ebToRecover = 0;
-        if (isACProperty && sheetData) {
-            ebToRecover = Number(sheetData.CommonTotalEB) || 0;
-        } else {
-            ebToRecover = Number(ebToBeRecovered) || 0;
-        }
-
-        const perDayEB = totalDaysCount > 0
-            ? ebToRecover / totalDaysCount
-            : 0;
-
-        return perDayEB / presentCount;
-    };
-
     // =====================================================
     // FREE EB CALCULATION
     // =====================================================
@@ -366,7 +314,7 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
             );
         }, 0) || 0;
     const totalFreeEB =
-        totalNormalFreeEB + totalAdjustedFreeEB;
+        Number(totalNormalFreeEB) + Number(adjustedEB);
     useEffect(() => {
         onFreeEBChange?.(Number(totalFreeEB) || 0);
     }, [totalFreeEB, onFreeEBChange]);
@@ -498,7 +446,7 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                     </div> */}
 
                     <div className="shrink-0 min-w-45">
-                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">
+                        <label className="block text-xs font-semibold text-gray-700 upprcase tracking-wide mb-1">
                             Bill Start Date <span className="text-red-500">*</span>
                         </label>
                         <DatePicker
@@ -515,7 +463,7 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                     </div>
 
                     <div className="shrink-0 min-w-45">
-                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">
+                        <label className="block text-xs font-semibold text-gray-700  tracking-wide mb-1">
                             Bill End Date <span className="text-red-500">*</span>
                         </label>
                         <DatePicker
@@ -532,8 +480,8 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                     </div>
 
                     <div className="shrink-0 min-w-50">
-                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">
-                            ED Calculation Sheet Name <span className="text-red-500">*</span>
+                        <label className="block text-xs font-semibold text-gray-700  tracking-wide mb-1">
+                            ED Calculation Month <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
@@ -543,28 +491,28 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                         />
                     </div>
                     <div className="shrink-0 min-w-37.5">
-                        <label className="flex justify-between items-center text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">
+                        <label className="flex justify-between items-center text-xs font-semibold text-gray-700  tracking-wide mb-1">
                             <span>Total Free EB</span>
 
                             <button
                                 type="button"
                                 onClick={() => setShowAttendance(!showAttendance)}
                                 className="text-red-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-            
+
                             >
                                 {showAttendance ? (
                                     <>
-                                      <div className='flex gap-3'>
-                                          <EyeOff size={16} strokeWidth={2} />
-                                        Attendance Details
-                                      </div>
+                                        <div className='flex gap-3'>
+                                            <EyeOff size={16} strokeWidth={2} />
+                                            Attendance Details
+                                        </div>
                                     </>
                                 ) : (
                                     <>
-                                    <div className='flex gap-3'>
-                                        <Eye size={16} strokeWidth={2} />
-                                        Attendance Details
-                                    </div>
+                                        <div className='flex gap-3'>
+                                            <Eye size={16} strokeWidth={2} />
+                                            Attendance Details
+                                        </div>
                                     </>
                                 )}
                             </button>
@@ -576,16 +524,17 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                             className={`${inputClass} bg-gray-50 cursor-not-allowed`}
                             disabled
                         />
-                      
+
                     </div>
                     <div className="shrink-0 min-w-37.5">
-                        <label className="flex justify-between items-center text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">
+                        <label className="flex justify-between items-center text-xs font-semibold text-gray-700  tracking-wide mb-1">
                             <span>Adjusted Free EB</span>
                         </label>
                         <input
-                            type="number"
-                            value={totalFreeEB || 0}
-                            className={`${inputClass}`}
+                            type="text"
+                            value={adjustedEB}
+                            onChange={(e) => setAdjustedEB(Number(e.target.value))}
+                            className={inputClass}
                         />
                     </div>
 

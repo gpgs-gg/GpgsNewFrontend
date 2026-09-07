@@ -12,6 +12,7 @@ const AvailableBedsFilter = ({
   onApply,
   handleReset,
   resetTrigger,
+  initialFilters = {},
 }) => {
   const defaultValues = {
     propertyId: null,
@@ -33,7 +34,7 @@ const AvailableBedsFilter = ({
 
     clientName: "",
     hasCvd: false,
-    sortByRent:false,
+    sortByRent: false,
   };
 
   const { control, handleSubmit, reset } = useForm({
@@ -107,8 +108,8 @@ const AvailableBedsFilter = ({
   // ===========================
   const sharingTypeOptions = [
     {
-      value: "Single",
-      label: "Single",
+      value: "Private",
+      label: "Private",
     },
     {
       value: "Double",
@@ -119,8 +120,8 @@ const AvailableBedsFilter = ({
       label: "Triple",
     },
     {
-      value: "Four Sharing",
-      label: "Four Sharing",
+      value: "Quad",
+      label: "Quad",
     },
   ];
 
@@ -183,6 +184,7 @@ const AvailableBedsFilter = ({
     const filters = {
       ...data,
       propertyId: data.propertyId?.value || "",
+      propertyCode: data.propertyId?.label || "",
     };
     const labels = [
       data.propertyId && {
@@ -283,10 +285,39 @@ const AvailableBedsFilter = ({
 
     onClose();
   };
-
   useEffect(() => {
-    reset(defaultValues);
-  }, [resetTrigger, reset]);
+    if (!isOpen) return;
+
+    reset({
+      propertyId: initialFilters.propertyId
+        ? {
+            value: initialFilters.propertyId,
+            label: initialFilters.propertyCode || initialFilters.propertyId,
+          }
+        : null,
+
+      propertyLocation: initialFilters.propertyLocation || "",
+      roomNo: initialFilters.roomNo || "",
+      bedNo: initialFilters.bedNo || "",
+      sharingType: initialFilters.sharingType || "",
+      acRoom: initialFilters.acRoom || "",
+      bathAttached: initialFilters.bathAttached || "",
+      availableFrom: initialFilters.availableFrom || "",
+      redFlag: initialFilters.redFlag || "",
+
+      monthlyRentMin: initialFilters.monthlyRentMin || "",
+      monthlyRentMax: initialFilters.monthlyRentMax || "",
+
+      depositAmountMin: initialFilters.depositAmountMin || "",
+      depositAmountMax: initialFilters.depositAmountMax || "",
+
+      clientName: initialFilters.clientName || "",
+
+      hasCvd: Boolean(initialFilters.hasCvd),
+      sortByRent: Boolean(initialFilters.sortByRent),
+    });
+  }, [isOpen, initialFilters, reset]);
+
   return (
     <>
       {isOpen && (
@@ -365,13 +396,13 @@ const AvailableBedsFilter = ({
                 </div>
               )}
             />
-         
+
             {/* CVD- Client Vacating Date */}
             <Controller
               name="hasCvd"
               control={control}
               render={({ field }) => (
-                <div className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3 shadow-sm">
+                <div   onClick={() => field.onChange(!field.value)}  className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3 shadow-sm">
                   <div>
                     <label className="text-md font-medium text-gray-900">
                       CVD
@@ -380,7 +411,7 @@ const AvailableBedsFilter = ({
 
                   <button
                     type="button"
-                    onClick={() => field.onChange(!field.value)}
+                  
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
                       field.value ? "bg-blue-600" : "bg-gray-300"
                     }`}
@@ -399,16 +430,16 @@ const AvailableBedsFilter = ({
               name="sortByRent"
               control={control}
               render={({ field }) => (
-                <div className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3  shadow-sm">
+                <div  onClick={() => field.onChange(!field.value)} className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3  shadow-sm">
                   <div>
                     <label className="text-md font-medium text-gray-900">
-                      Rent
+                      Rent (Minimum)
                     </label>
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => field.onChange(!field.value)}
+                   
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
                       field.value ? "bg-green-600" : "bg-gray-300"
                     }`}
@@ -422,8 +453,7 @@ const AvailableBedsFilter = ({
                 </div>
               )}
             />
-           
-          
+
             {/* Room No */}
             {/* <Controller
               name="roomNo"

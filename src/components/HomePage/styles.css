@@ -1,0 +1,80 @@
+#app {
+  height: 100%;
+}
+html,
+body {
+  position: relative;
+  height: 100%;
+}
+
+/* Location section */
+
+#locations .gm-style {
+  font-family: inherit;
+}
+
+#locations .gm-style iframe {
+  border-radius: 0;
+}
+
+/* Smooth map transition */
+#locations button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile map height */
+@media (max-width: 640px) {
+  #locations .gm-style {
+    min-height: 380px;
+  }
+}
+.premium-review-swiper {
+  padding-top: 15px;
+  padding-bottom: 45px;
+}
+
+.premium-review-swiper .swiper-pagination-bullet {
+  width: 7px;
+  height: 7px;
+  opacity: 0.35;
+}
+
+.premium-review-swiper .swiper-pagination-bullet-active {
+  width: 22px;
+  border-radius: 999px;
+  opacity: 1;
+}
+
+.premium-review-swiper .swiper-slide {
+  height: auto;
+}
+/* body {
+  background: #86b9b8;
+  font-family:
+    Helvetica Neue,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 14px;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+} */
+
+.swiper {
+  width: 100%;
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
+
+.swiper-slide {
+  background-position: center;
+  background-size: cover;
+  width: 300px;
+  height: 300px;
+}
+
+.swiper-slide img {
+  display: block;
+  width: 100%;
+}

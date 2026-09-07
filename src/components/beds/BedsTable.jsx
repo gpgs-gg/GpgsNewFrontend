@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Eye, Pencil, Filter, MoreVertical, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
@@ -14,26 +14,173 @@ import {
   useDeleteMultipleBedsData,
 } from "./services";
 
-import ConfirmModal from "../common/ConfirmModal";
+import ConfirmModal from "../Common/ConfirmModal";
 import { PAGINATION } from "../../constants/appConfig";
 import useDebounce from "../hooks/useDebounce";
 import TableSkeleton from "../../components/common/TableSkelton";
 import { toast } from "react-toastify";
+import usePersistedFilters from "../hooks/usePersistedFilters";
+import { useAuthorization } from "../../context/AuthorizationContext";
 const BedsTable = () => {
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const savedPage = localStorage.getItem("beds_page");
+
+    return savedPage ? Number(savedPage) : 1;
+  });
+  useEffect(() => {
+    localStorage.setItem("beds_page", String(currentPage));
+  }, [currentPage]);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [filters, setFilters] = useState({});
-  const [filterLabels, setFilterLabels] = useState([]);
+  const DEFAULT_BED_FILTERS = {
+    propertyId: "",
+    propertyLocation: "",
+    roomNo: "",
+    bedNo: "",
+    gender: "",
+    sharingType: "",
+    bathAttached: "",
+    acRoom: "",
+
+    monthlyRentMin: "",
+    monthlyRentMax: "",
+
+    depositAmountMin: "",
+    depositAmountMax: "",
+
+    status: "",
+  };
+
+  const { filters, setFilters, removeFilter, resetFilters } =
+    usePersistedFilters("bed_filters", DEFAULT_BED_FILTERS);
+
   const [resetTrigger, setResetTrigger] = useState(0);
   const rowsPerPage = PAGINATION.BEDS_PER_PAGE || 10;
   const debouncedSearch = useDebounce(search);
+  const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
+
+  const canAddBed = canAdd("beds");
+  const canEditBed = canEdit("beds");
+  const canDeleteBed = canDelete("beds");
+  const canViewBed = canSingleView("beds");
+
+  const showActions = canViewBed || canEditBed || canDeleteBed;
+  const filterLabels = useMemo(() => {
+    const labels = [];
+
+    if (filters.propertyId) {
+      labels.push({
+        key: "propertyId",
+        title: "Property",
+        value: filters.propertyCode || filters.propertyId,
+      });
+    }
+
+    if (filters.propertyLocation) {
+      labels.push({
+        key: "propertyLocation",
+        title: "Location",
+        value: filters.propertyLocation,
+      });
+    }
+
+    if (filters.roomNo) {
+      labels.push({
+        key: "roomNo",
+        title: "Room",
+        value: filters.roomNo,
+      });
+    }
+
+    if (filters.bedNo) {
+      labels.push({
+        key: "bedNo",
+        title: "Bed",
+        value: filters.bedNo,
+      });
+    }
+
+    if (filters.gender) {
+      labels.push({
+        key: "gender",
+        title: "Gender",
+        value: filters.gender,
+      });
+    }
+
+    if (filters.sharingType) {
+      labels.push({
+        key: "sharingType",
+        title: "Sharing",
+        value: filters.sharingType,
+      });
+    }
+
+    if (filters.bathAttached) {
+      labels.push({
+        key: "bathAttached",
+        title: "Bath",
+        value: filters.bathAttached,
+      });
+    }
+
+    if (filters.acRoom) {
+      labels.push({
+        key: "acRoom",
+        title: "AC",
+        value: filters.acRoom,
+      });
+    }
+
+    if (filters.monthlyRentMin) {
+      labels.push({
+        key: "monthlyRentMin",
+        title: "Rent ≥",
+        value: filters.monthlyRentMin,
+      });
+    }
+
+    if (filters.monthlyRentMax) {
+      labels.push({
+        key: "monthlyRentMax",
+        title: "Rent ≤",
+        value: filters.monthlyRentMax,
+      });
+    }
+
+    if (filters.depositAmountMin) {
+      labels.push({
+        key: "depositAmountMin",
+        title: "Deposit ≥",
+        value: filters.depositAmountMin,
+      });
+    }
+
+    if (filters.depositAmountMax) {
+      labels.push({
+        key: "depositAmountMax",
+        title: "Deposit ≤",
+        value: filters.depositAmountMax,
+      });
+    }
+
+    if (filters.status) {
+      labels.push({
+        key: "status",
+        title: "Status",
+        value: filters.status,
+      });
+    }
+
+    return labels;
+  }, [filters]);
+  const { propertyCode, ...apiFilters } = filters;
 
   const { data: apiResponse, isLoading } = useBedsData({
     page: currentPage,
     limit: rowsPerPage,
     search: debouncedSearch,
-    filters,
+    filters: apiFilters,
   });
   const apiData = apiResponse?.data || [];
 
@@ -55,22 +202,16 @@ const BedsTable = () => {
     paginatedData.every((item) => selectedBeds.includes(item._id));
 
   const handleReset = () => {
-    setFilters({});
-    setFilterLabels([]);
+    resetFilters();
+
     setSearch("");
     setCurrentPage(1);
 
     setResetTrigger((prev) => prev + 1);
   };
   // for removing filter chips
-  const removeFilter = (key) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: "",
-    }));
-
-    setFilterLabels((prev) => prev.filter((item) => item.key !== key));
-
+  const handleRemoveFilter = (key) => {
+    removeFilter(key);
     setCurrentPage(1);
   };
 
@@ -154,11 +295,13 @@ const BedsTable = () => {
               <p className="text-sm text-gray-500">Manage all PG Beds</p>
             </div>
 
-            <Link to="/bed/create">
-              <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                + Add Bed
-              </button>
-            </Link>
+            {canAddBed && (
+              <Link to="/bed/create">
+                <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                  + Add Bed
+                </button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -207,7 +350,7 @@ const BedsTable = () => {
 
                   <button
                     type="button"
-                    onClick={() => removeFilter(filter.key)}
+                    onClick={() => handleRemoveFilter(filter.key)}
                     className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-slate-400 transition hover:bg-red-100 hover:text-red-600"
                   >
                     ✕
@@ -217,7 +360,7 @@ const BedsTable = () => {
             </div>
             {/* reset n filter  */}
             <div className="flex gap-2">
-              {Object.keys(filters).length > 0 && (
+              {filterLabels.length > 0 && (
                 <button
                   onClick={handleReset}
                   className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
@@ -235,7 +378,7 @@ const BedsTable = () => {
               </button>
             </div>
           </div>
-          {selectedBeds.length > 0 && (
+          {canDeleteBed && selectedBeds.length > 0 && (
             <button
               onClick={() => {
                 setDeleteType("bulk");
@@ -268,7 +411,7 @@ const BedsTable = () => {
                   <th className="p-3 text-left whitespace-nowrap sticky left-7.5 z-20 bg-gray-100">
                     Property Code
                   </th>
-                  <th className="p-3 text-center">Room No</th>
+                  <th className="p-3 text-center">Room No </th>
                   <th className="p-3 text-center">Bed No</th>
                   <th className="p-3 text-center">Gender</th>
                   <th className="p-3 text-center">Sharing Type</th>
@@ -283,9 +426,11 @@ const BedsTable = () => {
                   <th className="p-3 text-center">PRHD</th>
                   <th className="p-3 text-center">Status</th>
                   {/* <th className="p-3 text-center">Comment</th> */}
-                  <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
-                    Actions
-                  </th>
+                  {showActions && (
+                    <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               {isLoading ? (
@@ -367,7 +512,8 @@ const BedsTable = () => {
                                   : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                               }`}
                             >
-                              <MoreVertical size={20} />
+                              {" "}
+                              {showActions && <MoreVertical size={20} />}
                             </button>
 
                             {openMenuId === item._id && (
@@ -376,39 +522,46 @@ const BedsTable = () => {
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {/* View */}
-                                <Link
-                                  to={`/bed/view/${item._id}`}
-                                  onClick={() => setOpenMenuId(null)}
-                                  className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
-                                >
-                                  <span>👁</span>
-                                  <span>View</span>
-                                </Link>
+                                {canViewBed && (
+                                  <Link
+                                    to={`/bed/edit/${item._id}`}
+                                    onClick={() => setOpenMenuId(null)}
+                                    className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
+                                  >
+                                    <span>👁</span>
+                                    <span>View</span>
+                                  </Link>
+                                )}
 
                                 {/* Edit */}
-                                <Link
-                                  to={`/bed/edit/${item._id}`}
-                                  onClick={() => setOpenMenuId(null)}
-                                  className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
-                                >
-                                  <span>✏️</span>
-                                  <span>Edit</span>
-                                </Link>
+                                {/* Edit */}
+                                {canEditBed && (
+                                  <Link
+                                    to={`/bed/edit/${item._id}`}
+                                    onClick={() => setOpenMenuId(null)}
+                                    className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
+                                  >
+                                    <span>✏️</span>
+                                    <span>Edit</span>
+                                  </Link>
+                                )}
 
                                 {/* Delete */}
-                                <button
-                                  onClick={() => {
-                                    setOpenMenuId(null);
-                                    setDeleteType("single");
-                                    setDeleteId(item._id);
-                                    setShowDeleteModal(true);
-                                  }}
-                                  disabled={deleting}
-                                  className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 text-red-600 disabled:opacity-50"
-                                >
-                                  <span>🗑</span>
-                                  <span>Delete</span>
-                                </button>
+                                {canDeleteBed && (
+                                  <button
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      setDeleteType("single");
+                                      setDeleteId(item._id);
+                                      setShowDeleteModal(true);
+                                    }}
+                                    disabled={deleting}
+                                    className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 text-red-600 disabled:opacity-50"
+                                  >
+                                    <span>🗑</span>
+                                    <span>Delete</span>
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>
@@ -443,7 +596,9 @@ const BedsTable = () => {
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              onPageChange={(page) => {
+                setCurrentPage(page);
+              }}
             />
           </div>
         </div>
@@ -452,9 +607,9 @@ const BedsTable = () => {
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         apiData={apiData}
-        onApply={(data, labels) => {
+        initialFilters={filters}
+        onApply={(data) => {
           setFilters(data);
-          setFilterLabels(labels);
           setCurrentPage(1);
         }}
         handleReset={handleReset}

@@ -1,311 +1,271 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import { useForm, Controller } from "react-hook-form";
-import {
-    X,
-    Wallet,
-    IndianRupee,
-    CheckCircle,
-} from "lucide-react";
+import { X, Wallet, IndianRupee, CheckCircle } from "lucide-react";
 import { selectStyles } from "../../utils/selectStyles";
 import { useUpdateClientData } from "../Clients/services";
 import { toast } from "react-toastify";
-
+import FilePreview from "../common/FilePreview";
+import { useBatchOptions } from "../Options/services";
 // ============================================================
 // STATUS OPTIONS
 // ============================================================
 
-const fnfStatusOptions = [
-    {
-        value: "Handover Done",
-        label: "Handover Done",
-    },
-    {
-        value: "F & F Details Sent",
-        label: "F & F Details Sent",
-    },
-    {
-        value: "Bank Details Received",
-        label: "Bank Details Received",
-    },
-    // {
-    //     value: "F&FPaid",
-    //     label: "F & F Paid",
-    // },
-    {
-        value: "F & F Closed",
-        label: "F & F Closed",
-    },
-];
+// const fnfStatusOptions = [
+//     {
+//         value: "Handover Done",
+//         label: "Handover Done",
+//     },
+//     {
+//         value: "F & F Details Sent",
+//         label: "F & F Details Sent",
+//     },
+//     {
+//         value: "Bank Details Received",
+//         label: "Bank Details Received",
+//     },
+//     // {
+//     //     value: "F&FPaid",
+//     //     label: "F & F Paid",
+//     // },
+//     {
+//         value: "F & F Closed",
+//         label: "F & F Closed",
+//     },
+// ];
 
 // ============================================================
 // SELECT STYLES
 // ============================================================
 
-
-
 // ============================================================
 // COMPONENT
 // ============================================================
 
-function FnfEditForm({
-    client,
-    onClose,
-}) {
-    // ============================================================
-    // REACT HOOK FORM
-    // ============================================================
-    const { mutate: updateClientData, isPending: isUpdateClientData } = useUpdateClientData()
+function FnfEditForm({ client, onClose }) {
+  const { data: options = {} } = useBatchOptions(["fnfStatus"]);
+  const fnfStatusOptions = options.fnfstatus || [];
+  // ============================================================
+  // REACT HOOK FORM
+  // ============================================================
+  const { mutate: updateClientData, isPending: isUpdateClientData } =
+    useUpdateClientData();
 
-    const {
-        register,
-        control,
-        handleSubmit,
-        watch,
-        reset,
-    } = useForm({
-        defaultValues: {
-            currentDue: 0,
-            totalPaidDeposit: 0,
-            adjustmentAmount: 0,
-            adjustmentEB: 0,
-            fnfAmount: 0,
-            bankDetailReceived: "",
-            remarks: "",
-            status: "",
-        },
+  const { register, control, handleSubmit, watch, reset } = useForm({
+    defaultValues: {
+      currentDue: 0,
+      totalPaidDeposit: 0,
+      adjustmentAmount: 0,
+      adjustmentEB: 0,
+      fnfAmount: 0,
+      bankDetailReceived: "",
+      remarks: "",
+      status: "",
+      attachment: null,
+    },
+  });
+  const [existingHandoverAttachments, setExistingHandoverAttachments] =
+    useState([]);
+
+  const [handoverAttachments, setHandoverAttachments] = useState([]);
+  // ============================================================
+  // WATCH VALUES
+  // ============================================================
+  const selectedStatus = watch("status");
+
+  const currentDue = Number(watch("currentDue") || 0);
+
+  const totalPaidDeposit = Number(watch("totalPaidDeposit") || 0);
+
+  const adjustmentAmount = Number(watch("adjustmentAmount") || 0);
+
+  const adjustmentEB = Number(watch("adjustmentEB") || 0);
+
+  // ============================================================
+  // FNF AMOUNT
+  // ============================================================
+
+  const fnfAmount = totalPaidDeposit - currentDue;
+
+  // ============================================================
+  // LOAD CLIENT DATA
+  // ============================================================
+
+  useEffect(() => {
+    if (!client) return;
+
+    const due = Number(client?.latestRentHistory?.currentDue || 0);
+
+    const deposit = Number(client?.totalPaidDeposit || 0);
+
+    reset({
+      currentDue: due,
+      totalPaidDeposit: deposit,
+      bankDetailReceived: client?.fnf?.bankDetailReceived,
+      remarks: client?.fnf?.remarks,
+      status: client?.fnf?.status,
+    });
+  }, [client, reset]);
+  useEffect(() => {
+    if (!client) return;
+
+    setExistingHandoverAttachments(client?.fnf?.handoverAttachment || []);
+
+    // Clear newly selected files when opening/changing client
+    setHandoverAttachments([]);
+  }, [client]);
+  // ============================================================
+  // SUBMIT
+  // ============================================================
+
+  const submitForm = (formData) => {
+    const data = new FormData();
+
+    data.append(
+      "fnf",
+      JSON.stringify({
+        currentDue: Number(formData.currentDue || 0),
+        totalPaidDeposit: Number(formData.totalPaidDeposit || 0),
+        adjustmentAmount: Number(formData.adjustmentAmount || 0),
+        adjustmentEB: Number(formData.adjustmentEB || 0),
+        fnfAmount: Number(fnfAmount || 0),
+        bankDetailReceived: formData.bankDetailReceived || "",
+        remarks: formData.remarks || "",
+        status: formData.status || "",
+      }),
+    );
+
+    // =========================================
+    // EXISTING ATTACHMENTS
+    // =========================================
+
+    existingHandoverAttachments.forEach((url) => {
+      data.append("handoverAttachmentExisting", url);
     });
 
-    // ============================================================
-    // WATCH VALUES
-    // ============================================================
+    // =========================================
+    // NEW ATTACHMENTS
+    // =========================================
 
-    const currentDue = Number(
-        watch("currentDue") || 0
-    );
-
-    const totalPaidDeposit = Number(
-        watch("totalPaidDeposit") || 0
-    );
-
-    const adjustmentAmount = Number(
-        watch("adjustmentAmount") || 0
-    );
-
-    const adjustmentEB = Number(
-        watch("adjustmentEB") || 0
-    );
-
-    // ============================================================
-    // FNF AMOUNT
-    // ============================================================
-
-    const fnfAmount =
-        totalPaidDeposit - currentDue;
-
-    // ============================================================
-    // LOAD CLIENT DATA
-    // ============================================================
-
-    useEffect(() => {
-        if (!client) return;
-
-        const due = Number(
-            client?.latestRentHistory?.currentDue || 0
-        );
-
-        const deposit = Number(
-            client?.totalPaidDeposit || 0
-        );
-
-        reset({
-            currentDue: due,
-            totalPaidDeposit: deposit,
-            bankDetailReceived:client?.fnf?.bankDetailReceived,
-            remarks: client?.fnf?.remarks,
-            status: client?.fnf?.status,
-        });
-    }, [client, reset]);
-
-    // ============================================================
-    // SUBMIT
-    // ============================================================
-
-   const submitForm = (formData) => {
-    const data = {
-        fnf: {
-            currentDue: Number(formData.currentDue || 0),
-
-            totalPaidDeposit: Number(
-                formData.totalPaidDeposit || 0
-            ),
-
-            adjustmentAmount: Number(
-                formData.adjustmentAmount || 0
-            ),
-
-            adjustmentEB: Number(
-                formData.adjustmentEB || 0
-            ),
-
-            fnfAmount: Number(fnfAmount || 0),
-
-            bankDetailReceived:
-                formData.bankDetailReceived || "",
-
-            remarks:
-                formData.remarks || "",
-
-            status:
-                formData.status || "",
-        },
-    };
+    if (formData.status === "HD") {
+      handoverAttachments.forEach((file) => {
+        data.append("handoverAttachment", file);
+      });
+    }
 
     updateClientData(
-        {
-            clientId: client?._id,
-            data: data,
-        },  
-        {
-            onSuccess: (response) => {
-                toast.dismiss()
-                toast.success( "F&F Updated Successfully")
-                onClose();
-            },
+      {
+        clientId: client._id,
+        data,
+      },
+      {
+        onSuccess: (response) => {
+          toast.success(response?.message || "F&F updated successfully");
 
-            onError: (error) => {
-                toast.dismiss()
-                toast.error(response || "F&F Update Error")
-            },
-        }
+          onClose();
+        },
+
+        onError: (error) => {
+          toast.error(
+            error?.response?.data?.message ||
+              error?.message ||
+              "Something went wrong",
+          );
+        },
+      },
     );
-};
+  };
+  // ============================================================
+  // UI
+  // ============================================================
 
-    // ============================================================
-    // UI
-    // ============================================================
-
-    return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
-
-            <div className="w-full max-w-5xl max-h-[95vh] overflow-y-auto rounded-xl bg-white shadow-2xl">
-
-                {/* ==================================================
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-5xl h-auto overflow-y-auto rounded-xl bg-white shadow-2xl">
+        {/* ==================================================
                     HEADER
                 ================================================== */}
 
-                <div className="sticky top-0 z-20 flex items-center justify-between border-b bg-white px-6 py-4">
+        <div className="sticky top-0 z-20 flex items-center justify-between border-b bg-white px-6 py-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">F&F Settlement</h2>
 
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-800">
-                            F&F Settlement
-                        </h2>
+            <p className="text-sm text-gray-500">Full & Final Settlement</p>
+          </div>
 
-                        <p className="text-sm text-gray-500">
-                            Full & Final Settlement
-                        </p>
-                    </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+          >
+            <X size={22} />
+          </button>
+        </div>
 
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
-                    >
-                        <X size={22} />
-                    </button>
-
-                </div>
-
-                {/* ==================================================
+        {/* ==================================================
                     BODY
                 ================================================== */}
 
-                <form
-                    onSubmit={handleSubmit(submitForm)}
-                    className="p-6 space-y-6"
-                >
-
-
-                    {/* ==================================================
+        <form onSubmit={handleSubmit(submitForm)} className="p-6 space-y-6">
+          {/* ==================================================
                         FNF CALCULATION
                     ================================================== */}
 
-                    <div className="rounded-xl border border-gray-300  p-5">
+          <div className="rounded-xl border border-gray-300  p-5">
+            <h3 className="mb-5 flex items-center gap-2 font-semibold text-gray-800">
+              <Wallet size={18} />
+              F&F Details
+            </h3>
 
-                        <h3 className="mb-5 flex items-center gap-2 font-semibold text-gray-800">
-                            <Wallet size={18} />
-                            F&F Details
-                        </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* CURRENT DUE */}
+              <div className="form-group">
+                <input
+                  {...register("currentDue")}
+                  disabled
+                  placeholder=" "
+                  type="number"
+                  className="form-input cursor-not-allowed"
+                />
+                <label className="form-label">Current Due</label>
+              </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* TOTAL PAID DEPOSIT */}
 
-                            {/* CURRENT DUE */}
-                            <div className="form-group">
+              <div className="form-group">
+                <input
+                  {...register("totalPaidDeposit")}
+                  disabled
+                  placeholder=" "
+                  type="number"
+                  className="form-input cursor-not-allowed"
+                />
+                <label className="form-label"> Total Deposit</label>
+              </div>
 
-                                <input
-                                    {...register(
-                                        "currentDue"
-                                    )}
-                                    disabled
-                                    placeholder=" "
-                                    type="number"
-                                    className="form-input cursor-not-allowed"
-                                />
-                                <label className="form-label">Current Due</label>
-                            </div>
+              {/* FNF AMOUNT */}
 
-                            {/* TOTAL PAID DEPOSIT */}
+              <div className="form-group">
+                <input
+                  type="number"
+                  value={fnfAmount}
+                  readOnly
+                  disabled
+                  className={`form-input cursor-not-allowed font-bold ${
+                    fnfAmount > 0
+                      ? "text-red-600"
+                      : fnfAmount < 0
+                        ? "text-red-600"
+                        : "text-green-600"
+                  }`}
+                />
 
+                <label className="form-label">F&F Amount</label>
+              </div>
 
+              {/* ADJUSTMENT AMOUNT */}
 
-
-
-
-                            <div className="form-group">
-
-                                <input
-                                    {...register(
-                                        "totalPaidDeposit"
-                                    )}
-                                    disabled
-                                    placeholder=" "
-                                    type="number"
-                                    className="form-input cursor-not-allowed"
-                                />
-                                <label className="form-label"> Total Deposit
-                                </label>
-                            </div>
-
-
-                            {/* FNF AMOUNT */}
-
-
-
-
-                            <div className="form-group">
-                                <input
-                                    type="number"
-                                    value={fnfAmount}
-                                    readOnly
-                                    disabled
-                                    className={`form-input cursor-not-allowed font-bold ${fnfAmount > 0
-                                        ? "text-red-600"
-                                        : fnfAmount < 0
-                                            ? "text-red-600"
-                                            : "text-green-600"
-                                        }`}
-                                />
-
-                                <label className="form-label">
-                                    F&F Amount
-                                </label>
-                            </div>
-
-
-
-                            {/* ADJUSTMENT AMOUNT */}
-
-                            {/* <div className="form-group">
+              {/* <div className="form-group">
 
                                 <input
                                     {...register(
@@ -317,11 +277,9 @@ function FnfEditForm({
                                 />
                                 <label className="form-label">   Adjustment Amount</label>
                             </div> */}
-                            {/* ADJUSTMENT EB */}
+              {/* ADJUSTMENT EB */}
 
-
-
-                            {/* 
+              {/* 
                             <div className="form-group">
 
                                 <input
@@ -334,51 +292,93 @@ function FnfEditForm({
                                 />
                                 <label className="form-label">Adjustment EB</label>
                             </div> */}
-                            {/* BANK DETAILS */}
+              {/* BANK DETAILS */}
 
-                            <div className="form-group">
-                                <input
-                                    {...register(
-                                        "bankDetailReceived"
-                                    )}
-                                    placeholder=" "
-                                    type="text"
-                                    className="form-input"
-                                />
-                                <label className="form-label">   Bank / UPI Details</label>
-                            </div>
+              <div className="form-group">
+                <input
+                  {...register("bankDetailReceived")}
+                  placeholder=" "
+                  type="text"
+                  className="form-input"
+                />
+                <label className="form-label"> Bank / UPI Details</label>
+              </div>
 
-                            <Controller
-                                name="status"
-                                control={control}
-                                defaultValue={null}
-                                render={({ field }) => (
-                                    <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                                        <label className="select-label">Status</label>
-                                        <Select
-                                            {...field}
-                                            options={fnfStatusOptions}
-                                            isClearable
-                                            placeholder=""
-                                            value={fnfStatusOptions.find(option => option.value === field.value)}
-                                            onChange={(selectedOption) => field.onChange(selectedOption?.value)}
-                                            styles={selectStyles}
-                                        />
-                                    </div>
-                                )}
-                            />
+              <Controller
+                name="status"
+                control={control}
+                defaultValue={null}
+                render={({ field }) => (
+                  <div
+                    className={`select-group ${field.value ? "has-value" : ""}`}
+                  >
+                    <label className="select-label">Status</label>
+                    <Select
+                      {...field}
+                      options={fnfStatusOptions}
+                      isClearable
+                      placeholder=""
+                      value={fnfStatusOptions.find(
+                        (option) => option.value === field.value,
+                      )}
+                      onChange={(selectedOption) =>
+                        field.onChange(selectedOption?.value)
+                      }
+                      styles={selectStyles}
+                    />
+                  </div>
+                )}
+              />
+              {selectedStatus === "HD" && (
+                <div className="form-group">
+                  {/* ================================
+        ADD NEW HANDOVER ATTACHMENTS
+    ================================= */}
 
-                        </div>
+                  <input
+                    type="file"
+                    multiple
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="form-input"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files);
 
+                      setHandoverAttachments((prev) => [...prev, ...files]);
 
+                      e.target.value = "";
+                    }}
+                  />
 
-                    </div>
+                  <label className="form-label">Handover Attachment</label>
 
-                    {/* ==================================================
+                  {/* ================================
+        EXISTING + NEW FILE PREVIEW
+    ================================= */}
+
+                  <FilePreview
+                    files={handoverAttachments}
+                    existingFiles={existingHandoverAttachments}
+                    onRemoveExisting={(index) => {
+                      setExistingHandoverAttachments((prev) =>
+                        prev.filter((_, i) => i !== index),
+                      );
+                    }}
+                    onRemoveNew={(index) => {
+                      setHandoverAttachments((prev) =>
+                        prev.filter((_, i) => i !== index),
+                      );
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ==================================================
                         REMARKS + STATUS
                     ================================================== */}
 
-                    {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
 
                             <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -395,37 +395,31 @@ function FnfEditForm({
                         </div>
                     </div> */}
 
-
-                    {/* ==================================================
+          {/* ==================================================
                         BUTTONS
                     ================================================== */}
 
-                    <div className="flex justify-end gap-3 border-t pt-4">
+          <div className="flex justify-end gap-3 border-t pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border px-5 py-2.5 font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
 
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="rounded-lg border px-5 py-2.5 font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                            Cancel
-                        </button>
-
-                        <button
-                            type="submit"
-                            className="theme-btn flex justify-center items-center gap-2"
-                        >
-                            <CheckCircle size={18} />
-                            Save F&F
-                        </button>
-
-                    </div>
-
-                </form>
-
-            </div>
-
-        </div>
-    );
+            <button
+              type="submit"
+              className="theme-btn flex justify-center items-center gap-2"
+            >
+              <CheckCircle size={18} />
+              Save F&F
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 export default FnfEditForm;

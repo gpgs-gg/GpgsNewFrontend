@@ -15,15 +15,10 @@ import NoDataFound from "../../components/common/NoDataFound";
 import { TableFilePreview } from "../../components/common/FilePreview";
 import useDebounce from "../../components/hooks/useDebounce";
 import TableSkeleton from "../../components/common/TableSkelton";
-import ConfirmModal from "../../components/Common/ConfirmModal";
+import ConfirmModal from "../../components/common/ConfirmModal";
 import { useCurrentUser } from "../../auth/services";
 
-const priorityColors = {
-    Critical: "text-red-700",
-    High: "text-red-500",
-    Medium: " text-yellow-500",
-    Low: " text-green-700",
-};
+
 
 const statusColors = {
     Open: "bg-red-100 text-red-700",
@@ -37,7 +32,6 @@ const statusColors = {
 };
 
 const TicketsList = () => {
-    // const { data: apiResponse } = useTicketsData();
 
 
     // ✅ safe extraction
@@ -263,7 +257,6 @@ const TicketsList = () => {
 
                 {/* TABLE */}
                 <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
-
                     {/* SEARCH */}
                     <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
 
@@ -544,6 +537,7 @@ const TicketsList = () => {
                     </div>
 
                 </div>
+                
             </div>
             <TicketsFilter
                 isOpen={filterOpen}

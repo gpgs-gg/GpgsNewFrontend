@@ -1,5 +1,5 @@
 import React from "react";
-import PropertiesTable from "./PropertiesTable";
+import PropertiesTable from "./propertiesTable";
 
 const Main = () => {
   return (

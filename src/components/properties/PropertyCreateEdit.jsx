@@ -14,10 +14,15 @@ import {
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useParams } from "react-router-dom";
+import { useAuth } from "../../context/authContext";
 import FilePreview from "../common/FilePreview";
 import Loader from "../common/Loader";
-import { convertStringFormatDate } from "../../utils/dateFormatter";
+import {
+  convertStringFormatDate,
+  formatDateAndTime,
+} from "../../utils/dateFormatter";
 import { useLocations } from "../Options/services";
+import { useAuthorization } from "../../context/AuthorizationContext";
 const PropertyCreateEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -36,6 +41,8 @@ const PropertyCreateEdit = () => {
       propertyLocation: "",
       bedCount: "",
       propertyAddress: "",
+      newWorkLog: "",
+
       internet: {
         vendorLoginId: "",
         vendorLoginPassword: "",
@@ -51,6 +58,14 @@ const PropertyCreateEdit = () => {
     },
     mode: "onSubmit",
   });
+  const { user } = useAuth();
+  const { canEdit, canAdd } = useAuthorization();
+
+  const canEditProperty = canEdit("properties");
+  const canAddProperty = canAdd("properties");
+  const isViewOnly = Boolean(id) && !canEditProperty;
+  const userName =
+    user?.Name || user?.name || user?.fullName || user?.username || "System";
   // API hooks and mutations
   const { mutate: submitProperty, isPending: isSubmitProperty } =
     usecreatePropertyData();
@@ -81,6 +96,8 @@ const PropertyCreateEdit = () => {
       propertyLocation: property.propertyLocation,
       bedCount: property.bedCount,
       propertyAddress: property.propertyAddress,
+      subMeterDetails: property.subMeterDetails || "",
+      newWorkLog: "",
 
       internet: {
         ...property.internet,
@@ -191,10 +208,10 @@ const PropertyCreateEdit = () => {
     if (!id) {
       data.status = "Active";
     }
+
     const formData = new FormData();
-
     buildFormData(formData, data);
-
+    formData.append("createdByName", userName);
     // ✅ existing files (correct way)
     existingAadhar.forEach((url) => {
       formData.append("owner[aadharCardExisting]", url);
@@ -301,22 +318,24 @@ const PropertyCreateEdit = () => {
                 Cancel
               </button>
 
-              <button
-                type="submit"
-                disabled={isUpdateProperty || isSubmitProperty}
-                className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-              >
-                {isUpdateProperty || isSubmitProperty ? (
-                  <>
-                    <Loader />
-                    Processing...
-                  </>
-                ) : id ? (
-                  "Update Property"
-                ) : (
-                  "Create Property"
-                )}
-              </button>
+              {((id && canEditProperty) || (!id && canAddProperty)) && (
+                <button
+                  type="submit"
+                  disabled={isUpdateProperty || isSubmitProperty}
+                  className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                >
+                  {isUpdateProperty || isSubmitProperty ? (
+                    <>
+                      <Loader />
+                      Processing...
+                    </>
+                  ) : id ? (
+                    "Update Property"
+                  ) : (
+                    "Create Property"
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -327,6 +346,7 @@ const PropertyCreateEdit = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* property code  */}
+            {/* Property Code */}
             <div className="form-group">
               <input
                 {...register("propertyCode", {
@@ -335,9 +355,10 @@ const PropertyCreateEdit = () => {
                     value?.trim() !== "" || "Property code is required",
                 })}
                 placeholder=" "
+                readOnly={!!id || isViewOnly}
                 className={`form-input ${
                   errors.propertyCode ? "border-red-500" : ""
-                }`}
+                } ${id ? "bg-gray-100 cursor-not-allowed" : ""}`}
               />
 
               <label className="form-label required-label">Property Code</label>
@@ -510,14 +531,9 @@ const PropertyCreateEdit = () => {
               />
 
               <label className="form-label">Sub Meter Details</label>
-
-              
             </div>
-
-
           </div>
         </div>
-
         {/* Internet Details */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold mb-4">Internet Details</h2>
@@ -651,7 +667,6 @@ const PropertyCreateEdit = () => {
             </div>
           </div>
         </div>
-
         {/* Utility Details */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold mb-4">Utility Details</h2>
@@ -778,7 +793,6 @@ const PropertyCreateEdit = () => {
             </div>
           </div>
         </div>
-
         {/* Owner Details */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold mb-4">Owner Details</h2>
@@ -893,7 +907,6 @@ const PropertyCreateEdit = () => {
             </div>
           </div>
         </div>
-
         {/* Agreement Details */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold mb-4">Agreement Details</h2>
@@ -1111,7 +1124,57 @@ const PropertyCreateEdit = () => {
             </div>
           </div>
         </div>
+        {/*  */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* ====================== WORK LOG ====================== */}
 
+          {id && (
+            <>
+              {/* Add WorkLog */}
+              <div className="form-group">
+                <textarea
+                  rows={5}
+                  {...register("newWorkLog")}
+                  className="form-input"
+                />
+
+                <label className="form-label">Add WorkLog</label>
+              </div>
+
+              {/* WorkLog History */}
+              <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col">
+                <h3 className="font-semibold text-lg mb-1">Work Log History</h3>
+
+                <div className="flex-1 overflow-y-auto">
+                  {property?.workLogs?.length > 0 ? (
+                    property.workLogs
+                      .slice()
+                      .reverse()
+                      .map((log) => (
+                        <div
+                          key={log._id}
+                          className="border-b py-3 last:border-b-0"
+                        >
+                          <small className="text-gray-500">
+                            {log.createdBy || "System"} •{" "}
+                            {formatDateAndTime(log.createdAt)}
+                          </small>
+
+                          <p className="whitespace-pre-line text-sm">
+                            {log.message}
+                          </p>
+                        </div>
+                      ))
+                  ) : (
+                    <p className="text-gray-400 text-center mt-10">
+                      No Work Logs Available
+                    </p>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
         <div className="flex justify-end gap-5">
           <button
             type="button"
@@ -1120,23 +1183,24 @@ const PropertyCreateEdit = () => {
           >
             Cancel
           </button>
-
-          <button
-            type="submit"
-            disabled={isUpdateProperty || isSubmitProperty}
-            className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-          >
-            {isUpdateProperty || isSubmitProperty ? (
-              <>
-                <Loader />
-                Processing...
-              </>
-            ) : id ? (
-              "Update Property"
-            ) : (
-              "Create Property"
-            )}
-          </button>
+          {((id && canEditProperty) || (!id && canAddProperty)) && (
+            <button
+              type="submit"
+              disabled={isUpdateProperty || isSubmitProperty}
+              className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+            >
+              {isUpdateProperty || isSubmitProperty ? (
+                <>
+                  <Loader />
+                  Processing...
+                </>
+              ) : id ? (
+                "Update Property"
+              ) : (
+                "Create Property"
+              )}
+            </button>
+          )}
         </div>
       </form>
     </div>

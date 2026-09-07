@@ -3308,9 +3308,9 @@ import "react-datepicker/dist/react-datepicker.css";
 import { AsyncPaginate } from 'react-select-async-paginate';
 import { selectStyles } from '../../utils/selectStyles';
 import { getPropertyDropdown } from '../properties/services';
-import { useClientThrowPropertyData, useACConsumptionData } from './services';
+import { useClientThrowPropertyData, useACConsumptionData, useUpdateEBAmountInRentHistory, useCreateEBCalculation } from './services';
 import Loader from '../common/Loader';
-import { convertStringFormatDate } from '../../utils/dateFormatter';
+import { convertStringFormatDate, formatDate } from '../../utils/dateFormatter';
 
 const EBCalculation = () => {
     const normalizeDate = (d) => {
@@ -3365,6 +3365,14 @@ const EBCalculation = () => {
         endDate
 
     );
+    const {
+        mutate: updateEBRentHistory,
+        isPending: isUpdatingEB,
+    } = useUpdateEBAmountInRentHistory();
+
+    const {
+        mutate: createEBCalculation,
+    } = useCreateEBCalculation();
     // API hook to fetch AC consumption data - only when AC clients exist
     const {
         data: acConsumptionData,
@@ -3700,34 +3708,34 @@ const EBCalculation = () => {
     // =====================================================
 
     // Non-AC ke liye existing calculation
- const totalNormalFreeEB = clients
-  ?.filter(ele => ele.fullName && ele.fullName.trim() !== "")
-  .reduce((sum, ele) => {
-    const billEnd = endDate ? normalizeDate(endDate) : null;
-    const doj = ele.ebDoj ? normalizeDate(new Date(ele.ebDoj)) : null;
-    const cvd = ele.clientVacatingDate ? normalizeDate(new Date(ele.clientVacatingDate)) : null;  // ✅ ADD
+    const totalNormalFreeEB = clients
+        ?.filter(ele => ele.fullName && ele.fullName.trim() !== "")
+        .reduce((sum, ele) => {
+            const billEnd = endDate ? normalizeDate(endDate) : null;
+            const doj = ele.ebDoj ? normalizeDate(new Date(ele.ebDoj)) : null;
+            const cvd = ele.clientVacatingDate ? normalizeDate(new Date(ele.clientVacatingDate)) : null;  // ✅ ADD
 
-    if (doj && billEnd && doj > billEnd) return sum;
+            if (doj && billEnd && doj > billEnd) return sum;
 
-    const freeEBPerDay = Number(ele.bedId?.freeEbAsPerBed) || 0;
+            const freeEBPerDay = Number(ele.bedId?.freeEbAsPerBed) || 0;
 
-    const totalDays = headerDays.reduce((total, d) => {
-      const currentDate = normalizeDate(d.date);
+            const totalDays = headerDays.reduce((total, d) => {
+                const currentDate = normalizeDate(d.date);
 
-      // ✅ DOJ Check
-      if (doj && currentDate < doj) return total;
+                // ✅ DOJ Check
+                if (doj && currentDate < doj) return total;
 
-      // ✅ CVD Check (ADD THIS)
-      if (cvd && currentDate > cvd) return total;
+                // ✅ CVD Check (ADD THIS)
+                if (cvd && currentDate > cvd) return total;
 
-      // ✅ Vacation Check
-      if (isClientOnVacation(ele, currentDate)) return total;
+                // ✅ Vacation Check
+                if (isClientOnVacation(ele, currentDate)) return total;
 
-      return total + 1;
-    }, 0);
+                return total + 1;
+            }, 0);
 
-    return sum + totalDays * freeEBPerDay;
-  }, 0) || 0;
+            return sum + totalDays * freeEBPerDay;
+        }, 0) || 0;
 
 
     // Adjusted Free EB - Non AC
@@ -3753,33 +3761,33 @@ const EBCalculation = () => {
             ? Number(sheetData.FreeEB) || 0
             : totalNormalFreeEB + totalAdjustedFreeEB;
     // Get per-head free EB
-const getPerHeadFreeEB = (client) => {
-  const billEnd = endDate ? normalizeDate(endDate) : null;
-  const doj = client.ebDoj ? normalizeDate(new Date(client.ebDoj)) : null;
-  const cvd = client.clientVacatingDate  ? normalizeDate(new Date(client.clientVacatingDate )) : null;  // ✅ ADD
+    const getPerHeadFreeEB = (client) => {
+        const billEnd = endDate ? normalizeDate(endDate) : null;
+        const doj = client.ebDoj ? normalizeDate(new Date(client.ebDoj)) : null;
+        const cvd = client.clientVacatingDate ? normalizeDate(new Date(client.clientVacatingDate)) : null;  // ✅ ADD
 
-  if (doj && billEnd && doj > billEnd) return 0;
+        if (doj && billEnd && doj > billEnd) return 0;
 
-  const freeEBPerDay = client.bedId?.freeEbAsPerBed || 0;
+        const freeEBPerDay = client.bedId?.freeEbAsPerBed || 0;
 
-  const totalDays = headerDays.reduce((total, d) => {
-    const currentDate = normalizeDate(d.date);
-    
-    // ✅ DOJ Check
-    if (doj && currentDate < doj) return total;
-    
-    // ✅ CVD Check (ADD THIS)
-    if (cvd && currentDate > cvd) return total;
-    
-    // ✅ Vacation Check
-    if (isClientOnVacation(client, currentDate)) return total;
-    
-    return total + 1;
-  }, 0);
+        const totalDays = headerDays.reduce((total, d) => {
+            const currentDate = normalizeDate(d.date);
 
-  return totalDays * freeEBPerDay;
-};
-    
+            // ✅ DOJ Check
+            if (doj && currentDate < doj) return total;
+
+            // ✅ CVD Check (ADD THIS)
+            if (cvd && currentDate > cvd) return total;
+
+            // ✅ Vacation Check
+            if (isClientOnVacation(client, currentDate)) return total;
+
+            return total + 1;
+        }, 0);
+
+        return totalDays * freeEBPerDay;
+    };
+
 
     // Calculate total days for client
     const calculateTotalDays = ({ ele }) => {
@@ -3837,7 +3845,6 @@ const getPerHeadFreeEB = (client) => {
         return ele.bedId?.acRoom?.toLowerCase().trim() === "ac";
     }) || [];
 
-    // Handle bulk submit
     const handleBulkSubmit = () => {
         if (!clients?.length) {
             toast.error("No clients found");
@@ -3847,83 +3854,273 @@ const getPerHeadFreeEB = (client) => {
         setIsLoading(true);
 
         const bulkData = clients
-            .filter(ele => ele.fullName && ele.fullName.trim() !== "")
+            .filter(
+                ele =>
+                    ele.fullName &&
+                    ele.fullName.trim() !== ""
+            )
             .map(ele => {
                 const totalDays = calculateTotalDays({ ele });
+
                 const totalEB = headerDays.reduce((sum, d) => {
-                    return sum + getClientEBForDate(ele, d.date);
+                    return (
+                        sum +
+                        getClientEBForDate(ele, d.date)
+                    );
                 }, 0);
 
                 const totalACEB = headerDays.reduce((sum, d) => {
-                    return sum + getClientACEBForDate(ele, d.date);
+                    return (
+                        sum +
+                        getClientACEBForDate(ele, d.date)
+                    );
                 }, 0);
 
                 const formatDate = (date) => {
                     if (!date) return "";
-                    return new Date(date).toLocaleDateString("en-GB", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                    });
+
+                    return new Date(date).toLocaleDateString(
+                        "en-GB",
+                        {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                        }
+                    );
                 };
 
                 // Get vacation data
-                const firstVacation = ele.vacations?.[0] || {};
+                const firstVacation =
+                    ele.vacations?.[0] || {};
 
                 return {
-                    PropertyCode: propertyId?.label || "",
-                    PropertyId: propertyId?.value || "",
-                    FlatEB: isACProperty ? (sheetData?.FlatTotalEB ?? electricityAmt) : electricityAmt,
-                    CommonEB: isACProperty ? (sheetData?.CommonTotalEB ?? 0) : 0,
-                    EBStartDate: formatDate(startDate) || "",
-                    EBEndDate: formatDate(endDate) || "",
+                    PropertyCode:
+                        propertyId?.label || "",
+
+                    PropertyId:
+                        propertyId?.value || "",
+
+                    FlatEB: isACProperty
+                        ? (
+                            sheetData?.FlatTotalEB ??
+                            electricityAmt
+                        )
+                        : electricityAmt,
+
+                    CommonEB: isACProperty
+                        ? (sheetData?.CommonTotalEB ?? 0)
+                        : 0,
+
+                    EBStartDate:
+                        formatDate(startDate) || "",
+
+                    EBEndDate:
+                        formatDate(endDate) || "",
+
                     ClientName: ele.fullName,
+
                     ClientID: `${ele._id}`,
+
                     ebDoj: ele.ebDoj,
-                    RoomNo: ele.bedId?.roomNo || "",
-                    BedNo: ele.bedId?.bedNo || "",
-                    ACRoom: ele.bedId?.acRoom || "",
-                    VacationStart1: firstVacation.vacationStartDate1 || "",
-                    VacationEnd1: firstVacation.vacationLastDate1 || "",
-                    VacationStart2: firstVacation.vacationStartDate2 || "",
-                    VacationEnd2: firstVacation.vacationLastDate2 || "",
+
+                    RoomNo:
+                        ele.bedId?.roomNo || "",
+
+                    BedNo:
+                        ele.bedId?.bedNo || "",
+
+                    ACRoom:
+                        ele.bedId?.acRoom || "",
+
+                    VacationStart1:
+                        firstVacation.vacationStartDate1 || "",
+
+                    VacationEnd1:
+                        firstVacation.vacationLastDate1 || "",
+
+                    VacationStart2:
+                        firstVacation.vacationStartDate2 || "",
+
+                    VacationEnd2:
+                        firstVacation.vacationLastDate2 || "",
+
                     CEB: totalEB.toFixed(2),
+
                     ACEB: totalACEB.toFixed(2),
+
                     TotalDays: totalDays,
-                    AdjFreeEB: adjustedFreeEB[`${ele._id}_${ele.ebDoj}`] || 0,
-                    AdjEB: adjustedEB[`${ele._id}_${ele.ebDoj}`] || 0,
-                    FreeEB: getPerHeadFreeEB(ele),
-                    PropertyFreeEB: totalFreeEB || 0,
-                    EBToBeRecovered: ebToBeRecovered || 0,
-                    PropertyEBUnits: totalUnits,
-                    FreeEBPerDay: ele.bedId?.freeEbAsPerBed || 0,
+
+                    AdjFreeEB:
+                        adjustedFreeEB[
+                        `${ele._id}_${ele.ebDoj}`
+                        ] || 0,
+
+                    AdjEB:
+                        adjustedEB[
+                        `${ele._id}_${ele.ebDoj}`
+                        ] || 0,
+
+                    FreeEB:
+                        getPerHeadFreeEB(ele),
+
+                    PropertyFreeEB:
+                        totalFreeEB || 0,
+
+                    EBToBeRecovered:
+                        ebToBeRecovered || 0,
+
+                    PropertyEBUnits:
+                        totalUnits,
+
+                    FreeEBPerDay:
+                        ele.bedId?.freeEbAsPerBed || 0,
+
                     TotalClientEB: (
-                        totalEB + (adjustedEB[`${ele._id}_${ele.ebDoj}`] || 0) + totalACEB
-                    ).toFixed(2),
-                    EBAmt: Number(
+                        totalEB +
                         (
-                            (totalEB || 0) +
-                            (adjustedEB[`${ele._id}_${ele.ebDoj}`] || 0) +
-                            (totalACEB || 0)
-                        ).toFixed(2)
+                            adjustedEB[
+                            `${ele._id}_${ele.ebDoj}`
+                            ] || 0
+                        ) +
+                        totalACEB
+                    ).toFixed(2),
+
+                    EBAmt: Math.round(
+                        (totalEB || 0) +
+                        (adjustedEB[`${ele._id}_${ele.ebDoj}`] || 0) +
+                        (totalACEB || 0)
                     ),
-                    Comments1: comments1[`${ele._id}_${ele.ebDoj}`] || "N/A",
-                    Comments2: comments2[`${ele._id}_${ele.ebDoj}`] || "N/A",
-                    FlatTotalEB: sheetData?.FlatTotalEB ?? electricityAmt,
-                    FlatTotalUnits: sheetData?.FlatTotalUnits ?? flatTotalUnits,
-                    PerUnitCost: sheetData?.PerUnitCost ?? 0,
-                    ACTotalUnits: sheetData?.ACTotalUnits ?? 0,
-                    ACTotalEB: sheetData?.ACTotalEB ?? 0,
+
+                    Comments1:
+                        comments1[
+                        `${ele._id}_${ele.ebDoj}`
+                        ] || "N/A",
+
+                    Comments2:
+                        comments2[
+                        `${ele._id}_${ele.ebDoj}`
+                        ] || "N/A",
+
+                    FlatTotalEB:
+                        sheetData?.FlatTotalEB ??
+                        electricityAmt,
+
+                    FlatTotalUnits:
+                        sheetData?.FlatTotalUnits ??
+                        flatTotalUnits,
+
+                    PerUnitCost:
+                        sheetData?.PerUnitCost ?? 0,
+
+                    ACTotalUnits:
+                        sheetData?.ACTotalUnits ?? 0,
+
+                    ACTotalEB:
+                        sheetData?.ACTotalEB ?? 0,
                 };
             });
 
-        // Simulate API call - Replace with actual API call
-        setTimeout(() => {
-            console.log("Submitting EB Calculation Data:", bulkData);
-            console.log("Submitting Main Sheet Data:", { bulkData, totalFreeEB });
-            toast.success("Data Successfully Saved For EB Sheet & Main Sheet!");
-            setIsLoading(false);
-        }, 2000);
+        console.log(
+            "Submitting EB Calculation Data:",
+            bulkData
+        );
+
+        // ==========================================
+        // UPDATE EB IN RENT HISTORY
+        // ==========================================
+
+        // ==========================================
+        // UPDATE EB IN RENT HISTORY
+        // ==========================================
+
+        updateEBRentHistory(bulkData, {
+            onSuccess: (response) => {
+                console.log(
+                    "EB Rent History Updated:",
+                    response
+                );
+
+                // ==========================================
+                // CREATE EB CALCULATION
+                // ==========================================
+
+                createEBCalculation(
+                    {
+                        PropertyCode:
+                            propertyId?.label || "",
+
+                        PropertyId:
+                            propertyId?.value || "",
+
+                        EBStartDate:
+                            formatDate(startDate) || "",
+
+                        EBEndDate:
+                            formatDate(endDate) || "",
+
+                        clients: bulkData,
+                    },
+                    {
+                        onSuccess: (createResponse) => {
+                            console.log(
+                                "EB Calculation Created:",
+                                createResponse
+                            );
+
+                            toast.success(
+                                `Rent History: ${response?.message}
+Total: ${response?.totalClients}, Updated: ${response?.updatedCount}, Failed: ${response?.failedCount}
+
+EB Calculation: ${createResponse?.message}`
+                            );
+
+                            setIsLoading(false);
+                        },
+
+                        onError: (createError) => {
+                            console.error(
+                                "Create EB Calculation Error:",
+                                createError?.response?.data
+                            );
+
+                            toast.error(
+                                `Rent History: ${response?.message}
+Total: ${response?.totalClients}, Updated: ${response?.updatedCount}, Failed: ${response?.failedCount}
+
+EB Calculation: ${createError?.response?.data?.message ||
+                                "EB Calculation could not be saved."
+                                }`
+                            );
+
+                            setIsLoading(false);
+                        },
+                    }
+                );
+            },
+
+            onError: (error) => {
+                console.error(
+                    "EB Rent History Update Error:",
+                    error?.response?.data
+                );
+
+                const failedClients =
+                    error?.response?.data?.failedClients || [];
+
+                if (failedClients.length > 0) {
+                    failedClients.forEach((client) => {
+                        toast.error(client.message);
+                    });
+                } else {
+                    toast.error(
+                        error?.response?.data?.message ||
+                        "Failed to update EB amount in Rent History"
+                    );
+                }
+
+                setIsLoading(false);
+            },
+        });
     };
 
     const inputClass = 'w-full px-3 py-2 mt-1 border border-gray-400 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400';

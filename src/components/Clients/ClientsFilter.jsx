@@ -12,10 +12,11 @@ const ClientsFilter = ({
   onApply,
   handleReset,
   resetTrigger,
+  initialFilters = {},
 }) => {
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
-      propertyId: "",
+      propertyId: null,
       propertyLocation: "",
       roomNo: "",
       bedNo: "",
@@ -24,6 +25,52 @@ const ClientsFilter = ({
       clientStatus: "",
     },
   });
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const selectedProperty = initialFilters.propertyId
+      ? {
+          value: initialFilters.propertyId,
+          label: initialFilters.propertyCode || initialFilters.propertyId,
+        }
+      : null;
+
+    const selectedStayType =
+      stayTypeOptions.find(
+        (option) => option.value === initialFilters.stayType,
+      ) || null;
+
+    const selectedLogin =
+      loginOptions.find(
+        (option) => option.value === initialFilters.loginEnabled,
+      ) || null;
+
+    const selectedClientStatus =
+      clientStatusOptions.find(
+        (option) => option.value === initialFilters.clientStatus,
+      ) || null;
+
+    reset({
+      propertyId: selectedProperty,
+      propertyLocation: initialFilters.propertyLocation || "",
+      roomNo: initialFilters.roomNo || "",
+      bedNo: initialFilters.bedNo || "",
+      stayType: selectedStayType,
+      loginEnabled: selectedLogin ? selectedLogin.value : "",
+      clientStatus: selectedClientStatus ? selectedClientStatus.value : "",
+    });
+  }, [
+    isOpen,
+    initialFilters.propertyId,
+    initialFilters.propertyCode,
+    initialFilters.propertyLocation,
+    initialFilters.roomNo,
+    initialFilters.bedNo,
+    initialFilters.stayType,
+    initialFilters.loginEnabled,
+    initialFilters.clientStatus,
+    reset,
+  ]);
   // ===============================
   // PROPERTY OPTIONS
   // ===============================
@@ -130,9 +177,14 @@ const ClientsFilter = ({
 
   const onSubmit = (data) => {
     const filters = {
-      ...data,
       propertyId: data.propertyId?.value || "",
-      clientStatus: data.clientStatus,
+      propertyCode: data.propertyId?.label || "",
+      propertyLocation: data.propertyLocation || "",
+      roomNo: data.roomNo || "",
+      bedNo: data.bedNo || "",
+      stayType: data.stayType || "",
+      loginEnabled: data.loginEnabled,
+      clientStatus: data.clientStatus || "",
     };
 
     const labels = [
@@ -433,7 +485,7 @@ const ClientsFilter = ({
               type="button"
               onClick={() => {
                 reset({
-                  propertyId: "",
+                  propertyId: null,
                   propertyLocation: "",
                   roomNo: "",
                   bedNo: "",

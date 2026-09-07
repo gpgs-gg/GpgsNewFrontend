@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from "react";
 import Select from "react-select";
 import { TableFilePreview } from "../../components/common/FilePreview";
 import { Link } from "react-router-dom";
+import EmployeeFilter from "./EmployeeFilter";
 import {
   useEmployeeDetailsData,
   useUpdateEmployee,
@@ -32,7 +33,7 @@ import useDebounce from "../hooks/useDebounce";
 import { Filter, Eye, Pencil, Trash2, ShieldCheck } from "lucide-react";
 
 import Pagination from "../Common/Pagination";
-import ConfirmModal from "../common/ConfirmModal";
+import ConfirmModal from "../Common/ConfirmModal";
 const MAX_FILES = { aadhaar: 2, photo: 1, bank: 1 };
 
 const schema = yup.object().shape({
@@ -105,9 +106,7 @@ const EmployeesTable = () => {
     page: currentPage,
     limit: rowsPerPage,
     search: debouncedSearch,
-    departmentId: filters.departmentId,
-    teamCodeId: filters.teamCodeId,
-    statusId: filters.statusId,
+    filters,
   });
 
   // Keep login-enabled state synchronized with API data
@@ -558,41 +557,13 @@ const EmployeesTable = () => {
                 </button>
               )}
 
-              {/* LOGIN ENABLED SWITCH */}
-              {/* <label className="flex items-center gap-2 border border-gray-300 px-3 py-2 rounded-lg cursor-pointer select-none">
-                <span className="text-sm text-gray-700 whitespace-nowrap">
-                  Login Enabled
-                </span>
-
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={loginEnabledOnly}
-                  disabled={loginFilterLoading}
-                  onClick={() => setLoginEnabledOnly((prev) => !prev)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    loginEnabledOnly ? "bg-green-500" : "bg-gray-300"
-                  } ${
-                    loginFilterLoading
-                      ? "opacity-50 cursor-not-allowed"
-                      : "cursor-pointer"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                      loginEnabledOnly ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </label> */}
-
-              {/* <button
+              <button
                 onClick={() => setFilterOpen(true)}
                 className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
               >
                 <Filter size={16} />
                 Filters
-              </button> */}
+              </button>
             </div>
           </div>
 
@@ -906,9 +877,11 @@ const EmployeesTable = () => {
           }}
         />
         {/* ================= EMPLOYEE FILTER ================= */}
-        {/* <EmployeeFilter
+        <EmployeeFilter
           isOpen={filterOpen}
           onClose={() => setFilterOpen(false)}
+          employees={employeesData}
+          initialFilters={filters}
           onApply={(data, labels) => {
             setFilters(data);
             setFilterLabels(labels);
@@ -916,7 +889,7 @@ const EmployeesTable = () => {
           }}
           handleReset={handleReset}
           resetTrigger={resetTrigger}
-        /> */}
+        />
       </>
     </div>
   );

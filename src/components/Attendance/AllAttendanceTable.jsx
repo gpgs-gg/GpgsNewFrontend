@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import ConfirmModal from "../common/ConfirmModal";
+import ConfirmModal from "../Common/ConfirmModal";
 import { toast } from "react-toastify";
 import { FaUserClock } from "react-icons/fa";
 import { Filter } from "lucide-react";
@@ -21,18 +21,30 @@ const AllAttendanceTable = () => {
     month: "",
     date: "",
     status: "",
+    department: "",
     employeeId: "",
   };
 
+  // ======================================================
+  // PERSISTED FILTERS
+  // ============
   const { filters, setFilters, updateFilters, removeFilter, resetFilters } =
     usePersistedFilters("attendance_filters", DEFAULT_ATTENDANCE_FILTERS);
+
   const [search, setSearch] = useState("");
 
   // ======================================================
   // STATE
   // ======================================================
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const savedPage = localStorage.getItem("attendance_page");
 
+    return savedPage ? Number(savedPage) : 1;
+  });
+  // Persist current page
+  useEffect(() => {
+    localStorage.setItem("attendance_page", String(currentPage));
+  }, [currentPage]);
   const [regularizeOpen, setRegularizeOpen] = useState(false);
   const [selectedAttendance, setSelectedAttendance] = useState(null);
 
@@ -120,7 +132,12 @@ const AllAttendanceTable = () => {
         label: `Status : ${statusLabel}`,
       });
     }
-
+    if (filters.department) {
+      labels.push({
+        key: "department",
+        label: `Department : ${filters.department}`,
+      });
+    }
     if (filters.employeeId) {
       const employee = employees.find(
         (item) => item._id === filters.employeeId,
@@ -250,7 +267,6 @@ const AllAttendanceTable = () => {
     resetFilters();
 
     setSearch("");
-    setCurrentPage(1);
 
     setResetTrigger((prev) => prev + 1);
   };
@@ -328,8 +344,6 @@ const AllAttendanceTable = () => {
                 onClick={() => {
                   setSearch("");
                   setCurrentPage(1);
-
-                 
                 }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
               >
@@ -691,7 +705,9 @@ const AllAttendanceTable = () => {
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
-            onPageChange={setCurrentPage}
+            onPageChange={(page) => {
+              setCurrentPage(page);
+            }}
           />
         </div>
         <AttendanceFilter
@@ -705,6 +721,7 @@ const AllAttendanceTable = () => {
               month: data.month || "",
               date: data.date || "",
               status: data.status || "",
+              department: data.department || "",
               employeeId: data.employeeId || "",
             });
 

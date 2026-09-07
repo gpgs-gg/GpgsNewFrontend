@@ -3,7 +3,15 @@ import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
 import NoDataFound from "../common/NoDataFound";
-import { useCancelNewBooking, useClientFromNewBooking, useDeleteNewBookingData, useNewBooking, useToggleClientLogin, useUpdateNewBooking, useUpdateNewBookingForBooked } from "./services";
+import {
+  useCancelNewBooking,
+  useClientFromNewBooking,
+  useDeleteNewBookingData,
+  useNewBooking,
+  useToggleClientLogin,
+  useUpdateNewBooking,
+  useUpdateNewBookingForBooked,
+} from "./services";
 import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";
 import ConfirmModal from "../common/ConfirmModal";
@@ -14,27 +22,242 @@ import { FaEllipsisV } from "react-icons/fa";
 import { RiTelegram2Line } from "react-icons/ri";
 import PaymentVerificationModal from "./PaymentVerificationModal";
 import { useForm } from "react-hook-form";
-import image from "../../assets/icons8-verified-account (1).gif"
-
+import image from "../../assets/icons8-verified-account (1).gif";
+import usePersistedFilters from "../hooks/usePersistedFilters";
 const NewBookingTable = () => {
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+
   const [filterOpen, setFilterOpen] = useState(false);
-  const [filters, setFilters] = useState({});
+  const DEFAULT_NEW_BOOKING_FILTERS = {
+    teamCode: "",
+    fullName: "",
+    callingNo: "",
+    whatsappNo: "",
+    status: "",
+    bookingType: "",
+
+    propertyId: "",
+    propertyCode: "",
+    propertyLocation: "",
+    roomNo: "",
+    bedNo: "",
+
+    temporaryPropertyId: "",
+    temporaryBedNo: "",
+
+    clientDojFrom: "",
+    clientDojTo: "",
+    temporaryClientDojFrom: "",
+    temporaryClientDojTo: "",
+
+    monthlyRentMin: "",
+    monthlyRentMax: "",
+    depositAmountMin: "",
+    depositAmountMax: "",
+    processingFeesMin: "",
+    processingFeesMax: "",
+    totalAmountMin: "",
+    totalAmountMax: "",
+    bookingAmountMin: "",
+    bookingAmountMax: "",
+    balanceAmountMin: "",
+    balanceAmountMax: "",
+  };
+
+  const { filters, setFilters, removeFilter, resetFilters } =
+    usePersistedFilters("new_booking_filters", DEFAULT_NEW_BOOKING_FILTERS);
+
+  const [currentPage, setCurrentPage] = useState(() => {
+    const savedPage = localStorage.getItem("new_booking_page");
+
+    return savedPage ? Number(savedPage) : 1;
+  });
+  useEffect(() => {
+    localStorage.setItem("new_booking_page", String(currentPage));
+  }, [currentPage]);
+  const filterLabels = useMemo(() => {
+    const labels = [];
+
+    if (filters.fullName) {
+      labels.push({
+        key: "fullName",
+        title: "Client Name",
+        value: filters.fullName,
+      });
+    }
+
+    if (filters.callingNo) {
+      labels.push({
+        key: "callingNo",
+        title: "Calling No",
+        value: filters.callingNo,
+      });
+    }
+
+    if (filters.whatsappNo) {
+      labels.push({
+        key: "whatsappNo",
+        title: "WhatsApp No",
+        value: filters.whatsappNo,
+      });
+    }
+
+    if (filters.status) {
+      labels.push({
+        key: "status",
+        title: "Status",
+        value: filters.status,
+      });
+    }
+
+    if (filters.bookingType) {
+      labels.push({
+        key: "bookingType",
+        title: "Booking Type",
+        value: filters.bookingType,
+      });
+    }
+
+    if (filters.teamCode) {
+      labels.push({
+        key: "teamCode",
+        title: "Team Code",
+        value: filters.teamCode,
+      });
+    }
+
+    if (filters.propertyId) {
+      labels.push({
+        key: "propertyId",
+        title: "Property",
+        value: filters.propertyCode || filters.propertyId,
+      });
+    }
+
+    if (filters.propertyLocation) {
+      labels.push({
+        key: "propertyLocation",
+        title: "Location",
+        value: filters.propertyLocation,
+      });
+    }
+
+    if (filters.roomNo) {
+      labels.push({
+        key: "roomNo",
+        title: "Room No",
+        value: filters.roomNo,
+      });
+    }
+
+    if (filters.bedNo) {
+      labels.push({
+        key: "bedNo",
+        title: "Bed No",
+        value: filters.bedNo,
+      });
+    }
+
+    if (filters.temporaryPropertyId) {
+      labels.push({
+        key: "temporaryPropertyId",
+        title: "Temp Property",
+        value: filters.temporaryPropertyCode || filters.temporaryPropertyId,
+      });
+    }
+
+    if (filters.temporaryBedNo) {
+      labels.push({
+        key: "temporaryBedNo",
+        title: "Temp Bed No",
+        value: filters.temporaryBedNo,
+      });
+    }
+
+    if (filters.clientDojFrom) {
+      labels.push({
+        key: "clientDojFrom",
+        title: "DOJ From",
+        value: filters.clientDojFrom,
+      });
+    }
+
+    if (filters.clientDojTo) {
+      labels.push({
+        key: "clientDojTo",
+        title: "DOJ To",
+        value: filters.clientDojTo,
+      });
+    }
+
+    if (filters.temporaryClientDojFrom) {
+      labels.push({
+        key: "temporaryClientDojFrom",
+        title: "Temp DOJ From",
+        value: filters.temporaryClientDojFrom,
+      });
+    }
+
+    if (filters.temporaryClientDojTo) {
+      labels.push({
+        key: "temporaryClientDojTo",
+        title: "Temp DOJ To",
+        value: filters.temporaryClientDojTo,
+      });
+    }
+
+    const amountFilters = [
+      ["monthlyRentMin", "Rent ≥"],
+      ["monthlyRentMax", "Rent ≤"],
+      ["depositAmountMin", "Deposit ≥"],
+      ["depositAmountMax", "Deposit ≤"],
+      ["processingFeesMin", "Proc. Fee ≥"],
+      ["processingFeesMax", "Proc. Fee ≤"],
+      ["totalAmountMin", "Total Amt ≥"],
+      ["totalAmountMax", "Total Amt ≤"],
+      ["bookingAmountMin", "Booking Amt ≥"],
+      ["bookingAmountMax", "Booking Amt ≤"],
+      ["balanceAmountMin", "Balance Amt ≥"],
+      ["balanceAmountMax", "Balance Amt ≤"],
+    ];
+
+    amountFilters.forEach(([key, title]) => {
+      if (filters[key]) {
+        labels.push({
+          key,
+          title,
+          value: `₹${filters[key]}`,
+        });
+      }
+    });
+
+    return labels;
+  }, [filters]);
+  const hasActiveFilters = useMemo(() => {
+    return Object.values(filters).some(
+      (value) => value !== "" && value !== null && value !== undefined,
+    );
+  }, [filters]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const debouncedSearch = useDebounce(search, 500);
-  const [filterLabels, setFilterLabels] = useState([]);
+
   const [resetTrigger, setResetTrigger] = useState(0);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const rowsPerPage = 10;
+  const rowsPerPage = 20;
+  const apiFilters = useMemo(() => {
+    const { propertyCode, temporaryPropertyCode, ...rest } = filters;
+
+    return rest;
+  }, [filters]);
+
   const { data: newBooking, isLoading } = useNewBooking({
     page: currentPage,
     limit: rowsPerPage,
     search: debouncedSearch,
-    ...filters,
+    ...apiFilters,
   });
 
   const {
@@ -76,8 +299,9 @@ const NewBookingTable = () => {
     createClientFromBooking(
       {
         bookingId: selectedBooking._id,
-        narration: `Amount: ₹${data.paymentAmount || 0} - Narration: ${data.narration || ""}${data.remarks ? ` - Remarks: ${data.remarks}` : ""
-          }`,
+        narration: `Amount: ₹${data.paymentAmount || 0} - Narration: ${data.narration || ""}${
+          data.remarks ? ` - Remarks: ${data.remarks}` : ""
+        }`,
         paymentAmount: data.paymentAmount,
         remarks: data.remarks,
 
@@ -86,9 +310,7 @@ const NewBookingTable = () => {
       },
       {
         onSuccess: (response) => {
-          toast.success(
-            response?.message || "Client created successfully!"
-          );
+          toast.success(response?.message || "Client created successfully!");
 
           reset();
           setShowPaymentModal(false);
@@ -97,39 +319,30 @@ const NewBookingTable = () => {
 
         onError: (error) => {
           toast.error(
-            error?.response?.data?.message ||
-            "Failed to create client"
+            error?.response?.data?.message || "Failed to create client",
           );
         },
-      }
+      },
     );
   };
 
-
-  const { mutate: toggleClientLogin, isPendingToggleClientLogin } = useToggleClientLogin();
-  const { mutate: updateNewBookingForBooked, isPending } = useUpdateNewBookingForBooked();
-  const { mutate: deleteNewBooking, isPending: isLoadingDelete } = useDeleteNewBookingData();
-  const {
-    mutate: createClientFromBooking,
-    isPending: isCreateClientLoading,
-  } = useClientFromNewBooking();
-  const {
-    mutate: cancelBooking,
-    isPending: isCancelBookingLoading,
-  } = useCancelNewBooking();
-
+  const { mutate: toggleClientLogin, isPendingToggleClientLogin } =
+    useToggleClientLogin();
+  const { mutate: updateNewBookingForBooked, isPending } =
+    useUpdateNewBookingForBooked();
+  const { mutate: deleteNewBooking, isPending: isLoadingDelete } =
+    useDeleteNewBookingData();
+  const { mutate: createClientFromBooking, isPending: isCreateClientLoading } =
+    useClientFromNewBooking();
+  const { mutate: cancelBooking, isPending: isCancelBookingLoading } =
+    useCancelNewBooking();
 
   // Safely get bookings data
   // Safely get bookings data
   const bookings = newBooking?.data || [];
   const totalPages = newBooking?.totalPages || 1;
-  const totalRecords = newBooking?.totalRecords || 0;
+  const totalRecords = newBooking?.total || 0;
   // Filter logic - fixed to include all fields properly
-
-  // Reset to page 1 when filters or search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters, search]);
 
   useEffect(() => {
     const handleOutsideClick = () => {
@@ -142,49 +355,33 @@ const NewBookingTable = () => {
       document.removeEventListener("click", handleOutsideClick);
     };
   }, []);
+
+
   const handleReset = () => {
-    setFilters({});
-    setFilterLabels([]);
+    // Clear persisted filters
+    resetFilters();
+
+    // Clear search
     setSearch("");
+
+    // Clear filter chips
+    // Reset pagination
     setCurrentPage(1);
+
+    // Tell filter drawer to reset its form
     setResetTrigger((prev) => prev + 1);
-  };
-  const removeFilter = (key) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: "",
-    }));
 
-    setFilterLabels((prev) => prev.filter((item) => item.key !== key));
+    // Remove persisted page
+    localStorage.removeItem("new_booking_page");
+  };
+
+  const handleRemoveFilter = (key) => {
+    removeFilter(key);
+
 
     setCurrentPage(1);
-  }
-
-  // Get status color - fixed for all statuses
-  const getStatusColor = (status) => {
-    if (!status) return "bg-gray-100 text-gray-700";
-
-    switch (status.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-700";
-      case "inactive":
-        return "bg-red-100 text-red-700";
-      case "booked":
-        return "bg-blue-100 text-blue-700";
-      case "maintenance":
-        return "bg-yellow-100 text-yellow-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
   };
 
-  // Get booking type color
-  const getBookingTypeColor = (type) => {
-    if (!type) return "bg-gray-100 text-gray-700";
-    return type.toLowerCase() === "permanent"
-      ? "bg-purple-100 text-purple-700"
-      : "bg-orange-100 text-orange-700";
-  };
 
   // Handle delete function
   // Open Delete Confirmation Modal
@@ -199,18 +396,18 @@ const NewBookingTable = () => {
 
     deleteNewBooking(deleteId, {
       onSuccess: (response) => {
-        toast.dismiss()
+        toast.dismiss();
         toast.success(response?.message || "Booking deleted successfully");
         setShowDeleteModal(false);
         setDeleteId(null);
       },
 
       onError: (error) => {
-        toast.dismiss()
+        toast.dismiss();
         toast.error(
           error?.response?.data?.message ||
-          error?.message ||
-          "Something went wrong"
+            error?.message ||
+            "Something went wrong",
         );
         setShowDeleteModal(false);
         setDeleteId(null);
@@ -238,7 +435,7 @@ const NewBookingTable = () => {
         },
         onError: (error) => {
           toast.error(
-            error?.response?.data?.message || "Failed to cancel booking"
+            error?.response?.data?.message || "Failed to cancel booking",
           );
         },
       });
@@ -267,12 +464,11 @@ const NewBookingTable = () => {
   //   );
   // };
 
-
   const handleStatusToggle = (item) => {
     if (item.status === "Booked" && item.loginEnabled) {
       toast.dismiss();
       toast.error(
-        "This booking cannot be marked as Not Booked because the client's payment has already been verified."
+        "This booking cannot be marked as Not Booked because the client's payment has already been verified.",
       );
 
       return;
@@ -282,10 +478,7 @@ const NewBookingTable = () => {
       {
         id: item._id,
         data: {
-          status:
-            item.status === "Booked"
-              ? "Not Booked"
-              : "Booked",
+          status: item.status === "Booked" ? "Not Booked" : "Booked",
         },
       },
       {
@@ -293,22 +486,19 @@ const NewBookingTable = () => {
           toast.dismiss();
           toast.success(
             response?.message ||
-            response?.data?.message ||
-            "Status updated successfully"
+              response?.data?.message ||
+              "Status updated successfully",
           );
         },
         onError: (error) => {
           toast.dismiss();
           toast.error(
-            error?.response?.data?.message ||
-            "Failed to update status"
+            error?.response?.data?.message || "Failed to update status",
           );
         },
-      }
+      },
     );
   };
-
-
 
   return (
     <>
@@ -342,6 +532,7 @@ const NewBookingTable = () => {
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
+                  setCurrentPage(1);
                 }}
               />
               {search && (
@@ -373,7 +564,7 @@ const NewBookingTable = () => {
 
                   <button
                     type="button"
-                    onClick={() => removeFilter(filter.key)}
+                    onClick={() => handleRemoveFilter(filter.key)}
                     className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
                   >
                     ✕
@@ -383,14 +574,12 @@ const NewBookingTable = () => {
             </div>
             <div className="flex gap-2">
               <Link to="/clients">
-                <button
-                  className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
-                >
+                <button className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50">
                   <RiTelegram2Line size={19} />
                   Clients List
                 </button>
               </Link>
-              {Object.keys(filters).length > 0 && (
+              {hasActiveFilters && (
                 <button
                   onClick={handleReset}
                   className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2 hover:bg-gray-50"
@@ -446,22 +635,16 @@ const NewBookingTable = () => {
                   <tbody>
                     {bookings?.length > 0 ? (
                       bookings.map((item, index) => {
-
                         return (
                           <tr
                             key={item._id}
                             className="border-t border-gray-300 hover:bg-gray-50"
                           >
                             <td className="p-3 font-medium">
-                              {(currentPage - 1) *
-                                rowsPerPage +
-                                index +
-                                1}
+                              {(currentPage - 1) * rowsPerPage + index + 1}
                             </td>
 
-                            <td className="p-3">
-                              {item.fullName || "-"}
-                            </td>
+                            <td className="p-3">{item.fullName || "-"}</td>
 
                             <td className="p-3 text-center">
                               <div className="flex items-center justify-center gap-2">
@@ -474,19 +657,21 @@ const NewBookingTable = () => {
                                   />
                                   <div className="w-11 h-5 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors">
                                     <div
-                                      className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${item.status === "Booked"
-                                        ? "translate-x-5"
-                                        : "translate-x-0.5"
-                                        }`}
+                                      className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${
+                                        item.status === "Booked"
+                                          ? "translate-x-5"
+                                          : "translate-x-0.5"
+                                      }`}
                                     />
                                   </div>
                                 </label>
 
                                 <span
-                                  className={`text-sm font-medium ${item.status === "Booked"
-                                    ? "text-green-600"
-                                    : "text-red-600"
-                                    }`}
+                                  className={`text-sm font-medium ${
+                                    item.status === "Booked"
+                                      ? "text-green-600"
+                                      : "text-red-600"
+                                  }`}
                                 >
                                   {item.status === "Booked"
                                     ? "Booked"
@@ -494,56 +679,45 @@ const NewBookingTable = () => {
                                 </span>
                               </div>
                             </td>
-                            <td className="p-3">
-                              {item.callingNo || "-"}
-                            </td>
+                            <td className="p-3">{item.callingNo || "-"}</td>
+
+                            <td className="p-3">{item.whatsappNo || "-"}</td>
 
                             <td className="p-3">
-                              {item.whatsappNo || "-"}
+                              {item.propertyId?.propertyCode || "-"}
+                            </td>
+                            <td className="p-3">
+                              {item.propertyId?.propertyLocation || "-"}
                             </td>
 
-                            <td className="p-3">
-                              {item.propertyId?.propertyCode ||
-                                "-"}
-                            </td>
-                            <td className="p-3">
-                              {item.propertyId?.propertyLocation ||
-                                "-"}
-                            </td>
-
-                            <td className="p-3">
-                              {item.bedId?.bedNo || "-"}
-                            </td>
-                            <td className="p-3">
-                              {item.bedId?.roomNo || "-"}
-                            </td>
+                            <td className="p-3">{item.bedId?.bedNo || "-"}</td>
+                            <td className="p-3">{item.bedId?.roomNo || "-"}</td>
 
                             <td className="p-3">
                               {item.clientDoj
-                                ? formatDate(
-                                  item.clientDoj
-                                )
+                                ? formatDate(item.clientDoj)
                                 : "-"}
                             </td>
 
                             <td className="p-3">
                               <div className="flex items-center justify-center gap-3">
-
                                 {!item.loginEnabled && (
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    className="sr-only peer"
-                                    checked={item.loginEnabled}
-                                    onChange={() => handlePaymentVerification(item)}
-                                    disabled={isPending}
-                                  />
+                                  <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      className="sr-only peer"
+                                      checked={item.loginEnabled}
+                                      onChange={() =>
+                                        handlePaymentVerification(item)
+                                      }
+                                      disabled={isPending}
+                                    />
 
-                                  <div className="w-11 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
+                                    <div className="w-11 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors duration-300"></div>
 
-                                  <div className="absolute left-0.5 top-0.5 w-5 h-4 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
-                                </label>
-                                )} 
+                                    <div className="absolute left-0.5 top-0.5 w-5 h-4 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
+                                  </label>
+                                )}
 
                                 {item.loginEnabled ? (
                                   <div className="flex items-center gap-2">
@@ -562,75 +736,59 @@ const NewBookingTable = () => {
                                     Pending
                                   </span>
                                 )}
-
                               </div>
                             </td>
                             <td className="p-3">
-                              ₹
-                              {(
-                                item.monthlyRent || 0
-                              ).toLocaleString("en-IN")}
+                              ₹{(item.monthlyRent || 0).toLocaleString("en-IN")}
                             </td>
 
                             <td className="p-3">
                               ₹
-                              {(
-                                item.depositAmount || 0
-                              ).toLocaleString("en-IN")}
+                              {(item.depositAmount || 0).toLocaleString(
+                                "en-IN",
+                              )}
                             </td>
 
                             <td className="p-3">
                               ₹
-                              {(
-                                item.processingFees || 0
-                              ).toLocaleString("en-IN")}
+                              {(item.processingFees || 0).toLocaleString(
+                                "en-IN",
+                              )}
                             </td>
 
                             <td className="p-3">
-                              {item
-                                .temporaryPropertyId
-                                ?.propertyCode || "-"}
+                              {item.temporaryPropertyId?.propertyCode || "-"}
                             </td>
 
                             <td className="p-3">
-                              {item.temporaryBedId?.bedNo ||
-                                "-"}
+                              {item.temporaryBedId?.bedNo || "-"}
                             </td>
 
                             <td className="p-3">
                               {item.temporaryClientDoj
-                                ? formatDate(
-                                  item.temporaryClientDoj
-                                )
+                                ? formatDate(item.temporaryClientDoj)
                                 : "-"}
                             </td>
 
                             <td className="p-3 font-medium">
-                              ₹
-                              {item.totalAmount?.toLocaleString(
-                                "en-IN"
-                              ) || 0}
+                              ₹{item.totalAmount?.toLocaleString("en-IN") || 0}
                             </td>
 
                             <td className="p-3 text-green-600 font-medium">
                               ₹
-                              {item.bookingAmount?.toLocaleString(
-                                "en-IN"
-                              ) || 0}
+                              {item.bookingAmount?.toLocaleString("en-IN") || 0}
                             </td>
 
                             <td className="p-3 text-red-600 font-medium">
                               ₹
-                              {item.balanceAmount?.toLocaleString(
-                                "en-IN"
-                              ) || 0}
+                              {item.balanceAmount?.toLocaleString("en-IN") || 0}
                             </td>
-
 
                             {/* Sticky Actions Column */}
                             <td
-                              className={`p-3 sticky right-0 bg-white ${openMenuId === item._id ? "z-[9999]" : "z-20"
-                                } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
+                              className={`p-3 sticky right-0 bg-white ${
+                                openMenuId === item._id ? "z-[9999]" : "z-20"
+                              } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
                             >
                               <div className="flex justify-center relative">
                                 <button
@@ -640,10 +798,11 @@ const NewBookingTable = () => {
                                       openMenuId === item._id ? null : item._id,
                                     );
                                   }}
-                                  className={`p-2 rounded-md transition-colors ${openMenuId === item._id
+                                  className={`p-2 rounded-md transition-colors ${
+                                    openMenuId === item._id
                                       ? "bg-blue-100 text-blue-600"
                                       : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                    }`}
+                                  }`}
                                 >
                                   <FaEllipsisV />
                                 </button>
@@ -669,7 +828,7 @@ const NewBookingTable = () => {
                                       <span>Edit</span>
                                     </Link>
 
-                                    {/* <button
+                                    <button
                                       onClick={() => {
                                         setOpenMenuId(null);
                                         handleDelete(item._id);
@@ -678,12 +837,11 @@ const NewBookingTable = () => {
                                     >
                                       <span>🗑</span>
                                       <span>Delete</span>
-                                    </button> */}
+                                    </button>
                                   </div>
                                 )}
                               </div>
                             </td>
-
                           </tr>
                         );
                       })
@@ -707,10 +865,11 @@ const NewBookingTable = () => {
           {bookings.length > 0 && (
             <div className="border-t p-3 flex justify-between items-center bg-white">
               <span className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * rowsPerPage + 1} -
-                {Math.min(currentPage * rowsPerPage, totalRecords)}
-                of {totalRecords}
+                Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
+                {Math.min(currentPage * rowsPerPage, totalRecords)} of{" "}
+                {totalRecords}
               </span>
+
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
@@ -721,24 +880,22 @@ const NewBookingTable = () => {
         </div>
       </div>
 
-      {
-        showPaymentModal && (
-          <PaymentVerificationModal
-            booking={selectedBooking}
-            register={register}
-            handleSubmit={handleSubmit}
-            errors={errors}
-            onSubmit={onSubmit}
-            onClose={() => {
-              reset();
-              setShowPaymentModal(false);
-            }}
-            watch={watch}
-            setValue={setValue}
-            isCreateClientLoading={isCreateClientLoading}
-          />
-        )
-      }
+      {showPaymentModal && (
+        <PaymentVerificationModal
+          booking={selectedBooking}
+          register={register}
+          handleSubmit={handleSubmit}
+          errors={errors}
+          onSubmit={onSubmit}
+          onClose={() => {
+            reset();
+            setShowPaymentModal(false);
+          }}
+          watch={watch}
+          setValue={setValue}
+          isCreateClientLoading={isCreateClientLoading}
+        />
+      )}
       <ConfirmModal
         isOpen={showDeleteModal}
         title="Delete Booking"
@@ -754,9 +911,9 @@ const NewBookingTable = () => {
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         apiData={bookings}
-        onApply={(data, labels) => {
+        initialFilters={filters}
+        onApply={(data) => {
           setFilters(data);
-          setFilterLabels(labels);
           setCurrentPage(1);
         }}
         handleReset={handleReset}
@@ -766,4 +923,4 @@ const NewBookingTable = () => {
   );
 };
 
-export default NewBookingTable;  
+export default NewBookingTable;

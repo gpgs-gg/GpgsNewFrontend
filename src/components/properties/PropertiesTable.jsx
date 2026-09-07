@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import usePersistedFilters from "../hooks/usePersistedFilters";
 import {
   Eye,
   Pencil,
@@ -7,12 +8,13 @@ import {
   MessageCircle,
   Trash2,
 } from "lucide-react";
+import { formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
 import PropertyFilter from "./PropertyFilter";
 import NoDataFound from "../common/NoDataFound";
 import { usePropertiesData } from "./services";
-import { formatDate } from "../../utils/dateFormatter";
+
 import { useForm } from "react-hook-form";
 import { IoIosCall } from "react-icons/io";
 import { FaWhatsapp } from "react-icons/fa";
@@ -23,22 +25,67 @@ import {
   useDeletePropertyData,
   useDeleteMultiplePropertiesData,
 } from "./services/index";
+
 import ConfirmModal from "../Common/ConfirmModal";
 import { toast } from "react-toastify";
-
+import { useAuthorization } from "../../context/AuthorizationContext";
 const PropertiesTable = () => {
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const savedPage = localStorage.getItem("property_page");
+
+    return savedPage ? Number(savedPage) : 1;
+  });
+  useEffect(() => {
+    localStorage.setItem("property_page", String(currentPage));
+  }, [currentPage]);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [filters, setFilters] = useState({});
   const [resetTrigger, setResetTrigger] = useState(0);
+
+  const DEFAULT_PROPERTY_FILTERS = {
+    propertyCode: "",
+    propertyId: "",
+    propertyLocation: "",
+    bedCount: "",
+    status: "",
+  };
+
+  const {
+    filters,
+    setFilters,
+    resetFilters,
+    removeFilter: removePersistedFilter,
+  } = usePersistedFilters("property_filters", DEFAULT_PROPERTY_FILTERS);
   const debouncedSearch = useDebounce(search);
   const rowsPerPage = PAGINATION.PROPERTIES_PER_PAGE || 10;
+  const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
+
+  const canAddProperty = canAdd("properties");
+  const canEditProperty = canEdit("properties");
+  const canDeleteProperty = canDelete("properties");
+  const canViewProperty = canSingleView("properties");
+
+  const showActions = canViewProperty || canEditProperty || canDeleteProperty;
+  const apiFilters = useMemo(
+    () => ({
+      propertyId: filters.propertyId,
+      propertyLocation: filters.propertyLocation,
+      bedCount: filters.bedCount,
+      status: filters.status,
+    }),
+    [
+      filters.propertyId,
+      filters.propertyLocation,
+      filters.bedCount,
+      filters.status,
+    ],
+  );
+
   const { data: apiResponse, isLoading } = usePropertiesData({
     page: currentPage,
     limit: rowsPerPage,
     search: debouncedSearch,
-    filters,
+    filters: apiFilters,
   });
   // ✅ safe extraction
   const apiData = apiResponse?.data || [];
@@ -59,63 +106,94 @@ const PropertiesTable = () => {
     paginatedData.every((item) => selectedProperties.includes(item._id));
 
   // One State for Filter chips
-  const [filterLabels, setFilterLabels] = useState([]);
+  const filterLabels = useMemo(() => {
+    const labels = [];
+
+    if (filters.propertyId) {
+      labels.push({
+        key: "propertyId",
+        label: `Property : ${filters.propertyCode || filters.propertyId}`,
+      });
+    }
+
+    if (filters.propertyLocation) {
+      labels.push({
+        key: "propertyLocation",
+        label: `Location : ${filters.propertyLocation}`,
+      });
+    }
+
+    if (filters.bedCount) {
+      labels.push({
+        key: "bedCount",
+        label: `Beds : ${filters.bedCount}`,
+      });
+    }
+
+    if (filters.status) {
+      labels.push({
+        key: "status",
+        label: `Status : ${filters.status}`,
+      });
+    }
+
+    return labels;
+  }, [filters]);
+  const hasActiveFilters = useMemo(() => {
+    return Object.values(filters).some(
+      (value) => value !== "" && value !== null && value !== undefined,
+    );
+  }, [filters]);
   // Handle Reset
   const handleReset = () => {
-    setFilters({});
-    setFilterLabels([]);
+    resetFilters();
+
     setSearch("");
     setCurrentPage(1);
 
     setResetTrigger((prev) => prev + 1);
   };
-  
+
   const removeFilter = (key) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: "",
-    }));
-
-    setFilterLabels((prev) => prev.filter((item) => item.key !== key));
-
+    removePersistedFilter(key);
     setCurrentPage(1);
   };
   // Handle Delete
 
-const handleDelete = () => {
-  if (deleteType === "single") {
-    deleteProperty(deleteId, {
-      onSuccess: (data) => {
-        toast.success(data?.message || "Property deleted successfully.");
+  const handleDelete = () => {
+    if (deleteType === "single") {
+      deleteProperty(deleteId, {
+        onSuccess: (data) => {
+          toast.success(data?.message || "Property deleted successfully.");
 
-        setDeleteId(null);
-        setShowDeleteModal(false);
-      },
-      onError: (error) => {
-        toast.error(
-          error?.response?.data?.message || "Failed to delete property."
-        );
-      },
-    });
-  } else {
-    deleteMultipleProperties(selectedProperties, {
-      onSuccess: (data) => {
-        toast.success(
-          data?.message || "Selected properties deleted successfully."
-        );
+          setDeleteId(null);
+          setShowDeleteModal(false);
+        },
+        onError: (error) => {
+          toast.error(
+            error?.response?.data?.message || "Failed to delete property.",
+          );
+        },
+      });
+    } else {
+      deleteMultipleProperties(selectedProperties, {
+        onSuccess: (data) => {
+          toast.success(
+            data?.message || "Selected properties deleted successfully.",
+          );
 
-        setSelectedProperties([]);
-        setShowDeleteModal(false);
-      },
-      onError: (error) => {
-        toast.error(
-          error?.response?.data?.message ||
-            "Failed to delete selected properties."
-        );
-      },
-    });
-  }
-};
+          setSelectedProperties([]);
+          setShowDeleteModal(false);
+        },
+        onError: (error) => {
+          toast.error(
+            error?.response?.data?.message ||
+              "Failed to delete selected properties.",
+          );
+        },
+      });
+    }
+  };
   // Handle Select
   const handleSelect = (id) => {
     setSelectedProperties((prev) =>
@@ -155,11 +233,13 @@ const handleDelete = () => {
               <p className="text-sm text-gray-500">Manage all PG properties</p>
             </div>
 
-            <Link to="/properties/create">
-              <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                + Add Property
-              </button>
-            </Link>
+            {canAddProperty && (
+              <Link to="/properties/create">
+                <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                  + Add Property
+                </button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -217,7 +297,7 @@ const handleDelete = () => {
             </div>
             {/* Reset Button */}
             <div className="flex gap-2">
-              {Object.keys(filters).length > 0 && (
+              {hasActiveFilters && (
                 <button
                   onClick={handleReset}
                   className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
@@ -254,10 +334,19 @@ const handleDelete = () => {
           )}
           {/* TABLE CONTENT */}
           <div className="flex-1 overflow-auto">
-            <table className="w-full">
-              <thead className="sticky top-0 bg-gray-100">
+            <table className="w-full min-w-[1700px]">
+              <thead className="sticky top-0 z-40 bg-gray-100">
                 <tr>
-                  <th className="p-3 text-center">
+                  {/* CHECKBOX - STICKY LEFT */}
+                  <th
+                    className="
+        sticky left-0 z-30
+        bg-gray-100
+        p-3 text-center
+        w-[50px] min-w-[50px]
+        shadow-[2px_0_4px_-2px_rgba(0,0,0,0.2)]
+      "
+                  >
                     <input
                       type="checkbox"
                       className="h-4 w-4 cursor-pointer accent-red-600"
@@ -265,15 +354,56 @@ const handleDelete = () => {
                       onChange={handleSelectAll}
                     />
                   </th>
-                  <th className="p-3 text-left">Property Code</th>
-                  <th className="p-3 text-left">Beds Count</th>
-                  <th className="p-3 text-left">Location</th>
-                  <th className="p-3 text-left">ConsumerId</th>
-                  <th className="p-3 text-left">InternetVendorContact</th>
-                  <th className="p-3 text-left">Property Start Date</th>
-                  <th className="p-3 text-left">Property End Date</th>
-                  <th className="p-3 text-center">Status</th>
-                  <th className="p-3 text-center">Actions</th>
+
+                  {/* PROPERTY CODE - STICKY LEFT */}
+                  <th
+                    className="
+        sticky left-[50px] z-30
+        bg-gray-100
+        p-3 text-left
+        w-[150px] min-w-[150px]
+        shadow-[2px_0_4px_-2px_rgba(0,0,0,0.2)]
+      "
+                  >
+                    Property Code
+                  </th>
+
+                  <th className="p-3 text-left min-w-[110px]">Beds Count</th>
+
+                  <th className="p-3 text-left min-w-[150px]">Location</th>
+
+                  <th className="p-3 text-left min-w-[130px]">ConsumerId</th>
+
+                  <th className="p-3 text-left min-w-[220px]">
+                    Internet Vendor Contact
+                  </th>
+
+                  <th className="p-3 text-left min-w-[170px]">
+                    Property Start Date
+                  </th>
+
+                  <th className="p-3 text-left min-w-[170px]">
+                    Property End Date
+                  </th>
+
+                  <th className="p-3 text-center min-w-[110px]">Status</th>
+
+                  <th className="p-3 text-left min-w-[250px]">Work Logs</th>
+
+                  {/* ACTIONS - STICKY RIGHT */}
+                  {showActions && (
+                    <th
+                      className="
+      sticky right-0 z-30
+      bg-gray-100
+      p-3 text-center
+      w-[150px] min-w-[150px]
+      shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.2)]
+    "
+                    >
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               {isLoading ? (
@@ -286,7 +416,7 @@ const handleDelete = () => {
                         key={item._id}
                         className="border-t border-gray-300 hover:bg-gray-50"
                       >
-                        <td className="p-3 text-center">
+                        <td className="sticky left-0 z-20 bg-white p-3 text-center w-[50px] min-w-[50px]">
                           <input
                             type="checkbox"
                             className="h-4 w-4 cursor-pointer accent-red-600"
@@ -294,7 +424,7 @@ const handleDelete = () => {
                             onChange={() => handleSelect(item._id)}
                           />
                         </td>
-                        <td className="p-3 font-semibold">
+                        <td className="sticky left-[50px] z-20 bg-white p-3 font-semibold w-[150px] min-w-[150px]">
                           {item.propertyCode}
                         </td>
 
@@ -348,33 +478,84 @@ const handleDelete = () => {
                             {item.status}
                           </span>
                         </td>
-
+                        {/* WORKLOGS */}
                         <td className="p-3">
-                          <div className="flex justify-center gap-2">
-                            <Link to={`/properties/edit/${item._id}`}>
-                              {/* <Link to={`/properties/view/${item._id}`}> */}
-                              <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
-                                <Eye size={16} />
-                              </button>
-                            </Link>
-                            <Link to={`/properties/edit/${item._id}`}>
-                              <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
-                                <Pencil size={16} />
-                              </button>
-                            </Link>
-                            <button
-                              onClick={() => {
-                                setDeleteType("single");
-                                setDeleteId(item._id);
-                                setShowDeleteModal(true);
-                              }}
-                              disabled={deleting}
-                              className="p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
+                          {item.workLogs?.length > 0 ? (
+                            <div className="group relative cursor-pointer">
+                              {/* Latest Work Log */}
+                              <div className="truncate max-w-28 text-xs">
+                                {
+                                  [...item.workLogs].sort(
+                                    (a, b) =>
+                                      new Date(b.createdAt) -
+                                      new Date(a.createdAt),
+                                  )[0]?.message
+                                }
+                              </div>
+
+                              {/* Hover Popup */}
+                              <div className="absolute right-0 top-4 hidden group-hover:block bg-white border shadow-xl rounded-lg p-3 w-80 max-h-62.5 overflow-y-auto whitespace-pre-line text-xs z-50">
+                                {[...item.workLogs]
+                                  .sort(
+                                    (a, b) =>
+                                      new Date(b.createdAt) -
+                                      new Date(a.createdAt),
+                                  )
+                                  .map((log, index) => (
+                                    <div
+                                      key={log._id || index}
+                                      className="mb-3"
+                                    >
+                                      <div className="text-gray-700">
+                                        {log.createdBy}
+                                        <span className="mx-1">•</span>
+                                        {formatDateAndTime(log.createdAt)}
+                                      </div>
+
+                                      <div className="mt-1 font-medium">
+                                        {log.message}
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-gray-500">-</div>
+                          )}
                         </td>
+                        {/* ACTIONS */}
+                        {showActions && (
+                          <td className="sticky right-0 z-20 bg-white p-3 w-[150px] min-w-[150px]">
+                            <div className="flex justify-center gap-2">
+                              <Link to={`/properties/edit/${item._id}`}>
+                                {/* <Link to={`/properties/view/${item._id}`}> */}
+                                <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
+                                  <Eye size={16} />
+                                </button>
+                              </Link>
+                              {canEditProperty && (
+                                <Link to={`/properties/edit/${item._id}`}>
+                                  <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
+                                    <Pencil size={16} />
+                                  </button>
+                                </Link>
+                              )}
+                              {canDeleteProperty && (
+                                <button
+                                  onClick={() => {
+                                    setDeleteType("single");
+                                    setDeleteId(item._id);
+                                    setShowDeleteModal(true);
+                                  }}
+                                  disabled={deleting}
+                                  className="p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))
                   ) : (
@@ -412,9 +593,9 @@ const handleDelete = () => {
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         apiData={apiData}
-        onApply={(data, labels) => {
+        initialFilters={filters}
+        onApply={(data) => {
           setFilters(data);
-          setFilterLabels(labels);
           setCurrentPage(1);
         }}
         handleReset={handleReset}

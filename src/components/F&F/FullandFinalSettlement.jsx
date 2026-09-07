@@ -1,31 +1,43 @@
 
-import React from 'react'
-import { useState } from "react";
-import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
-import NoDataFound from "../common/NoDataFound";
-import TableSkeleton from "../../components/common/TableSkelton";
+import { useState, useEffect, useMemo } from "react";
+import { X } from "lucide-react";
+import {Filter } from "lucide-react";
 import useDebounce from "../hooks/useDebounce";
 import { PAGINATION } from "../../constants/appConfig";
-import UserFilter from '../User/UserFilter';
-import { useFnFnadNoticeData } from './services';
-import Pagination from '../Common/Pagination';
-import { formatDate } from '../../utils/dateFormatter';
-import FnfEditForm from './FnfEditForm';
-import { useUpdateClientData } from '../Clients/services';
+import FnfFilter from "./FnfFilter";
+import { useFnFnadNoticeData } from "./services";
+import Pagination from "../Common/Pagination";
+import { formatDate } from "../../utils/dateFormatter";
+import FnfEditForm from "./FnfEditForm";
 import { Copy } from "lucide-react";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
+import usePersistedFilters from "../hooks/usePersistedFilters";
+
 function FullandFinalSettlement() {
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [filterOpen, setFilterOpen] = useState(false);
-    const [filters, setFilters] = useState({});
+    const DEFAULT_FNF_FILTERS = {
+        propertyId: "",
+        propertyCode: "",
+        fnfStatus: "",
+        stayType: "",
+        hasCvd: false,
+    };
+
+    const {
+        filters,
+        setFilters,
+        resetFilters,
+        removeFilter: removePersistedFilter,
+    } = usePersistedFilters("fnf_filters", DEFAULT_FNF_FILTERS);
+
     const [resetTrigger, setResetTrigger] = useState(0);
     const [showFnfForm, setShowFnfForm] = useState(false);
     const [selectedClient, setSelectedClient] = useState(null);
     const [rentHistories, setRentHistories] = useState([]);
     const debouncedSearch = useDebounce(search);
-    const rowsPerPage = PAGINATION.PROPERTIES_PER_PAGE || 10;
+    const rowsPerPage = PAGINATION.DEFAULT_LIMIT || 10;
 
     //  const { mutate: deleteUserData, isPending } = useDeleteUserData();
 
@@ -35,41 +47,85 @@ function FullandFinalSettlement() {
         isError,
         error,
     } = useFnFnadNoticeData({
-        page: 1,
-        limit: 10,
+        page: currentPage,
+        limit: rowsPerPage,
+        search: debouncedSearch,
+        filters,
     });
 
-    //  API response ko array me normalize kar rahe hain
-    const data = Array.isArray(apiResponse)
-        ? apiResponse
-        : apiResponse?.data || [];
+    const data = apiResponse?.data || [];
 
-
-    // const { data: apiResponse, isLoading } = useUsersData({
-    //     page: currentPage,
-    //     limit: rowsPerPage,
-    //     search: debouncedSearch,
-    //     filters,
-    // });
-
-    const apiData = apiResponse?.data || [];
     const totalPages = apiResponse?.totalPages || 1;
-    const totalRecords = apiResponse?.totalRecords || 0;
-
-    const paginatedData = apiData;
+    const totalRecords = apiResponse?.totalCount || 0;
 
     const handleReset = () => {
-        setFilters({});
+        resetFilters();
         setSearch("");
         setCurrentPage(1);
         setResetTrigger((prev) => prev + 1);
     };
+
+    const handleRemoveFilter = (key) => {
+        removePersistedFilter(key);
+        setCurrentPage(1);
+    };
+
+    useEffect(() => {
+        sessionStorage.setItem("fnfSearch", search);
+    }, [search]);
+
+    const filterLabels = useMemo(() => {
+        const labels = [];
+
+        if (filters.propertyId) {
+            labels.push({
+                key: "propertyId",
+                title: "Property",
+                value: filters.propertyCode || filters.propertyId,
+            });
+        }
+
+        if (filters.fnfStatus) {
+            labels.push({
+                key: "fnfStatus",
+                title: "FNF Status",
+                value: filters.fnfStatus,
+            });
+        }
+
+        if (filters.stayType) {
+            labels.push({
+                key: "stayType",
+                title: "Stay Type",
+                value: filters.stayType,
+            });
+        }
+
+        if (filters.hasCvd) {
+            labels.push({
+                key: "hasCvd",
+                title: "CVD",
+                value: "Yes",
+            });
+        }
+
+        return labels;
+    }, [filters]);
+
+
+  const statusFullForm = {
+    RFH: "Ready for Handover",
+    "F&F C": "F&F Closed",
+    BDR: "Bank Details Revised",
+    "F&F DS": "F&F Details Sent",
+    HD: "Handover Done",
+  };
+
+
     return (
         <>
             <div className="space-y-5">
-
                 {/* HEADER */}
-
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
                     <div className="flex justify-between items-center">
@@ -90,51 +146,76 @@ function FullandFinalSettlement() {
 
                 {/* TABLE */}
                 <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
-
                     {/* SEARCH */}
-                    <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
-
-                        <div className="relative w-80">
-                            <input
-                                className="border px-3 py-2 pr-10 rounded-lg w-full"
-                                placeholder="Search ..."
-                                value={search}
-                                onChange={(e) => {
-                                    setSearch(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                            />
-
-                            {search && (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setSearch("");
+                    <div className="px-3 py-2 border-b border-gray-400">
+                        <div className="flex justify-between gap-3 items-center">
+                            {/* SEARCH */}
+                            <div className="relative w-80">
+                                <input
+                                    className="border px-3 py-2 pr-10 rounded-lg w-full"
+                                    placeholder="Search ..."
+                                    value={search}
+                                    onChange={(e) => {
+                                        setSearch(e.target.value);
                                         setCurrentPage(1);
                                     }}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
-                                >
-                                    ✕
-                                </button>
+                                />
+
+                                {search && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSearch("");
+                                            setCurrentPage(1);
+                                        }}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
+                            {/* FILTER CHIPS */}
+                            {filterLabels.length > 0 && (
+                                <div className="flex flex-wrap items-center gap-2 flex-1">
+                                    {filterLabels.map((filter) => (
+                                        <div
+                                            key={filter.key}
+                                            className="flex items-center gap-2 bg-slate-100 border border-slate-300 text-slate-700 px-3 py-1.5 rounded-full text-sm"
+                                        >
+                                            <span className="font-medium">{filter.title}:</span>
+
+                                            <span>{filter.value}</span>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveFilter(filter.key)}
+                                                className="text-gray-500 hover:text-red-500"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             )}
-                        </div>
-                        <div className="flex gap-2">
-                            {Object.keys(filters).length > 0 && (
+                            {/* BUTTONS */}
+                            <div className="flex gap-2">
+                                {filterLabels.length > 0 && (
+                                    <button
+                                        onClick={handleReset}
+                                        className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
+                                    >
+                                        Reset
+                                    </button>
+                                )}
+
                                 <button
-                                    onClick={handleReset}
-                                    className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
+                                    onClick={() => setFilterOpen(true)}
+                                    className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
                                 >
-                                    {/* <Filter size={16} /> */}
-                                    Reset
+                                    <Filter size={16} />
+                                    Filters
                                 </button>
-                            )}
-                            <button
-                                onClick={() => setFilterOpen(true)}
-                                className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
-                            >
-                                <Filter size={16} />
-                                Filters
-                            </button>
+                            </div>
                         </div>
                     </div>
 
@@ -165,7 +246,9 @@ function FullandFinalSettlement() {
                                     <th className="p-3 text-left">Total Received</th>
                                     <th className="p-3 text-left">Current Due</th>
                                     <th className="p-3 text-left">Payment Status</th> */}
-                                    <th className="p-3 text-left sticky right-0 bg-gray-100">Action</th>
+                                    <th className="p-3 text-left sticky right-0 bg-gray-100">
+                                        Action
+                                    </th>
                                 </tr>
                             </thead>
 
@@ -220,7 +303,9 @@ function FullandFinalSettlement() {
 
                                                         if (fnfStatus && fnfStatus.trim() !== "") {
                                                             return (
-                                                                <span className="px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700">
+                                                                <span
+                                                                    title={statusFullForm[fnfStatus] || fnfStatus}
+                                                                    className="px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700 cursor-help">
                                                                     {fnfStatus}
                                                                 </span>
                                                             );
@@ -230,7 +315,8 @@ function FullandFinalSettlement() {
 
                                                         return (
                                                             <span
-                                                                className={`px-3 py-1 rounded-full text-sm font-semibold ${status.className}`}
+                                                                title={statusFullForm[status.text] || status.text}
+                                                                className={`px-3 py-1 rounded-full text-sm font-semibold cursor-help ${status.className}`}
                                                             >
                                                                 {status.text}
                                                             </span>
@@ -375,9 +461,9 @@ function FullandFinalSettlement() {
 
                     {/* PAGINATION */}
                     <div className="border-t p-3 flex justify-between items-center">
-
                         <span className="text-sm text-gray-500">
-                            Showing {totalRecords === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1} -{" "}
+                            Showing{" "}
+                            {totalRecords === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1} -{" "}
                             {Math.min(currentPage * rowsPerPage, totalRecords)} of{" "}
                             {totalRecords}
                         </span>
@@ -387,9 +473,7 @@ function FullandFinalSettlement() {
                             totalPages={totalPages}
                             onPageChange={setCurrentPage}
                         />
-
                     </div>
-
                 </div>
             </div>
             {showFnfForm && (
@@ -402,16 +486,19 @@ function FullandFinalSettlement() {
                     }}
                 />
             )}
-            <UserFilter
+            <FnfFilter
                 isOpen={filterOpen}
                 onClose={() => setFilterOpen(false)}
-                apiData={apiData}
-                onApply={(data) => setFilters(data)}
+                onApply={(data) => {
+                    setFilters(data);
+                    setCurrentPage(1);
+                }}
                 handleReset={handleReset}
                 resetTrigger={resetTrigger}
+                initialFilters={filters}
             />
         </>
     );
 }
 
-export default FullandFinalSettlement
+export default FullandFinalSettlement;

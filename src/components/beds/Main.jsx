@@ -1,5 +1,4 @@
-import React from "react";
-import BedsTable from "./bedsTable";
+import BedsTable from "./BedsTable";
 
 const Main = () => {
   return (

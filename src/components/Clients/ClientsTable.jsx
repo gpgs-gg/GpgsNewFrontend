@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { Eye, Pencil, Filter, Trash2, Info } from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { Pencil, Filter, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
 import NoDataFound from "../common/NoDataFound";
@@ -9,6 +9,7 @@ import {
   useClientFromNewBooking,
   useClients,
 } from "./services";
+import usePersistedFilters from "../hooks/usePersistedFilters";
 import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";
 import { FaEllipsisV } from "react-icons/fa";
@@ -18,31 +19,120 @@ import ClientsFilter from "./ClientsFilter";
 import ClientVacationModal from "./ClientVacationModal";
 const ClientsTable = () => {
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const savedPage = localStorage.getItem("clients_page");
+
+    return savedPage ? Number(savedPage) : 1;
+  });
+  useEffect(() => {
+    localStorage.setItem("clients_page", String(currentPage));
+  }, [currentPage]);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [filters, setFilters] = useState({});
+
+  const DEFAULT_CLIENT_FILTERS = {
+    propertyId: "",
+    propertyCode: "",
+    propertyLocation: "",
+    roomNo: "",
+    bedNo: "",
+    stayType: "",
+    loginEnabled: "",
+    clientStatus: "",
+  };
+  const {
+    filters,
+    setFilters,
+    removeFilter: removePersistedFilter,
+    resetFilters,
+  } = usePersistedFilters("clients_filters", DEFAULT_CLIENT_FILTERS);
+
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showBedShiftModal, setShowBedShiftModal] = useState(false);
   const [showClientVacationModal, setShowClientVacationModal] = useState(false);
   const [showBedHistoryModal, setShowBedHistoryModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState();
   const debouncedSearch = useDebounce(search, 500);
-  const [filterLabels, setFilterLabels] = useState([]);
+  const filterLabels = useMemo(() => {
+    const labels = [];
+
+    if (filters.propertyId) {
+      labels.push({
+        key: "propertyId",
+        title: "Property",
+        value: filters.propertyCode || filters.propertyId,
+      });
+    }
+
+    if (filters.propertyLocation) {
+      labels.push({
+        key: "propertyLocation",
+        title: "Location",
+        value: filters.propertyLocation,
+      });
+    }
+
+    if (filters.roomNo) {
+      labels.push({
+        key: "roomNo",
+        title: "Room",
+        value: filters.roomNo,
+      });
+    }
+
+    if (filters.bedNo) {
+      labels.push({
+        key: "bedNo",
+        title: "Bed",
+        value: filters.bedNo,
+      });
+    }
+
+    if (filters.stayType) {
+      labels.push({
+        key: "stayType",
+        title: "Stay Type",
+        value: filters.stayType,
+      });
+    }
+
+    if (filters.loginEnabled !== "") {
+      labels.push({
+        key: "loginEnabled",
+        title: "Login",
+        value: filters.loginEnabled ? "Enabled" : "Disabled",
+      });
+    }
+
+    if (filters.clientStatus) {
+      labels.push({
+        key: "clientStatus",
+        title: "Status",
+        value: filters.clientStatus,
+      });
+    }
+
+    return labels;
+  }, [filters]);
+  const hasActiveFilters = useMemo(() => {
+    return Object.values(filters).some(
+      (value) => value !== "" && value !== null && value !== undefined,
+    );
+  }, [filters]);
   const [resetTrigger, setResetTrigger] = useState(0);
   const [editingVacation, setEditingVacation] = useState(null);
   const [isVacationModalOpen, setIsVacationModalOpen] = useState(false);
-  const rowsPerPage = 10;
+  const rowsPerPage = 20;
+  const apiFilters = useMemo(() => {
+    const { propertyCode, ...rest } = filters;
+    return rest;
+  }, [filters]);
   const { data: clients, isPending: isClients } = useClients({
     page: currentPage,
     limit: rowsPerPage,
     search: debouncedSearch,
-    filters,
+    filters: apiFilters,
   });
-  const { mutate: createClientFromBooking, isPending: isCreateClientLoading } =
-    useClientFromNewBooking();
 
-  const { mutate: cancelBooking, isPending: isCancelBookingLoading } =
-    useCancelNewBooking();
 
   // Safely get bookings data
   const bookings = clients?.data || [];
@@ -54,93 +144,38 @@ const ClientsTable = () => {
   const paginatedData = bookings;
 
   // Reset to page 1 when filters or search changes
+  const isInitialFilterLoad = useRef(true);
+
   useEffect(() => {
+    if (isInitialFilterLoad.current) {
+      isInitialFilterLoad.current = false;
+      return;
+    }
+
     setCurrentPage(1);
   }, [debouncedSearch, filters]);
-
   const handleReset = () => {
-    setFilters({});
-    setFilterLabels([]);
+    resetFilters();
+
     setSearch("");
     setCurrentPage(1);
+
+    localStorage.setItem("clients_page", "1");
 
     setResetTrigger((prev) => prev + 1);
   };
   const removeFilter = (key) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: "",
-    }));
-
-    setFilterLabels((prev) => prev.filter((item) => item.key !== key));
+    if (key === "propertyId") {
+      setFilters((prev) => ({
+        ...prev,
+        propertyId: "",
+        propertyCode: "",
+      }));
+    } else {
+      removePersistedFilter(key);
+    }
 
     setCurrentPage(1);
-  };
-  // Get status color - fixed for all statuses
-  const getStatusColor = (status) => {
-    if (!status) return "bg-gray-100 text-gray-700";
-
-    switch (status.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-700";
-      case "inactive":
-        return "bg-red-100 text-red-700";
-      case "booked":
-        return "bg-blue-100 text-blue-700";
-      case "maintenance":
-        return "bg-yellow-100 text-yellow-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  // Get booking type color
-  const getBookingTypeColor = (type) => {
-    if (!type) return "bg-gray-100 text-gray-700";
-    return type.toLowerCase() === "permanent"
-      ? "bg-purple-100 text-purple-700"
-      : "bg-orange-100 text-orange-700";
-  };
-
-  // Handle delete function
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this booking?")) {
-      // Add your delete API call here
-      console.log("Delete booking with id:", id);
-      // Example: await deleteBooking(id);
-    }
-  };
-  const handleStatusToggle = (item) => {
-    if (item.status !== "Booked") {
-      createClientFromBooking(
-        { bookingId: item._id },
-        {
-          onSuccess: (response) => {
-            toast.dismiss();
-            toast.success(
-              response?.message || response?.data?.message || "Success",
-            );
-          },
-          onError: (error) => {
-            toast.dismiss();
-            toast.error(error?.response?.data?.message);
-          },
-        },
-      );
-    } else {
-      cancelBooking(item._id, {
-        onSuccess: (response) => {
-          toast.success(
-            response?.message ||
-            response?.data?.message ||
-            "Booking cancelled successfully",
-          );
-        },
-        onError: (error) => {
-          toast.error(error?.response?.data?.message);
-        },
-      });
-    }
   };
 
   useEffect(() => {
@@ -154,6 +189,15 @@ const ClientsTable = () => {
       document.removeEventListener("click", handleOutsideClick);
     };
   }, []);
+
+  const statusFullForm = {
+    RFH: "Ready for Handover",
+    "F&F C": "F&F Closed",
+    BDR: "Bank Details Revised",
+    "F&F DS": "F&F Details Sent",
+    HD: "Handover Done",
+  };
+
   return (
     <>
       <div className="space-y-5">
@@ -225,7 +269,7 @@ const ClientsTable = () => {
 
             <div className="flex gap-2"></div>
             <div className="flex gap-2">
-              {Object.keys(filters).length > 0 && (
+              {hasActiveFilters > 0 && (
                 <button
                   onClick={handleReset}
                   className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2 hover:bg-gray-50"
@@ -299,7 +343,9 @@ const ClientsTable = () => {
                     <th className="p-3 text-center whitespace-nowrap">NLD</th>
                     <th className="p-3 text-center whitespace-nowrap">CVD</th>
 
-                    <th className="p-3 text-center whitespace-nowrap">Vacations</th>
+                    <th className="p-3 text-center whitespace-nowrap">
+                      Vacations
+                    </th>
                     <th className="p-3 text-center whitespace-nowrap">
                       Login Enabled
                     </th>
@@ -342,7 +388,8 @@ const ClientsTable = () => {
                         if (item.isBookingCancelled) {
                           return {
                             text: "Cancelled",
-                            className: "bg-red-50 text-red-700 border border-red-200",
+                            className:
+                              "bg-red-50 text-red-700 border border-red-200",
                           };
                         }
 
@@ -353,7 +400,8 @@ const ClientsTable = () => {
                           if (vacatedDate <= today) {
                             return {
                               text: "RFH",
-                            className: "bg-slate-100 text-slate-700 border border-slate-300",
+                              className:
+                                "bg-orange-100 text-orange-700 border border-orange-200",
                             };
                           }
                         }
@@ -362,13 +410,15 @@ const ClientsTable = () => {
                         if (item.noticeStartDate) {
                           return {
                             text: "Notice",
-                            className: "bg-amber-50 text-amber-700 border border-amber-200",
+                            className:
+                              "bg-amber-50 text-amber-700 border border-amber-200",
                           };
                         }
 
                         return {
                           text: "Active",
-                          className: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+                          className:
+                            "bg-emerald-50 text-emerald-700 border border-emerald-200",
                         };
                       };
                       return (
@@ -383,14 +433,15 @@ const ClientsTable = () => {
                               1}
                           </td> */}
                           <td className="p-3 text-center">
-
-                            {/* Status */}
                             {(() => {
                               const fnfStatus = item?.fnf?.status;
 
                               if (fnfStatus && fnfStatus.trim() !== "") {
                                 return (
-                                  <span className="px-2.5 py-1 text-sm rounded-full font-semibold bg-gray-100 text-gray-700">
+                                  <span
+                                    title={statusFullForm[fnfStatus] || fnfStatus}
+                                    className="px-2.5 py-1 text-sm rounded-full font-semibold bg-gray-100 text-gray-700 cursor-help"
+                                  >
                                     {fnfStatus}
                                   </span>
                                 );
@@ -400,14 +451,15 @@ const ClientsTable = () => {
 
                               return (
                                 <span
-                                  className={`px-2.5 py-1 rounded-full text-sm font-semibold ${status.className}`}
+                                  title={statusFullForm[status.text] || status.text}
+                                  className={`px-2.5 py-1 rounded-full text-sm font-semibold cursor-help ${status.className}`}
                                 >
                                   {status.text}
                                 </span>
                               );
                             })()}
-
                           </td>
+
                           <td className="p-3 text-center">
                             <span
                               className={`px-2.5 py-1 rounded-full text-md font-semibold ${item.bookingType === "Daily"
@@ -425,7 +477,8 @@ const ClientsTable = () => {
                             </span>
                           </td>
                           <td className="p-3">
-                            {item.stayType === "T. Booked" && item.permanentBooking ? (
+                            {item.stayType === "T. Booked" &&
+                              item.permanentBooking ? (
                               <div className="relative group inline-block">
                                 <Info
                                   size={18}
@@ -435,7 +488,6 @@ const ClientsTable = () => {
                                 {/* Hover Details */}
                                 <div className="absolute left-0 top-full mt-2 hidden group-hover:block z-50 w-80">
                                   <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl">
-
                                     {/* Header */}
                                     <div className="flex items-center justify-between bg-gray-50 px-4 py-3 border-b border-gray-200">
                                       <div>
@@ -455,14 +507,14 @@ const ClientsTable = () => {
                                     {/* Details */}
                                     <div className="p-4">
                                       <div className="divide-y divide-gray-100">
-
                                         {/* Property */}
                                         <div className="flex items-center justify-between py-2.5">
                                           <span className="text-xs font-medium text-gray-500">
                                             Property
                                           </span>
                                           <span className="text-sm font-semibold text-gray-900">
-                                            {item.permanentBooking?.propertyCode || "-"}
+                                            {item.permanentBooking
+                                              ?.propertyCode || "-"}
                                           </span>
                                         </div>
 
@@ -472,7 +524,8 @@ const ClientsTable = () => {
                                             Location
                                           </span>
                                           <span className="max-w-[190px] text-right text-sm text-gray-800">
-                                            {item.permanentBooking?.propertyLocation || "-"}
+                                            {item.permanentBooking
+                                              ?.propertyLocation || "-"}
                                           </span>
                                         </div>
 
@@ -482,7 +535,8 @@ const ClientsTable = () => {
                                             Room No
                                           </span>
                                           <span className="text-sm font-medium text-gray-900">
-                                            {item.permanentBooking?.roomNo || "-"}
+                                            {item.permanentBooking?.roomNo ||
+                                              "-"}
                                           </span>
                                         </div>
 
@@ -492,7 +546,8 @@ const ClientsTable = () => {
                                             Bed No
                                           </span>
                                           <span className="text-sm font-medium text-gray-900">
-                                            {item.permanentBooking?.bedNo || "-"}
+                                            {item.permanentBooking?.bedNo ||
+                                              "-"}
                                           </span>
                                         </div>
 
@@ -502,7 +557,11 @@ const ClientsTable = () => {
                                             Monthly Rent
                                           </span>
                                           <span className="text-sm font-semibold text-gray-900">
-                                            ₹{Number(item.permanentBooking?.monthlyRent || 0).toLocaleString("en-IN")}
+                                            ₹
+                                            {Number(
+                                              item.permanentBooking
+                                                ?.monthlyRent || 0,
+                                            ).toLocaleString("en-IN")}
                                           </span>
                                         </div>
 
@@ -512,10 +571,13 @@ const ClientsTable = () => {
                                             Deposit
                                           </span>
                                           <span className="text-sm font-semibold text-gray-900">
-                                            ₹{Number(item.permanentBooking?.depositAmount || 0).toLocaleString("en-IN")}
+                                            ₹
+                                            {Number(
+                                              item.permanentBooking
+                                                ?.depositAmount || 0,
+                                            ).toLocaleString("en-IN")}
                                           </span>
                                         </div>
-
                                       </div>
                                     </div>
 
@@ -525,7 +587,6 @@ const ClientsTable = () => {
                                         Booking property information
                                       </p>
                                     </div>
-
                                   </div>
                                 </div>
                               </div>
@@ -534,7 +595,9 @@ const ClientsTable = () => {
                             )}
                           </td>
                           {/* Client Name */}
-                          <td className="p-3 font-bold">{item.fullName || "-"}</td>
+                          <td className="p-3 font-bold">
+                            {item.fullName || "-"}
+                          </td>
                           {/* Status */}
 
                           {/* Contact No */}
@@ -571,18 +634,13 @@ const ClientsTable = () => {
 
                           {/* Monthly Rent */}
                           <td className="p-3">
-                            ₹
-                            {(item?.monthlyRent || 0).toLocaleString(
-                              "en-IN",
-                            )}
+                            ₹{(item?.monthlyRent || 0).toLocaleString("en-IN")}
                           </td>
 
                           {/* Deposit */}
                           <td className="p-3">
                             ₹
-                            {(item?.depositAmount || 0).toLocaleString(
-                              "en-IN",
-                            )}
+                            {(item?.depositAmount || 0).toLocaleString("en-IN")}
                           </td>
 
                           {/* Parking Charges */}
@@ -622,23 +680,21 @@ const ClientsTable = () => {
                                 >
                                   {/* Header */}
 
-
                                   {item.vacations?.filter(
                                     (vacation) =>
                                       vacation.vacationStartDate1 ||
                                       vacation.vacationLastDate1 ||
                                       vacation.vacationStartDate2 ||
-                                      vacation.vacationLastDate2
+                                      vacation.vacationLastDate2,
                                   ).length > 0 ? (
                                     <div className="space-y-3">
-
                                       {item.vacations
                                         .filter(
                                           (vacation) =>
                                             vacation.vacationStartDate1 ||
                                             vacation.vacationLastDate1 ||
                                             vacation.vacationStartDate2 ||
-                                            vacation.vacationLastDate2
+                                            vacation.vacationLastDate2,
                                         )
                                         .map((vacation, index) => (
                                           <div
@@ -650,7 +706,7 @@ const ClientsTable = () => {
                                               <span className="font-semibold text-gray-700">
                                                 {new Date(
                                                   vacation.year,
-                                                  vacation.month - 1
+                                                  vacation.month - 1,
                                                 ).toLocaleString("en-IN", {
                                                   month: "long",
                                                   year: "numeric",
@@ -663,7 +719,9 @@ const ClientsTable = () => {
                                                 onClick={() => {
                                                   setEditingVacation(vacation);
                                                   setSelectedClient(item);
-                                                  setShowClientVacationModal(true);
+                                                  setShowClientVacationModal(
+                                                    true,
+                                                  );
                                                 }}
                                                 className="flex items-center gap-1 px-2.5 py-1
              text-xs font-medium text-blue-600
@@ -671,13 +729,11 @@ const ClientsTable = () => {
              hover:bg-blue-50 transition"
                                               >
                                                 <Pencil size={13} />
-                                               
                                               </button>
                                             </div>
 
                                             {/* Vacation Details */}
                                             <div className="p-3 space-y-2">
-
                                               {/* Vacation 1 */}
                                               {(vacation.vacationStartDate1 ||
                                                 vacation.vacationLastDate1) && (
@@ -689,7 +745,7 @@ const ClientsTable = () => {
                                                     <span className="text-gray-600">
                                                       {vacation.vacationStartDate1
                                                         ? formatDate(
-                                                          vacation.vacationStartDate1
+                                                          vacation.vacationStartDate1,
                                                         )
                                                         : "-"}{" "}
                                                       <span className="text-gray-400">
@@ -697,7 +753,7 @@ const ClientsTable = () => {
                                                       </span>{" "}
                                                       {vacation.vacationLastDate1
                                                         ? formatDate(
-                                                          vacation.vacationLastDate1
+                                                          vacation.vacationLastDate1,
                                                         )
                                                         : "-"}
                                                     </span>
@@ -715,7 +771,7 @@ const ClientsTable = () => {
                                                     <span className="text-gray-600">
                                                       {vacation.vacationStartDate2
                                                         ? formatDate(
-                                                          vacation.vacationStartDate2
+                                                          vacation.vacationStartDate2,
                                                         )
                                                         : "-"}{" "}
                                                       <span className="text-gray-400">
@@ -723,13 +779,12 @@ const ClientsTable = () => {
                                                       </span>{" "}
                                                       {vacation.vacationLastDate2
                                                         ? formatDate(
-                                                          vacation.vacationLastDate2
+                                                          vacation.vacationLastDate2,
                                                         )
                                                         : "-"}
                                                     </span>
                                                   </div>
                                                 )}
-
                                             </div>
                                           </div>
                                         ))}
@@ -775,9 +830,10 @@ const ClientsTable = () => {
                             )}
                           </td> */}
 
-                          <td className={`p-3 sticky right-0 bg-white ${openMenuId === item._id ? "z-[9999]" : "z-20"
-                            } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}>
-
+                          <td
+                            className={`p-3 sticky right-0 bg-white ${openMenuId === item._id ? "z-[9999]" : "z-20"
+                              } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
+                          >
                             <div className="flex justify-center gap-2">
                               <Link
                                 to={`/rent-ledger/client/${item?._id}`}
@@ -803,7 +859,6 @@ const ClientsTable = () => {
                               </button>
                               {openMenuId === item._id && (
                                 <div className="absolute right-33 top-0 mt-2 w-fit bg-white font-bold border border-gray-300 rounded-lg shadow-xl z-9999">
-
                                   {item?.bookingType !== "Daily" && (
                                     <>
                                       <button
@@ -840,7 +895,6 @@ const ClientsTable = () => {
                                     </>
                                   )}
 
-
                                   {/* <button className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left">
                                     <span>💰</span>
                                     <span>FNF</span>
@@ -863,7 +917,6 @@ const ClientsTable = () => {
                                     <span>Edit</span>
                                   </Link>
                                 </div>
-
                               )}
                             </div>
                           </td>
@@ -919,8 +972,8 @@ const ClientsTable = () => {
           {totalRecords > 0 && (
             <div className="border-t p-3 flex justify-between items-center bg-white">
               <span className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * rowsPerPage + 1} -
-                {Math.min(currentPage * rowsPerPage, totalRecords)}
+                Showing {(currentPage - 1) * rowsPerPage + 1} - {"  "}
+                {Math.min(currentPage * rowsPerPage, totalRecords)} {"  "}
                 of {totalRecords}
               </span>
 
@@ -962,9 +1015,9 @@ const ClientsTable = () => {
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         apiData={bookings}
-        onApply={(data, labels) => {
+        initialFilters={filters}
+        onApply={(data) => {
           setFilters(data);
-          setFilterLabels(labels);
           setCurrentPage(1);
         }}
         handleReset={handleReset}

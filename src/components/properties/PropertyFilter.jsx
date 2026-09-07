@@ -13,6 +13,7 @@ const PropertyFilter = ({
   onApply,
   handleReset,
   resetTrigger,
+  initialFilters = {},
 }) => {
   const { data: dropdownData } = usePropertyDropdown({
     page: 1,
@@ -75,6 +76,7 @@ const PropertyFilter = ({
   const onSubmit = (data) => {
     const filters = {
       propertyId: data.propertyId?.value || "",
+      propertyCode: data.propertyId?.label || "",
       propertyLocation: data.propertyLocation?.value || "",
       bedCount: data.bedCount?.value || "",
       status: data.status?.value || "",
@@ -104,14 +106,46 @@ const PropertyFilter = ({
     onClose();
   };
   useEffect(() => {
-    reset({
-      propertyCode: null,
-      propertyLocation: null,
-      bedCount: null,
-      status: null,
-    });
-  }, [resetTrigger, reset]);
+    if (!isOpen) return;
 
+    const selectedProperty = initialFilters.propertyId
+      ? {
+          value: initialFilters.propertyId,
+          label: initialFilters.propertyCode || initialFilters.propertyId,
+        }
+      : null;
+
+    const selectedLocation =
+      locationOptions.find(
+        (option) => option.value === initialFilters.propertyLocation,
+      ) || null;
+
+    const selectedBedCount =
+      bedCountOptions.find(
+        (option) => String(option.value) === String(initialFilters.bedCount),
+      ) || null;
+
+    const selectedStatus =
+      statusOptions.find((option) => option.value === initialFilters.status) ||
+      null;
+
+    reset({
+      propertyId: selectedProperty,
+      propertyLocation: selectedLocation,
+      bedCount: selectedBedCount,
+      status: selectedStatus,
+    });
+  }, [
+    isOpen,
+    initialFilters.propertyId,
+    initialFilters.propertyLocation,
+    initialFilters.bedCount,
+    initialFilters.status,
+    locationOptions,
+    bedCountOptions,
+    statusOptions,
+    reset,
+  ]);
   return (
     <>
       {isOpen && (

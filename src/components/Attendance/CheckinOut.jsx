@@ -59,6 +59,8 @@ const CheckinOut = () => {
   const { mutate: checkOut, isPending: isCheckingOut } =
     useCheckOutAttendance();
 
+  const isAttendanceProcessing = isCheckingIn || isCheckingOut;
+
   // ======================================================
   // DATA
   // ======================================================
@@ -324,6 +326,11 @@ const CheckinOut = () => {
       return;
     }
 
+    if (!video.videoWidth || !video.videoHeight) {
+      toast.error("Camera is still starting. Please try again.");
+      return;
+    }
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
@@ -336,9 +343,7 @@ const CheckinOut = () => {
 
     // Mirror image
     context.save();
-
     context.translate(canvas.width, 0);
-
     context.scale(-1, 1);
 
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -365,9 +370,9 @@ const CheckinOut = () => {
 
         formData.append("selfie", blob, "attendance-selfie.jpg");
 
-        // ==================================================
+        // ================================
         // CHECK IN
-        // ==================================================
+        // ================================
 
         if (cameraMode === "check-in") {
           checkIn(formData, {
@@ -382,7 +387,9 @@ const CheckinOut = () => {
 
               window.speechSynthesis.cancel();
               window.speechSynthesis.speak(utterance);
-toast.dismiss();
+
+              toast.dismiss();
+
               toast.success(response?.message || "Check-in successful!");
 
               setCapturedImage(null);
@@ -403,9 +410,9 @@ toast.dismiss();
           });
         }
 
-        // ==================================================
+        // ================================
         // CHECK OUT
-        // ==================================================
+        // ================================
 
         if (cameraMode === "check-out") {
           checkOut(formData, {
@@ -420,7 +427,9 @@ toast.dismiss();
 
               window.speechSynthesis.cancel();
               window.speechSynthesis.speak(utterance);
-toast.dismiss();
+
+              toast.dismiss();
+
               toast.success(response?.message || "Check-out successful!");
 
               setCapturedImage(null);
@@ -445,7 +454,16 @@ toast.dismiss();
       0.85,
     );
   };
+  useEffect(() => {
+    if (!cameraOpen) return;
 
+    // Give the camera time to initialize before capturing
+    const timer = setTimeout(() => {
+      captureSelfie();
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [cameraOpen]);
   // ======================================================
   // ATTENDANCE STATUS
   // ======================================================
@@ -527,7 +545,22 @@ toast.dismiss();
           ================================================== */}
 
           <div className="relative mb-3 flex h-[260px] items-center justify-center overflow-hidden rounded-2xl bg-gray-950 ring-1 ring-gray-200">
-            {capturedImage ? (
+            {isAttendanceProcessing ? (
+              <div className="flex flex-col items-center justify-center text-white">
+                <div className="relative flex h-16 w-16 items-center justify-center">
+                  <div className="absolute h-16 w-16 animate-spin rounded-full border-4 border-gray-600 border-t-green-500" />
+                  <FaClock className="text-xl text-green-400" />
+                </div>
+
+                <p className="mt-4 text-sm font-semibold">
+                  {isCheckingIn ? "Checking in..." : "Checking out..."}
+                </p>
+
+                <p className="mt-1 text-xs text-gray-400">
+                  Please wait while we process your attendance
+                </p>
+              </div>
+            ) : capturedImage ? (
               <img
                 src={capturedImage.url}
                 alt="Attendance selfie"
@@ -566,19 +599,6 @@ toast.dismiss();
                 ? "Check-In Selfie"
                 : "Check-Out Selfie"}
             </div>
-          )}
-          {cameraOpen && (
-            <button
-              type="button"
-              onClick={captureSelfie}
-              disabled={isCheckingIn || isCheckingOut}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-900 py-3.5 font-semibold text-white shadow-sm transition-all hover:bg-blue-800 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <FaCamera />
-              {isCheckingIn || isCheckingOut
-                ? "Processing..."
-                : "Capture Selfie"}
-            </button>
           )}
 
           {/* ==================================================
@@ -625,9 +645,17 @@ toast.dismiss();
                 onClick={() => openCamera("check-in")}
                 className="group mt-2 flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3.5 font-semibold text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
               >
-                <FaSignInAlt className="transition-transform group-hover:-translate-x-0.5" />
-
-                <span>{hasCheckedIn ? "Checked In" : "Check In"}</span>
+                {isCheckingIn ? (
+                  <>
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span>Checking In...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaSignInAlt className="transition-transform group-hover:-translate-x-0.5" />
+                    <span>{hasCheckedIn ? "Checked In" : "Check In"}</span>
+                  </>
+                )}
               </button>
             </div>
 
@@ -645,9 +673,17 @@ toast.dismiss();
                 onClick={() => openCamera("check-out")}
                 className="group mt-2 flex min-h-[52px] items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-3.5 font-semibold text-white shadow-sm transition-all hover:bg-orange-600 hover:shadow-md disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
               >
-                <FaSignOutAlt className="transition-transform group-hover:translate-x-0.5" />
-
-                <span>{hasCheckedOut ? "Checked Out" : "Check Out"}</span>
+                {isCheckingOut ? (
+                  <>
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span>Checking Out...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaSignOutAlt className="transition-transform group-hover:translate-x-0.5" />
+                    <span>{hasCheckedOut ? "Checked Out" : "Check Out"}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

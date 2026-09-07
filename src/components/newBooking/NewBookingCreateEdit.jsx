@@ -190,11 +190,11 @@ const NewBookingCreateEdit = () => {
       .required("Processing Fees is required")
       .min(0, "Processing Fees cannot be negative"),
 
-    parkingCharges: yup
-      .number()
-      .typeError("Parking Charges is required")
-      .required("Parking Charges is required")
-      .min(0, "Parking Charges cannot be negative"),
+    // parkingCharges: yup
+    //   .number()
+    //   .typeError("Parking Charges is required")
+    //   .required("Parking Charges is required")
+    //   .min(0, "Parking Charges cannot be negative"),
 
     // URHD: yup
     //   .string()
@@ -1698,11 +1698,11 @@ const NewBookingCreateEdit = () => {
                 <label className="form-label ">
                   Parking Charges ( ₹ )
                 </label>
-                {errors.parkingCharges && (
+                {/* {errors.parkingCharges && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.parkingCharges.message}
                   </p>
-                )}
+                )} */}
               </div>
 
               <div className="form-group">

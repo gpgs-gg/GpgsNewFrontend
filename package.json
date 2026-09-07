@@ -28,6 +28,8 @@
     "react-select": "^5.10.2",
     "react-select-async-paginate": "^0.7.11",
     "react-toastify": "^11.1.0",
+    "react-typed": "^2.0.12",
+    "swiper": "^14.2.0",
     "tailwindcss": "^4.3.0",
     "yup": "^1.7.1"
   },

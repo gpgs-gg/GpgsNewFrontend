@@ -116,7 +116,7 @@ const RentLadgerFiilter = ({
           />
           {/* client */}
           {/* Client */}
-          <Controller
+          {/* <Controller
             name="clientId"
             control={control}
             render={({ field }) => (
@@ -139,7 +139,7 @@ const RentLadgerFiilter = ({
                 />
               </div>
             )}
-          />
+          /> */}
 
           <div className="flex gap-3 pt-4">
             <button

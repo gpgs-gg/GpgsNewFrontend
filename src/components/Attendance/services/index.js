@@ -125,6 +125,7 @@ const getAllAttendance = async ({
   date = "",
   status = "",
   employeeId = "",
+  department = "",
   search = "",
 }) => {
   const response = await apiClient.get("/attendance", {
@@ -136,6 +137,7 @@ const getAllAttendance = async ({
       ...(date && { date }),
       ...(status !== "" && { status }),
       ...(employeeId && { employeeId }),
+      ...(department && { department }),
       ...(search && { search }),
     },
   });
@@ -150,6 +152,7 @@ export const useAllAttendance = ({
   date = "",
   status = "",
   employeeId = "",
+  department = "",
   search = "",
 }) => {
   return useQuery({
@@ -161,6 +164,7 @@ export const useAllAttendance = ({
       date,
       status,
       employeeId,
+      department,
       search,
     ],
 
@@ -172,6 +176,7 @@ export const useAllAttendance = ({
         date,
         status,
         employeeId,
+        department,
         search,
       }),
 

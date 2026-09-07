@@ -368,7 +368,8 @@ const [totalFreeEB, setTotalFreeEB] = useState(0);
                                 Property Code
                             </label>
                         </div>
-                        {/* MONTH */}
+                        {/* 
+                         */}
                         <Controller
                             name="month"
                             control={control}
@@ -742,7 +743,7 @@ const [totalFreeEB, setTotalFreeEB] = useState(0);
                                     placeholder=" "
                                 />
                                 <label className="form-label">
-                                    Actual Total Units
+                                    Ac Total Units
                                 </label>
                             </div>
                             {/* ACTUAL EB */}
@@ -758,7 +759,7 @@ const [totalFreeEB, setTotalFreeEB] = useState(0);
                                     placeholder=" "
                                 />
                                 <label className="form-label">
-                                    Actual Total EB
+                                    Ac Total EB
                                 </label>
                             </div>
                             {/* COMMON EB */}

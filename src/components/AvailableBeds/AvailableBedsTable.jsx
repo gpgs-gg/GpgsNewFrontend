@@ -10,18 +10,49 @@ import {
   useClientFromNewBooking,
 } from "./services";
 import TableSkeleton from "../../components/common/TableSkelton";
+import usePersistedFilters from "../hooks/usePersistedFilters";
 import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";
 import AvailableBedsFilter from "./AvailableBedsFilter";
 const AvailableBedsTable = () => {
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const savedPage = localStorage.getItem("available_beds_page");
+
+    return savedPage ? Number(savedPage) : 1;
+  });
+  useEffect(() => {
+    localStorage.setItem("available_beds_page", String(currentPage));
+  }, [currentPage]);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [filters, setFilters] = useState({});
-  const [filterLabels, setFilterLabels] = useState([]);
+  const DEFAULT_AVAILABLE_BEDS_FILTERS = {
+    propertyId: "",
+    propertyCode: "",
+    propertyLocation: "",
+    roomNo: "",
+    bedNo: "",
+    sharingType: "",
+    acRoom: "",
+    bathAttached: "",
+    availableFrom: "",
+    redFlag: "",
+    monthlyRentMin: "",
+    monthlyRentMax: "",
+    depositAmountMin: "",
+    depositAmountMax: "",
+    clientName: "",
+    hasCvd: false,
+    sortByRent: false,
+  };
+
+  const { filters, setFilters, removeFilter, resetFilters } =
+    usePersistedFilters(
+      "available_beds_filters",
+      DEFAULT_AVAILABLE_BEDS_FILTERS,
+    );
   const [resetTrigger, setResetTrigger] = useState(0);
   const debouncedSearch = useDebounce(search);
-  const rowsPerPage = 10;
+  const rowsPerPage = 20;
   const { data: getAvailableBeds, isPending: isAvailableBeds } =
     useAvailableBedsData({
       page: currentPage,
@@ -43,27 +74,150 @@ const AvailableBedsTable = () => {
 
   const totalRecords = getAvailableBeds?.totalRecords || 0;
 
-  // Reset to page 1 when filters or search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, filters]);
-
   const handleReset = () => {
-    setFilters({});
-    setFilterLabels([]);
+    resetFilters();
+
     setSearch("");
     setCurrentPage(1);
+
     setResetTrigger((prev) => prev + 1);
   };
-  // remove filter chips
-  const removeFilter = (key) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: "",
-    }));
 
-    setFilterLabels((prev) => prev.filter((item) => item.key !== key));
+  const filterLabels = useMemo(() => {
+    const labels = [];
 
+    if (filters.propertyId) {
+      labels.push({
+        key: "propertyId",
+        title: "Property",
+        value: filters.propertyCode || filters.propertyId,
+      });
+    }
+
+    if (filters.propertyLocation) {
+      labels.push({
+        key: "propertyLocation",
+        title: "Location",
+        value: filters.propertyLocation,
+      });
+    }
+
+    if (filters.hasCvd) {
+      labels.push({
+        key: "hasCvd",
+        title: "CVD",
+        value: "Yes",
+      });
+    }
+
+    if (filters.sortByRent) {
+      labels.push({
+        key: "sortByRent",
+        title: "Rent",
+        value: "Low → High",
+      });
+    }
+
+    if (filters.roomNo) {
+      labels.push({
+        key: "roomNo",
+        title: "Room",
+        value: filters.roomNo,
+      });
+    }
+
+    if (filters.bedNo) {
+      labels.push({
+        key: "bedNo",
+        title: "Bed",
+        value: filters.bedNo,
+      });
+    }
+
+    if (filters.sharingType) {
+      labels.push({
+        key: "sharingType",
+        title: "Sharing",
+        value: filters.sharingType,
+      });
+    }
+
+    if (filters.acRoom) {
+      labels.push({
+        key: "acRoom",
+        title: "AC",
+        value: filters.acRoom,
+      });
+    }
+
+    if (filters.bathAttached) {
+      labels.push({
+        key: "bathAttached",
+        title: "Bath",
+        value: filters.bathAttached,
+      });
+    }
+
+    if (filters.availableFrom) {
+      labels.push({
+        key: "availableFrom",
+        title: "Available",
+        value: filters.availableFrom,
+      });
+    }
+
+    if (filters.redFlag) {
+      labels.push({
+        key: "redFlag",
+        title: "Red Flag",
+        value: filters.redFlag === "Yes" ? "Yes" : "No",
+      });
+    }
+
+    if (filters.monthlyRentMin) {
+      labels.push({
+        key: "monthlyRentMin",
+        title: "Rent ≥",
+        value: filters.monthlyRentMin,
+      });
+    }
+
+    if (filters.monthlyRentMax) {
+      labels.push({
+        key: "monthlyRentMax",
+        title: "Rent ≤",
+        value: filters.monthlyRentMax,
+      });
+    }
+
+    if (filters.depositAmountMin) {
+      labels.push({
+        key: "depositAmountMin",
+        title: "Deposit ≥",
+        value: filters.depositAmountMin,
+      });
+    }
+
+    if (filters.depositAmountMax) {
+      labels.push({
+        key: "depositAmountMax",
+        title: "Deposit ≤",
+        value: filters.depositAmountMax,
+      });
+    }
+
+    if (filters.clientName) {
+      labels.push({
+        key: "clientName",
+        title: "Client",
+        value: filters.clientName,
+      });
+    }
+
+    return labels;
+  }, [filters]);
+  const handleRemoveFilter = (key) => {
+    removeFilter(key);
     setCurrentPage(1);
   };
   // Get status color - fixed for all statuses
@@ -121,8 +275,8 @@ const AvailableBedsTable = () => {
         onSuccess: (response) => {
           toast.success(
             response?.message ||
-            response?.data?.message ||
-            "Booking cancelled successfully",
+              response?.data?.message ||
+              "Booking cancelled successfully",
           );
         },
         onError: (error) => {
@@ -131,11 +285,7 @@ const AvailableBedsTable = () => {
       });
     }
   };
-  const handleApplyFilters = (filterData, labels) => {
-    setFilters(filterData);
-    setFilterLabels(labels);
-    setCurrentPage(1);
-  };
+
   return (
     <>
       <div className="space-y-5">
@@ -168,6 +318,7 @@ const AvailableBedsTable = () => {
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
+                  setCurrentPage(1);
                 }}
               />
               {search && (
@@ -198,7 +349,7 @@ const AvailableBedsTable = () => {
 
                   <button
                     type="button"
-                    onClick={() => removeFilter(filter.key)}
+                    onClick={() => handleRemoveFilter(filter.key)}
                     className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-slate-400 transition hover:bg-red-100 hover:text-red-600"
                   >
                     ✕
@@ -208,7 +359,7 @@ const AvailableBedsTable = () => {
             </div>
             {/* reset */}
             <div className="flex gap-2">
-              {Object.keys(filters).length > 0 && (
+              {filterLabels.length > 0 && (
                 <button
                   onClick={handleReset}
                   className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2 hover:bg-gray-50"
@@ -348,10 +499,11 @@ const AvailableBedsTable = () => {
                             {/* Red Flag */}
                             <td className="p-3 text-center">
                               <span
-                                className={`px-2 py-1 rounded text-xs font-medium ${getRedFlagStatus(item) === "Red Flag"
+                                className={`px-2 py-1 rounded text-xs font-medium ${
+                                  getRedFlagStatus(item) === "Red Flag"
                                     ? "bg-red-100 text-red-600"
                                     : "text-gray-500"
-                                  }`}
+                                }`}
                               >
                                 {getRedFlagStatus(item)}
                               </span>
@@ -502,8 +654,8 @@ const AvailableBedsTable = () => {
           {totalRecords > 0 && (
             <div className="border-t p-3 flex justify-between items-center bg-white">
               <span className="text-sm text-gray-500">
-                Showing {(currentPage - 1) * rowsPerPage + 1} -
-                {Math.min(currentPage * rowsPerPage, totalRecords)} of
+                Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
+                {Math.min(currentPage * rowsPerPage, totalRecords)} of{" "}
                 {totalRecords}
               </span>
 
@@ -522,7 +674,11 @@ const AvailableBedsTable = () => {
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         apiData={apiData}
-        onApply={handleApplyFilters}
+        initialFilters={filters}
+        onApply={(newFilters) => {
+          setFilters(newFilters);
+          setCurrentPage(1);
+        }}
         handleReset={handleReset}
         resetTrigger={resetTrigger}
       />

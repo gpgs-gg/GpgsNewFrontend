@@ -13,13 +13,10 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import TableSkeleton from "../../components/common/TableSkelton";
-import {
-  useMasterData,
-  useDeleteMasterData,
-} from "./services/index";
+import { useMasterData, useDeleteMasterData } from "./services/index";
 import Pagination from "../Common/Pagination";
 import useDebounce from "../hooks/useDebounce";
-import ConfirmModal from "../Common/ConfirmModal";
+import ConfirmModal from "../common/ConfirmModal";
 // import OptionsFilter from "./OptionsFilter";
 import { toast } from "react-toastify";
 
@@ -216,151 +213,154 @@ const OptionsTable = () => {
                   <th className="p-3 text-center">Action</th>
                 </tr>
               </thead>
-              <tbody>
-                {isLoading ? (
-                  <TableSkeleton rows={8} columns={4} />
-                ) : apiData.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="py-10 text-center">
-                      No Records Found
-                    </td>
-                  </tr>
-                ) : (
-                  apiData.map((category) => {
-                    const totalOptions = category.items?.length || 0;
+              {isLoading ? (
+                <TableSkeleton rows={8} columns={4} />
+              ) : (
+                <tbody>
+                  {apiData.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-10 text-center">
+                        No Records Found
+                      </td>
+                    </tr>
+                  ) : (
+                    apiData.map((category) => {
+                      const totalOptions = category.items?.length || 0;
 
-                    const activeOptions =
-                      category.items?.filter((item) => item.isActive).length ||
-                      0;
+                      const activeOptions =
+                        category.items?.filter((item) => item.isActive)
+                          .length || 0;
 
-                    return (
-                      <tr
-                        key={category._id}
-                        className="border-t border-gray-300 hover:bg-gray-50 transition"
-                      >
-                        {/* Category */}
-                        <td className="p-3">
-                          <div>
-                            <p className="font-semibold text-gray-800">
-                              {category.categoryName}
-                            </p>
+                      return (
+                        <tr
+                          key={category._id}
+                          className="border-t border-gray-300 hover:bg-gray-50 transition"
+                        >
+                          {/* Category */}
+                          <td className="p-3">
+                            <div>
+                              <p className="font-semibold text-gray-800">
+                                {category.categoryName}
+                              </p>
 
-                            {/* <p className="text-xs text-gray-500">
+                              {/* <p className="text-xs text-gray-500">
                             {category.categoryKey}
                           </p> */}
-                          </div>
-                        </td>
-
-                        {/* Total Options */}
-                        <td className="p-3 text-center">
-                          <button
-                            onClick={() =>
-                              setExpandedRow(
-                                expandedRow === category._id
-                                  ? null
-                                  : category._id,
-                              )
-                            }
-                            className="inline-flex items-center gap-2 rounded-md  bg-white px-3 py-1.5 text-sm font-medium text-gray-900 mb-2  transition-all duration-200 "
-                          >
-                            <span>
-                              {expandedRow === category._id
-                                ? "Hide"
-                                : `Options (${totalOptions})`}
-                            </span>
-
-                            {expandedRow === category._id ? (
-                              <ChevronDown
-                                size={16}
-                                className="transition-transform duration-200"
-                              />
-                            ) : (
-                              <ChevronRight size={16}
-                                className="transition-transform duration-200"
-                              />
-                            )}
-                          </button>
-
-                          {/* Expanded Row */}
-                          {expandedRow === category._id && (
-                            <div className="flex justify-center   rounded-2xl italic items-start text-start">
-                              <div className="space-y-2">
-                                {category.items?.length > 0 ? (
-                                  category.items.map((item, index) => (
-                                    <div
-                                      key={item._id || index}
-                                      className="rounded-md border-gray-200 px-3 py-1 text-sm "
-                                    >
-                                      {item.label}
-                                    </div>
-                                  ))
-                                ) : (
-                                  <p className="text-sm text-gray-500">
-                                    No options found.
-                                  </p>
-                                )}
-                              </div>
                             </div>
-                          )}
-                        </td>
+                          </td>
 
-                        {/* Active Options */}
-                        {/* <td className="p-3 text-center">
+                          {/* Total Options */}
+                          <td className="p-3 text-center">
+                            <button
+                              onClick={() =>
+                                setExpandedRow(
+                                  expandedRow === category._id
+                                    ? null
+                                    : category._id,
+                                )
+                              }
+                              className="inline-flex items-center gap-2 rounded-md  bg-white px-3 py-1.5 text-sm font-medium text-gray-900 mb-2  transition-all duration-200 "
+                            >
+                              <span>
+                                {expandedRow === category._id
+                                  ? "Hide"
+                                  : `Options (${totalOptions})`}
+                              </span>
+
+                              {expandedRow === category._id ? (
+                                <ChevronDown
+                                  size={16}
+                                  className="transition-transform duration-200"
+                                />
+                              ) : (
+                                <ChevronRight
+                                  size={16}
+                                  className="transition-transform duration-200"
+                                />
+                              )}
+                            </button>
+
+                            {/* Expanded Row */}
+                            {expandedRow === category._id && (
+                              <div className="flex justify-center   rounded-2xl italic items-start text-start">
+                                <div className="space-y-2">
+                                  {category.items?.length > 0 ? (
+                                    category.items.map((item, index) => (
+                                      <div
+                                        key={item._id || index}
+                                        className="rounded-md border-gray-200 px-3 py-1 text-sm "
+                                      >
+                                        {item.label}
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-sm text-gray-500">
+                                      No options found.
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Active Options */}
+                          {/* <td className="p-3 text-center">
                           <span className="inline-flex items-center justify-center min-w-8 h-8 rounded-full bg-green-100 text-green-700 font-semibold">
                             {activeOptions}
                           </span>
                         </td> */}
 
-                        {/* Description */}
-                        {/* Description */}
-                        <td className="p-3">
-                          <div className="group relative max-w-xs">
-                            <p className="line-clamp-2 text-sm text-gray-600">
-                              {category.description || "-"}
-                            </p>
+                          {/* Description */}
+                          {/* Description */}
+                          <td className="p-3">
+                            <div className="group relative max-w-xs">
+                              <p className="line-clamp-2 text-sm text-gray-600">
+                                {category.description || "-"}
+                              </p>
 
-                            {category.description && (
-                              <div className="pointer-events-none absolute left-0 top-full z-50 mt-2 hidden w-80 rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-700 shadow-xl group-hover:block">
-                                {category.description}
-                              </div>
-                            )}
-                          </div>
-                        </td>
+                              {category.description && (
+                                <div className="pointer-events-none absolute left-0 top-full z-50 mt-2 hidden w-80 rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-700 shadow-xl group-hover:block">
+                                  {category.description}
+                                </div>
+                              )}
+                            </div>
+                          </td>
 
-                        {/* Action */}
-                        <td className="p-3">
-                          <div className="flex justify-center gap-2">
-                            <Link to={`/options/edit/${category._id}`}>
-                              {/* <Link to={`/properties/view/${item._id}`}> */}
-                              <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
-                                <Eye size={16} />
+                          {/* Action */}
+                          <td className="p-3">
+                            <div className="flex justify-center gap-2">
+                              <Link to={`/options/edit/${category._id}`}>
+                                {/* <Link to={`/properties/view/${item._id}`}> */}
+                                <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
+                                  <Eye size={16} />
+                                </button>
+                              </Link>
+                              <button
+                                onClick={() =>
+                                  navigate(`/options/edit/${category._id}`)
+                                }
+                                className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
+                              >
+                                <Pencil size={16} />
                               </button>
-                            </Link>
-                            <button
-                              onClick={() =>
-                                navigate(`/options/edit/${category._id}`)
-                              }
-                              className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setDeleteId(category._id);
-                                setShowDeleteModal(true);
-                              }}
-                              disabled={deleting}
-                              className="p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
+                              <button
+                                onClick={() => {
+                                  setDeleteId(category._id);
+                                  setShowDeleteModal(true);
+                                }}
+                                disabled={deleting}
+                                className="p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              )}
             </table>
           </div>
           {/* Pagination */}

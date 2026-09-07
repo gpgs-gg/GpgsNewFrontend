@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiCopy } from "react-icons/fi";
 import { Eye, Pencil, Filter, Phone, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -15,21 +15,154 @@ import { useBankTransactionData } from "./services";
 import MapBankTransactionDrawer from "./MapBankTransactionDrawer";
 import BankTransactionFilter from "./BankTranscationFilter";
 import { toast } from "react-toastify";
-
+import usePersistedFilters from "../hooks/usePersistedFilters";
 const BankTransactionList = () => {
-  const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const DEFAULT_BANK_TRANSACTION_FILTERS = {
+    fromDate: "",
+    toDate: "",
+    source: "",
+    propertyId: "",
+    status: "",
+    userId: "",
+    transactionType: "",
+    minAmount: "",
+    maxAmount: "",
+    chqNo: "",
+    narration: "",
+    defaultFilter: "",
+  };
+  // ============================================================
+  // SEARCH - persist search across refresh/navigation
+  // ============================================================
+  const [search, setSearch] = useState(() => {
+    return localStorage.getItem("bank_transactions_search") || "";
+  });
+  // Save search whenever it changes
+  useEffect(() => {
+    localStorage.setItem("bank_transactions_search", search);
+  }, [search]);
+  // ============================================================
+  // PAGINATION - persist current page
+  // ============================================================
+  const [currentPage, setCurrentPage] = useState(() => {
+    const savedPage = localStorage.getItem("bank_transactions_page");
+
+    return savedPage ? Number(savedPage) : 1;
+  });
+
+  // Save current page whenever it changes
+  useEffect(() => {
+    localStorage.setItem("bank_transactions_page", String(currentPage));
+  }, [currentPage]);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [filters, setFilters] = useState({});
   const [resetTrigger, setResetTrigger] = useState(0);
+
+  // ============================================================
+  // PERSISTED FILTERS
+  // ============================================================
+  const {
+    filters,
+    setFilters,
+    resetFilters,
+    removeFilter: removePersistedFilter,
+  } = usePersistedFilters(
+    "bank_transactions_filters",
+    DEFAULT_BANK_TRANSACTION_FILTERS,
+  );
   const rowsPerPage = PAGINATION.BEDS_PER_PAGE || 10;
   const debouncedSearch = useDebounce(search);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  // Filter chips state
-  const [filterLabels, setFilterLabels] = useState([]);
+  // ============================================================
+  // FILTER CHIPS
+  // Generate filter labels directly from persisted filters
+  // ============================================================
+  const filterLabels = useMemo(() => {
+    const labels = [];
 
+    if (filters.fromDate) {
+      labels.push({
+        key: "fromDate",
+        label: `From : ${filters.fromDate}`,
+      });
+    }
+
+    if (filters.toDate) {
+      labels.push({
+        key: "toDate",
+        label: `To : ${filters.toDate}`,
+      });
+    }
+
+    if (filters.source) {
+      labels.push({
+        key: "source",
+        label: `Bank : ${filters.source}`,
+      });
+    }
+
+    if (filters.transactionType) {
+      labels.push({
+        key: "transactionType",
+        label: `Type : ${
+          filters.transactionType === "deposit" ? "Deposit" : "Withdrawal"
+        }`,
+      });
+    }
+
+    if (filters.status) {
+      labels.push({
+        key: "status",
+        label: `Status : ${filters.status}`,
+      });
+    }
+
+    if (filters.propertyId) {
+      labels.push({
+        key: "propertyId",
+        label: `Property : ${filters.propertyId}`,
+      });
+    }
+
+    if (filters.userId) {
+      labels.push({
+        key: "userId",
+        label: `Assignee : ${filters.userId}`,
+      });
+    }
+
+    if (filters.minAmount) {
+      labels.push({
+        key: "minAmount",
+        label: `Min Amount : ${filters.minAmount}`,
+      });
+    }
+
+    if (filters.maxAmount) {
+      labels.push({
+        key: "maxAmount",
+        label: `Max Amount : ${filters.maxAmount}`,
+      });
+    }
+
+    if (filters.chqNo) {
+      labels.push({
+        key: "chqNo",
+        label: `Cheque : ${filters.chqNo}`,
+      });
+    }
+
+    if (filters.narration) {
+      labels.push({
+        key: "narration",
+        label: `Narration : ${filters.narration}`,
+      });
+    }
+
+    return labels;
+  }, [filters]);
+  const hasActiveFilters = filterLabels.length > 0 || !!search;
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [defaultFilterData, setDefaultFilterData] = useState(null);
+
   // fetch data with pagination, search and filters
   const { data: apiResponse } = useBankTransactionData({
     page: currentPage,
@@ -44,44 +177,48 @@ const BankTransactionList = () => {
   const totalRecords = apiResponse?.totalRecords || 0;
 
   const paginatedData = apiData;
+  // ============================================================
+  // QUICK TRANSACTION TYPE FILTER
+  // Persist transaction type along with other filters
+  // ============================================================
   const applyTransactionType = (type) => {
     setFilters((prev) => ({
       ...prev,
       transactionType: type,
     }));
 
-    setFilterLabels((prev) => {
-      const remaining = prev.filter((item) => item.key !== "transactionType");
-
-      return [
-        ...remaining,
-        {
-          key: "transactionType",
-          label: `Type : ${type === "deposit" ? "Deposit" : "Withdrawal"}`,
-        },
-      ];
-    });
-
+    // New filter => first page
     setCurrentPage(1);
   };
+  // ============================================================
+  // RESET ALL FILTERS + SEARCH + PAGINATION
+  // ============================================================
   const handleReset = () => {
-    setFilters({});
-    setFilterLabels([]);
+    // Clear persisted filters
+    resetFilters();
+
+    // Clear search
     setSearch("");
+    localStorage.removeItem("bank_transactions_search");
+
+    // Reset pagination
     setCurrentPage(1);
+    localStorage.setItem("bank_transactions_page", "1");
+
+    // Clear default filter state
     setDefaultFilterData(null);
 
+    // Tell filter drawer to reset react-hook-form
     setResetTrigger((prev) => prev + 1);
   };
 
+  // ============================================================
+  // REMOVE SINGLE FILTER
+  // ============================================================
   const removeFilter = (key) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: "",
-    }));
+    removePersistedFilter(key);
 
-    setFilterLabels((prev) => prev.filter((item) => item.key !== key));
-
+    // Removing a filter should return to page 1
     setCurrentPage(1);
   };
   const handleTodayTransactions = () => {
@@ -105,7 +242,7 @@ const BankTransactionList = () => {
   const handleCopy = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast.dismiss()
+      toast.dismiss();
       toast.success(`${text} copied!`);
     } catch (error) {
       toast.error("Failed to copy.");
@@ -195,36 +332,36 @@ const BankTransactionList = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => applyTransactionType("deposit")}
-                className={`px-4 py-2 rounded-lg border ${filters.transactionType === "deposit"
-                  ? "bg-green-600 text-white"
-                  : "bg-white"
-                  }`}
+                className={`px-4 py-2 rounded-lg border ${
+                  filters.transactionType === "deposit"
+                    ? "bg-green-600 text-white"
+                    : "bg-white"
+                }`}
               >
                 Deposit
               </button>
 
               <button
                 onClick={() => applyTransactionType("withdrawal")}
-                className={`px-4 py-2 rounded-lg border ${filters.transactionType === "withdrawal"
-                  ? "bg-red-600 text-white"
-                  : "bg-white"
-                  }`}
+                className={`px-4 py-2 rounded-lg border ${
+                  filters.transactionType === "withdrawal"
+                    ? "bg-red-600 text-white"
+                    : "bg-white"
+                }`}
               >
                 Withdrawal
               </button>
             </div>
             {/* Buttons */}
             <div className="flex gap-2">
-              {(Object.keys(filters).length > 0 ||
-                filters.transactionType ||
-                search) && (
-                  <button
-                    onClick={handleReset}
-                    className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
-                  >
-                    Reset
-                  </button>
-                )}
+              {hasActiveFilters && (
+                <button
+                  onClick={handleReset}
+                  className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
+                >
+                  Reset
+                </button>
+              )}
 
               <button
                 onClick={() => {
@@ -293,7 +430,6 @@ const BankTransactionList = () => {
                           >
                             <FiCopy size={16} />
                           </button>
-
                         </div>
                       </td>
 
@@ -311,12 +447,23 @@ const BankTransactionList = () => {
                           : "-"}
                       </td>
 
-                      <td className="p-3 text-center">{item?.propertyId?.propertyCode || item?.expenseCode?.label}</td>
-                      <td className="p-3 text-center">{item?.expenseCategory || "-"}</td>
-                      <td className="p-3 text-center">{item?.assignee || "-"}</td>
+                      <td className="p-3 text-center">
+                        {item?.propertyId?.propertyCode ||
+                          item?.expenseCode?.label}
+                      </td>
+                      <td className="p-3 text-center">
+                        {item?.expenseCategory || "-"}
+                      </td>
+                      <td className="p-3 text-center">
+                        {item?.assignee || "-"}
+                      </td>
                       <td className="p-3 text-center">{item?.status || "-"}</td>
-                      <td className="p-3 text-center">{item?.reviewer || "-"}</td>
-                      <td className="p-3 text-center">{item?.auditor || "-"}</td>
+                      <td className="p-3 text-center">
+                        {item?.reviewer || "-"}
+                      </td>
+                      <td className="p-3 text-center">
+                        {item?.auditor || "-"}
+                      </td>
 
                       <td className="p-3 text-right font-semibold">
                         {Number(item.balance || 0).toLocaleString("en-IN")}
@@ -337,14 +484,23 @@ const BankTransactionList = () => {
                           <div className="group relative cursor-pointer">
                             {/* Short Text */}
                             <div className="truncate max-w-28 text-xs">
-                              {[...item.workLogs]
-                                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]?.message}
+                              {
+                                [...item.workLogs].sort(
+                                  (a, b) =>
+                                    new Date(b.createdAt) -
+                                    new Date(a.createdAt),
+                                )[0]?.message
+                              }
                             </div>
 
                             {/* Hover Popup */}
                             <div className="absolute right-0 top-4 hidden group-hover:block bg-white border shadow-xl rounded-lg p-3 w-80 max-h-62.5 overflow-y-auto whitespace-pre-line text-xs z-50">
                               {[...item.workLogs]
-                                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                .sort(
+                                  (a, b) =>
+                                    new Date(b.createdAt) -
+                                    new Date(a.createdAt),
+                                )
                                 .map((log, index) => (
                                   <div key={log._id || index} className="mb-3">
                                     <div className="text-gray-700">
@@ -373,7 +529,6 @@ const BankTransactionList = () => {
                         {formatDate(item.createdAt)}
                       </td>
                       <td className="p-3 text-center">
-
                         <button
                           onClick={() => {
                             setSelectedTransaction(item);
@@ -383,7 +538,6 @@ const BankTransactionList = () => {
                         >
                           {item?.isMapped ? "Link Payment" : "Link Payment"}
                         </button>
-
                       </td>
 
                       <td className="p-3">
@@ -398,8 +552,6 @@ const BankTransactionList = () => {
                           >
                             <Pencil size={16} />
                           </Link>
-
-
                         </div>
                       </td>
                     </tr>
@@ -441,9 +593,14 @@ const BankTransactionList = () => {
         onClose={() => setFilterOpen(false)}
         apiData={apiData}
         filters={filters}
-        onApply={(data, labels) => {
-          setFilters(data);
-          setFilterLabels(labels);
+        onApply={(data) => {
+          // Persist filters
+          setFilters({
+            ...DEFAULT_BANK_TRANSACTION_FILTERS,
+            ...data,
+          });
+
+          // New filter => first page
           setCurrentPage(1);
         }}
         handleReset={handleReset}

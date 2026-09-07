@@ -12,12 +12,14 @@ const AttendanceFilter = ({
   handleReset,
   resetTrigger,
   employees = [],
+  initialFilters = {},
 }) => {
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       month: "",
       date: "",
       employeeId: null,
+      department: null,
       status: null,
     },
   });
@@ -52,6 +54,19 @@ const AttendanceFilter = ({
       })),
     [employees],
   );
+
+  const departmentOptions = useMemo(() => {
+    const departments = [
+      ...new Set(
+        employees.map((employee) => employee.department).filter(Boolean),
+      ),
+    ];
+
+    return departments.map((department) => ({
+      value: department,
+      label: department,
+    }));
+  }, [employees]);
   // ======================================================
   // SUBMIT FILTERS
   // ======================================================
@@ -62,6 +77,7 @@ const AttendanceFilter = ({
       date: data.date || "",
       status: data.status?.value || "",
       employeeId: data.employeeId?.value || "",
+      department: data.department?.value || "",
     };
 
     const labels = [
@@ -79,6 +95,11 @@ const AttendanceFilter = ({
         key: "status",
         label: `Status : ${data.status.label}`,
       },
+      data.department && {
+        key: "department",
+        label: `Department : ${data.department.label}`,
+      },
+
       data.employeeId && {
         key: "employeeId",
         label: `Employee : ${data.employeeId.label}`,
@@ -93,16 +114,49 @@ const AttendanceFilter = ({
   // ======================================================
   // RESET FORM WHEN RESET TRIGGER CHANGES
   // ======================================================
-
   useEffect(() => {
+    if (!isOpen) return;
+
+    const selectedStatus =
+      statusOptions.find((option) => option.value === initialFilters.status) ||
+      null;
+
+    const selectedEmployee =
+      employeeOptions.find(
+        (option) => option.value === initialFilters.employeeId,
+      ) || null;
+    const selectedDepartment =
+      departmentOptions.find(
+        (option) => option.value === initialFilters.department,
+      ) || null;
+    reset({
+      month: initialFilters.month || "",
+      date: initialFilters.date || "",
+      status: selectedStatus,
+      employeeId: selectedEmployee,
+      department: selectedDepartment,
+    });
+  }, [
+    isOpen,
+    initialFilters.month,
+    initialFilters.date,
+    initialFilters.status,
+    initialFilters.employeeId,
+    employeeOptions,
+    statusOptions,
+    reset,
+  ]);
+  useEffect(() => {
+    if (!resetTrigger) return;
+
     reset({
       month: "",
       date: "",
       status: null,
+      department: null,
       employeeId: null,
     });
   }, [resetTrigger, reset]);
-
   return (
     <>
       {/* BACKDROP */}
@@ -258,6 +312,25 @@ const AttendanceFilter = ({
               </div>
             )}
           />
+          <Controller
+            name="department"
+            control={control}
+            render={({ field }) => (
+              <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <label className="select-label">Department</label>
+
+                <Select
+                  options={departmentOptions}
+                  isSearchable
+                  isClearable
+                  placeholder="Select"
+                  value={field.value}
+                  onChange={(option) => field.onChange(option)}
+                  styles={selectStyles}
+                />
+              </div>
+            )}
+          />
           {/* ==================================================
               ACTION BUTTONS
           ================================================== */}
@@ -271,6 +344,7 @@ const AttendanceFilter = ({
                   date: "",
                   status: null,
                   employeeId: null,
+                  department: null,
                 });
 
                 handleReset();

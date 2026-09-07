@@ -20,9 +20,16 @@ import {
 import { AsyncPaginate } from "react-select-async-paginate";
 import { getPropertyDropdown } from "../properties/services";
 import { useSharingTypes } from "../Options/services";
+import { useAuthorization } from "../../context/AuthorizationContext";
 const BedCreateEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { canEdit, canAdd } = useAuthorization();
+
+  const canEditBed = canEdit("beds");
+  const canAddBed = canAdd("beds");
+
+  const isViewOnly = Boolean(id) && !canEditBed;
   const {
     control,
     register,
@@ -213,22 +220,24 @@ const BedCreateEdit = () => {
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={isUpdateBed || isSubmitBed}
-                className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-              >
-                {isUpdateBed || isSubmitBed ? (
-                  <>
-                    <Loader />
-                    Processing...
-                  </>
-                ) : id ? (
-                  "Update Bed"
-                ) : (
-                  "Create Bed"
-                )}
-              </button>
+           {((id && canEditBed) || (!id && canAddBed)) && (
+                <button
+                  type="submit"
+                  disabled={isUpdateBed || isSubmitBed}
+                  className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                >
+                  {isUpdateBed || isSubmitBed ? (
+                    <>
+                      <Loader />
+                      Processing...
+                    </>
+                  ) : id ? (
+                    "Update Bed"
+                  ) : (
+                    "Create Bed"
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -249,9 +258,8 @@ const BedCreateEdit = () => {
                 return (
                   <div>
                     <div
-                      className={`select-group ${
-                        field.value ? "has-value" : ""
-                      }`}
+                      className={`select-group ${field.value ? "has-value" : ""
+                        }`}
                     >
                       <label className="select-label required-label">
                         Property Code
@@ -331,9 +339,8 @@ const BedCreateEdit = () => {
                     value?.trim() !== "" || "Room No is required",
                 })}
                 placeholder=" "
-                className={`form-input ${
-                  errors.roomNo ? "border-red-500" : ""
-                }`}
+                className={`form-input ${errors.roomNo ? "border-red-500" : ""
+                  }`}
               />
 
               <label className="form-label required-label">Room No</label>
@@ -526,9 +533,8 @@ const BedCreateEdit = () => {
                 type="number"
                 min="0"
                 step="0.01"
-                className={`form-input ${
-                  errors.monthlyRent ? "border-red-500" : ""
-                }`}
+                className={`form-input ${errors.monthlyRent ? "border-red-500" : ""
+                  }`}
               />
 
               <label className="form-label required-label">Monthly Rent</label>
@@ -560,11 +566,10 @@ const BedCreateEdit = () => {
                 type="number"
                 min="0"
                 step="0.01"
-                className={`form-input ${
-                  errors.securityDepositMultiplicationFactor
+                className={`form-input ${errors.securityDepositMultiplicationFactor
                     ? "border-red-500"
                     : ""
-                }`}
+                  }`}
               />
 
               <label className="form-label required-label">
@@ -636,38 +641,33 @@ const BedCreateEdit = () => {
               )}
             />
 
-<div className="form-group">
-  <input
-    {...register("freeEbAsPerBed", {
-      required: "Free EB Amount is required",
-      validate: (value) =>
-        value !== undefined &&
-        value !== null &&
-        value !== "" &&
-        Number(value) >= 0
-          ? true
-          : "Free EB Amount is required",
-    })}
-    placeholder="eg - 5,6,8"
-    type="number"
-    className="form-input"
-  />
+            <div className="form-group">
+              <input
+                {...register("freeEbAsPerBed", {
+                  required: "Free EB Amount is required",
+                  validate: (value) =>
+                    value !== undefined &&
+                      value !== null &&
+                      value !== "" &&
+                      Number(value) >= 0
+                      ? true
+                      : "Free EB Amount is required",
+                })}
+                placeholder="eg - 5,6,8"
+                type="number"
+                className="form-input"
+              />
 
-  <label className="form-label required-label">
-    Free EB As Per Bed
-  </label>
+              <label className="form-label required-label">
+                Free EB As Per Bed
+              </label>
 
-  {errors.freeEbAsPerBed && (
-    <p className="mt-1 text-xs text-red-500">
-      {errors.freeEbAsPerBed.message}
-    </p>
-  )}
-</div>
-
-
-
-
-
+              {errors.freeEbAsPerBed && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.freeEbAsPerBed.message}
+                </p>
+              )}
+            </div>
             <div className="form-group">
               <input
                 {...register("comment")}
@@ -687,9 +687,8 @@ const BedCreateEdit = () => {
                 render={({ field }) => (
                   <div>
                     <div
-                      className={`select-group ${
-                        field.value ? "has-value" : ""
-                      }`}
+                      className={`select-group ${field.value ? "has-value" : ""
+                        }`}
                     >
                       <label className="select-label required-label">
                         Status
@@ -733,22 +732,24 @@ const BedCreateEdit = () => {
           >
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={isUpdateBed || isSubmitBed}
-            className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-          >
-            {isUpdateBed || isSubmitBed ? (
-              <>
-                <Loader />
-                Processing...
-              </>
-            ) : id ? (
-              "Update Bed"
-            ) : (
-              "Create Bed"
-            )}
-          </button>
+       {((id && canEditBed) || (!id && canAddBed)) && (
+                <button
+                  type="submit"
+                  disabled={isUpdateBed || isSubmitBed}
+                  className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                >
+                  {isUpdateBed || isSubmitBed ? (
+                    <>
+                      <Loader />
+                      Processing...
+                    </>
+                  ) : id ? (
+                    "Update Bed"
+                  ) : (
+                    "Create Bed"
+                  )}
+                </button>
+              )}
         </div>
       </form>
     </div>

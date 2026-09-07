@@ -1,30 +1,29 @@
-import { useMutation, useQuery, useQueryClient , keepPreviousData} from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { apiClient } from "../../../api/ApiClient";
 // ======================= GET FNF / NOTICE DATA =======================
 const getFnFandNoticeData = async ({
   page = 1,
   limit = 10,
   search = "",
-  filters = {},
+  propertyId = "",
 }) => {
   const params = {
     page,
     limit,
   };
 
+  // SEARCH HAS PRIORITY
   if (search?.trim()) {
     params.search = search.trim();
   }
-
-  if (filters.userId) {
-    params.userId = filters.userId;
-  }
-
-  if (
-    filters.isActive !== undefined &&
-    filters.isActive !== ""
-  ) {
-    params.isActive = filters.isActive;
+  // PROPERTY FILTER ONLY WHEN SEARCH IS EMPTY
+  else if (propertyId?.trim()) {
+    params.propertyId = propertyId.trim();
   }
 
   const response = await apiClient.get("/clients/rent-not-received", {
@@ -33,43 +32,32 @@ const getFnFandNoticeData = async ({
 
   return response.data;
 };
-
 // ======================= HOOK =======================
 
 export const useFnFnadNoticeData = ({
   page = 1,
   limit = 10,
   search = "",
-  filters = {},
+  propertyId = "",
   enabled = true,
 } = {}) => {
   return useQuery({
-    queryKey: [
-      "fnf-notice-data",
-      page,
-      limit,
-      search,
-      filters.userId,
-      filters.isActive,
-    ],
+    queryKey: ["fnf-notice-data", page, limit, search, propertyId],
 
     queryFn: () =>
       getFnFandNoticeData({
         page,
         limit,
         search,
-        filters,
+        propertyId,
       }),
 
     enabled,
-
     placeholderData: keepPreviousData,
   });
 };
 
-
-
-// ✅ 
+// ✅
 const createRentNotReceivedCommen = async (data) => {
   const response = await apiClient.post("/rent-not-received/comment", data);
   return response.data;
