@@ -297,11 +297,11 @@ function TicketCreateEdit() {
               <p className="text-sm text-gray-500">
                 {id
                   ? `${singleTicket?.data?.ticketId} - ${formatDateAndTime(singleTicket?.data?.createdAt)}`
-                  : "Create and manage PG Ticket Details"}
+                  : "Kindly submit a new ticket for any maintenance requests, housekeeping services, notice to vacate, rent receipts, rental agreements, full and final settlements, or electricity bill-related concerns etc."}
               </p>
             </div>
 
-            <div className="flex justify-end gap-5">
+            {/* <div className="flex justify-end gap-5">
               <Link to="/client-tickets">
                 <button
                   type="button"
@@ -322,7 +322,7 @@ function TicketCreateEdit() {
                     ? "Update Ticket"
                     : "Create Ticket"}
               </button>
-            </div>
+            </div> */}
 
           </div>
         </div>

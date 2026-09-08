@@ -264,6 +264,13 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
       path: "/prop-perso-details",
       icon: <Building2 size={22} />,
     },
+    {
+      key: "agreement-details",
+      moduleKey: "Agreement_details",
+      name: "Agreement Details",
+      path: "/agreement-details",
+      icon: <Building2 size={22} />,
+    },
 
    
   ];
@@ -480,7 +487,7 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
                 </span>
 
                 {/* TAB NAME */}
-                <span className="text-md font-bold">{item.name}</span>
+                <span className="text-[16px] font-bold">{item.name}</span>
               </NavLink>
             ))}
           </nav>

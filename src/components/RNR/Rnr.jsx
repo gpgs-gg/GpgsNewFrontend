@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Filter, MessageSquarePlus } from "lucide-react";
 import { Link } from "react-router-dom";
-import NoDataFound from "../common/NoDataFound";
+import NoDataFound from "../Common/NoDataFound";
 import useDebounce from "../hooks/useDebounce";
 import { PAGINATION } from "../../constants/appConfig";
 import {
@@ -151,6 +151,7 @@ function Rnr() {
 
     return labels;
   }, [filters]);
+
   const numberToWords = (num) => {
     if (num === 0) return "Zero Rupees";
 

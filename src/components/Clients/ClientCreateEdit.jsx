@@ -4,9 +4,9 @@ import { selectStyles } from '../../utils/selectStyles';
 import Select from "react-select";
 import { useBedsData, useCreateClientData, usePropertiesDropdown, useSingleClientData, useUpdateClientData } from './services';
 import DatePicker from 'react-datepicker';
-import FilePreview from "../common/FilePreview";
+import FilePreview from "../Common/FilePreview";
 import { useNavigate, useParams } from 'react-router-dom';
-import Loader from '../common/Loader';
+import Loader from '../Common/Loader';
 import { convertStringFormatDate } from '../../utils/dateFormatter';
 import { toast } from 'react-toastify';
 
@@ -149,9 +149,6 @@ const ClientCreateEdit = () => {
             }
         });
     };
-
-
-
     const onSubmit = (data) => {
         const formData = new FormData();
         buildFormData(formData, data);
@@ -215,7 +212,6 @@ const ClientCreateEdit = () => {
             },
         });
     };
-
     const removeFile = (type, index, isExisting = false) => {
         const config = {
             photo: {
@@ -244,11 +240,8 @@ const ClientCreateEdit = () => {
                 field: "clientPoliceNOC",
             },
         };
-
         const current = config[type];
-
         if (!current) return;
-
         if (isExisting) {
             current.existing((prev) => prev.filter((_, i) => i !== index));
         } else {
@@ -259,12 +252,8 @@ const ClientCreateEdit = () => {
             });
         }
     };
-
-
-
     return (
         <div className="max-w-12xl mx-auto px-6 h-screen">
-
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-4 py-2">
                     <div className="flex justify-between items-center">
@@ -615,7 +604,7 @@ const ClientCreateEdit = () => {
                     </div>
 
                 </div>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div className="flex justify-between">
                         <h2 className="text-xl font-semibold mb-4">
                             Vacation Details
@@ -715,7 +704,7 @@ const ClientCreateEdit = () => {
                       
                     </div>
 
-                </div>
+                </div> */}
                 {/* Client Document Details */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 className="text-xl font-semibold mb-4">

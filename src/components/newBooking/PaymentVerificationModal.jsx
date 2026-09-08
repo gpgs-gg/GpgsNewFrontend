@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useBankTransactionData } from "./services";
 import useDebounce from "../hooks/useDebounce";
-import Loader from "../common/Loader";
+import Loader from "../Common/Loader";
 
 const PaymentVerificationModal = ({
     booking,
@@ -42,7 +42,7 @@ const PaymentVerificationModal = ({
                             placeholder=" "
                             className="form-input resize-none"
                         />
-                        <label className="form-label">Bank Narration</label>
+                        <label className="form-label required-label">Bank Narration</label>
                         {errors?.narration && (
                             <p className="text-sm text-red-500">
                                 {errors.narration.message}
@@ -59,7 +59,7 @@ const PaymentVerificationModal = ({
                             placeholder=" "
                             className="form-input text-green-500"
                         />
-                        <label className="form-label">Paid Amount</label>
+                        <label className="form-label required-label">Paid Amount</label>
                         {errors?.paymentAmount && (
                             <p className="mt-1 text-sm text-red-500">
                                 {errors.paymentAmount.message}

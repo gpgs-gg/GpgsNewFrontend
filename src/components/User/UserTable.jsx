@@ -245,11 +245,11 @@ function UserTable() {
             <table className="w-max min-w-full">
               <thead className="sticky top-0 z-40 bg-gray-100 whitespace-nowrap">
                 <tr>
-                  <th className="p-3 text-left">Employee ID</th>
+                  {/* <th className="p-3 text-left">Employee ID</th> */}
                   <th className="p-3 text-left">Name</th>
                   <th className="p-3 text-left">Email</th>
                   <th className="p-3 text-left">Role</th>
-                  <th className="p-3 text-left">Booking ID</th>
+                  {/* <th className="p-3 text-left">Booking ID</th> */}
                   <th className="p-3 text-left">Status</th>
                   <th className="p-3 text-left">Created Date</th>
                   <th className="p-3 text-left">Updated Date</th>
@@ -266,7 +266,7 @@ function UserTable() {
                       className="border-t border-gray-300 hover:bg-gray-50 whitespace-nowrap"
                     >
                       {/* Employee ID */}
-                      <td className="p-3">{item.employeeId || "-"}</td>
+                      {/* <td className="p-3">{item.employeeId || "-"}</td> */}
 
                       {/* Name */}
                       <td className="p-3 font-semibold">{item?.name}</td>
@@ -276,7 +276,7 @@ function UserTable() {
                       <td className="p-3">{item.role}</td>
 
                       {/* Booking ID */}
-                      <td className="p-3">{item.bookingId || "-"}</td>
+                      {/* <td className="p-3">{item.bookingId || "-"}</td> */}
                       {/* Role */}
 
                       {/* Status */}

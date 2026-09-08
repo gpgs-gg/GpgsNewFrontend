@@ -972,17 +972,21 @@ const NewBookingCreateEdit = () => {
     });
   }, [bookingData, reset]);
 
-  useEffect(() => {
-    if (!bookingData?.data || bedOptions.length === 0) return;
 
-    const booking = bookingData.data;
+useEffect(() => {
+  if (!bookingData?.data || !bookingData.data.bedId) return;
 
-    setValue(
-      "bedId",
-      `${booking.bedId._id},${booking.bedId.bedNo}`
-    );
-  }, [bedOptions]);
+  const booking = bookingData.data;
 
+  setValue(
+    "bedId",
+    `${booking.bedId._id},${booking.bedId.bedNo}`,
+    {
+      shouldValidate: false,
+      shouldDirty: false,
+    }
+  );
+}, [bookingData, setValue]);
 
 
   const onSubmit = (data) => {

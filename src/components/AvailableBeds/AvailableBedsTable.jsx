@@ -2,14 +2,14 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../Common/Pagination";
-import NoDataFound from "../common/NoDataFound";
+import NoDataFound from "../Common/NoDataFound";
 import useDebounce from "../hooks/useDebounce";
 import {
   useAvailableBedsData,
   useCancelNewBooking,
   useClientFromNewBooking,
 } from "./services";
-import TableSkeleton from "../../components/common/TableSkelton";
+import TableSkeleton from "../Common/TableSkelton";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";
@@ -275,8 +275,8 @@ const AvailableBedsTable = () => {
         onSuccess: (response) => {
           toast.success(
             response?.message ||
-              response?.data?.message ||
-              "Booking cancelled successfully",
+            response?.data?.message ||
+            "Booking cancelled successfully",
           );
         },
         onError: (error) => {
@@ -450,8 +450,19 @@ const AvailableBedsTable = () => {
                     {paginatedData?.length > 0 ? (
                       paginatedData.map((item, index) => {
                         const getRedFlagStatus = (item) => {
-                          const nld = item?.client?.noticeLastDate;
-                          if (!nld) return "-";
+                          const client = item?.client;
+
+                          // Client nahi hai => Red Flag
+                          if (!client) {
+                            return "Red Flag";
+                          }
+
+                          const nld = client?.noticeLastDate;
+
+                          // Notice Last Date nahi hai => No Red Flag
+                          if (!nld) {
+                            return "-";
+                          }
 
                           const today = new Date();
                           today.setHours(0, 0, 0, 0);
@@ -464,6 +475,7 @@ const AvailableBedsTable = () => {
 
                           return diffDays <= 15 ? "Red Flag" : "-";
                         };
+
                         const getBedAvailableFrom = (item) => {
                           const cvd = item?.client?.clientVacatingDate;
 
@@ -499,11 +511,10 @@ const AvailableBedsTable = () => {
                             {/* Red Flag */}
                             <td className="p-3 text-center">
                               <span
-                                className={`px-2 py-1 rounded text-xs font-medium ${
-                                  getRedFlagStatus(item) === "Red Flag"
-                                    ? "bg-red-100 text-red-600"
-                                    : "text-gray-500"
-                                }`}
+                                className={`px-2 py-1 rounded text-xs font-medium ${getRedFlagStatus(item) === "Red Flag"
+                                  ? "bg-red-100 text-red-600"
+                                  : "text-gray-500"
+                                  }`}
                               >
                                 {getRedFlagStatus(item)}
                               </span>

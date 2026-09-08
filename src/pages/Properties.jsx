@@ -1,5 +1,4 @@
-import { Eye, Pencil } from "lucide-react";
-import Main from "../components/properties/main";
+import Main from "../components/properties/Main";
 
 const Properties = () => {
 

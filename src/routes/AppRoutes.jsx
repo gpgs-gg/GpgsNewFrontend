@@ -63,9 +63,21 @@ import EBCalculation from "../components/EbCalculator/EbCalculator";
 import EBCalculationDataPage from "../pages/EBCalculationDataPage";
 import EBCalculationData from "../clientComponents/EBCalculation/EBCalculationData";
 import PropAndPersDetails from "../clientComponents/PropAndPersDetails/PropAndPersDetails";
+import Agreement from "../clientComponents/AgreementDetails/Agreement";
+import AgreementPopup from "../clientComponents/PropAndPersDetails/AgreementPopup ";
+import { useAuth } from "../context/authContext";
 
 const AppRoutes = () => {
+
+  const { user } = useAuth();
+  const role = user?.role?.trim().toLowerCase();
+  const isClient = role === "client";
+
+
   return (
+    <>
+      {/* AgreementPopup will only show for clients */}
+      {isClient && <AgreementPopup />}
     <Routes>
 
       <Route path="/" element={<HomePage/>} />
@@ -158,12 +170,14 @@ const AppRoutes = () => {
           <Route path="/eb-calcul-data-details" element={<EBCalculationDataPage />} />
           <Route path="/eb-details-for-clients" element={<EBCalculationData />} />
           <Route path="/prop-perso-details" element={<PropAndPersDetails />} />
+          <Route path="/agreement-details" element={<Agreement />} />
 
         </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
+    </>
   );
 };
 

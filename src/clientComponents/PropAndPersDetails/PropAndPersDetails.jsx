@@ -13,9 +13,16 @@ import {
   CreditCard,
   Home,
   Loader2,
+  PhoneCall,
+  GraduationCap,
+  BriefcaseBusiness,
+  ShieldCheck,
+  Paperclip,
+  Eye,
 } from "lucide-react";
 import { useCurrentUser } from "../../auth/services";
 import { useSingleClientData } from "./services";
+import { formatDate } from "../../utils/dateFormatter";
 
 // Apne actual paths ke according imports change karna
 
@@ -135,7 +142,7 @@ const PropAndPersDetails = () => {
   }) => {
     return (
       <div className="min-w-0">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-gray-500">
+        <p className="text-sm font-medium  text-gray-500">
           {label}
         </p>
 
@@ -146,7 +153,7 @@ const PropAndPersDetails = () => {
             />
           )}
 
-          <p className="truncate text-sm font-semibold text-gray-800">
+          <p title={value || "-"} className="truncate text-sm font-semibold text-gray-800">
             {value || "-"}
           </p>
         </div>
@@ -183,13 +190,63 @@ const PropAndPersDetails = () => {
       </div>
     );
   };
+  const DocumentItem = ({
+    icon: Icon,
+    label,
+    urls = [],
+    iconClass = "text-gray-500",
+  }) => {
+    const documents = Array.isArray(urls) ? urls : [];
+
+    return (<div className="min-w-0 rounded-lg border border-gray-200 bg-white p-3">
+
+      <div className="flex items-center gap-2">
+        {Icon && (
+          <Icon
+            className={`h-4 w-4 shrink-0 ${iconClass}`}
+          />
+        )}
+
+        <p className="truncate text-sm font-medium text-gray-600">
+          {label}
+        </p>
+      </div>
+
+      {documents.length > 0 ? (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {documents.map((url, index) => (
+            <a
+              key={url || index}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 shadow-sm ring-1 ring-gray-200 transition hover:bg-blue-50 hover:text-blue-700"
+              title={`View ${label} ${documents.length > 1 ? index + 1 : ""}`}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              {documents.length > 1 ? `View ${index + 1}` : "View"}
+            </a>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 text-xs font-medium text-gray-400">
+          Not Available
+        </p>
+      )}
+
+    </div>
+
+
+    );
+  };
+
 
   // ============================================================
   // UI
   // ============================================================
   return (
     <div className="min-h-[80vh] bg-gray-50 p-3 sm:p-5 lg:p-6">
-      <div className="mx-auto max-w-7xl space-y-5">
+      <div className="mx-auto max-w-12xl space-y-5">
 
         {/* =====================================================
             PAGE HEADER
@@ -215,7 +272,7 @@ const PropAndPersDetails = () => {
 
             {/* Client ID */}
             {/* <div className="rounded-lg bg-gray-50 px-3 py-2">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
+              <p className="text-[10px] font-medium uppercase  text-gray-400">
                 Client ID
               </p>
 
@@ -239,7 +296,7 @@ const PropAndPersDetails = () => {
             iconClass="text-blue-600"
           />
 
-          <div className="grid grid-cols-1 gap-x-6 gap-y-5 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-5 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-8">
 
             <DetailItem
               icon={User}
@@ -272,7 +329,7 @@ const PropAndPersDetails = () => {
             <DetailItem
               icon={CalendarDays}
               label="Date of Joining"
-              value={client.clientDoj}
+              value={formatDate(client.clientDoj)}
               iconClass="text-orange-500"
             />
 
@@ -290,19 +347,100 @@ const PropAndPersDetails = () => {
               iconClass="text-gray-500"
             />
 
-            <DetailItem
+            {/* <DetailItem
               icon={CreditCard}
               label="Booking Amount"
               value={`₹${formatAmount(client.bookingAmount)}`}
               iconClass="text-green-600"
+            /> */}
+
+          </div>
+        </div>
+        {/* ================= CLIENT DOCUMENTS ================= */}
+
+        <div className="border-t border-gray-200 bg-white rounded-2xl p-4 sm:p-5">
+
+          <div className="mb-4">
+            <h3 className="text-sm font-semibold text-gray-800">
+              Client Documents
+            </h3>
+            <p className="mt-1 text-xs text-gray-500">
+              Uploaded client photos and identification documents
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-8">
+
+            {/* Photo */}
+            <DocumentItem
+              icon={User}
+              label="Client Photo"
+              urls={client.photo}
+              iconClass="text-blue-500"
+            />
+
+            {/* Aadhaar Card */}
+            <DocumentItem
+              icon={CreditCard}
+              label="Aadhaar Card"
+              urls={client.aadhaarCard}
+              iconClass="text-orange-500"
+            />
+
+            {/* PAN */}
+            <DocumentItem
+              icon={CreditCard}
+              label="PAN Card"
+              urls={client.pan}
+              iconClass="text-purple-500"
+            />
+
+            {/* College Identification */}
+            <DocumentItem
+              icon={GraduationCap}
+              label="College Identification"
+              urls={client.collegeIdentification}
+              iconClass="text-indigo-500"
+            />
+
+            {/* Company Identification */}
+            <DocumentItem
+              icon={BriefcaseBusiness}
+              label="Company Identification"
+              urls={client.companyIdentification}
+              iconClass="text-green-500"
+            />
+
+            {/* Rental Agreement */}
+            <DocumentItem
+              icon={FileText}
+              label="Client Rental Agreement"
+              urls={client.clientRentalAgreement}
+              iconClass="text-red-500"
+            />
+
+            {/* Police NOC */}
+            <DocumentItem
+              icon={ShieldCheck}
+              label="Client Police NOC"
+              urls={client.clientPoliceNOC}
+              iconClass="text-teal-500"
+            />
+
+            {/* Attachments */}
+            <DocumentItem
+              icon={Paperclip}
+              label="Attachments"
+              urls={client.attachments}
+              iconClass="text-gray-500"
             />
 
           </div>
         </div>
-
         {/* =====================================================
             PROPERTY DETAILS
         ====================================================== */}
+
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
 
           <SectionHeader
@@ -313,7 +451,7 @@ const PropAndPersDetails = () => {
             iconClass="text-green-600"
           />
 
-          <div className="grid grid-cols-1 gap-x-6 gap-y-5 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-5 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-10">
 
             <DetailItem
               icon={Building2}
@@ -321,14 +459,6 @@ const PropAndPersDetails = () => {
               value={client.propertyId?.propertyCode}
               iconClass="text-green-600"
             />
-
-            <DetailItem
-              icon={MapPin}
-              label="Property Location"
-              value={client.propertyId?.propertyLocation}
-              iconClass="text-red-500"
-            />
-
             <DetailItem
               icon={BedDouble}
               label="Room No"
@@ -354,7 +484,15 @@ const PropAndPersDetails = () => {
               icon={IndianRupee}
               label="Monthly Rent"
               value={`₹${formatAmount(
-                client.bedId?.monthlyRent || client.monthlyRent
+                client.monthlyRent
+              )}`}
+              iconClass="text-green-600"
+            />
+            <DetailItem
+              icon={IndianRupee}
+              label="Deposit Amount"
+              value={`₹${formatAmount(
+                client.depositAmount
               )}`}
               iconClass="text-green-600"
             />
@@ -363,7 +501,7 @@ const PropAndPersDetails = () => {
               label="Wifi Name"
               value={
                 client?.propertyId?.internet?.wifiName
-           }
+              }
               iconClass="text-orange-500"
             />
 
@@ -371,126 +509,149 @@ const PropAndPersDetails = () => {
               label="Wifi Password"
               value={
                 client.propertyId?.internet?.wifiPwd
-             }
+              }
               iconClass="text-orange-500"
             />
+
+            <DetailItem
+              label="Property Address"
+              value={
+                client?.propertyId?.propertyAddress
+              }
+              iconClass="text-orange-500"
+            />
+
 
 
           </div>
         </div>
 
         {/* =====================================================
-            PAYMENT DETAILS
+            PROPERTY DETAILS
         ====================================================== */}
-   
-        {/* =====================================================
-            NOTICE DETAILS
-        ====================================================== */}
-        {(client.noticeStartDate ||
-          client.noticeLastDate ||
-          client.clientVacatingDate) && (
-          <div className="overflow-hidden rounded-xl border border-orange-200 bg-white shadow-sm">
 
-            <SectionHeader
-              icon={FileText}
-              title="Notice Details"
-              subtitle="Notice and vacating information"
-              iconContainerClass="bg-orange-100"
-              iconClass="text-orange-600"
+
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+
+          <SectionHeader
+            icon={Building2}
+            title="Electricity Details"
+            subtitle="Current property electricity information"
+            iconContainerClass="bg-green-100"
+            iconClass="text-green-600"
+          />
+
+          <div className="grid grid-cols-1 gap-x-6 gap-y-5 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-8">
+
+            <DetailItem
+
+              label="Consumer No"
+              value={client.propertyId?.utility?.ebConsumerNo}
+              iconClass="text-green-600"
+            />
+            <DetailItem
+              icon={BedDouble} label="Billing Unit"
+              value={client.propertyId?.utility?.ebBillingUnit}
+              iconClass="text-blue-500"
             />
 
-            <div className="grid grid-cols-1 gap-x-6 gap-y-5 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
-
-              <DetailItem
-                icon={CalendarDays}
-                label="Notice Start Date"
-                value={client.noticeStartDate}
-                iconClass="text-orange-500"
-              />
-
-              <DetailItem
-                icon={CalendarDays}
-                label="Notice Last Date"
-                value={client.noticeLastDate}
-                iconClass="text-red-500"
-              />
-
-              <DetailItem
-                icon={CalendarDays}
-                label="Vacating Date"
-                value={client.clientVacatingDate}
-                iconClass="text-red-600"
-              />
-
-            </div>
-          </div>
-        )}
-
-        {/* =====================================================
-            PERMANENT BOOKING
-        ====================================================== */}
-        {client.permanentBooking && (
-          <div className="overflow-hidden rounded-xl border border-indigo-200 bg-white shadow-sm">
-
-            <SectionHeader
-              icon={Building2}
-              title="Permanent Booking Details"
-              subtitle="Permanent booking/property information"
-              iconContainerClass="bg-indigo-100"
-              iconClass="text-indigo-600"
+            <DetailItem
+              label="Power Company Web Link"
+              value={<a
+                href="https://wss.mahadiscom.in/wss/wss?uiActionName=getViewPayBill"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:text-blue-700 hover:underline"
+              >
+                https://wss.mahadiscom.in/wss/wss?uiActionName=getViewPayBill </a>
+              }
+              iconClass="text-blue-500"
             />
 
-            <div className="grid grid-cols-1 gap-x-6 gap-y-5 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
 
-              <DetailItem
-                icon={Building2}
-                label="Property Code"
-                value={client.permanentBooking.propertyCode}
-                iconClass="text-indigo-600"
-              />
+          </div>
+        </div>
 
-              <DetailItem
-                icon={MapPin}
-                label="Property Location"
-                value={client.permanentBooking.propertyLocation}
-                iconClass="text-red-500"
-              />
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
 
-              <DetailItem
-                icon={BedDouble}
-                label="Room No"
-                value={client.permanentBooking.roomNo}
-                iconClass="text-blue-500"
-              />
+          <SectionHeader
+            icon={PhoneCall}
+            title="Emergency / Customer Care Contacts"
+            subtitle="The following issues are considered emergencies"
+            iconContainerClass="bg-red-100"
+            iconClass="text-red-600"
+          />
 
-              <DetailItem
-                icon={BedDouble}
-                label="Bed No"
-                value={client.permanentBooking.bedNo}
-                iconClass="text-blue-500"
-              />
+          <div className="p-4 sm:p-5">
 
-              <DetailItem
-                icon={IndianRupee}
-                label="Monthly Rent"
-                value={`₹${formatAmount(
-                  client.permanentBooking.monthlyRent
-                )}`}
-                iconClass="text-green-600"
-              />
 
-              <DetailItem
-                icon={IndianRupee}
-                label="Deposit Amount"
-                value={`₹${formatAmount(
-                  client.permanentBooking.depositAmount
-                )}`}
-                iconClass="text-orange-500"
-              />
+            {/* Emergency Contacts */}
+            <div className="mb-5 rounded-lg border border-red-100 bg-red-50 p-4">
+              <p className="mb-3 text-sm font-semibold text-gray-800">
+                Call / Chat <span className="text-red-600">(Emergency → Call)</span>
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="tel:8928191814"
+                  className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm ring-1 ring-gray-200 transition hover:bg-blue-50 hover:text-blue-700"
+                >
+                  <PhoneCall size={16} />
+                  8928191814
+                </a>
+
+                <a
+                  href="tel:9326325181"
+                  className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm ring-1 ring-gray-200 transition hover:bg-blue-50 hover:text-blue-700"
+                >
+                  <PhoneCall size={16} />
+                  9326325181
+                </a>
+              </div>
+            </div>
+
+            {/* Emergency Issues */}
+            <div className="space-y-3">
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <p className="text-sm font-semibold text-gray-800">
+                  1. Electrical Short Circuit
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <p className="text-sm font-semibold text-gray-800">
+                  2. No Electricity
+                </p>
+
+                <p className="mt-1 text-sm leading-6 text-gray-600">
+                  If the nearby houses or buildings are also affected, then the issue
+                  is external and beyond our control. The power will be restored after
+                  the power company fixes the issue.
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <p className="text-sm font-semibold text-gray-800">
+                  3. No Water Supply
+                </p>
+
+                <p className="mt-1 text-sm leading-6 text-gray-600">
+                  Please ensure that all taps are closed and there are no flush
+                  leakages. If the issue persists, report it to us immediately.
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <p className="text-sm font-semibold text-gray-800">
+                  4. Medical Emergency Concerns
+                </p>
+              </div>
 
             </div>
+
           </div>
-        )}
+        </div>
 
       </div>
     </div>

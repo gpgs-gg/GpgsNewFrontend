@@ -1,5 +1,5 @@
 import React from 'react'
-import Main from '../components/F&F/main'
+import Main from '../components/F&F/Main'
 
 const FandFsettlement = () => {
   return (
