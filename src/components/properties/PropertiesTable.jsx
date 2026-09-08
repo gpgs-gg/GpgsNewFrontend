@@ -10,23 +10,23 @@ import {
 } from "lucide-react";
 import { formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { Link } from "react-router-dom";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import PropertyFilter from "./PropertyFilter";
-import NoDataFound from "../Common/NoDataFound";
+import NoDataFound from "../common/NoDataFound";
 import { usePropertiesData } from "./services";
 
 import { useForm } from "react-hook-form";
 import { IoIosCall } from "react-icons/io";
 import { FaWhatsapp } from "react-icons/fa";
 import { PAGINATION } from "../../constants/appConfig";
-import TableSkeleton from "../Common/TableSkelton";
+import TableSkeleton from "../common/TableSkelton";
 import useDebounce from "../hooks/useDebounce";
 import {
   useDeletePropertyData,
   useDeleteMultiplePropertiesData,
 } from "./services/index";
 
-import ConfirmModal from "../Common/ConfirmModal";
+import ConfirmModal from "../common/ConfirmModal";
 import { toast } from "react-toastify";
 import { useAuthorization } from "../../context/AuthorizationContext";
 const PropertiesTable = () => {

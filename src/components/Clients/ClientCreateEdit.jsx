@@ -4,9 +4,9 @@ import { selectStyles } from '../../utils/selectStyles';
 import Select from "react-select";
 import { useBedsData, useCreateClientData, usePropertiesDropdown, useSingleClientData, useUpdateClientData } from './services';
 import DatePicker from 'react-datepicker';
-import FilePreview from "../Common/FilePreview";
+import FilePreview from "../common/FilePreview";
 import { useNavigate, useParams } from 'react-router-dom';
-import Loader from '../Common/Loader';
+import Loader from '../common/Loader';
 import { convertStringFormatDate } from '../../utils/dateFormatter';
 import { toast } from 'react-toastify';
 

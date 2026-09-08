@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useBankTransactionData } from "./services";
 import useDebounce from "../hooks/useDebounce";
-import Loader from "../Common/Loader";
+import Loader from "../common/Loader";
 
 const PaymentVerificationModal = ({
     booking,

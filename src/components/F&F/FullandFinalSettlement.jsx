@@ -6,7 +6,7 @@ import useDebounce from "../hooks/useDebounce";
 import { PAGINATION } from "../../constants/appConfig";
 import FnfFilter from "./FnfFilter";
 import { useFnFnadNoticeData } from "./services";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import { formatDate } from "../../utils/dateFormatter";
 import FnfEditForm from "./FnfEditForm";
 import { Copy } from "lucide-react";

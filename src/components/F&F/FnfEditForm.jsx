@@ -5,7 +5,7 @@ import { X, Wallet, IndianRupee, CheckCircle } from "lucide-react";
 import { selectStyles } from "../../utils/selectStyles";
 import { useUpdateClientData } from "../Clients/services";
 import { toast } from "react-toastify";
-import FilePreview from "../Common/FilePreview";
+import FilePreview from "../common/FilePreview";
 import { useBatchOptions } from "../Options/services";
 // ============================================================
 // STATUS OPTIONS

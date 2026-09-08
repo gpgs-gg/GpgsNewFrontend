@@ -1,15 +1,15 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import Pagination from "../Common/Pagination";
-import NoDataFound from "../Common/NoDataFound";
+import Pagination from "../common/Pagination";
+import NoDataFound from "../common/NoDataFound";
 import useDebounce from "../hooks/useDebounce";
 import {
   useAvailableBedsData,
   useCancelNewBooking,
   useClientFromNewBooking,
 } from "./services";
-import TableSkeleton from "../Common/TableSkelton";
+import TableSkeleton from "../common/TableSkelton";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";

@@ -1,14 +1,14 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Filter, MessageSquarePlus } from "lucide-react";
 import { Link } from "react-router-dom";
-import NoDataFound from "../Common/NoDataFound";
+import NoDataFound from "../common/NoDataFound";
 import useDebounce from "../hooks/useDebounce";
 import { PAGINATION } from "../../constants/appConfig";
 import {
   useCreateRentNotReceivedComment,
   useFnFnadNoticeData,
 } from "./services";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";
 import usePersistedFilters from "../hooks/usePersistedFilters";

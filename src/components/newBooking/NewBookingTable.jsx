@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import Pagination from "../Common/Pagination";
-import NoDataFound from "../Common/NoDataFound";
+import Pagination from "../common/Pagination";
+import NoDataFound from "../common/NoDataFound";
 import {
   useCancelNewBooking,
   useClientFromNewBooking,
@@ -14,8 +14,8 @@ import {
 } from "./services";
 import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";
-import ConfirmModal from "../Common/ConfirmModal";
-import TableSkeleton from "../Common/TableSkelton";
+import ConfirmModal from "../common/ConfirmModal";
+import TableSkeleton from "../common/TableSkelton";
 import NewBookingFilter from "./NewBookingFilter";
 import useDebounce from "../hooks/useDebounce";
 import { FaEllipsisV } from "react-icons/fa";
