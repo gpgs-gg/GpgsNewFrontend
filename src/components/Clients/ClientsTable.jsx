@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Pencil, Filter, Info } from "lucide-react";
 import { Link } from "react-router-dom";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import useDebounce from "../hooks/useDebounce";
 import {

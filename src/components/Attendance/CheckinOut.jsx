@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import { PAGINATION } from "../../constants/appConfig";
 import {
   FaCamera,

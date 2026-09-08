@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { FiCopy } from "react-icons/fi";
 import { Eye, Pencil, Filter, Phone, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import { formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { useForm } from "react-hook-form";

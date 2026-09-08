@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Eye, Pencil, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import TableSkeleton from "../common/TableSkelton";
 

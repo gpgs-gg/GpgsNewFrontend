@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Eye, Pencil, Plus, ArrowLeft } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import TableSkeleton from "../../components/common/TableSkelton";
 import useDebounce from "../hooks/useDebounce";

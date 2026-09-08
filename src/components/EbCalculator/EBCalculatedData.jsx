@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from "react";
 import { Eye, Filter } from "lucide-react";
 
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import useDebounce from "../hooks/useDebounce";
 import { useEBCalculations } from "./services";
