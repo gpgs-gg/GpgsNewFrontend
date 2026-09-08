@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import {
   useDeleteLeadData,

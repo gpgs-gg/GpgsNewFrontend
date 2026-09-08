@@ -14,7 +14,7 @@ import {
 import { Link } from "react-router-dom";
 import TableSkeleton from "../../components/common/TableSkelton";
 import { useMasterData, useDeleteMasterData } from "./services/index";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import useDebounce from "../hooks/useDebounce";
 import ConfirmModal from "../common/ConfirmModal";
 // import OptionsFilter from "./OptionsFilter";

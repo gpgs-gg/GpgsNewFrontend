@@ -8,7 +8,7 @@ import {
     useSingleMasterData,
 } from "./services/index";
 import { toast } from "react-toastify";
-import ConfirmModal from "../Common/ConfirmModal";
+import ConfirmModal from "../common/ConfirmModal";
 
 const defaultValues = {
     categoryKey: "",

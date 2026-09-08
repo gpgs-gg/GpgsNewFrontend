@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
-import ConfirmModal from "../Common/ConfirmModal";
+import ConfirmModal from "../common/ConfirmModal";
 import { toast } from "react-toastify";
 import { FaUserClock } from "react-icons/fa";
 import { Filter } from "lucide-react";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import TableSkeleton from "../../components/common/TableSkelton";
 import { PAGINATION } from "../../constants/appConfig";

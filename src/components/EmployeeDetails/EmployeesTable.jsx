@@ -32,8 +32,8 @@ import { MobileCardSkeleton } from "../common/MobileCardSkelton";
 import useDebounce from "../hooks/useDebounce";
 import { Filter, Eye, Pencil, Trash2, ShieldCheck } from "lucide-react";
 
-import Pagination from "../Common/Pagination";
-import ConfirmModal from "../Common/ConfirmModal";
+import Pagination from "../common/Pagination";
+import ConfirmModal from "../common/ConfirmModal";
 const MAX_FILES = { aadhaar: 2, photo: 1, bank: 1 };
 
 const schema = yup.object().shape({

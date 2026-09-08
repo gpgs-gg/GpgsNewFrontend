@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Eye, Pencil, Filter, MoreVertical, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import { formatDate } from "../../utils/dateFormatter";
 import { useForm } from "react-hook-form";
@@ -14,7 +14,7 @@ import {
   useDeleteMultipleBedsData,
 } from "./services";
 
-import ConfirmModal from "../Common/ConfirmModal";
+import ConfirmModal from "../common/ConfirmModal";
 import { PAGINATION } from "../../constants/appConfig";
 import useDebounce from "../hooks/useDebounce";
 import TableSkeleton from "../../components/common/TableSkelton";

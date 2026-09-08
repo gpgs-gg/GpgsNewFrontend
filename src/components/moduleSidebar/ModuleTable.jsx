@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Eye, Pencil, Trash2, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import TableSkeleton from "../common/TableSkelton";
-import ConfirmModal from "../Common/ConfirmModal";
+import ConfirmModal from "../common/ConfirmModal";
 import { toast } from "react-toastify";
 
 import {
