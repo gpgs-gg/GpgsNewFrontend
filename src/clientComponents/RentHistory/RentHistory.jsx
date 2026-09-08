@@ -12,7 +12,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import { useAuth } from "../../context/authContext";
 import { formatDate } from "../../utils/dateFormatter";
 import NoDataFound from "../../components/common/NoDataFound";
-import Pagination from "../../components/Common/Pagination";
+import Pagination from "../../components/common/Pagination";
 
 const RentHistory = () => {
   const { user } = useAuth();

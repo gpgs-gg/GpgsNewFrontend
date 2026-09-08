@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import TableSkeleton from "../../components/common/TableSkelton";
 import useDebounce from "../hooks/useDebounce";

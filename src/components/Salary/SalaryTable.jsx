@@ -6,7 +6,7 @@ import { useSalaryDetailsData } from "./services/index";
 import { useAuthorization } from "../../context/AuthorizationContext";
 import TableSkeleton from "../../components/common/TableSkelton";
 import NoDataFound from "../common/NoDataFound";
-import Pagination from "../Common/Pagination";
+import Pagination from "../common/Pagination";
 
 // ============================================================
 // CONSTANTS

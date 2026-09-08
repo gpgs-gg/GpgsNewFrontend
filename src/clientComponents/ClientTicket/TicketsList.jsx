@@ -10,7 +10,7 @@ import TicketsFilter from "./TicketsFilter";
 import { IoClose } from "react-icons/io5";
 import ExportDrawer from "./ExportDrawer";
 import { toast } from "react-toastify";
-import Pagination from "../../components/Common/Pagination";
+import Pagination from "../../components/common/Pagination";
 import NoDataFound from "../../components/common/NoDataFound";
 import { TableFilePreview } from "../../components/common/FilePreview";
 import useDebounce from "../../components/hooks/useDebounce";
