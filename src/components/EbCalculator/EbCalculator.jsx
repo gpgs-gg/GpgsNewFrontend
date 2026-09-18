@@ -3345,8 +3345,6 @@ const EBCalculation = () => {
     });
     const propertyId = watch("propertyId");
 
-
-
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
 

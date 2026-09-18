@@ -13,6 +13,7 @@ import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import RnrFilter from "./RnrFilter";
+import TableSkeleton from "../common/TableSkelton";
 
 function Rnr() {
   // ======================================================
@@ -55,9 +56,11 @@ function Rnr() {
   useEffect(() => {
     localStorage.setItem("rnr_page", String(currentPage));
   }, [currentPage]);
+
   const {
     data: apiResponse,
-    isPending,
+    isLoading,
+    isFetching,
     isError,
     error,
   } = useFnFnadNoticeData({
@@ -66,7 +69,7 @@ function Rnr() {
     search: debouncedSearch,
     propertyId: filters.propertyId,
   });
-
+   console.log(1111111111, isLoading)
   //  API response ko array me normalize kar rahe hain
   const data = Array.isArray(apiResponse)
     ? apiResponse
@@ -389,6 +392,10 @@ function Rnr() {
                 </tr>
               </thead>
 
+ {isFetching ? (
+                <TableSkeleton rows={20} columns={20} showStatus showActions />
+              ) : (
+
               <tbody>
                 {data.length > 0 ? (
                   data.map((item) => {
@@ -621,6 +628,7 @@ function Rnr() {
                   </tr>
                 )}
               </tbody>
+              )}
             </table>
           </div>
 

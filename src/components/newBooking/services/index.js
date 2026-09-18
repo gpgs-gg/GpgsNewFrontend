@@ -177,7 +177,6 @@ export const useToggleClientLogin = () => {
   });
 };
 
-
 const getBankTransactionData = async (narration) => {
   const response = await apiClient.get(
     `/bank/amountFromNarration/${encodeURIComponent(narration)}`
@@ -185,7 +184,6 @@ const getBankTransactionData = async (narration) => {
 
   return response.data;
 };
-
 export const useBankTransactionData = (narration) => {
   return useQuery({
     queryKey: ["bank-transaction-data", narration],

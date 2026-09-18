@@ -318,7 +318,7 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
         {/* ==============================
           CLIENT HEADER
       ============================== */}
-        <header className="fixed top-0 left-0 right-0 z-[100] bg-slate-800 text-white shadow-lg">
+        <header className="fixed top-0 left-0 right-0 z-[40] bg-slate-800 text-white shadow-lg">
           <div
             className="
             h-16
@@ -423,7 +423,7 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
           top-16
           left-0
           right-0
-          z-[90]
+          z-[40]
           bg-white
           border-b border-gray-200
           shadow-sm

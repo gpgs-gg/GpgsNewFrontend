@@ -47,10 +47,10 @@ const monthOptions = [
 ];
 
 const paymentTypeOptions = [
-    { value: "rent", label: "Rent" },
-    { value: "deposit", label: "Deposit" },
-    { value: "processing", label: "Processing Fees" },
-    { value: "parking", label: "Parking Charges" },
+    { value: "Client Rent", label: "Client Rent" },
+    { value: "Deposit Amount", label: "Deposit Amount" },
+    { value: "Processing Fees", label: "Processing Fees" },
+    { value: "Parking Charges", label: "Parking Charges" },
 ];
 
 const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
@@ -130,7 +130,7 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
             bedId: data.client.bedId,
             month: data.month.value,
             year: new Date().getFullYear(),
-            paymentType: data.paymentType.value,
+            expenseCategory: data.paymentType.value,
             amount: Number(transaction.deposit || 0),
             transactionDate: transaction.date,
             narration: transaction.narration,

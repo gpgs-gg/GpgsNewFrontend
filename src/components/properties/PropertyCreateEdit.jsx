@@ -66,6 +66,7 @@ const PropertyCreateEdit = () => {
   const isViewOnly = Boolean(id) && !canEditProperty;
   const userName =
     user?.Name || user?.name || user?.fullName || user?.username || "System";
+    const isAdmin = user?.role?.toLowerCase() === "admin";
   // API hooks and mutations
   const { mutate: submitProperty, isPending: isSubmitProperty } =
     usecreatePropertyData();
@@ -347,7 +348,7 @@ const PropertyCreateEdit = () => {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* property code  */}
             {/* Property Code */}
-            <div className="form-group">
+        <div className="form-group">
               <input
                 {...register("propertyCode", {
                   required: "Property code is required",
@@ -355,10 +356,14 @@ const PropertyCreateEdit = () => {
                     value?.trim() !== "" || "Property code is required",
                 })}
                 placeholder=" "
-                readOnly={!!id || isViewOnly}
+                readOnly={Boolean(id) && !isAdmin}
                 className={`form-input ${
                   errors.propertyCode ? "border-red-500" : ""
-                } ${id ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                } ${
+                  Boolean(id) && !isAdmin
+                    ? "bg-gray-100 cursor-not-allowed"
+                    : ""
+                }`}
               />
 
               <label className="form-label required-label">Property Code</label>

@@ -188,7 +188,7 @@ const PropertiesTable = () => {
         onError: (error) => {
           toast.error(
             error?.response?.data?.message ||
-              "Failed to delete selected properties.",
+            "Failed to delete selected properties.",
           );
         },
       });
@@ -469,11 +469,10 @@ const PropertiesTable = () => {
                         </td>
                         <td className="p-3 text-center">
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              item.status === "Active"
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === "Active"
                                 ? "bg-green-100 text-green-700"
                                 : "bg-red-100 text-red-700"
-                            }`}
+                              }`}
                           >
                             {item.status}
                           </span>

@@ -21,6 +21,8 @@ import { AsyncPaginate } from "react-select-async-paginate";
 import { getPropertyDropdown } from "../properties/services";
 import { useSharingTypes } from "../Options/services";
 import { useAuthorization } from "../../context/AuthorizationContext";
+import { useAuth } from "../../context/authContext";
+import { formatDateAndTime } from "../../utils/dateFormatter";
 const BedCreateEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -29,7 +31,9 @@ const BedCreateEdit = () => {
   const canEditBed = canEdit("beds");
   const canAddBed = canAdd("beds");
 
-  const isViewOnly = Boolean(id) && !canEditBed;
+  const { user } = useAuth();
+  const userName = user?.Name || user?.name || user?.fullName || user?.username || "System";
+  
   const {
     control,
     register,
@@ -41,6 +45,7 @@ const BedCreateEdit = () => {
   } = useForm({
     defaultValues: {
       status: "Active",
+      newWorkLog: "",
     },
     mode: "onSubmit",
   });
@@ -59,13 +64,13 @@ const BedCreateEdit = () => {
   const genderOptions = [
     { value: "Male", label: "Male" },
     { value: "Female", label: "Female" },
-    { value: "Any", label: "Any" },
   ];
 
   const sharingTypeOptions = sharingTypes.map((type) => ({
     value: type.value,
     label: type.label,
   }));
+
   const bathAttachedOptions = [
     { value: "Yes", label: "Yes" },
     { value: "No", label: "No" },
@@ -133,6 +138,7 @@ const BedCreateEdit = () => {
       previousRentHikeDate: Bed.previousRentHikeDate
         ? new Date(Bed.previousRentHikeDate)
         : null,
+      newWorkLog: "",
       comment: Bed.comment,
       status: Bed.status || "Active",
     });
@@ -153,6 +159,8 @@ const BedCreateEdit = () => {
       }
     });
     // CREATE MODE
+    // Status is always Active when creating a bed
+    payload.createdByName = userName;
     // Status is always Active when creating a bed
     if (!id) {
       payload.status = "Active";
@@ -198,7 +206,7 @@ const BedCreateEdit = () => {
     "w-full border border-gray-300 rounded-lg px-3 py-2 hover focus:ring-2 focus:ring-gray-500 outline-none";
 
   return (
-    <div className="max-w-12xl mx-auto px-6">
+    <div className="max-w-12xl mx-auto h-[80vh] px-6">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex justify-between items-center">
@@ -220,7 +228,7 @@ const BedCreateEdit = () => {
               >
                 Cancel
               </button>
-           {((id && canEditBed) || (!id && canAddBed)) && (
+              {((id && canEditBed) || (!id && canAddBed)) && (
                 <button
                   type="submit"
                   disabled={isUpdateBed || isSubmitBed}
@@ -567,8 +575,8 @@ const BedCreateEdit = () => {
                 min="0"
                 step="0.01"
                 className={`form-input ${errors.securityDepositMultiplicationFactor
-                    ? "border-red-500"
-                    : ""
+                  ? "border-red-500"
+                  : ""
                   }`}
               />
 
@@ -732,25 +740,77 @@ const BedCreateEdit = () => {
           >
             Cancel
           </button>
-       {((id && canEditBed) || (!id && canAddBed)) && (
-                <button
-                  type="submit"
-                  disabled={isUpdateBed || isSubmitBed}
-                  className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-                >
-                  {isUpdateBed || isSubmitBed ? (
-                    <>
-                      <Loader />
-                      Processing...
-                    </>
-                  ) : id ? (
-                    "Update Bed"
-                  ) : (
-                    "Create Bed"
-                  )}
-                </button>
+          {((id && canEditBed) || (!id && canAddBed)) && (
+            <button
+              type="submit"
+              disabled={isUpdateBed || isSubmitBed}
+              className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+            >
+              {isUpdateBed || isSubmitBed ? (
+                <>
+                  <Loader />
+                  Processing...
+                </>
+              ) : id ? (
+                "Update Bed"
+              ) : (
+                "Create Bed"
               )}
+            </button>
+          )}
         </div>
+
+        {/* ====================== WORK LOG ====================== */}
+        {id && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Add WorkLog */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="form-group">
+                <textarea
+                  rows={5}
+                  {...register("newWorkLog")}
+                  className="form-input"
+                  placeholder=""
+                />
+
+                <label className="form-label">Add WorkLog</label>
+              </div>
+            </div>
+
+            {/* WorkLog History */}
+            <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col">
+              <h3 className="font-semibold text-lg mb-1">Work Log History</h3>
+
+              <div className="flex-1 overflow-y-auto">
+                {Bed?.worklogs?.length > 0 ? (
+                  Bed.worklogs
+                    .slice()
+                    .reverse()
+                    .map((log, index) => (
+                      <div
+                        key={log._id || index}
+                        className="border-b py-3 last:border-b-0"
+                      >
+                        <small className="text-gray-500">
+                          {log.createdBy || "System"} •{" "}
+                          {formatDateAndTime(log.createdAt)}
+                        </small>
+
+                        <p className="whitespace-pre-line text-sm">
+                          {log.message}
+                        </p>
+                      </div>
+                    ))
+                ) : (
+                  <p className="text-gray-400 text-center mt-10">
+                    No Work Logs Available
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
       </form>
     </div>
   );

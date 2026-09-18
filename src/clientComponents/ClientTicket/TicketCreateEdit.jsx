@@ -35,11 +35,15 @@ function TicketCreateEdit() {
   const { mutate: updateTicket, isPending: isUpdateTicket } = useUpdateTicketData();
   const { data: singleTicket } = useSingleTicketData(id);
   const { data: propertiesDropdown, isPending: ispropertiesDropdown } = usePropertiesDropdown()
+
   const { data: currentUser, isLoading } = useCurrentUser();
+
   const clientId = currentUser?.user?.clientId;
   const isClient = currentUser?.user?.role === "Client";
+
   const { data: clientTicketDetails } =
     useClientTicketDetails(clientId, isClient && !id);
+
   const { data: options = {} } = useBatchOptions([
     "department",
     "categories",
@@ -49,17 +53,33 @@ function TicketCreateEdit() {
   const [existingAttachments, setExistingAttachments] = useState([]);
 
   const assignee = watch("assignee");
-  useEffect(() => {
-    if (id && singleTicket?.data) {
-      const ticket = singleTicket.data;
 
-      reset({
-        ...ticket,
-      });
+useEffect(() => {
+  if (id && singleTicket?.data) {
+    const ticket = singleTicket.data;
 
-      setExistingAttachments(ticket.attachment || []);
-    }
-  }, [id, singleTicket, reset]);
+    reset({
+      ...ticket,
+
+      // propertyId object nahi, sirf ID store karo
+      propertyId:
+        typeof ticket.propertyId === "object"
+          ? ticket.propertyId?._id || ""
+          : ticket.propertyId || "",
+
+      // Property location bhi separately set karo
+      propertyLocation:
+        ticket.propertyLocation ||
+        ticket.propertyId?.propertyLocation ||
+        "",
+
+      bedNo: ticket.bedNo || "",
+      roomNo: ticket.roomNo || "",
+    });
+
+    setExistingAttachments(ticket.attachment || []);
+  }
+}, [id, singleTicket, reset]);
 
   const DepartmentOptions = options.department || [];
   const CategoryOptions = options.categories || [];
@@ -69,13 +89,15 @@ function TicketCreateEdit() {
   const propertiesOptions = useMemo(() => {
     return (
       propertiesDropdown?.data?.map((property) => ({
-        value: property.propertyCode,
+        value: property._id,
         label: property.propertyCode,
         propLocation: property.propertyLocation,
       })) || []
     );
   }, [propertiesDropdown?.data]);
   const propertyInitialized = useRef(false);
+
+
   useEffect(() => {
     if (
       id ||
@@ -89,6 +111,9 @@ function TicketCreateEdit() {
 
     const clientDetails = clientTicketDetails.data;
 
+    const propertyId =
+      clientDetails?.propertyId?._id || "";
+
     const propertyCode =
       clientDetails?.propertyId?.propertyCode || "";
 
@@ -101,13 +126,13 @@ function TicketCreateEdit() {
     if (!propertyCode) return;
 
     const selectedProperty = propertiesOptions.find(
-      (property) => property.value === propertyCode
+      (property) => property.value === propertyId
     );
 
     // Property options अजून load झाले नसतील
     if (!selectedProperty) return;
 
-    setValue("propertyCode", propertyCode);
+    setValue("propertyId", propertyId);
 
     // Property Options मधून Location
     setValue(
@@ -133,6 +158,7 @@ function TicketCreateEdit() {
     setValue,
   ]);
 
+
   const loadPropertyOptions = async (
     search,
     loadedOptions,
@@ -149,7 +175,7 @@ function TicketCreateEdit() {
         res.data.map((item) => [
           item.propertyCode,
           {
-            value: item.propertyCode,
+            value: item._id,
             label: item.propertyCode,
             propLocation: item.propertyLocation, // <-- Add this
           },
@@ -166,14 +192,14 @@ function TicketCreateEdit() {
     };
   };
 
-  const ManagerOptions = [
-    { value: "Nerul ( E )", label: "Nerul ( E )" },
-    { value: "Nerul ( W )", label: "Nerul ( W )" },
-  ];
-  const AssigneeOptions = [
-    { value: "Nerul ( E )", label: "Nerul ( E )" },
-    { value: "Nerul ( W )", label: "Nerul ( W )" },
-  ];
+  // const ManagerOptions = [
+  //   { value: "Nerul ( E )", label: "Nerul ( E )" },
+  //   { value: "Nerul ( W )", label: "Nerul ( W )" },
+  // ];
+  // const AssigneeOptions = [
+  //   { value: "Nerul ( E )", label: "Nerul ( E )" },
+  //   { value: "Nerul ( W )", label: "Nerul ( W )" },
+  // ];
 
 
   const onSubmit = (data) => {
@@ -336,8 +362,7 @@ function TicketCreateEdit() {
 
             {/* Property */}
             <Controller
-              name="propertyCode"
-
+              name="propertyId"
               control={control}
               rules={{
                 required: "Property is required",
@@ -356,16 +381,17 @@ function TicketCreateEdit() {
                     placeholder=""
                     loadOptions={loadPropertyOptions}
                     styles={selectStyles}
+
                     value={
                       field.value
-                        ? {
-                          value: field.value,
-                          label: field.value,
-                        }
+                        ? propertiesOptions.find(
+                          (property) => property.value === field.value
+                        ) || null
                         : null
                     }
+
                     onChange={(selected) => {
-                      field.onChange(selected?.value || ""); // Sirf value save hogi
+                      field.onChange(selected?.value || "");
 
                       setValue(
                         "propertyLocation",
@@ -373,9 +399,10 @@ function TicketCreateEdit() {
                       );
                     }}
                   />
-                  {errors.propertyCode && (
+
+                  {errors.propertyId && (
                     <p className="text-red-500 text-sm mt-1">
-                      {errors.propertyCode.message}
+                      {errors.propertyId.message}
                     </p>
                   )}
                 </div>
@@ -568,7 +595,7 @@ function TicketCreateEdit() {
         </div>
 
         {/* Utility Details */}
-        {singleTicket?.data?.workLogs?.length > 0 && (
+        {/* {singleTicket?.data?.workLogs?.length > 0 && ( */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
 
             <h2 className="text-xl font-semibold mb-4">
@@ -601,7 +628,7 @@ function TicketCreateEdit() {
                   </h3>
 
                   <div className="flex-1 overflow-y-auto">
-                    {singleTicket.data.workLogs
+                    {singleTicket?.data?.workLogs
                       .slice()
                       .reverse()
                       .map((log) => (
@@ -626,7 +653,7 @@ function TicketCreateEdit() {
 
             </div>
           </div>
-        )}
+        {/* )} */}
 
         {/* Owner Details */}
         {/* {id && (

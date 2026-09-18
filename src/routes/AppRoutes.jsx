@@ -78,6 +78,7 @@ const AppRoutes = () => {
     <>
       {/* AgreementPopup will only show for clients */}
       {isClient && <AgreementPopup />}
+      
     <Routes>
 
       <Route path="/" element={<HomePage/>} />

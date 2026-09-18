@@ -331,6 +331,17 @@ const BankTransactionList = () => {
             </button> */}
             <div className="flex items-center gap-2">
               <button
+                onClick={() => applyTransactionType("salary")}
+                className={`px-4 py-2 rounded-lg border ${
+                  filters.transactionType === "salary"
+                    ? "bg-green-600 text-white"
+                    : "bg-white"
+                }`}
+              >
+                Salary
+              </button>
+
+              <button
                 onClick={() => applyTransactionType("deposit")}
                 className={`px-4 py-2 rounded-lg border ${
                   filters.transactionType === "deposit"
@@ -530,11 +541,12 @@ const BankTransactionList = () => {
                       </td>
                       <td className="p-3 text-center">
                         <button
+                        disabled = {item?.isMapped}
                           onClick={() => {
                             setSelectedTransaction(item);
                             setDrawerOpen(true);
                           }}
-                          className={`px-3 py-1 rounded ${item?.isMapped ? "bg-gray-300" : "bg-green-600 hover:bg-green-700"}  text-white text-sm `}
+                          className={`px-3 py-1 rounded ${item?.isMapped ? "bg-gray-300 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"}  text-white text-sm `}
                         >
                           {item?.isMapped ? "Link Payment" : "Link Payment"}
                         </button>

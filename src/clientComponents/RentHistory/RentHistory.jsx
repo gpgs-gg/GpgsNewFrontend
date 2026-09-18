@@ -27,21 +27,50 @@ const RentHistory = () => {
   } = useRentHistoryForBooking(bookingId);
 
 
-  // ✅ safe extraction
-const apiData = [...(apiResponse?.data || [])].sort((a, b) => {
-  if (a.stayType === "T. Booked" && b.stayType !== "T. Booked") return 1;
-  if (a.stayType !== "T. Booked" && b.stayType === "T. Booked") return -1;
-  return 0;
-});
+  const apiData = [...(apiResponse?.data || [])].sort((a, b) => {
+    if (a.stayType === "T. Booked" && b.stayType !== "T. Booked") return 1;
+    if (a.stayType !== "T. Booked" && b.stayType === "T. Booked") return -1;
+    return 0;
+  });
 
-const permanentRent =
-  apiData.find((item) => item.stayType === "P. Booked") || null;
+  const permanentRent =
+    apiData.find((item) => item.stayType === "P. Booked") || null;
 
-const currentRent = permanentRent || {};
+  // Latest Temporary record
+  const temporaryRents = apiData.filter(
+    (item) => item.stayType === "T. Booked"
+  );
 
-const client = currentRent?.clientId || {};
-const property = currentRent?.propertyId || {};
-const bed = currentRent?.bedId || {};
+  const latestTemporaryRent =
+    temporaryRents.length > 0
+      ? [...temporaryRents].sort((a, b) => {
+        const dateA = new Date(
+          a.updatedAt || a.createdAt || a.endDate || a.startDate || 0
+        ).getTime();
+
+        const dateB = new Date(
+          b.updatedAt || b.createdAt || b.endDate || b.startDate || 0
+        ).getTime();
+
+        return dateB - dateA;
+      })[0]
+      : null;
+
+  const currentRent = permanentRent || latestTemporaryRent || {};
+
+  const client = currentRent?.clientId || {};
+  const property = currentRent?.propertyId || {};
+  const bed = currentRent?.bedId || {};
+
+  // Total due = Permanent Due + Latest Temporary Due
+  const permanentCurrentDue = Number(permanentRent?.currentDue || 0);
+  const temporaryCurrentDue = Number(latestTemporaryRent?.currentDue || 0);
+
+  const totalCurrentDue = permanentCurrentDue + temporaryCurrentDue;
+
+
+
+
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -121,14 +150,14 @@ const bed = currentRent?.bedId || {};
                     </p>
 
                     <p
-                      className={`mt-1 text-2xl font-bold tracking-tight ${Number(currentRent.currentDue) > 0
-                        ? "text-red-600"
-                        : Number(currentRent.currentDue) < 0
-                          ? "text-green-600"
-                          : "text-gray-800"
+                      className={`mt-1 text-2xl font-bold tracking-tight ${totalCurrentDue > 0
+                          ? "text-red-600"
+                          : totalCurrentDue < 0
+                            ? "text-green-600"
+                            : "text-gray-800"
                         }`}
                     >
-                      ₹ {Number(currentRent.currentDue || 0).toLocaleString("en-IN")}
+                      ₹ {totalCurrentDue.toLocaleString("en-IN")}
                     </p>
                   </div>
                 </div>
@@ -150,9 +179,9 @@ const bed = currentRent?.bedId || {};
                       <h3 className="text-base font-semibold text-gray-900">
                         Payment Summary
                       </h3>
-                  
+
                     </div>
-            
+
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
@@ -331,13 +360,13 @@ const bed = currentRent?.bedId || {};
                     >
 
                       <td className="p-3 font-bold">{item.propertyId?.propertyCode}</td>
-                       <td className="p-3">
+                      <td className="p-3">
                         <span
                           className={`px-3 py-1 text-xs rounded-full font-semibold ${item.stayType === "T. Booked"
-                              ? "bg-orange-100 text-orange-700"
-                              : item.stayType === "P. Booked"
-                                ? "bg-blue-100 text-blue-700"
-                                : "bg-gray-100 text-gray-700"
+                            ? "bg-orange-100 text-orange-700"
+                            : item.stayType === "P. Booked"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-gray-100 text-gray-700"
                             }`}
                         >
                           {item.stayType === "T. Booked"
@@ -362,7 +391,7 @@ const bed = currentRent?.bedId || {};
                           {item.paymentStatus}
                         </span>
                       </td>
-                   
+
                       <td className="p-3 font-bold">{item.monthName}</td>
                       <td className="p-3">{item.year}</td>
                       {/* <td className="p-3">{item.stayType}</td> */}

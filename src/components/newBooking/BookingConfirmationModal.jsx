@@ -1,6 +1,7 @@
 import React from "react";
 import { formatDate } from "../../utils/dateFormatter";
 import { IoIosCall } from "react-icons/io";
+import Loader from "../common/Loader";
 
 const BookingConfirmationModal = ({
   isOpen,
@@ -218,7 +219,9 @@ const BookingConfirmationModal = ({
             disabled={isLoading}
             className="theme-btn px-5 py-2"
           >
-            {isLoading ? "Submitting..." : "Confirm & Submit"}
+            {isLoading ? <div className="flex gap-5">
+               <Loader/> Submit ..
+            </div> : "Confirm & Submit"}
           </button>
         </div>
 

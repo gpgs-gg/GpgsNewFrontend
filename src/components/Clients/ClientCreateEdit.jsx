@@ -1,23 +1,43 @@
-import React, { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form';
-import { selectStyles } from '../../utils/selectStyles';
+import React, { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { selectStyles } from "../../utils/selectStyles";
 import Select from "react-select";
-import { useBedsData, useCreateClientData, usePropertiesDropdown, useSingleClientData, useUpdateClientData } from './services';
-import DatePicker from 'react-datepicker';
+import {
+    useBedsData,
+    useCreateClientData,
+    usePropertiesDropdown,
+    useSingleClientData,
+    useUpdateClientData,
+} from "./services";
+import DatePicker from "react-datepicker";
 import FilePreview from "../common/FilePreview";
-import { useNavigate, useParams } from 'react-router-dom';
-import Loader from '../common/Loader';
-import { convertStringFormatDate } from '../../utils/dateFormatter';
-import { toast } from 'react-toastify';
+import { useNavigate, useParams } from "react-router-dom";
+import Loader from "../common/Loader";
+import {
+    convertStringFormatDate,
+    formatDateAndTime,
+} from "../../utils/dateFormatter";
+import { toast } from "react-toastify";
+import { useAuth } from "../../context/authContext";
 
 const ClientCreateEdit = () => {
-    const navigate = useNavigate()
-    const { clientId } = useParams();
-    const { data: propertiesDropdown, isPending: ispropertiesDropdown } = usePropertiesDropdown()
-    const { mutate: createClientData, isPending: isSubmitClientData } = useCreateClientData();
-    const { data: singleClientData, isPending: isSingleClientData } = useSingleClientData(clientId)
-    const { mutate: updateClientData, isPending: isUpdateClientData } = useUpdateClientData(clientId)
+    const { user } = useAuth();
 
+    const userName =
+        user?.Name || user?.name || user?.fullName || user?.username || "System";
+    const navigate = useNavigate();
+
+    const { clientId } = useParams();
+
+    const isViewMode = window.location.pathname.includes("/clients/view/");
+    const { data: propertiesDropdown, isPending: ispropertiesDropdown } =
+        usePropertiesDropdown();
+    const { mutate: createClientData, isPending: isSubmitClientData } =
+        useCreateClientData();
+    const { data: singleClientData, isPending: isSingleClientData } =
+        useSingleClientData(clientId);
+    const { mutate: updateClientData, isPending: isUpdateClientData } =
+        useUpdateClientData(clientId);
 
     const { data: bedData } = useBedsData();
     const [photoFiles, setPhotoFiles] = useState([]);
@@ -32,22 +52,17 @@ const ClientCreateEdit = () => {
     const [existingNocFiles, setExistingNocFiles] = useState([]);
     const [existingAgreementFiles, setExistingAgreementFiles] = useState([]);
 
-    const {
-        control,
-        register,
-        handleSubmit,
-        reset,
-        setValue,
-        watch
-    } = useForm();
-
+    const { control, register, handleSubmit, reset, setValue, watch } = useForm({
+        defaultValues: {
+            newWorkLog: "",
+        },
+    });
 
     const propertiesOptions =
         propertiesDropdown?.data?.map((property) => ({
             value: property._id,
             label: property.propertyCode,
         })) || [];
-
 
     const bedOptions =
         bedData?.data
@@ -104,11 +119,17 @@ const ClientCreateEdit = () => {
             vacationLastDate1: ClientData.vacationLastDate1,
             vacationStartDate2: ClientData.vacationStartDate2,
             vacationLastDate2: ClientData.vacationLastDate2,
-            upcomingRentHikeDate: ClientData.upcomingRentHikeDate ? new Date(ClientData.upcomingRentHikeDate) : null,
+            upcomingRentHikeDate: ClientData.upcomingRentHikeDate
+                ? new Date(ClientData.upcomingRentHikeDate)
+                : null,
             upcomingRentHikeAmount: ClientData.upcomingRentHikeAmount,
-            previousRentHikeDate: ClientData.previousRentHikeDate ? new Date(ClientData.previousRentHikeDate) : null,
-            comment: ClientData.comment,
+            previousRentHikeDate: ClientData.previousRentHikeDate
+                ? new Date(ClientData.previousRentHikeDate)
+                : null,
+            comments: ClientData.comment,
             status: ClientData.status,
+            // WorkLog
+            newWorkLog: "",
         });
 
         setExistingPhoto(ClientData.photo || []);
@@ -116,7 +137,6 @@ const ClientCreateEdit = () => {
         setExistingCompanyFiles(ClientData.collegeIdentification || []);
         setExistingAgreementFiles(ClientData.clientRentalAgreement || []);
         setExistingNocFiles(ClientData.clientPoliceNOC || []);
-
     }, [singleClientData, reset]);
 
     const buildFormData = (formData, data, parentKey = "") => {
@@ -149,9 +169,11 @@ const ClientCreateEdit = () => {
             }
         });
     };
+
     const onSubmit = (data) => {
         const formData = new FormData();
         buildFormData(formData, data);
+        formData.append("createdByName", userName);
         // ✅ existing files (correct way)
         existingPhoto.forEach((url) => {
             formData.append("photoExisting", url);
@@ -179,7 +201,7 @@ const ClientCreateEdit = () => {
                 { clientId, data: formData },
                 {
                     onSuccess: (response) => {
-                        toast.dismiss()
+                        toast.dismiss();
                         toast.success(response?.message || "Updated successfully");
                         navigate("/clients");
                     },
@@ -188,17 +210,17 @@ const ClientCreateEdit = () => {
                             error?.response?.data?.message ||
                             error?.message ||
                             "Something went wrong";
-                        toast.dismiss()
+                        toast.dismiss();
                         toast.error(errorMessage);
                     },
-                }
+                },
             );
             return;
         }
         // 👉 CREATE MODE
         createClientData(formData, {
             onSuccess: (response) => {
-                toast.dismiss()
+                toast.dismiss();
                 toast.success(response?.message || "Created successfully");
                 navigate("/client");
             },
@@ -207,11 +229,12 @@ const ClientCreateEdit = () => {
                     error?.response?.data?.message ||
                     error?.message ||
                     "Something went wrong";
-                toast.dismiss()
+                toast.dismiss();
                 toast.error(errorMessage);
             },
         });
     };
+
     const removeFile = (type, index, isExisting = false) => {
         const config = {
             photo: {
@@ -240,8 +263,11 @@ const ClientCreateEdit = () => {
                 field: "clientPoliceNOC",
             },
         };
+
         const current = config[type];
+
         if (!current) return;
+
         if (isExisting) {
             current.existing((prev) => prev.filter((_, i) => i !== index));
         } else {
@@ -252,8 +278,9 @@ const ClientCreateEdit = () => {
             });
         }
     };
+
     return (
-        <div className="max-w-12xl mx-auto px-6 h-screen">
+        <div className="max-w-12xl mx-auto px-6 ">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-4 py-2">
                     <div className="flex justify-between items-center">
@@ -277,21 +304,24 @@ const ClientCreateEdit = () => {
                             >
                                 Cancel
                             </button>
-
-                            <button
-                                type="submit"
-                                disabled={isUpdateClientData || isSubmitClientData}
-                                className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-                            >
-                                {isUpdateClientData || isSubmitClientData ? (
-                                    <div className='flex justify-center items-center gap-2'>
-                                        <Loader />
-                                        Processing...
-                                    </div>
-                                ) : (
-                                    clientId ? "Update client" : "Create Client"
-                                )}
-                            </button>
+                            {!isViewMode && (
+                                <button
+                                    type="submit"
+                                    disabled={isUpdateClientData || isSubmitClientData}
+                                    className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                                >
+                                    {isUpdateClientData || isSubmitClientData ? (
+                                        <div className="flex justify-center items-center gap-2">
+                                            <Loader />
+                                            Processing...
+                                        </div>
+                                    ) : clientId ? (
+                                        "Update client"
+                                    ) : (
+                                        "Create Client"
+                                    )}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -304,13 +334,14 @@ const ClientCreateEdit = () => {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-
                         <Controller
                             name="propertyId"
                             control={control}
                             defaultValue={null}
                             render={({ field }) => (
-                                <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                                <div
+                                    className={`select-group ${field.value ? "has-value" : ""}`}
+                                >
                                     <label className="select-label required-label">
                                         Property Code
                                     </label>
@@ -322,7 +353,7 @@ const ClientCreateEdit = () => {
                                         placeholder=""
                                         isDisabled
                                         value={propertiesOptions.find(
-                                            (option) => option.value === field.value
+                                            (option) => option.value === field.value,
                                         )}
                                         onChange={(selectedOption) =>
                                             field.onChange(selectedOption?.value)
@@ -338,10 +369,10 @@ const ClientCreateEdit = () => {
                             control={control}
                             defaultValue={null}
                             render={({ field }) => (
-                                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                                    <label className="select-label required-label">
-                                        Bed No
-                                    </label>
+                                <div
+                                    className={`select-group ${field.value ? "has-value" : ""}`}
+                                >
+                                    <label className="select-label required-label">Bed No</label>
 
                                     <Select
                                         {...field}
@@ -350,7 +381,7 @@ const ClientCreateEdit = () => {
                                         isDisabled
                                         placeholder=""
                                         value={bedOptions.find(
-                                            (option) => option.value === field.value
+                                            (option) => option.value === field.value,
                                         )}
                                         onChange={(selectedOption) =>
                                             field.onChange(selectedOption?.value)
@@ -370,15 +401,16 @@ const ClientCreateEdit = () => {
                                 className="form-input bg-gray-100!"
                             />
                             <label className="form-label required-label">Room No</label>
-
                         </div>
                         <Controller
                             name="stayType"
                             control={control}
                             defaultValue={null}
                             render={({ field }) => (
-                                <div className={`select-group ${field.value != null ? "has-value" : ""
-                                    }`}>
+                                <div
+                                    className={`select-group ${field.value != null ? "has-value" : ""
+                                        }`}
+                                >
                                     <label className="select-label required-label">
                                         Stay Type
                                     </label>
@@ -387,10 +419,10 @@ const ClientCreateEdit = () => {
                                         {...field}
                                         options={isStayTypeOptions}
                                         isClearable
-                                        // isDisabled
+                                        isDisabled={field.value === "P. Booked"}
                                         placeholder=""
                                         value={isStayTypeOptions.find(
-                                            (option) => option.value === field.value
+                                            (option) => option.value === field.value,
                                         )}
                                         onChange={(selectedOption) =>
                                             field.onChange(selectedOption?.value)
@@ -400,7 +432,7 @@ const ClientCreateEdit = () => {
                                 </div>
                             )}
                         />
-    
+
                         <div className="form-group">
                             <input
                                 {...register("parkingCharges")}
@@ -409,8 +441,9 @@ const ClientCreateEdit = () => {
                                 type="text"
                                 className="form-input bg-gray-100!"
                             />
-                            <label className="form-label required-label">Parking Charges </label>
-
+                            <label className="form-label required-label">
+                                Parking Charges{" "}
+                            </label>
                         </div>
                         <div className="form-group">
                             <input
@@ -420,8 +453,9 @@ const ClientCreateEdit = () => {
                                 type="text"
                                 className="form-input bg-gray-100!"
                             />
-                            <label className="form-label required-label">Processing Fees</label>
-
+                            <label className="form-label required-label">
+                                Processing Fees
+                            </label>
                         </div>
                         <div className="form-group">
                             <input
@@ -431,7 +465,6 @@ const ClientCreateEdit = () => {
                                 className="form-input"
                             />
                             <label className="form-label required-label">Client Name </label>
-
                         </div>
                         <div className="form-group">
                             <input
@@ -441,7 +474,6 @@ const ClientCreateEdit = () => {
                                 className="form-input"
                             />
                             <label className="form-label required-label">Whatapp No </label>
-
                         </div>
                         <div className="form-group">
                             <input
@@ -451,26 +483,34 @@ const ClientCreateEdit = () => {
                                 className="form-input"
                             />
                             <label className="form-label required-label">Calling No</label>
-
                         </div>
                         <div className="form-group">
                             <input
                                 {...register("emailId")}
                                 placeholder=" "
-                                type="eamil"
+                                type="email"
                                 className="form-input"
                             />
                             <label className="form-label required-label">Email Id </label>
-
                         </div>
-
+                        <div className="form-group">
+                            <input
+                                {...register("comment")}
+                                placeholder=" "
+                                type="text"
+                                className="form-input"
+                            />
+                            <label className="form-label">Comment</label>
+                        </div>
                         <Controller
                             name="isBookingCancelled"
                             control={control}
                             defaultValue={null}
                             render={({ field }) => (
-                                <div className={`select-group ${field.value != null ? "has-value" : ""
-                                    }`}>
+                                <div
+                                    className={`select-group ${field.value != null ? "has-value" : ""
+                                        }`}
+                                >
                                     <label className="select-label required-label">
                                         Booking Cancelled
                                     </label>
@@ -481,7 +521,7 @@ const ClientCreateEdit = () => {
                                         isClearable
                                         placeholder=""
                                         value={isBookingCancelledOptions.find(
-                                            (option) => option.value === field.value
+                                            (option) => option.value === field.value,
                                         )}
                                         onChange={(selectedOption) =>
                                             field.onChange(selectedOption?.value)
@@ -491,7 +531,6 @@ const ClientCreateEdit = () => {
                                 </div>
                             )}
                         />
-
 
                         <Controller
                             name="clientDoj"
@@ -536,7 +575,6 @@ const ClientCreateEdit = () => {
                                 </div>
                             )}
                         />
-
 
                         <Controller
                             name="noticeStartDate"
@@ -602,109 +640,103 @@ const ClientCreateEdit = () => {
                             )}
                         />
                     </div>
-
                 </div>
                 {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <div className="flex justify-between">
-                        <h2 className="text-xl font-semibold mb-4">
-                            Vacation Details
-                        </h2>
-                    </div>
+          <div className="flex justify-between">
+            <h2 className="text-xl font-semibold mb-4">Vacation Details</h2>
+          </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-
-                        <Controller
-                            name="vacationStartDate1"
-                            control={control}
-                            render={({ field }) => (
-                                <div
-                                    className={`datepicker-group ${field.value ? "has-value" : ""
-                                        }`}
-                                >
-                                    <label className="datepicker-label required-label">
-                                        Vacation Start Date1
-                                    </label>
-                                    <DatePicker
-                                        isClearable
-                                        selected={field.value}
-                                        onChange={(date) => field.onChange(date)}
-                                        dateFormat="dd MMM yyyy"
-                                        className="custom-datepicker"
-                                    />
-                                </div>
-                            )}
-                        />
-                        <Controller
-                            name="vacationLastDate1"
-                            control={control}
-                            render={({ field }) => (
-                                <div
-                                    className={`datepicker-group ${field.value ? "has-value" : ""
-                                        }`}
-                                >
-                                    <label className="datepicker-label required-label">
-                                        Vacation Last Date 1
-                                    </label>
-                                    <DatePicker
-                                        isClearable
-                                        selected={field.value}
-                                        onChange={(date) => field.onChange(date)}
-                                        dateFormat="dd MMM yyyy"
-                                        className="custom-datepicker"
-                                    />
-                                </div>
-                            )}
-                        />
-                        <Controller
-                            name="vacationStartDate2"
-                            control={control}
-                            render={({ field }) => (
-                                <div
-                                    className={`datepicker-group ${field.value ? "has-value" : ""
-                                        }`}
-                                >
-                                    <label className="datepicker-label required-label">
-                                        Vacation Start Date 2
-                                    </label>
-                                    <DatePicker
-                                        isClearable
-                                        selected={field.value}
-                                        onChange={(date) => field.onChange(date)}
-                                        dateFormat="dd MMM yyyy"
-                                        className="custom-datepicker"
-                                    />
-                                </div>
-                            )}
-                        />
-                        <Controller
-                            name="vacationLastDate2"
-                            control={control}
-                            render={({ field }) => (
-                                <div
-                                    className={`datepicker-group ${field.value ? "has-value" : ""
-                                        }`}
-                                >
-                                    <label className="datepicker-label required-label">
-                                        Vacation Last Date 2
-                                    </label>
-                                    <DatePicker
-                                        isClearable
-                                        selected={field.value}
-                                        onChange={(date) => field.onChange(date)}
-                                        dateFormat="dd MMM yyyy"
-                                        className="custom-datepicker"
-                                    />
-                                </div>
-                            )}
-                        />
-
-
-
-                    
-                      
-                    </div>
-
-                </div> */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+            <Controller
+              name="vacationStartDate1"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`datepicker-group ${
+                    field.value ? "has-value" : ""
+                  }`}
+                >
+                  <label className="datepicker-label required-label">
+                    Vacation Start Date1
+                  </label>
+                  <DatePicker
+                    isClearable
+                    selected={field.value}
+                    onChange={(date) => field.onChange(date)}
+                    dateFormat="dd MMM yyyy"
+                    className="custom-datepicker"
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name="vacationLastDate1"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`datepicker-group ${
+                    field.value ? "has-value" : ""
+                  }`}
+                >
+                  <label className="datepicker-label required-label">
+                    Vacation Last Date 1
+                  </label>
+                  <DatePicker
+                    isClearable
+                    selected={field.value}
+                    onChange={(date) => field.onChange(date)}
+                    dateFormat="dd MMM yyyy"
+                    className="custom-datepicker"
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name="vacationStartDate2"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`datepicker-group ${
+                    field.value ? "has-value" : ""
+                  }`}
+                >
+                  <label className="datepicker-label required-label">
+                    Vacation Start Date 2
+                  </label>
+                  <DatePicker
+                    isClearable
+                    selected={field.value}
+                    onChange={(date) => field.onChange(date)}
+                    dateFormat="dd MMM yyyy"
+                    className="custom-datepicker"
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name="vacationLastDate2"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`datepicker-group ${
+                    field.value ? "has-value" : ""
+                  }`}
+                >
+                  <label className="datepicker-label required-label">
+                    Vacation Last Date 2
+                  </label>
+                  <DatePicker
+                    isClearable
+                    selected={field.value}
+                    onChange={(date) => field.onChange(date)}
+                    dateFormat="dd MMM yyyy"
+                    className="custom-datepicker"
+                  />
+                </div>
+              )}
+            />
+          </div>
+        </div> */}
                 {/* Client Document Details */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 className="text-xl font-semibold mb-4">
@@ -728,24 +760,20 @@ const ClientCreateEdit = () => {
                                         return updated;
                                     });
                                     e.target.value = "";
-
                                 }}
                             />
-                            <label className="form-label required-label">
-                                Photo</label>
+                            <label className="form-label required-label">Photo</label>
                             <FilePreview
                                 files={photoFiles}
                                 existingFiles={existingPhoto}
                                 onRemoveExisting={(index) => {
                                     setExistingPhoto((prev) =>
-                                        prev.filter((_, i) => i !== index)
+                                        prev.filter((_, i) => i !== index),
                                     );
                                 }}
                                 onRemoveNew={(index) => removeFile("photo", index)}
                             />
                         </div>
-
-
                         <div className="form-group">
                             <input
                                 type="file"
@@ -766,20 +794,19 @@ const ClientCreateEdit = () => {
                                 }}
                             />
                             <label className="form-label required-label">
-                                Aadhaar Card / Pan Card </label>
+                                Aadhaar Card / Pan Card{" "}
+                            </label>
                             <FilePreview
                                 files={aadhaarFiles}
                                 existingFiles={existingAadhaar}
                                 onRemoveExisting={(index) => {
                                     setExistingAadhaar((prev) =>
-                                        prev.filter((_, i) => i !== index)
+                                        prev.filter((_, i) => i !== index),
                                     );
                                 }}
                                 onRemoveNew={(index) => removeFile("aadhaarCard", index)}
                             />
                         </div>
-
-
                         <div className="form-group">
                             <input
                                 type="file"
@@ -800,20 +827,21 @@ const ClientCreateEdit = () => {
                                 }}
                             />
                             <label className="form-label required-label">
-                                College Id / Company Id</label>
+                                College Id / Company Id
+                            </label>
                             <FilePreview
                                 files={companyFiles}
                                 existingFiles={existingCompanyFiles}
                                 onRemoveExisting={(index) => {
                                     setExistingCompanyFiles((prev) =>
-                                        prev.filter((_, i) => i !== index)
+                                        prev.filter((_, i) => i !== index),
                                     );
                                 }}
-                                onRemoveNew={(index) => removeFile("collegeIdentification", index)}
+                                onRemoveNew={(index) =>
+                                    removeFile("collegeIdentification", index)
+                                }
                             />
                         </div>
-
-
                         <Controller
                             name="agreementStartDate"
                             control={control}
@@ -834,7 +862,8 @@ const ClientCreateEdit = () => {
                                     />
                                 </div>
                             )}
-                        />     <Controller
+                        />{" "}
+                        <Controller
                             name="agreementLastDate"
                             control={control}
                             render={({ field }) => (
@@ -855,7 +884,6 @@ const ClientCreateEdit = () => {
                                 </div>
                             )}
                         />
-
                         <div className="form-group">
                             <input
                                 type="file"
@@ -876,16 +904,19 @@ const ClientCreateEdit = () => {
                                 }}
                             />
                             <label className="form-label required-label">
-                                Client Rental Agreement</label>
+                                Client Rental Agreement
+                            </label>
                             <FilePreview
                                 files={agreementFiles}
                                 existingFiles={existingAgreementFiles}
                                 onRemoveExisting={(index) => {
                                     setExistingAgreementFiles((prev) =>
-                                        prev.filter((_, i) => i !== index)
+                                        prev.filter((_, i) => i !== index),
                                     );
                                 }}
-                                onRemoveNew={(index) => removeFile("clientRentalAgreement", index)}
+                                onRemoveNew={(index) =>
+                                    removeFile("clientRentalAgreement", index)
+                                }
                             />
                         </div>
                         <div className="form-group">
@@ -908,27 +939,73 @@ const ClientCreateEdit = () => {
                                 }}
                             />
                             <label className="form-label required-label">
-                                Client Police NOC</label>
+                                Client Police NOC
+                            </label>
                             <FilePreview
                                 files={nocFiles}
                                 existingFiles={existingNocFiles}
                                 onRemoveExisting={(index) => {
                                     setExistingNocFiles((prev) =>
-                                        prev.filter((_, i) => i !== index)
+                                        prev.filter((_, i) => i !== index),
                                     );
                                 }}
                                 onRemoveNew={(index) => removeFile("clientPoliceNOC", index)}
                             />
                         </div>
-
                     </div>
                 </div>
+                {/* ====================== WORK LOG ====================== */}
+
+                {clientId && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Add WorkLog */}
+                        <div className="form-group">
+                            <textarea
+                                rows={5}
+                                {...register("newWorkLog")}
+                                className="form-input"
+                                placeholder=""
+                            />
+
+                            <label className="form-label">Add WorkLog</label>
+                        </div>
+
+                        {/* WorkLog History */}
+                        <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col">
+                            <h3 className="font-semibold text-lg mb-1">Work Log History</h3>
+
+                            <div className="flex-1 overflow-y-auto">
+                                {singleClientData?.data?.worklogs?.length > 0 ? (
+                                    singleClientData.data.worklogs
+                                        .slice()
+                                        .reverse()
+                                        .map((log) => (
+                                            <div
+                                                key={log._id}
+                                                className="border-b py-3 last:border-b-0"
+                                            >
+                                                <small className="text-gray-500">
+                                                    {log.createdBy || "System"} •{" "}
+                                                    {formatDateAndTime(log.createdAt)}
+                                                </small>
+
+                                                <p className="whitespace-pre-line text-sm">
+                                                    {log.message}
+                                                </p>
+                                            </div>
+                                        ))
+                                ) : (
+                                    <p className="text-gray-400 text-center mt-10">
+                                        No Work Logs Available
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </form>
-
         </div>
-    )
-}
+    );
+};
 
-export default ClientCreateEdit
-
-
+export default ClientCreateEdit;

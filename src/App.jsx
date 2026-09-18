@@ -8,11 +8,12 @@ useEffect(() => {
   
   // Clear all keys except the agreement key
   keys.forEach(key => {
-    if (key !== 'agreement_accepted_6a9c131a817a254c864ca445') {
+    if (key !== 'agreement_accepted') {
       localStorage.removeItem(key);
     }
   });
 }, []);
+
   return <AppRoutes />
 }
 

@@ -7,6 +7,7 @@ import { useUpdateClientData } from "../Clients/services";
 import { toast } from "react-toastify";
 import FilePreview from "../common/FilePreview";
 import { useBatchOptions } from "../Options/services";
+import Loader from "../common/Loader";
 // ============================================================
 // STATUS OPTIONS
 // ============================================================
@@ -68,6 +69,7 @@ function FnfEditForm({ client, onClose }) {
     useState([]);
 
   const [handoverAttachments, setHandoverAttachments] = useState([]);
+  const [handoverAttachmentsError, setHandoverAttachmentsError] = useState();
   // ============================================================
   // WATCH VALUES
   // ============================================================
@@ -96,7 +98,7 @@ function FnfEditForm({ client, onClose }) {
 
     const due = Number(client?.latestRentHistory?.currentDue || 0);
 
-    const deposit = Number(client?.totalPaidDeposit || 0);
+    const deposit = Number(client?.latestRentHistory.depositAmount || 0);
 
     reset({
       currentDue: due,
@@ -119,6 +121,18 @@ function FnfEditForm({ client, onClose }) {
   // ============================================================
 
   const submitForm = (formData) => {
+    // ========================================= // HD ATTACHMENT VALIDATION // =========================================
+    if (
+      formData.status === "HD" &&
+      existingHandoverAttachments.length === 0 &&
+      handoverAttachments.length === 0
+    ) {
+      toast.dismiss();
+      setHandoverAttachmentsError("Handover attachment is required when status is HD")
+      return;
+    }
+
+
     const data = new FormData();
 
     data.append(
@@ -168,8 +182,8 @@ function FnfEditForm({ client, onClose }) {
         onError: (error) => {
           toast.error(
             error?.response?.data?.message ||
-              error?.message ||
-              "Something went wrong",
+            error?.message ||
+            "Something went wrong",
           );
         },
       },
@@ -251,13 +265,12 @@ function FnfEditForm({ client, onClose }) {
                   value={fnfAmount}
                   readOnly
                   disabled
-                  className={`form-input cursor-not-allowed font-bold ${
-                    fnfAmount > 0
+                  className={`form-input cursor-not-allowed font-bold ${fnfAmount > 0
+                    ? "text-red-600"
+                    : fnfAmount < 0
                       ? "text-red-600"
-                      : fnfAmount < 0
-                        ? "text-red-600"
-                        : "text-green-600"
-                  }`}
+                      : "text-green-600"
+                    }`}
                 />
 
                 <label className="form-label">F&F Amount</label>
@@ -329,48 +342,56 @@ function FnfEditForm({ client, onClose }) {
                   </div>
                 )}
               />
-              {selectedStatus === "HD" && (
-                <div className="form-group">
-                  {/* ================================
+
+              <div className="form-group">
+                {/* ================================
         ADD NEW HANDOVER ATTACHMENTS
     ================================= */}
 
-                  <input
-                    type="file"
-                    multiple
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    className="form-input"
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files);
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="form-input"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    if (files.length > 0) {
+                      setHandoverAttachmentsError("");
+                    }
+                    setHandoverAttachments((prev) => [...prev, ...files]);
 
-                      setHandoverAttachments((prev) => [...prev, ...files]);
+                    e.target.value = "";
+                  }}
+                />
 
-                      e.target.value = "";
-                    }}
-                  />
-
-                  <label className="form-label">Handover Attachment</label>
-
-                  {/* ================================
+                <label className="form-label">Handover Attachment</label>
+                {handoverAttachmentsError && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {handoverAttachmentsError}
+                  </p>
+                )}
+                {/* ================================
         EXISTING + NEW FILE PREVIEW
     ================================= */}
 
-                  <FilePreview
-                    files={handoverAttachments}
-                    existingFiles={existingHandoverAttachments}
-                    onRemoveExisting={(index) => {
-                      setExistingHandoverAttachments((prev) =>
-                        prev.filter((_, i) => i !== index),
-                      );
-                    }}
-                    onRemoveNew={(index) => {
-                      setHandoverAttachments((prev) =>
-                        prev.filter((_, i) => i !== index),
-                      );
-                    }}
-                  />
-                </div>
-              )}
+                <FilePreview
+                  files={handoverAttachments}
+                  existingFiles={existingHandoverAttachments}
+                  onRemoveExisting={(index) => {
+                    setExistingHandoverAttachments((prev) =>
+                      prev.filter((_, i) => i !== index),
+                    );
+                    setHandoverAttachmentsError("");
+                  }}
+                  onRemoveNew={(index) => {
+                    setHandoverAttachments((prev) =>
+                      prev.filter((_, i) => i !== index),
+                    );
+                    setHandoverAttachmentsError("");
+                  }}
+                />
+              </div>
+
             </div>
           </div>
 
@@ -411,9 +432,15 @@ function FnfEditForm({ client, onClose }) {
             <button
               type="submit"
               className="theme-btn flex justify-center items-center gap-2"
+              disabled={isUpdateClientData}
             >
-              <CheckCircle size={18} />
-              Save F&F
+              {isUpdateClientData ? (
+                <Loader size={18} className="animate-spin" />
+              ) : (
+                <CheckCircle size={18} />
+              )}
+
+              {isUpdateClientData ? "Saving..." : "Save F&F"}
             </button>
           </div>
         </form>

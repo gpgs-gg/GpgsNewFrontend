@@ -12,10 +12,11 @@ import {
   useUpdateNewBooking,
   useUpdateNewBookingForBooked,
 } from "./services";
+import { MoreVertical } from "lucide-react";
 import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";
 import ConfirmModal from "../common/ConfirmModal";
-import TableSkeleton from "../common/TableSkelton";
+import TableSkeleton from "../../components/common/TableSkelton";
 import NewBookingFilter from "./NewBookingFilter";
 import useDebounce from "../hooks/useDebounce";
 import { FaEllipsisV } from "react-icons/fa";
@@ -24,6 +25,8 @@ import PaymentVerificationModal from "./PaymentVerificationModal";
 import { useForm } from "react-hook-form";
 import image from "../../assets/icons8-verified-account (1).gif";
 import usePersistedFilters from "../hooks/usePersistedFilters";
+import { useAuthorization } from "../../context/AuthorizationContext";
+import { useAuth } from "../../context/authContext";
 const NewBookingTable = () => {
   const [search, setSearch] = useState("");
 
@@ -240,13 +243,21 @@ const NewBookingTable = () => {
   }, [filters]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const debouncedSearch = useDebounce(search, 500);
+  const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
 
+  const canAddBooking = canAdd("new_booking");
+  const canEditBooking = canEdit("new_booking");
+  const canDeleteBooking = canDelete("new_booking");
+  const canViewBooking = canSingleView("new_booking");
+
+  const showActions = canViewBooking || canEditBooking || canDeleteBooking;
   const [resetTrigger, setResetTrigger] = useState(0);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const rowsPerPage = 20;
+  const { user } = useAuth();
   const apiFilters = useMemo(() => {
     const { propertyCode, temporaryPropertyCode, ...rest } = filters;
 
@@ -299,9 +310,8 @@ const NewBookingTable = () => {
     createClientFromBooking(
       {
         bookingId: selectedBooking._id,
-        narration: `Amount: ₹${data.paymentAmount || 0} - Narration: ${data.narration || ""}${
-          data.remarks ? ` - Remarks: ${data.remarks}` : ""
-        }`,
+        narration: `Amount: ₹${data.paymentAmount || 0} - Narration: ${data.narration || ""}${data.remarks ? ` - Remarks: ${data.remarks}` : ""
+          }`,
         paymentAmount: data.paymentAmount,
         remarks: data.remarks,
 
@@ -356,7 +366,6 @@ const NewBookingTable = () => {
     };
   }, []);
 
-
   const handleReset = () => {
     // Clear persisted filters
     resetFilters();
@@ -378,21 +387,20 @@ const NewBookingTable = () => {
   const handleRemoveFilter = (key) => {
     removeFilter(key);
 
-
     setCurrentPage(1);
   };
-
 
   // Handle delete function
   // Open Delete Confirmation Modal
   const handleDelete = (id) => {
+    if (!canDeleteBooking) return;
     setDeleteId(id);
     setShowDeleteModal(true);
   };
 
   // Confirm Delete
   const confirmDelete = () => {
-    if (!deleteId) return;
+    if (!deleteId || !canDeleteBooking) return;
 
     deleteNewBooking(deleteId, {
       onSuccess: (response) => {
@@ -406,8 +414,8 @@ const NewBookingTable = () => {
         toast.dismiss();
         toast.error(
           error?.response?.data?.message ||
-            error?.message ||
-            "Something went wrong",
+          error?.message ||
+          "Something went wrong",
         );
         setShowDeleteModal(false);
         setDeleteId(null);
@@ -416,6 +424,11 @@ const NewBookingTable = () => {
   };
 
   const handlePaymentVerification = (item) => {
+    if (!canEditBooking) {
+      toast.dismiss()
+      toast.error("You don't have permission to verify");
+      return;
+    }
     // Verify
     if (!item.loginEnabled) {
       if (item.status !== "Booked") {
@@ -463,8 +476,15 @@ const NewBookingTable = () => {
   //     }
   //   );
   // };
-
+  const userName =
+    user?.Name || user?.name || user?.fullName || user?.username || "System";
   const handleStatusToggle = (item) => {
+    if (!canEditBooking) {
+      toast.dismiss()
+      toast.error("You don't have permission to Update Status");
+      return;
+    }
+
     if (item.status === "Booked" && item.loginEnabled) {
       toast.dismiss();
       toast.error(
@@ -479,6 +499,7 @@ const NewBookingTable = () => {
         id: item._id,
         data: {
           status: item.status === "Booked" ? "Not Booked" : "Booked",
+          user: userName,
         },
       },
       {
@@ -486,8 +507,8 @@ const NewBookingTable = () => {
           toast.dismiss();
           toast.success(
             response?.message ||
-              response?.data?.message ||
-              "Status updated successfully",
+            response?.data?.message ||
+            "Status updated successfully",
           );
         },
         onError: (error) => {
@@ -513,11 +534,13 @@ const NewBookingTable = () => {
               </p>
             </div>
 
-            <Link to="/new-bookings/create">
-              <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                + New Booking
-              </button>
-            </Link>
+            {canAddBooking && (
+              <Link to="/new-bookings/create">
+                <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                  + New Booking
+                </button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -624,9 +647,11 @@ const NewBookingTable = () => {
                     <th className="p-3 text-center">Balance Amt</th>
 
                     {/* Sticky Header */}
-                    <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
-                      Actions
-                    </th>
+                    {showActions && (
+                      <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
+                        Actions
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 {isLoading ? (
@@ -654,24 +679,23 @@ const NewBookingTable = () => {
                                     className="sr-only peer"
                                     checked={item.status === "Booked"}
                                     onChange={() => handleStatusToggle(item)}
+                                    disabled={isPending}
                                   />
                                   <div className="w-11 h-5 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors">
                                     <div
-                                      className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${
-                                        item.status === "Booked"
-                                          ? "translate-x-5"
-                                          : "translate-x-0.5"
-                                      }`}
+                                      className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${item.status === "Booked"
+                                        ? "translate-x-5"
+                                        : "translate-x-0.5"
+                                        }`}
                                     />
                                   </div>
                                 </label>
 
                                 <span
-                                  className={`text-sm font-medium ${
-                                    item.status === "Booked"
-                                      ? "text-green-600"
-                                      : "text-red-600"
-                                  }`}
+                                  className={`text-sm font-medium ${item.status === "Booked"
+                                    ? "text-green-600"
+                                    : "text-red-600"
+                                    }`}
                                 >
                                   {item.status === "Booked"
                                     ? "Booked"
@@ -785,69 +809,83 @@ const NewBookingTable = () => {
                             </td>
 
                             {/* Sticky Actions Column */}
-                            <td
-                              className={`p-3 sticky right-0 bg-white ${
-                                openMenuId === item._id ? "z-[9999]" : "z-20"
-                              } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
-                            >
-                              <div className="flex justify-center relative">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenMenuId(
-                                      openMenuId === item._id ? null : item._id,
-                                    );
-                                  }}
-                                  className={`p-2 rounded-md transition-colors ${
-                                    openMenuId === item._id
+                            {showActions && (
+                              <td
+                                className={`p-3 sticky right-0 bg-white ${openMenuId === item._id ? "z-[9999]" : "z-20"
+                                  } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
+                              >
+                                <div className="flex justify-center relative">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+
+                                      setOpenMenuId(
+                                        openMenuId === item._id
+                                          ? null
+                                          : item._id,
+                                      );
+                                    }}
+                                    className={`p-2 rounded-md transition-colors ${openMenuId === item._id
                                       ? "bg-blue-100 text-blue-600"
                                       : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                  }`}
-                                >
-                                  <FaEllipsisV />
-                                </button>
-
-                                {openMenuId === item._id && (
-                                  <div
-                                    className="absolute right-22 top-8 w-44 bg-white border border-gray-300 rounded-lg shadow-xl "
-                                    onClick={(e) => e.stopPropagation()}
+                                      }`}
                                   >
-                                    <Link
-                                      to={`/new-bookings/view/${item._id}`}
-                                      className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
-                                    >
-                                      <span>👁</span>
-                                      <span>View</span>
-                                    </Link>
+                                    <MoreVertical size={20} />
+                                  </button>
 
-                                    <Link
-                                      to={`/new-bookings/edit/${item._id}`}
-                                      className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
+                                  {openMenuId === item._id && (
+                                    <div
+                                      className="absolute right-22 top-8 w-44 bg-white border border-gray-300 rounded-lg shadow-xl z-[9999]"
+                                      onClick={(e) => e.stopPropagation()}
                                     >
-                                      <span>✏️</span>
-                                      <span>Edit</span>
-                                    </Link>
+                                      {/* View */}
+                                      {canViewBooking && (
+                                        <Link
+                                          to={`/new-bookings/view/${item._id}`}
+                                          onClick={() => setOpenMenuId(null)}
+                                          className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
+                                        >
+                                          <Eye size={17} />
+                                          <span>View</span>
+                                        </Link>
+                                      )}
 
-                                    <button
-                                      onClick={() => {
-                                        setOpenMenuId(null);
-                                        handleDelete(item._id);
-                                      }}
-                                      className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 text-red-600"
-                                    >
-                                      <span>🗑</span>
-                                      <span>Delete</span>
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
+                                      {/* Edit */}
+                                      {canEditBooking && !item.loginEnabled && (
+                                        <Link
+                                          to={`/new-bookings/edit/${item._id}`}
+                                          onClick={() => setOpenMenuId(null)}
+                                          className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 hover:bg-gray-100"
+                                        >
+                                          <Pencil size={17} />
+                                          <span>Edit</span>
+                                        </Link>
+                                      )}
+
+                                      {/* Delete */}
+                                      {canDeleteBooking && (
+                                        <button
+                                          onClick={() => {
+                                            setOpenMenuId(null);
+                                            handleDelete(item._id);
+                                          }}
+                                          className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-100 text-red-600"
+                                        >
+                                          <Trash2 size={17} />
+                                          <span>Delete</span>
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            )}
                           </tr>
                         );
                       })
                     ) : (
                       <tr>
-                        <td colSpan={18}>
+                        <td colSpan={showActions ? 21 : 20}>
                           <NoDataFound
                             title="No Bookings Found"
                             description="No booking records available"

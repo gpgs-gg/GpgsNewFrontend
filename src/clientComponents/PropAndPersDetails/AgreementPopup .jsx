@@ -5,11 +5,10 @@ const AgreementPopup = () => {
   const { user } = useAuth();
   const [showPopup, setShowPopup] = useState(false);
   const [isAgreed, setIsAgreed] = useState(false);
-
   useEffect(() => {
     // Check if user is client and has not accepted agreement
     if (user?.role?.trim().toLowerCase() === 'client') {
-      const hasAccepted = localStorage.getItem(`agreement_accepted_${user._id}`);
+      const hasAccepted = localStorage.getItem(`agreement_accepted`);
       if (!hasAccepted) {
         setShowPopup(true);
       }
@@ -18,7 +17,7 @@ const AgreementPopup = () => {
 
   const handleAccept = () => {
     if (isAgreed) {
-      localStorage.setItem(`agreement_accepted_${user._id}`, 'true');
+      localStorage.setItem(`agreement_accepted`, 'true');
       setShowPopup(false);
     }
   };

@@ -10,11 +10,13 @@ import Loader from "../common/Loader";
 import { usePropertiesDropdown } from "../beds/services";
 import { useAvailableBedsData, useCreateNewBooking, useSingleNewBookingData, useUpdateNewBooking } from "./services";
 import BookingConfirmationModal from "./BookingConfirmationModal";
-import { formatDate } from "../../utils/dateFormatter";
+import { formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { getPropertyDropdown } from "../properties/services";
 import { AsyncPaginate } from "react-select-async-paginate";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useAuthorization } from "../../context/AuthorizationContext";
+import { useAuth } from "../../context/authContext";
 const NewBookingCreateEdit = () => {
   const dailyDetailsSchema = yup.object({
     dailyPropertyId: yup
@@ -287,7 +289,7 @@ const NewBookingCreateEdit = () => {
         ["PA", "BA", "FA"],
         "Please select a valid Ask For option"
       ),
-    })
+  })
 
 
   const validationSchema = yup.object({
@@ -297,6 +299,17 @@ const NewBookingCreateEdit = () => {
 
   const navigate = useNavigate();
   const { id } = useParams();
+  const { user } = useAuth();
+  const { canEdit, canAdd } = useAuthorization();
+
+  const canEditNewBooking = canEdit("new_booking");
+  const canAddNewBooking = canAdd("new_booking");
+
+  const isViewOnly = Boolean(id) && !canEditNewBooking;
+
+  const userName =
+    user?.Name || user?.name || user?.fullName || user?.username || "System";
+
   const {
     control,
     register,
@@ -308,6 +321,9 @@ const NewBookingCreateEdit = () => {
   } = useForm({
     resolver: yupResolver(clientDetailsAndPropertyDetailsSchema),
     mode: "onBlur",
+    defaultValues: {
+      newWorkLog: "",
+    },
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -973,20 +989,20 @@ const NewBookingCreateEdit = () => {
   }, [bookingData, reset]);
 
 
-useEffect(() => {
-  if (!bookingData?.data || !bookingData.data.bedId) return;
+  useEffect(() => {
+    if (!bookingData?.data || !bookingData.data.bedId) return;
 
-  const booking = bookingData.data;
+    const booking = bookingData.data;
 
-  setValue(
-    "bedId",
-    `${booking.bedId._id},${booking.bedId.bedNo}`,
-    {
-      shouldValidate: false,
-      shouldDirty: false,
-    }
-  );
-}, [bookingData, setValue]);
+    setValue(
+      "bedId",
+      `${booking.bedId._id},${booking.bedId.bedNo}`,
+      {
+        shouldValidate: false,
+        shouldDirty: false,
+      }
+    );
+  }, [bookingData, setValue]);
 
 
   const onSubmit = (data) => {
@@ -1084,6 +1100,15 @@ useEffect(() => {
       payload.balanceAmount =
         payload.totalAmount - payload.bookingAmount;
       payload.temporaryTotalAmount = temporaryclientCalculatedRent + temporaryParkingCharges;
+
+
+      // WorkLog / Audit user
+      if (id) {
+        payload.updatedByName = userName;
+      } else {
+        payload.createdByName = userName;
+      }
+
 
       // ================= DAILY BOOKING =================
       // if (formPreviewData?.isDailyBooking) {
@@ -1232,21 +1257,21 @@ useEffect(() => {
 
       setShowConfirmationModal(true);
 
-    } 
-   catch (error) {
-  if (error.inner?.length) {
-    toast.dismiss();
+    }
+    catch (error) {
+      if (error.inner?.length) {
+        toast.dismiss();
 
-    // Sirf first error show hoga
-    toast.error(error.inner[0].message, {
-      autoClose: 3000,
-    });
-  } else {
-    toast.error(
-      error.message || "Please check the form"
-    );
-  }
-}
+        // Sirf first error show hoga
+        toast.error(error.inner[0].message, {
+          autoClose: 3000,
+        });
+      } else {
+        toast.error(
+          error.message || "Please check the form"
+        );
+      }
+    }
   };
 
 
@@ -2109,6 +2134,8 @@ useEffect(() => {
                   type="number"
                   className="form-input"
                 />
+
+
                 <label className="form-label ">
                   Parking Charges ( ₹ )
                 </label>
@@ -2128,8 +2155,54 @@ useEffect(() => {
           </div>
         )}
 
+        {id && (
+          <>
+            <div className="form-group">
+              <textarea
+                rows={5}
+                {...register("newWorkLog")}
+                className="form-input"
+                placeholder=" "
+                disabled={isViewOnly}
+              />
+              <label className="form-label">Add WorkLog</label>
+            </div>
+
+            <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col">
+              <h3 className="font-semibold text-lg mb-1">Work Log History</h3>
+
+              <div className="flex-1 overflow-y-auto">
+                {bookingData?.data?.workLogs?.length > 0 ? (
+                  bookingData.data.workLogs
+                    .slice()
+                    .reverse()
+                    .map((log) => (
+                      <div
+                        key={log._id}
+                        className="border-b py-3 last:border-b-0"
+                      >
+                        <small className="text-gray-500">
+                          {log.createdBy || "System"} •{" "}
+                          {formatDateAndTime(log.createdAt)}
+                        </small>
+
+                        <p className="whitespace-pre-line text-sm">
+                          {log.message}
+                        </p>
+                      </div>
+                    ))
+                ) : (
+                  <p className="text-gray-400 text-center mt-10">
+                    No Work Logs Available
+                  </p>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Footer Buttons */}
-        <div className="flex flex-col sm:flex-row justify-end gap-3">
+        {/* <div className="flex flex-col sm:flex-row justify-end gap-3">
           <button
             type="button"
             onClick={() => window.history.back()}
@@ -2169,12 +2242,70 @@ useEffect(() => {
               )}
             </button>
           )}
+        </div> */}
+
+        <div className="flex flex-col sm:flex-row justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          {activeTab === "daily" ? (
+            <>
+              {((id && canEditNewBooking) || (!id && canAddNewBooking)) && (
+                <button
+                  type="button"
+                  onClick={handleDailySubmit}
+                  disabled={
+                    isLoading || isUpdateNewBooking || isSubmitNewBooking
+                  }
+                  className="flex-1 sm:flex-none px-6 py-2.5 theme-btn transition-colors flex items-center justify-center gap-2"
+                >
+                  {isLoading || isUpdateNewBooking || isSubmitNewBooking ? (
+                    <>
+                      <Loader />
+                      Processing...
+                    </>
+                  ) : id ? (
+                    "Update Daily Booking"
+                  ) : (
+                    "Submit Daily Booking"
+                  )}
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              {((id && canEditNewBooking) || (!id && canAddNewBooking)) && (
+                <button
+                  type="submit"
+                  disabled={
+                    isLoading
+                  }
+                  className="flex-1 sm:flex-none px-6 py-2.5 theme-btn transition-colors flex items-center justify-center gap-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader />
+                      Processing...
+                    </>
+                  ) : id ? (
+                    "Update Booking"
+                  ) : (
+                    "Submit Booking"
+                  )}
+                </button>
+              )}
+            </>
+          )}
         </div>
       </form>
       <BookingConfirmationModal
         isOpen={showConfirmationModal}
         data={formPreviewData}
-        isLoading={isLoading}
+        isLoading={isUpdateNewBooking || isSubmitNewBooking}
         onClose={() => setShowConfirmationModal(false)}
         onConfirm={handleFinalSubmit}
       />

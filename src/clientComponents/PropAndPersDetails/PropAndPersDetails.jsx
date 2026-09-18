@@ -361,7 +361,7 @@ const PropAndPersDetails = () => {
         <div className="border-t border-gray-200 bg-white rounded-2xl p-4 sm:p-5">
 
           <div className="mb-4">
-            <h3 className="text-sm font-semibold text-gray-800">
+            <h3 className="text-md font-semibold text-gray-800">
               Client Documents
             </h3>
             <p className="mt-1 text-xs text-gray-500">

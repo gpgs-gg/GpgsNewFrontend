@@ -55,14 +55,24 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
         });
     }, [property, setValue]);
 
-    const propertyId = watch("propertyId");
+const propertyId = watch("propertyId");
 
-    // API hook to fetch clients by property
-    const { data: clientData, isLoading: isLoadinClientThrowProperty, refetch: refetchClients } =
-        useClientThrowPropertyData(propertyId?.value);
+const [startDate, setStartDate] = useState("");
+const [endDate, setEndDate] = useState("");
 
-    const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
+// API hook to fetch clients by property + startDate + endDate
+const {
+    data: clientData,
+    isLoading: isLoadinClientThrowProperty,
+    refetch: refetchClients
+} = useClientThrowPropertyData(
+    propertyId?.value,
+    startDate,
+    endDate
+);
+
+    // const [startDate, setStartDate] = useState("");
+    // const [endDate, setEndDate] = useState("");
 
     // API hook to fetch AC consumption data - only when AC clients exist
     const {
@@ -313,11 +323,14 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                 Number(adjustedFreeEB[key]) || 0
             );
         }, 0) || 0;
+
     const totalFreeEB =
         Number(totalNormalFreeEB) + Number(adjustedEB);
+
     useEffect(() => {
         onFreeEBChange?.(Number(totalFreeEB) || 0);
     }, [totalFreeEB, onFreeEBChange]);
+
     // Get per-head free EB
     const getPerHeadFreeEB = (client) => {
         const billEnd = endDate ? normalizeDate(endDate) : null;
@@ -579,7 +592,6 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                                                 </th>
                                             </tr>
                                         </thead>
-
                                         <tbody>
                                             {clients?.filter(ele => ele.fullName && ele.fullName.trim() !== "")?.map((ele, idx) => {
                                                 const allVacations = ele.vacations || [];
@@ -639,24 +651,24 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                                                             {calculateTotalDays({ ele })}
                                                         </td>
 
-                                                        {/* <td className="border border-gray-200 px-1 py-1">
-                                                    <input
-                                                        placeholder='Amt'
-                                                        type="text"
-                                                        value={adjustedFreeEB[`${ele._id}_${ele.ebDoj}`] ?? ""}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value;
-                                                            if (/^-?\d*\.?\d*$/.test(val)) {
-                                                                setAdjustedFreeEB((prev) => ({
-                                                                    ...prev,
-                                                                    [`${ele._id}_${ele.ebDoj}`]:
-                                                                        val === "" || val === "-" ? val : Number(val),
-                                                                }));
-                                                            }
-                                                        }}
-                                                        className="border border-gray-300 rounded px-1.5 py-0.5 w-20 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none"
-                                                    />
-                                                </td> */}
+                                                        <td className="border border-gray-200 px-1 py-1">
+                                                            <input
+                                                                placeholder='Amt'
+                                                                type="text"
+                                                                value={adjustedFreeEB[`${ele._id}_${ele.ebDoj}`] ?? ""}
+                                                                onChange={(e) => {
+                                                                    const val = e.target.value;
+                                                                    if (/^-?\d*\.?\d*$/.test(val)) {
+                                                                        setAdjustedFreeEB((prev) => ({
+                                                                            ...prev,
+                                                                            [`${ele._id}_${ele.ebDoj}`]:
+                                                                                val === "" || val === "-" ? val : Number(val),
+                                                                        }));
+                                                                    }
+                                                                }}
+                                                                className="border border-gray-300 rounded px-1.5 py-0.5 w-20 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none"
+                                                            />
+                                                        </td>
 
                                                         <td className="border border-gray-200 px-2 py-1 font-bold bg-orange-100 text-orange-800">
                                                             {getPerHeadFreeEB(ele)}
@@ -681,7 +693,6 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                                                 );
                                             })}
                                         </tbody>
-
                                         {/* <tfoot>
                                     <tr className="font-bold bg-gray-100">
                                         <td className="border border-gray-300 px-2 py-2 text-left">Total Present</td>
