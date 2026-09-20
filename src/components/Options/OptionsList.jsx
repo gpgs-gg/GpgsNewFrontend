@@ -17,6 +17,7 @@ import { useMasterData, useDeleteMasterData } from "./services/index";
 import Pagination from "../common/Pagination";
 import useDebounce from "../hooks/useDebounce";
 import ConfirmModal from "../common/ConfirmModal";
+import { useAuthorization } from "../../context/AuthorizationContext";
 // import OptionsFilter from "./OptionsFilter";
 import { toast } from "react-toastify";
 
@@ -34,7 +35,13 @@ const OptionsTable = () => {
 
   const [resetTrigger, setResetTrigger] = useState(0);
   const [expandedRow, setExpandedRow] = useState(null);
-
+  const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
+  const canAddDynamicOptions = canAdd("dynamic_options");
+  const canEditDynamicOptions = canEdit("dynamic_options");
+  const canDeleteDynamicOptions = canDelete("dynamic_options");
+  const canViewDynamicOptions = canSingleView("dynamic_options");
+  const showActions =
+    canEditDynamicOptions || canViewDynamicOptions || canDeleteDynamicOptions;
   const rowsPerPage = 10;
   const debouncedSearch = useDebounce(search);
   const { data: masterData, isLoading } = useMasterData({
@@ -101,11 +108,13 @@ const OptionsTable = () => {
                 Manage all global dropdown options
               </p>
             </div>
-            <Link to="/options/create">
-              <button className="theme-btn text-white px-4 py-2 hover:bg-gray-700 rounded-lg">
-                + Add Options
-              </button>
-            </Link>
+            {canAddDynamicOptions && (
+              <Link to="/options/create">
+                <button className="theme-btn text-white px-4 py-2 hover:bg-gray-700 rounded-lg">
+                  + Add Options
+                </button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -209,8 +218,7 @@ const OptionsTable = () => {
                   {/* <th className="p-3 text-center">Active Options</th> */}
 
                   <th className="p-3 text-left">Description</th>
-
-                  <th className="p-3 text-center">Action</th>
+                  {showActions && <th className="p-3 text-center">Action</th>}
                 </tr>
               </thead>
               {isLoading ? (
@@ -327,34 +335,42 @@ const OptionsTable = () => {
                           </td>
 
                           {/* Action */}
-                          <td className="p-3">
-                            <div className="flex justify-center gap-2">
-                              <Link to={`/options/edit/${category._id}`}>
-                                {/* <Link to={`/properties/view/${item._id}`}> */}
-                                <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
-                                  <Eye size={16} />
-                                </button>
-                              </Link>
-                              <button
-                                onClick={() =>
-                                  navigate(`/options/edit/${category._id}`)
-                                }
-                                className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
-                              >
-                                <Pencil size={16} />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setDeleteId(category._id);
-                                  setShowDeleteModal(true);
-                                }}
-                                disabled={deleting}
-                                className="p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
+                          {showActions && (
+                            <td className="p-3">
+                              <div className="flex justify-center gap-2">
+                                {canViewDynamicOptions && (
+                                  <Link to={`/options/edit/${category._id}`}>
+                                    {/* <Link to={`/properties/view/${item._id}`}> */}
+                                    <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
+                                      <Eye size={16} />
+                                    </button>
+                                  </Link>
+                                )}
+                                {canEditDynamicOptions && (
+                                  <button
+                                    onClick={() =>
+                                      navigate(`/options/edit/${category._id}`)
+                                    }
+                                    className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
+                                  >
+                                    <Pencil size={16} />
+                                  </button>
+                                )}
+                                {canDeleteDynamicOptions && (
+                                  <button
+                                    onClick={() => {
+                                      setDeleteId(category._id);
+                                      setShowDeleteModal(true);
+                                    }}
+                                    disabled={deleting}
+                                    className="p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       );
                     })

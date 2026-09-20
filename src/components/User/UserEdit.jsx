@@ -3,6 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
 import { Eye, EyeOff, Save, X } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { formatDateAndTime } from "../../utils/dateFormatter";
 
 import {
   useUpdateUserData,
@@ -13,7 +14,7 @@ import {
 import { selectStyles } from "../../utils/selectStyles";
 import { toast } from "react-toastify";
 import Loader from "../common/Loader";
-
+import { useAuth } from "../../context/authContext";
 const UserEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -30,10 +31,16 @@ const UserEdit = () => {
     reset,
     formState: { errors },
   } = useForm({
+    defaultValues: {
+      newWorkLog: "",
+    },
   });
 
   const role = watch("role");
+  const { user } = useAuth();
 
+  const userName =
+    user?.Name || user?.name || user?.fullName || user?.username || "System";
   const { mutate: updateUser, isPending: updateLoading } = useUpdateUserData();
   const { data: userData } = useSingleUserData(id);
 
@@ -57,6 +64,8 @@ const UserEdit = () => {
         //   }
         //   : null,
         isActive: userData.data.isActive,
+        // Worklog input should always be empty when edit page loads
+        newWorkLog: "",
       });
     }
   }, [userData, reset]);
@@ -78,6 +87,8 @@ const UserEdit = () => {
       password: data.password || undefined, // password blank asel tar update karu naka
       role: data.role,
       isActive: data.isActive,
+      updatedByName: userName,
+      newWorkLog: data.newWorkLog || "",
     };
 
     updateUser(
@@ -87,29 +98,23 @@ const UserEdit = () => {
       },
       {
         onSuccess: (res) => {
-          toast.dismiss()
+          toast.dismiss();
           toast.success(res.message);
           navigate("/users");
         },
         onError: (err) => {
-          toast.dismiss()
-          toast.error(
-            err?.response?.data?.message || "Update Failed"
-          );
+          toast.dismiss();
+          toast.error(err?.response?.data?.message || "Update Failed");
         },
-      }
+      },
     );
   };
-
-
 
   const input =
     "w-full border border-gray-300 rounded-lg px-3 py-2 hover  focus:ring-2 focus:ring-gray-500 outline-none";
   return (
     <div className="space-y-5">
       <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
-
-
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
           <div className="flex justify-between items-center">
             <div>
@@ -124,7 +129,6 @@ const UserEdit = () => {
             <div className="flex gap-3">
               <Link to="/users">
                 <button className="border rounded-lg px-5 py-2 hover:bg-gray-100 flex items-center gap-2">
-
                   Cancel
                 </button>
               </Link>
@@ -133,24 +137,27 @@ const UserEdit = () => {
                 className="theme-btn text-white px-6 py-2 rounded-lg flex items-center gap-2"
                 disabled={updateLoading}
               >
-
-
-                {isEdit ? updateLoading ? <div className='flex justify-center items-center gap-2'><Loader /> Processing...</div> : "Update User" : ""}
+                {isEdit ? (
+                  updateLoading ? (
+                    <div className="flex justify-center items-center gap-2">
+                      <Loader /> Processing...
+                    </div>
+                  ) : (
+                    "Update User"
+                  )
+                ) : (
+                  ""
+                )}
               </button>
-
             </div>
           </div>
         </div>
         <div className="bg-white  rounded-xl shadow-sm">
-
           <div className=" px-6 py-4">
-            <h2 className="text-lg font-semibold">
-              User Details
-            </h2>
+            <h2 className="text-lg font-semibold">User Details</h2>
           </div>
 
           <div className="p-6 grid md:grid-cols-4 gap-5">
-
             {/* Name */}
 
             <div className="form-group md:col-span-1">
@@ -160,13 +167,16 @@ const UserEdit = () => {
                 })}
                 className="form-input"
                 placeholder=" "
+                disabled={role === "Employee" || role === "Client"}
               />
               {/* {errors.name && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.name.message}
                 </p>
               )} */}
-              <label className="form-label form-label required-label">Name</label>
+              <label className="form-label form-label required-label">
+                Name
+              </label>
             </div>
 
             {/* Email */}
@@ -177,13 +187,16 @@ const UserEdit = () => {
                 })}
                 className="form-input"
                 placeholder=" "
+                disabled={role === "Employee" || role === "Client"}
               />
               {/* {errors.email && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.email.message}
                 </p>
               )} */}
-              <label className="form-label form-label required-label">Email</label>
+              <label className="form-label form-label required-label">
+                Email
+              </label>
             </div>
 
             {/* Password */}
@@ -196,20 +209,14 @@ const UserEdit = () => {
                 placeholder=" "
               />
 
-              <label className="form-label">
-                Password
-              </label>
+              <label className="form-label">Password</label>
 
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
 
               {/* {errors.password && (
@@ -225,16 +232,18 @@ const UserEdit = () => {
                 required: "Role is required",
               }}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                  <label className="select-label form-label required-label">Role</label>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label form-label required-label">
+                    Role
+                  </label>
                   <Select
                     {...field}
                     options={RoleOptions}
                     placeholder=""
                     isClearable
-                    value={RoleOptions.find(
-                      (x) => x.value === field.value
-                    )}
+                    value={RoleOptions.find((x) => x.value === field.value)}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
                   />
@@ -254,20 +263,26 @@ const UserEdit = () => {
               control={control}
               rules={{
                 validate: (value) =>
-                  value !== undefined && value !== null || "Status is required",
+                  (value !== undefined && value !== null) ||
+                  "Status is required",
               }}
               render={({ field }) => (
-                <div className={`select-group ${field.value !== undefined && field.value !== null ? "has-value" : ""
-                  }`}>
-                  <label className="select-label form-label required-label">Status</label>
+                <div
+                  className={`select-group ${
+                    field.value !== undefined && field.value !== null
+                      ? "has-value"
+                      : ""
+                  }`}
+                >
+                  <label className="select-label form-label required-label">
+                    Status
+                  </label>
                   <Select
                     {...field}
                     options={StatusOptions}
                     placeholder=""
                     isClearable
-                    value={StatusOptions.find(
-                      (x) => x.value === field.value
-                    )}
+                    value={StatusOptions.find((x) => x.value === field.value)}
                     onChange={(selected) => {
                       console.log(selected);
                       field.onChange(selected?.value);
@@ -282,9 +297,7 @@ const UserEdit = () => {
                 </div>
               )}
             />
-
           </div>
-
         </div>
 
         {/* Role Assignment */}
@@ -365,11 +378,53 @@ const UserEdit = () => {
 
           </div>
         )} */}
+        {/* ====================== WORK LOG ====================== */}
 
+        {isEdit && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Add WorkLog */}
+            <div className="form-group">
+            
+
+              
+            </div>
+
+            {/* WorkLog History */}
+            <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col">
+              <h3 className="font-semibold text-lg mb-1">Work Log History</h3>
+
+              <div className="flex-1 overflow-y-auto">
+                {userData?.data?.workLogs?.length > 0 ? (
+                  userData.data.workLogs
+                    .slice()
+                    .reverse()
+                    .map((log) => (
+                      <div
+                        key={log._id}
+                        className="border-b py-3 last:border-b-0"
+                      >
+                        <small className="text-gray-500">
+                          {log.createdBy || "System"} •{" "}
+                          {formatDateAndTime(log.createdAt)}
+                        </small>
+
+                        <p className="whitespace-pre-line text-sm">
+                          {log.message}
+                        </p>
+                      </div>
+                    ))
+                ) : (
+                  <p className="text-gray-400 text-center mt-10">
+                    No Work Logs Available
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         {/* Footer Buttons */}
 
         <div className="  rounded-xl  px-6 py-4 flex justify-end gap-3">
-
           <Link to="/users">
             <button
               type="button"
@@ -384,13 +439,20 @@ const UserEdit = () => {
             className="theme-btn text-white px-6 py-2 rounded-lg flex items-center gap-2"
             disabled={updateLoading}
           >
-            {isEdit ? updateLoading ? <div className='flex justify-center items-center gap-2'><Loader /> Processing...</div> : "Update User" : ""}
+            {isEdit ? (
+              updateLoading ? (
+                <div className="flex justify-center items-center gap-2">
+                  <Loader /> Processing...
+                </div>
+              ) : (
+                "Update User"
+              )
+            ) : (
+              ""
+            )}
           </button>
-
         </div>
-
       </form>
-
     </div>
   );
 };

@@ -301,6 +301,7 @@ const NewBookingCreateEdit = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const { canEdit, canAdd } = useAuthorization();
+  const isViewMode = window.location.pathname.includes("/view/");
 
   const canEditNewBooking = canEdit("new_booking");
   const canAddNewBooking = canAdd("new_booking");
@@ -2252,54 +2253,66 @@ const NewBookingCreateEdit = () => {
           >
             Cancel
           </button>
-          {activeTab === "daily" ? (
+
+
+
+          {!isViewMode && (
             <>
-              {((id && canEditNewBooking) || (!id && canAddNewBooking)) && (
-                <button
-                  type="button"
-                  onClick={handleDailySubmit}
-                  disabled={
-                    isLoading || isUpdateNewBooking || isSubmitNewBooking
-                  }
-                  className="flex-1 sm:flex-none px-6 py-2.5 theme-btn transition-colors flex items-center justify-center gap-2"
-                >
-                  {isLoading || isUpdateNewBooking || isSubmitNewBooking ? (
-                    <>
-                      <Loader />
-                      Processing...
-                    </>
-                  ) : id ? (
-                    "Update Daily Booking"
-                  ) : (
-                    "Submit Daily Booking"
+
+              {activeTab === "daily" ? (
+                <>
+                  {((id && canEditNewBooking) || (!id && canAddNewBooking)) && (
+                    <button
+                      type="button"
+                      onClick={handleDailySubmit}
+                      disabled={
+                        isLoading || isUpdateNewBooking || isSubmitNewBooking
+                      }
+                      className="flex-1 sm:flex-none px-6 py-2.5 theme-btn transition-colors flex items-center justify-center gap-2"
+                    >
+                      {isLoading || isUpdateNewBooking || isSubmitNewBooking ? (
+                        <>
+                          <Loader />
+                          Processing...
+                        </>
+                      ) : id ? (
+                        "Update Daily Booking"
+                      ) : (
+                        "Submit Daily Booking"
+                      )}
+                    </button>
                   )}
-                </button>
-              )}
-            </>
-          ) : (
-            <>
-              {((id && canEditNewBooking) || (!id && canAddNewBooking)) && (
-                <button
-                  type="submit"
-                  disabled={
-                    isLoading
-                  }
-                  className="flex-1 sm:flex-none px-6 py-2.5 theme-btn transition-colors flex items-center justify-center gap-2"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader />
-                      Processing...
-                    </>
-                  ) : id ? (
-                    "Update Booking"
-                  ) : (
-                    "Submit Booking"
+                </>
+              ) : (
+                <>
+                  {((id && canEditNewBooking) || (!id && canAddNewBooking)) && (
+                    <button
+                      type="submit"
+                      disabled={
+                        isLoading
+                      }
+                      className="flex-1 sm:flex-none px-6 py-2.5 theme-btn transition-colors flex items-center justify-center gap-2"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader />
+                          Processing...
+                        </>
+                      ) : id ? (
+                        "Update Booking"
+                      ) : (
+                        "Submit Booking"
+                      )}
+                    </button>
                   )}
-                </button>
+                </>
               )}
+
+
             </>
           )}
+
+
         </div>
       </form>
       <BookingConfirmationModal

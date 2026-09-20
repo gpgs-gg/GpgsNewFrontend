@@ -248,7 +248,7 @@ const SalaryTable = ({ params = {}, onView }) => {
   // ==========================================================
   // UI
   // ==========================================================
-  const totalColumns = 3 + DAYS.length + 8 + (showActions ? 1 : 0);
+  const totalColumns = 3 + DAYS.length + 9 + (showActions ? 1 : 0);
   return (
     <div className="w-auto bg-gray-50">
       {/* =====================================================
@@ -409,7 +409,13 @@ const SalaryTable = ({ params = {}, onView }) => {
                     </th>
                   );
                 })}
+                <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
+                  Fixed Salary
+                </th>
 
+                <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
+                  Per Day Salary
+                </th>
                 {/* =========================
         TOTAL DAYS
     ========================= */}
@@ -424,23 +430,22 @@ const SalaryTable = ({ params = {}, onView }) => {
         whitespace-nowrap
       "
                 >
-                  Total Days
+                  Actual Present Days
+                </th>
+                <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
+                  Weekly Off
+                </th>
+                <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left font-bold whitespace-nowrap">
+                  Public Holiday
                 </th>
 
-                <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
-                  Fix Salary
+                {/* Backend calculated:
+    Present Days + Paid Leaves + Public Holidays */}
+                <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left font-bold whitespace-nowrap">
+                  Total Payable Days
                 </th>
-
                 <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
-                  Per Day
-                </th>
-
-                <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
-                  Paid Leaves
-                </th>
-
-                <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
-                  Payable Salary
+                  Total Payable Salary
                 </th>
 
                 <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
@@ -482,8 +487,8 @@ const SalaryTable = ({ params = {}, onView }) => {
             {isLoading ? (
               <TableSkeleton
                 rows={8}
-                columns={3 + DAYS.length + 8}
-                showActions
+                columns={3 + DAYS.length + 9 + (showActions ? 1 : 0)}
+                showActions={showActions}
               />
             ) : (
               <>
@@ -621,6 +626,24 @@ const SalaryTable = ({ params = {}, onView }) => {
                             );
                           })}
                           {/* =================================================
+                          MONTHLY SALARY
+                      ================================================= */}
+
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                            {formatCurrency(salary.monthlySalary)}
+                          </td>
+
+                          {/* =================================================
+                          PAID LEAVES
+                      ================================================= */}
+                          {/* =================================================
+                          PER DAY
+                      ================================================= */}
+
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                            {formatCurrency(salary.perDaySalary)}
+                          </td>
+                          {/* =================================================
                           TOTAL PRESENT DAYS
                       ================================================= */}
 
@@ -639,28 +662,23 @@ const SalaryTable = ({ params = {}, onView }) => {
                           >
                             {totalPresentDays}
                           </td>
-                          {/* =================================================
-                          MONTHLY SALARY
-                      ================================================= */}
-
-                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
-                            {formatCurrency(salary.monthlySalary)}
-                          </td>
-                          {/* =================================================
-                          PAID LEAVES
-                      ================================================= */}
-                          {/* =================================================
-                          PER DAY
-                      ================================================= */}
-
-                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
-                            {formatCurrency(salary.perDaySalary)}
-                          </td>
 
                           <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
                             {salary.paidLeaveDays ?? 0}
                           </td>
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                            {salary.publicHolidayDays ?? 0}
+                          </td>
 
+                          {/* ============================================================
+    TOTAL PAYABLE DAYS
+    Backend calculation:
+    Present Days + Paid Leaves + Public Holidays
+============================================================ */}
+
+                          <td className="px-3 py-1.5 whitespace-nowrap font-bold text-gray-800">
+                            {salary.payableDays ?? 0}
+                          </td>
                           {/* =================================================
                           ADJUSTMENT
                       ================================================= */}

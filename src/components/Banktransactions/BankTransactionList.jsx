@@ -5,10 +5,6 @@ import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import { formatDate, formatDateAndTime } from "../../utils/dateFormatter";
-import { useForm } from "react-hook-form";
-import { IoIosCall } from "react-icons/io";
-import { FaWhatsapp } from "react-icons/fa";
-import { useBedsData } from "./services";
 import { PAGINATION } from "../../constants/appConfig";
 import useDebounce from "../hooks/useDebounce";
 import { useBankTransactionData } from "./services";
@@ -16,6 +12,7 @@ import MapBankTransactionDrawer from "./MapBankTransactionDrawer";
 import BankTransactionFilter from "./BankTranscationFilter";
 import { toast } from "react-toastify";
 import usePersistedFilters from "../hooks/usePersistedFilters";
+import TableSkeleton from "../common/TableSkelton";
 const BankTransactionList = () => {
   const DEFAULT_BANK_TRANSACTION_FILTERS = {
     fromDate: "",
@@ -103,9 +100,8 @@ const BankTransactionList = () => {
     if (filters.transactionType) {
       labels.push({
         key: "transactionType",
-        label: `Type : ${
-          filters.transactionType === "deposit" ? "Deposit" : "Withdrawal"
-        }`,
+        label: `Type : ${filters.transactionType === "deposit" ? "Deposit" : "Withdrawal"
+          }`,
       });
     }
 
@@ -164,7 +160,7 @@ const BankTransactionList = () => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
 
   // fetch data with pagination, search and filters
-  const { data: apiResponse } = useBankTransactionData({
+  const { data: apiResponse , isFetching} = useBankTransactionData({
     page: currentPage,
     limit: rowsPerPage,
     search: debouncedSearch,
@@ -332,33 +328,30 @@ const BankTransactionList = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => applyTransactionType("salary")}
-                className={`px-4 py-2 rounded-lg border ${
-                  filters.transactionType === "salary"
+                className={`px-4 py-2 rounded-lg border ${filters.transactionType === "salary"
                     ? "bg-green-600 text-white"
                     : "bg-white"
-                }`}
+                  }`}
               >
                 Salary
               </button>
 
               <button
                 onClick={() => applyTransactionType("deposit")}
-                className={`px-4 py-2 rounded-lg border ${
-                  filters.transactionType === "deposit"
+                className={`px-4 py-2 rounded-lg border ${filters.transactionType === "deposit"
                     ? "bg-green-600 text-white"
                     : "bg-white"
-                }`}
+                  }`}
               >
                 Deposit
               </button>
 
               <button
                 onClick={() => applyTransactionType("withdrawal")}
-                className={`px-4 py-2 rounded-lg border ${
-                  filters.transactionType === "withdrawal"
+                className={`px-4 py-2 rounded-lg border ${filters.transactionType === "withdrawal"
                     ? "bg-red-600 text-white"
                     : "bg-white"
-                }`}
+                  }`}
               >
                 Withdrawal
               </button>
@@ -412,7 +405,9 @@ const BankTransactionList = () => {
                   <th className="p-3 text-center">Actions</th>
                 </tr>
               </thead>
-
+  {isFetching ? (
+                  <TableSkeleton rows={20} columns={20} />
+                ) : (
               <tbody>
                 {paginatedData.length > 0 ? (
                   paginatedData.map((item) => (
@@ -424,25 +419,32 @@ const BankTransactionList = () => {
                         {formatDate(item.date)}
                       </td>
 
+
                       <td className="p-3 max-w-md">
                         <div className="flex items-center gap-2">
-                          <div
-                            className="flex-1 truncate"
-                            title={item.narration}
-                          >
-                            {item.narration}
+                          <div className="relative group flex-1 min-w-0">
+                            <div className="truncate cursor-pointer">
+                              {item.narration}
+                            </div>
+
+                            {/* Full narration on hover */}
+                            <div className="absolute left-0 left-full mt-1 z-50 hidden group-hover:block w-max max-w-lg bg-gray-200 border border-gray-200 text-md rounded-md px-3 py-2 shadow-lg whitespace-normal break-words">
+                              {item.narration}
+                            </div>
                           </div>
 
                           <button
                             type="button"
                             onClick={() => handleCopy(item.narration)}
-                            className="text-gray-500 hover:text-blue-600 transition-colors"
+                            className="text-gray-500 hover:text-blue-600 transition-colors shrink-0"
                             title="Copy narration"
                           >
                             <FiCopy size={16} />
                           </button>
                         </div>
                       </td>
+
+
 
                       <td className="p-3 text-center">{item.chqNo || "-"}</td>
 
@@ -541,7 +543,7 @@ const BankTransactionList = () => {
                       </td>
                       <td className="p-3 text-center">
                         <button
-                        disabled = {item?.isMapped}
+                          disabled={item?.isMapped}
                           onClick={() => {
                             setSelectedTransaction(item);
                             setDrawerOpen(true);
@@ -581,6 +583,7 @@ const BankTransactionList = () => {
                   </tr>
                 )}
               </tbody>
+                )}
             </table>
           </div>
 

@@ -230,7 +230,7 @@ const PermissionCreateEdit = () => {
             response?.message || "Employee permissions updated successfully",
           );
 
-          navigate("/permissions");
+          navigate("/employees");
         },
 
         onError: (error) => {
@@ -635,38 +635,39 @@ const PermissionCreateEdit = () => {
 
                 field.onChange(updatedPermissions);
               };
-// =================================================
-// CHECK COLUMN SELECTED
-// =================================================
+              // =================================================
+              // CHECK COLUMN SELECTED
+              // =================================================
 
-const isColumnAllSelected = (modules, permissions, action) => {
-  const supportedModules = modules.filter(
-    (module) => module.actions?.[action] === true,
-  );
+              const isColumnAllSelected = (modules, permissions, action) => {
+                const supportedModules = modules.filter(
+                  (module) => module.actions?.[action] === true,
+                );
 
-  if (supportedModules.length === 0) {
-    return false;
-  }
+                if (supportedModules.length === 0) {
+                  return false;
+                }
 
-  return supportedModules.every((module) => {
-    const permission = permissions.find(
-      (permission) =>
-        permission.moduleId?.toString() === module._id?.toString(),
-    );
+                return supportedModules.every((module) => {
+                  const permission = permissions.find(
+                    (permission) =>
+                      permission.moduleId?.toString() ===
+                      module._id?.toString(),
+                  );
 
-    return permission?.actions?.[action] === true;
-  });
-};
+                  return permission?.actions?.[action] === true;
+                });
+              };
 
-// =================================================
-// CHECK COLUMN HAS SUPPORTED ACTION
-// =================================================
+              // =================================================
+              // CHECK COLUMN HAS SUPPORTED ACTION
+              // =================================================
 
-const hasColumnSupportedAction = (modules, action) => {
-  return modules.some(
-    (module) => module.actions?.[action] === true,
-  );
-};
+              const hasColumnSupportedAction = (modules, action) => {
+                return modules.some(
+                  (module) => module.actions?.[action] === true,
+                );
+              };
 
               return (
                 <div className="h-[60vh] overflow-auto">
@@ -703,100 +704,126 @@ const hasColumnSupportedAction = (modules, action) => {
                           </div>
                         </th>
 
-                     <th className="p-3 text-center">
-  <div
-    className="flex items-center justify-center gap-2"
-    title="Select all View permissions"
-  >
-    <PermissionCheckbox
-      checked={isColumnAllSelected(modules, permissions, "view")}
-      disabled={!hasColumnSupportedAction(modules, "view")}
-      onChange={(checked) =>
-        toggleColumnAction(modules, "view", checked)
-      }
-    />
+                        <th className="p-3 text-center">
+                          <div
+                            className="flex items-center justify-center gap-2"
+                            title="Select all View permissions"
+                          >
+                            <PermissionCheckbox
+                              checked={isColumnAllSelected(
+                                modules,
+                                permissions,
+                                "view",
+                              )}
+                              disabled={
+                                !hasColumnSupportedAction(modules, "view")
+                              }
+                              onChange={(checked) =>
+                                toggleColumnAction(modules, "view", checked)
+                              }
+                            />
 
-    <Eye size={17} />
-  </div>
-</th>
+                            <Eye size={17} />
+                          </div>
+                        </th>
 
+                        <th className="p-3 text-center">
+                          <div
+                            className="flex items-center justify-center gap-2"
+                            title="Select all Add permissions"
+                          >
+                            <PermissionCheckbox
+                              checked={isColumnAllSelected(
+                                modules,
+                                permissions,
+                                "add",
+                              )}
+                              disabled={
+                                !hasColumnSupportedAction(modules, "add")
+                              }
+                              onChange={(checked) =>
+                                toggleColumnAction(modules, "add", checked)
+                              }
+                            />
 
-                    <th className="p-3 text-center">
-  <div
-    className="flex items-center justify-center gap-2"
-    title="Select all Add permissions"
-  >
-    <PermissionCheckbox
-      checked={isColumnAllSelected(modules, permissions, "add")}
-      disabled={!hasColumnSupportedAction(modules, "add")}
-      onChange={(checked) =>
-        toggleColumnAction(modules, "add", checked)
-      }
-    />
+                            <Plus size={18} />
+                          </div>
+                        </th>
 
-    <Plus size={18} />
-  </div>
-</th>
+                        <th className="p-3 text-center">
+                          <div
+                            className="flex items-center justify-center gap-2"
+                            title="Select all Edit permissions"
+                          >
+                            <PermissionCheckbox
+                              checked={isColumnAllSelected(
+                                modules,
+                                permissions,
+                                "edit",
+                              )}
+                              disabled={
+                                !hasColumnSupportedAction(modules, "edit")
+                              }
+                              onChange={(checked) =>
+                                toggleColumnAction(modules, "edit", checked)
+                              }
+                            />
 
+                            <Pencil size={17} />
+                          </div>
+                        </th>
 
-                      <th className="p-3 text-center">
-  <div
-    className="flex items-center justify-center gap-2"
-    title="Select all Edit permissions"
-  >
-    <PermissionCheckbox
-      checked={isColumnAllSelected(modules, permissions, "edit")}
-      disabled={!hasColumnSupportedAction(modules, "edit")}
-      onChange={(checked) =>
-        toggleColumnAction(modules, "edit", checked)
-      }
-    />
+                        <th className="p-3 text-center">
+                          <div
+                            className="flex items-center justify-center gap-2"
+                            title="Select all Delete permissions"
+                          >
+                            <PermissionCheckbox
+                              checked={isColumnAllSelected(
+                                modules,
+                                permissions,
+                                "delete",
+                              )}
+                              disabled={
+                                !hasColumnSupportedAction(modules, "delete")
+                              }
+                              onChange={(checked) =>
+                                toggleColumnAction(modules, "delete", checked)
+                              }
+                            />
 
-    <Pencil size={17} />
-  </div>
-</th>
+                            <Trash2 size={17} />
+                          </div>
+                        </th>
 
+                        <th className="p-3 text-center whitespace-nowrap">
+                          <div
+                            className="flex items-center justify-center gap-2"
+                            title="Select all Single View permissions"
+                          >
+                            <PermissionCheckbox
+                              checked={isColumnAllSelected(
+                                modules,
+                                permissions,
+                                "singleView",
+                              )}
+                              disabled={
+                                !hasColumnSupportedAction(modules, "singleView")
+                              }
+                              onChange={(checked) =>
+                                toggleColumnAction(
+                                  modules,
+                                  "singleView",
+                                  checked,
+                                )
+                              }
+                            />
 
-                       <th className="p-3 text-center">
-  <div
-    className="flex items-center justify-center gap-2"
-    title="Select all Delete permissions"
-  >
-    <PermissionCheckbox
-      checked={isColumnAllSelected(modules, permissions, "delete")}
-      disabled={!hasColumnSupportedAction(modules, "delete")}
-      onChange={(checked) =>
-        toggleColumnAction(modules, "delete", checked)
-      }
-    />
+                            <Eye size={17} />
 
-    <Trash2 size={17} />
-  </div>
-</th>
-
-<th className="p-3 text-center whitespace-nowrap">
-  <div
-    className="flex items-center justify-center gap-2"
-    title="Select all Single View permissions"
-  >
-    <PermissionCheckbox
-      checked={isColumnAllSelected(
-        modules,
-        permissions,
-        "singleView",
-      )}
-      disabled={!hasColumnSupportedAction(modules, "singleView")}
-      onChange={(checked) =>
-        toggleColumnAction(modules, "singleView", checked)
-      }
-    />
-
-    <Eye size={17} />
-
-    <span>Single View</span>
-  </div>
-</th>
-
+                            <span>Single View</span>
+                          </div>
+                        </th>
                       </tr>
                     </thead>
 

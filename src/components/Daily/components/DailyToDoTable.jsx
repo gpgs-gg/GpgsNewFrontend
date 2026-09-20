@@ -623,7 +623,7 @@ export default function DailyTodoTable({
             <button
               onClick={saveAllChanges}
               disabled={saving}
-              className="bg-orange-300 hover:bg-orange-400 px-8 py-1
+              className="theme-btn
                font-bold text-black rounded disabled:opacity-50 transition-colors flex items-center gap-2"
             >
               {saving ? (

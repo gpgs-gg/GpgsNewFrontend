@@ -58,10 +58,10 @@ const Home = () => {
               data-aos="fade-up"
               className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur-md"
             >
-              <FaStar className="text-sm text-yellow-400" />
+              <FaStar className="text-xl text-yellow-400" />
 
-              <span className="text-sm font-medium tracking-wide text-white">
-                Premium PG & Co-Living
+              <span className="text-2xl font-medium tracking-wide text-white">
+                Luxurious Stay at Best Price
               </span>
             </div>
 
@@ -83,14 +83,14 @@ const Home = () => {
               className="mt-7 max-w-2xl text-base leading-7 text-white/75 sm:text-lg"
             >
               Beautifully furnished PG spaces designed for comfortable,
-              connected and hassle-free living.
+              connected <br /> and hassle-free living.
             </p>
 
             {/* Typed Text */}
             <div
               data-aos="fade-up"
               data-aos-delay="300"
-              className="mt-4 text-sm font-medium uppercase tracking-[0.2em] text-white/60"
+              className="mt-4 text-sm font-medium uppercase tracking-[0.2em] text-white"
             >
               <ReactTyped
                 strings={[

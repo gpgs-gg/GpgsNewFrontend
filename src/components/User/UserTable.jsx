@@ -258,6 +258,9 @@ function UserTable() {
                   </th>
                 </tr>
               </thead>
+                {isLoading ? (
+                  <TableSkeleton rows={20} columns={20} />
+                ) : (
               <tbody>
                 {paginatedData.length > 0 ? (
                   paginatedData.map((item) => (
@@ -344,6 +347,7 @@ function UserTable() {
                   </tr>
                 )}
               </tbody>
+                )}
             </table>
           </div>
 

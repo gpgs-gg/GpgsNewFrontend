@@ -22,6 +22,7 @@ import {
 import { useCurrentUser } from "../../auth/services";
 import { toast } from "react-toastify";
 import ConfirmModal from "../common/ConfirmModal";
+import TableSkeleton from "../common/TableSkelton";
 const statusColors = {
   New: "bg-blue-100 text-blue-700",
   Followup: "bg-yellow-100 text-yellow-700",
@@ -70,7 +71,7 @@ const LeadsList = () => {
   const { data: globalSettings } = useGlobalSettings();
   const { mutate: updateGlobalSettings, isPending } = useUpdateGlobalSettings();
 
-  const { data: apiResponse } = useLeadsData({
+  const { data: apiResponse, isLoading } = useLeadsData({
     page: currentPage,
     limit: rowsPerPage,
     search: debouncedSearch,
@@ -461,7 +462,9 @@ const LeadsList = () => {
                   </th>
                 </tr>
               </thead>
-
+ {isLoading ? (
+                <TableSkeleton rows={20} columns={20} />
+              ) : (
               <tbody>
                 {apiData.length > 0 ? (
                   apiData.map((item) => (
@@ -612,6 +615,7 @@ const LeadsList = () => {
                   </tr>
                 )}
               </tbody>
+              )}
             </table>
           </div>
           {/* PAGINATION */}

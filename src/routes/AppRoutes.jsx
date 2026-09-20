@@ -111,6 +111,7 @@ const AppRoutes = () => {
           <Route path="/new-bookings" element={<NewBookingTable />} />
           <Route path="/new-bookings/create" element={<NewBookingCreateEdit />} />
           <Route path="/new-bookings/edit/:id" element={<NewBookingCreateEdit />} />
+          <Route path="/new-bookings/view/:id" element={<NewBookingCreateEdit />} />
           <Route path="/rent-ledger" element={<RentLedger />} />
           <Route path="/rent-ledger/edit/:clientId" element={<RentLadgerEdit />} />
           <Route path="/rent-ledger/view/:clientId" element={<RentLadgerEdit />} />

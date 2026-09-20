@@ -1,314 +1,319 @@
 import React, { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { formatDateAndTime } from "../../utils/dateFormatter";
 import { useForm, useFieldArray } from "react-hook-form";
 import {
-    useCreateMasterData,
-    useUpdateMasterData,
-    useSingleMasterData,
+  useCreateMasterData,
+  useUpdateMasterData,
+  useSingleMasterData,
 } from "./services/index";
 import { toast } from "react-toastify";
 import ConfirmModal from "../common/ConfirmModal";
-
+import { useAuth } from "../../context/authContext";
 const defaultValues = {
-    categoryKey: "",
-    categoryName: "",
+  categoryKey: "",
+  categoryName: "",
 
-    items: [
-        {
-            label: "",
-            value: "",
-            code: "",
-            displayOrder: 1,
-            isDefault: false,
-            isActive: true,
-        },
-    ],
+  items: [
+    {
+      label: "",
+      value: "",
+      code: "",
+      displayOrder: 1,
+      isDefault: false,
+      isActive: true,
+    },
+  ],
 
-    description: "",
+  description: "",
+  newWorkLog: "",
 };
 
 const OptionsCreateEdit = () => {
-    const navigate = useNavigate();
-    const { id } = useParams();
-    const [deleteOptionIndex, setDeleteOptionIndex] = useState(null);
-    const [showDeleteOptionModal, setShowDeleteOptionModal] = useState(false);
-    const editId = id;
-    const isEdit = Boolean(id);
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [deleteOptionIndex, setDeleteOptionIndex] = useState(null);
+  const [showDeleteOptionModal, setShowDeleteOptionModal] = useState(false);
+  const editId = id;
+  const isEdit = Boolean(id);
+  const { user } = useAuth();
 
-    // ================================
-    // React Hook Form
-    // ================================
-    const {
-        register,
-        handleSubmit,
-        reset,
-        watch,
-        setValue,
-        control,
-        formState: { errors },
-    } = useForm({
-        defaultValues,
-    });
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: "items",
-    });
-    // ================================
-    // Queries
-    // ================================
-    const { data: singleMaster, isLoading: singleLoading } =
-        useSingleMasterData(id);
+  const userName =
+    user?.Name || user?.name || user?.fullName || user?.username || "System";
+  // ================================
+  // React Hook Form
+  // ================================
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    control,
+    formState: { errors },
+  } = useForm({
+    defaultValues,
+  });
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "items",
+  });
+  // ================================
+  // Queries
+  // ================================
+  const { data: singleMaster, isLoading: singleLoading } =
+    useSingleMasterData(id);
 
-    const createMutation = useCreateMasterData();
+  const createMutation = useCreateMasterData();
 
-    const updateMutation = useUpdateMasterData();
+  const updateMutation = useUpdateMasterData();
 
-    // ================================
-    // Auto Generate Category Key
-    // Example:
-    // Sharing Type -> sharingType
-    // Payment Mode -> paymentMode
-    // ================================
-    const categoryName = watch("categoryName");
+  // ================================
+  // Auto Generate Category Key
+  // Example:
+  // Sharing Type -> sharingType
+  // Payment Mode -> paymentMode
+  // ================================
+  const categoryName = watch("categoryName");
 
-    useEffect(() => {
-        if (!isEdit && categoryName) {
-            const key = categoryName
-                .trim()
-                .split(" ")
-                .map((word, index) =>
-                    index === 0
-                        ? word.toLowerCase()
-                        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
-                )
-                .join("");
+  useEffect(() => {
+    if (!isEdit && categoryName) {
+      const key = categoryName
+        .trim()
+        .split(" ")
+        .map((word, index) =>
+          index === 0
+            ? word.toLowerCase()
+            : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+        )
+        .join("");
 
-            setValue("categoryKey", key);
-        }
-    }, [categoryName, isEdit, setValue]);
+      setValue("categoryKey", key);
+    }
+  }, [categoryName, isEdit, setValue]);
 
-    // ================================
-    // Populate Form in Edit Mode
-    // ================================
-    useEffect(() => {
-        if (isEdit && singleMaster?.data) {
-            reset({
-                categoryKey: singleMaster.data.categoryKey,
-                categoryName: singleMaster.data.categoryName,
-                description: singleMaster.data.description,
+  // ================================
+  // Populate Form in Edit Mode
+  // ================================
+  useEffect(() => {
+    if (isEdit && singleMaster?.data) {
+      reset({
+        categoryKey: singleMaster.data.categoryKey,
+        categoryName: singleMaster.data.categoryName,
+        description: singleMaster.data.description,
+        newWorkLog: "",
+        items: singleMaster.data.items.map((item) => ({
+          _id: item._id,
+          label: item.label,
+          value: item.value,
+          code: item.code,
+          displayOrder: item.displayOrder,
+          isDefault: item.isDefault,
+          isActive: item.isActive,
+        })),
+      });
+    }
 
-                items: singleMaster.data.items.map((item) => ({
-                    _id: item._id,
-                    label: item.label,
-                    value: item.value,
-                    code: item.code,
-                    displayOrder: item.displayOrder,
-                    isDefault: item.isDefault,
-                    isActive: item.isActive,
-                })),
-            });
-        }
+    if (!isEdit) {
+      reset(defaultValues);
+    }
+  }, [singleMaster, isEdit, reset]);
+  const handleDeleteOption = () => {
+    if (deleteOptionIndex === null) return;
 
-        if (!isEdit) {
-            reset(defaultValues);
-        }
-    }, [singleMaster, isEdit, reset]);
-    const handleDeleteOption = () => {
-        if (deleteOptionIndex === null) return;
+    remove(deleteOptionIndex);
 
-        remove(deleteOptionIndex);
+    setDeleteOptionIndex(null);
+    setShowDeleteOptionModal(false);
+  };
+  // ================================
+  // Submit
+  // ================================
+  const onSubmit = async (formData) => {
+    try {
+      if (isEdit) {
+        const response = await updateMutation.mutateAsync({
+          id,
+          data: {
+            categoryName: formData.categoryName,
+            description: formData.description,
+            items: formData.items,
+            newWorkLog: formData.newWorkLog,
+            createdByName: userName,
+            updatedByName: userName,
+          },
+        });
 
-        setDeleteOptionIndex(null);
-        setShowDeleteOptionModal(false);
-    };
-    // ================================
-    // Submit
-    // ================================
-    const onSubmit = async (formData) => {
-        try {
-            if (isEdit) {
-                const response = await updateMutation.mutateAsync({
-                    id,
-                    data: {
-                        categoryName: formData.categoryName,
-                        description: formData.description,
-                        items: formData.items,
-                    },
-                });
+        toast.success(response?.message || "updated successfully.");
+      } else {
+        const response = await createMutation.mutateAsync({
+          categoryKey: formData.categoryKey,
+          categoryName: formData.categoryName,
+          description: formData.description,
+          items: formData.items,
+          createdByName: userName,
+        });
 
-                toast.success(
-                    response?.message || "updated successfully."
-                );
-            } else {
-                const response = await createMutation.mutateAsync({
-                    categoryKey: formData.categoryKey,
-                    categoryName: formData.categoryName,
-                    description: formData.description,
-                    items: formData.items,
-                });
+        toast.success(response?.message || "created successfully.");
+      }
 
-                toast.success(
-                    response?.message || "created successfully."
-                );
-            }
+      reset(defaultValues);
+      navigate("/options");
+    } catch (error) {
+      toast.dismiss();
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong.",
+      );
+    }
+  };
 
-            reset(defaultValues);
-            navigate("/options");
-        } catch (error) {
-            toast.error(
-                error?.response?.data?.message ||
-                error?.message ||
-                "Something went wrong."
-            );
-        }
-    };
+  return (
+    <div className="max-w-12xl mx-auto px-6">
+      {/* ================= Form ================= */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* ================= Header ================= */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold">
+                {isEdit ? "Update Dynamic Data" : "Create Dynamic Data"}
+              </h1>
 
-    return (
-        <div className="max-w-12xl mx-auto px-6">
-            {/* ================= Form ================= */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                {/* ================= Header ================= */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h1 className="text-2xl font-bold">
-                                {isEdit ? "Update Dynamic Data" : "Create Dynamic Data"}
-                            </h1>
+              <p className="text-sm text-gray-500">
+                {isEdit
+                  ? "Update existing Dynamic values"
+                  : "Create application Dynamic values"}
+              </p>
+            </div>
 
-                            <p className="text-sm text-gray-500">
-                                {isEdit
-                                    ? "Update existing Dynamic values"
-                                    : "Create application Dynamic values"}
-                            </p>
-                        </div>
+            <div className="flex justify-end gap-5">
+              <button
+                type="button"
+                onClick={() => navigate("/options")}
+                className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium"
+              >
+                Cancel
+              </button>
 
-                        <div className="flex justify-end gap-5">
-                            <button
-                                type="button"
-                                onClick={() => navigate("/options")}
-                                className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium"
-                            >
-                                Cancel
-                            </button>
+              <button
+                type="submit"
+                disabled={createMutation.isPending || updateMutation.isPending}
+                className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+              >
+                {isEdit ? "Update" : "Create"}
+              </button>
+            </div>
+          </div>
+        </div>
+        {/* details */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200   ">
+          <div className=" border-b shadow border-gray-200 px-3 ">
+            <h2 className="text-xl font-semibold py-1">Category Details</h2>
+            <div className="flex gap-10 px-3 py-3">
+              <div className="form-group">
+                <input
+                  {...register("categoryName", {
+                    required: "Category Name is required",
+                  })}
+                  placeholder=" "
+                  className="form-input"
+                />
 
-                            <button
-                                type="submit"
-                                disabled={createMutation.isPending || updateMutation.isPending}
-                                className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-                            >
-                                {isEdit ? "Update" : "Create"}
-                            </button>
-                        </div>
+                <label className="form-label">
+                  Category Name <span className="text-red-500">*</span>
+                </label>
+
+                {errors.categoryName && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {errors.categoryName.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Category Key */}
+              <div className="form-group">
+                <input
+                  {...register("categoryKey")}
+                  placeholder=" "
+                  readOnly={isEdit}
+                  className="form-input bg-gray-100"
+                />
+
+                <label className="form-label">Category Key</label>
+              </div>
+              {/* Description */}
+
+              <div className="form-group">
+                <textarea
+                  {...register("description")}
+                  placeholder=" "
+                  className="form-input "
+                />
+
+                <label className="form-label">Description</label>
+              </div>
+            </div>
+          </div>
+          {/* input fields */}
+          <div className="grid grid-cols-1 gap-6 px-4 md:grid-cols-2 bg-white max-h-[76vh] overflow-y-auto ">
+            {/* Category Name */}
+
+            <div className="md:col-span-2">
+              <h3 className="font-semibold text-lg p-2">Options</h3>
+
+              <div className="space-y-5 ">
+                {fields.map((field, index) => (
+                  <div
+                    key={field.id}
+                    className="rounded-xl border  border-gray-200 bg-gray-50 p-5"
+                  >
+                    <div className="flex items-center justify-center gap-4">
+                      <div className="form-group max-w-[350px]">
+                        <input
+                          {...register(`items.${index}.label`, {
+                            required: true,
+                            onChange: (e) =>
+                              setValue(`items.${index}.value`, e.target.value),
+                          })}
+                          placeholder=" "
+                          className="form-input"
+                        />
+
+                        <label className="form-label">Label</label>
+                      </div>
+
+                      <div className="form-group  max-w-[350px]">
+                        <input
+                          {...register(`items.${index}.value`, {
+                            required: true,
+                          })}
+                          placeholder=" "
+                          className="form-input"
+                        />
+
+                        <label className="form-label">Value</label>
+                      </div>
+                      {/* delete */}
+                      <div>
+                        {fields.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeleteOptionIndex(index);
+                              setShowDeleteOptionModal(true);
+                            }}
+                            className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition-all duration-200 hover:border-red-300 hover:bg-red-100 hover:text-red-700"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
                     </div>
-                </div>
-                {/* details */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200   ">
-                    <div className=" border-b shadow border-gray-200 px-3 ">
-                        <h2 className="text-xl font-semibold py-1">Category Details</h2>
-                        <div className="flex gap-10 px-3 py-3">
-                            <div className="form-group">
-                                <input
-                                    {...register("categoryName", {
-                                        required: "Category Name is required",
-                                    })}
-                                    placeholder=" "
-                                    className="form-input"
-                                />
 
-                                <label className="form-label">
-                                    Category Name <span className="text-red-500">*</span>
-                                </label>
-
-                                {errors.categoryName && (
-                                    <p className="mt-1 text-xs text-red-500">
-                                        {errors.categoryName.message}
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* Category Key */}
-                            <div className="form-group">
-                                <input
-                                    {...register("categoryKey")}
-                                    placeholder=" "
-                                    readOnly={isEdit}
-                                    className="form-input bg-gray-100"
-                                />
-
-                                <label className="form-label">Category Key</label>
-                            </div>
-                            {/* Description */}
-                       
-                                <div className="form-group">
-                                    <textarea
-                            
-                                        {...register("description")}
-                                        placeholder=" "
-                                        className="form-input "
-                                    />
-
-                                    <label className="form-label">Description</label>
-                                </div>
-                        </div>
-                    </div>
-                    {/* input fields */}
-                    <div className="grid grid-cols-1 gap-6 px-4 md:grid-cols-2 bg-white max-h-[76vh] overflow-y-auto ">
-                        {/* Category Name */}
-
-                        <div className="md:col-span-2">
-                            <h3 className="font-semibold text-lg p-2">Options</h3>
-
-                            <div className="space-y-5 ">
-                                {fields.map((field, index) => (
-                                    <div
-                                        key={field.id}
-                                        className="rounded-xl border  border-gray-200 bg-gray-50 p-5"
-                                    >
-                                        <div className="flex items-center justify-center gap-4">
-                                            <div className="form-group max-w-[350px]">
-                                                <input
-                                                    {...register(`items.${index}.label`, {
-                                                        required: true,
-                                                        onChange: (e) =>
-                                                            setValue(`items.${index}.value`, e.target.value),
-                                                    })}
-                                                    placeholder=" "
-                                                    className="form-input"
-                                                />
-
-                                                <label className="form-label">Label</label>
-                                            </div>
-
-                                            <div className="form-group  max-w-[350px]">
-                                                <input
-                                                    {...register(`items.${index}.value`, {
-                                                        required: true,
-                                                    })}
-                                                    placeholder=" "
-                                                    className="form-input"
-                                                />
-
-                                                <label className="form-label">Value</label>
-                                            </div>
-                                            {/* delete */}
-                                            <div>
-                                                {fields.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setDeleteOptionIndex(index);
-                                                            setShowDeleteOptionModal(true);
-                                                        }}
-                                                        className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition-all duration-200 hover:border-red-300 hover:bg-red-100 hover:text-red-700"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* <div className="flex justify-between items-center ">
+                    {/* <div className="flex justify-between items-center ">
                      
                       {fields.length > 1 && (
                         <button
@@ -321,35 +326,32 @@ const OptionsCreateEdit = () => {
                         </button>
                       )}
                     </div> */}
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex items-center justify-between mb-2">
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-lg"></h3>
+                <button
+                  type="button"
+                  onClick={() =>
+                    append({
+                      label: "",
+                      value: "",
+                      code: "",
+                      displayOrder: fields.length + 1,
+                      isDefault: false,
+                      isActive: true,
+                    })
+                  }
+                  className=" px-2 mt-2 rounded-lg font-bold cursor-pointer"
+                >
+                  + Add Option
+                </button>
+              </div>
+            </div>
 
-                                <h3 className="font-semibold text-lg"></h3>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        append({
-                                            label: "",
-                                            value: "",
-                                            code: "",
-                                            displayOrder: fields.length + 1,
-                                            isDefault: false,
-                                            isActive: true,
-                                        })
-                                    }
-                                    className=" px-2 mt-2 rounded-lg font-bold cursor-pointer"
-                                >
-                                    + Add Option
-                                </button>
-                            </div>
-                        </div>
-
-
-
-                        {/* Default */}
-                        {/* <div>
+            {/* Default */}
+            {/* <div>
               <label className="flex cursor-pointer items-center gap-3">
                 <input type="checkbox" {...register("isDefault")} />
 
@@ -357,20 +359,20 @@ const OptionsCreateEdit = () => {
               </label>
             </div> */}
 
-                        {/* Status */}
-                        {/* <div>
+            {/* Status */}
+            {/* <div>
               <label className="flex cursor-pointer items-center gap-3">
                 <input type="checkbox" {...register("isActive")} />
 
                 <span className="text-sm font-medium">Active</span>
               </label>
             </div> */}
-                    </div>
-                </div>
+          </div>
+        </div>
 
-                {/* ================= Footer ================= */}
+        {/* ================= Footer ================= */}
 
-                {/* <div className="flex justify-end gap-3  px-6 py-4">
+        {/* <div className="flex justify-end gap-3  px-6 py-4">
                     <button
                         type="button"
                         onClick={() => {
@@ -398,19 +400,67 @@ const OptionsCreateEdit = () => {
                                 : "Create"}
                     </button>
                 </div> */}
-            </form>
-            <ConfirmModal
-                isOpen={showDeleteOptionModal}
-                title="Delete Option"
-                message="This option will be permanently removed. Do you want to continue and update the data?"
-                onConfirm={handleDeleteOption}
-                onCancel={() => {
-                    setShowDeleteOptionModal(false);
-                    setDeleteOptionIndex(null);
-                }}
+      </form>
+      {/* ====================== WORK LOG ====================== */}
+
+      {isEdit && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          {/* Add WorkLog */}
+          {/* <div className="form-group">
+            <textarea
+              rows={5}
+              {...register("newWorkLog")}
+              className="form-input"
             />
+
+            <label className="form-label">Add WorkLog</label>
+          </div> */}
+
+          {/* WorkLog History */}
+          <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col">
+            <h3 className="font-semibold text-lg mb-1">Work Log History</h3>
+
+            <div className="flex-1 overflow-y-auto">
+              {singleMaster?.data?.workLogs?.length > 0 ? (
+                singleMaster.data.workLogs
+                  .slice()
+                  .reverse()
+                  .map((log) => (
+                    <div
+                      key={log._id}
+                      className="border-b py-3 last:border-b-0"
+                    >
+                      <small className="text-gray-500">
+                        {log.createdBy || "System"} •{" "}
+                        {formatDateAndTime(log.createdAt)}
+                      </small>
+
+                      <p className="whitespace-pre-line text-sm">
+                        {log.message}
+                      </p>
+                    </div>
+                  ))
+              ) : (
+                <p className="text-gray-400 text-center mt-10">
+                  No Work Logs Available
+                </p>
+              )}
+            </div>
+          </div>
         </div>
-    );
+      )}
+      <ConfirmModal
+        isOpen={showDeleteOptionModal}
+        title="Delete Option"
+        message="This option will be permanently removed. Do you want to continue and update the data?"
+        onConfirm={handleDeleteOption}
+        onCancel={() => {
+          setShowDeleteOptionModal(false);
+          setDeleteOptionIndex(null);
+        }}
+      />
+    </div>
+  );
 };
 
 export default OptionsCreateEdit;

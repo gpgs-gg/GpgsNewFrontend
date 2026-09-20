@@ -29,7 +29,7 @@ const ClientCreateEdit = () => {
 
     const { clientId } = useParams();
 
-    const isViewMode = window.location.pathname.includes("/clients/view/");
+    const isViewMode = window.location.pathname.includes("/view/");
     const { data: propertiesDropdown, isPending: ispropertiesDropdown } =
         usePropertiesDropdown();
     const { mutate: createClientData, isPending: isSubmitClientData } =
@@ -278,7 +278,28 @@ const ClientCreateEdit = () => {
             });
         }
     };
+    const noticeStartDate = watch("noticeStartDate");
 
+    useEffect(() => {
+        if (!noticeStartDate) return;
+
+        const startDate = new Date(noticeStartDate);
+
+        // 30-day business month:
+        // Start date + 29 days = 30 days total
+        const noticeEndDate = new Date(startDate);
+        noticeEndDate.setDate(noticeEndDate.getDate() + 29);
+
+        setValue("noticeLastDate", noticeEndDate, {
+            shouldValidate: true,
+            shouldDirty: true,
+        });
+
+        setValue("clientVacatingDate", noticeEndDate, {
+            shouldValidate: true,
+            shouldDirty: true,
+        });
+    }, [noticeStartDate, setValue]);
     return (
         <div className="max-w-12xl mx-auto px-6 ">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -493,7 +514,7 @@ const ClientCreateEdit = () => {
                             />
                             <label className="form-label required-label">Email Id </label>
                         </div>
-                        <div className="form-group">
+                        {/* <div className="form-group">
                             <input
                                 {...register("comment")}
                                 placeholder=" "
@@ -501,7 +522,7 @@ const ClientCreateEdit = () => {
                                 className="form-input"
                             />
                             <label className="form-label">Comment</label>
-                        </div>
+                        </div> */}
                         <Controller
                             name="isBookingCancelled"
                             control={control}

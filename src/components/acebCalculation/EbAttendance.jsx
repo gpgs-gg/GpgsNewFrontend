@@ -55,21 +55,21 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
         });
     }, [property, setValue]);
 
-const propertyId = watch("propertyId");
+    const propertyId = watch("propertyId");
 
-const [startDate, setStartDate] = useState("");
-const [endDate, setEndDate] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
 
-// API hook to fetch clients by property + startDate + endDate
-const {
-    data: clientData,
-    isLoading: isLoadinClientThrowProperty,
-    refetch: refetchClients
-} = useClientThrowPropertyData(
-    propertyId?.value,
-    startDate,
-    endDate
-);
+    // API hook to fetch clients by property + startDate + endDate
+    const {
+        data: clientData,
+        isLoading: isLoadinClientThrowProperty,
+        refetch: refetchClients
+    } = useClientThrowPropertyData(
+        propertyId?.value,
+        startDate,
+        endDate
+    );
 
     // const [startDate, setStartDate] = useState("");
     // const [endDate, setEndDate] = useState("");
@@ -130,21 +130,30 @@ const {
 
     // Set bill dates from property utility
     useEffect(() => {
-        if (!selectedProperty?.utility?.ebStartCycle || !selectedProperty?.utility?.ebEndCycle) return;
+        if (
+            !selectedProperty?.utility?.ebStartCycle ||
+            !selectedProperty?.utility?.ebEndCycle
+        ) {
+            return;
+        }
+
+        // User ne date already select kar rakhi hai
+        if (startDate || endDate) return;
 
         const now = new Date();
         const year = now.getFullYear();
         const month = now.getMonth();
 
-        const lastDayOfMonth = (y, m) => new Date(y, m + 1, 0).getDate();
+        const lastDayOfMonth = (y, m) =>
+            new Date(y, m + 1, 0).getDate();
 
         const startDay = Math.min(
-            selectedProperty.utility.ebStartCycle,
+            Number(selectedProperty.utility.ebStartCycle),
             lastDayOfMonth(year, month - 1)
         );
 
         const endDay = Math.min(
-            selectedProperty.utility.ebEndCycle,
+            Number(selectedProperty.utility.ebEndCycle),
             lastDayOfMonth(year, month)
         );
 
@@ -153,7 +162,8 @@ const {
 
         setStartDate(formatLocalDate(start));
         setEndDate(formatLocalDate(end));
-    }, [selectedProperty]);
+
+    }, [selectedProperty, startDate, endDate]);
 
     // Refetch AC data when dates change
     useEffect(() => {
@@ -463,8 +473,10 @@ const {
                             Bill Start Date <span className="text-red-500">*</span>
                         </label>
                         <DatePicker
-                            selected={startDate}
-                            onChange={(date) => setStartDate(date)}
+                            selected={startDate ? new Date(`${startDate}T00:00:00`) : null}
+                            onChange={(date) => {
+                                setStartDate(date ? formatLocalDate(date) : "");
+                            }}
                             dateFormat="dd MMM yyyy"
                             className={inputClass}
                             placeholderText="Select Start date"
@@ -480,8 +492,10 @@ const {
                             Bill End Date <span className="text-red-500">*</span>
                         </label>
                         <DatePicker
-                            selected={endDate}
-                            onChange={(date) => setEndDate(date)}
+                            selected={endDate ? new Date(`${endDate}T00:00:00`) : null}
+                            onChange={(date) => {
+                                setEndDate(date ? formatLocalDate(date) : "");
+                            }}
                             dateFormat="dd MMM yyyy"
                             placeholderText="Select end date"
                             className={inputClass}

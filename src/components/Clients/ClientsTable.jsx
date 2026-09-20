@@ -5,8 +5,6 @@ import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import useDebounce from "../hooks/useDebounce";
 import {
-  useCancelNewBooking,
-  useClientFromNewBooking,
   useClients,
 } from "./services";
 import usePersistedFilters from "../hooks/usePersistedFilters";
@@ -18,6 +16,7 @@ import BedHistoryModal from "./BedHistoryModal";
 import ClientsFilter from "./ClientsFilter";
 import ClientVacationModal from "./ClientVacationModal";
 import { useAuthorization } from "../../context/AuthorizationContext";
+import TableSkeleton from "../common/TableSkelton";
 const ClientsTable = () => {
   const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
 
@@ -377,6 +376,9 @@ const ClientsTable = () => {
                     )}
                   </tr>
                 </thead>
+                   {isClients ? (
+                  <TableSkeleton rows={20} columns={20} />
+                ) : (
                 <tbody>
                   {paginatedData?.length > 0 ? (
                     paginatedData.map((item, index) => {
@@ -994,6 +996,7 @@ const ClientsTable = () => {
                     </tr>
                   )}
                 </tbody>
+                )}
               </table>
             </div>
           </div>

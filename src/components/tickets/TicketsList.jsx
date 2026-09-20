@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import {
-    exportTicketsData,
+  exportTicketsData,
   getTicketsData,
   useDeleteTicketData,
   useTicketsData,
@@ -33,7 +33,7 @@ import ExportDrawer from "./ExportDrawer";
 import TableSkeleton from "../common/TableSkelton";
 import ConfirmModal from "../common/ConfirmModal";
 import { toast } from "react-toastify";
-
+import { useAuthorization } from "../../context/AuthorizationContext";
 const priorityColors = {
   Critical: "text-red-700",
   High: "text-red-500",
@@ -72,7 +72,14 @@ const TicketsList = () => {
     updateFilters: updateTicketsState,
     resetFilters: resetTicketsState,
   } = usePersistedFilters("tickets_list_state", DEFAULT_TICKETS_STATE);
+  const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
 
+  const canAddTicket = canAdd("tickets");
+  const canEditTicket = canEdit("tickets");
+  const canDeleteTicket = canDelete("tickets");
+  const canViewTicket = canSingleView("tickets");
+
+  const showActions = canViewTicket || canEditTicket || canDeleteTicket;
   const search = ticketsState.search;
   const filters = ticketsState.filters;
   const currentPage = ticketsState.currentPage;
@@ -243,71 +250,64 @@ const TicketsList = () => {
     });
   };
 
-const handleSelectAll = () => {
-        setSelectedTickets((prev) => {
-            const newSet = new Set(prev);
+  const handleSelectAll = () => {
+    setSelectedTickets((prev) => {
+      const newSet = new Set(prev);
 
-            const currentPageIds = apiData.map(ticket => ticket.ticketId);
+      const currentPageIds = apiData.map((ticket) => ticket.ticketId);
 
-            const allSelected = currentPageIds.every(id => newSet.has(id));
-            if (allSelected) {
-                // current page unselect
-                currentPageIds.forEach(id => newSet.delete(id));
-            } else {
-                // current page select
-                currentPageIds.forEach(id => newSet.add(id));
-            }
-            return newSet;
-        });
-    };
+      const allSelected = currentPageIds.every((id) => newSet.has(id));
+      if (allSelected) {
+        // current page unselect
+        currentPageIds.forEach((id) => newSet.delete(id));
+      } else {
+        // current page select
+        currentPageIds.forEach((id) => newSet.add(id));
+      }
+      return newSet;
+    });
+  };
 
-    // Export functionality
-    const handleSelectedColoum = () => { // Get selected tickets data
-        setShowColumnSelector(!showColumnSelector)
-    };
+  // Export functionality
+  const handleSelectedColoum = () => {
+    // Get selected tickets data
+    setShowColumnSelector(!showColumnSelector);
+  };
 
-    const handleExport = async () => {
-        try {
-            setIsExporting(true);
-            const columnsToExport = fullHeaders.filter((header) =>
-                selectedColumns.size > 0
-                    ? selectedColumns.has(header.key)
-                    : true
-            );
-            if (columnsToExport.length === 0) {
-                toast.dismiss()
-                toast.error("No columns selected for export!");
-                return;
-            }
-            const blob = await exportTicketsData({
-                search: debouncedSearch,
-                filters,
-                ticketIds: [...selectedTickets],
-                columns: columnsToExport.map((column) => column.key),
-            });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `tickets-${new Date()
-                .toISOString()
-                .split("T")[0]}.csv`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-            toast.success("Tickets exported successfully");
-            setShowColumnSelector(false);
-        } catch (error) {
-            toast.dismiss()
-            toast.error(
-                error?.response?.data?.message ||
-                "Failed to export tickets"
-            );
-        } finally {
-            setIsExporting(false);
-        }
-    };
-
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      const columnsToExport = fullHeaders.filter((header) =>
+        selectedColumns.size > 0 ? selectedColumns.has(header.key) : true,
+      );
+      if (columnsToExport.length === 0) {
+        toast.dismiss();
+        toast.error("No columns selected for export!");
+        return;
+      }
+      const blob = await exportTicketsData({
+        search: debouncedSearch,
+        filters,
+        ticketIds: [...selectedTickets],
+        columns: columnsToExport.map((column) => column.key),
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `tickets-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Tickets exported successfully");
+      setShowColumnSelector(false);
+    } catch (error) {
+      toast.dismiss();
+      toast.error(error?.response?.data?.message || "Failed to export tickets");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const filterLabels = {
     propertyCode: "Property Code",
@@ -345,12 +345,13 @@ const handleSelectAll = () => {
                 {`Total Tickets: ${totalRecords}`}
               </p>
             </div>
-
-            <Link to="/tickets/create">
-              <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                + Add Ticket
-              </button>
-            </Link>
+            {canAddTicket && (
+              <Link to="/tickets/create">
+                <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                  + Add Ticket
+                </button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -504,9 +505,11 @@ const handleSelectAll = () => {
                   <th className="p-3 text-left">Updated Date Time</th>
                   <th className="p-3 text-left">workLogs</th>
                   <th className="p-3 text-left">Location</th>
-                  <th className="sticky right-0  bg-gray-100 p-3 text-center shadow-md">
-                    Actions
-                  </th>
+                  {showActions && (
+                    <th className="sticky right-0 bg-gray-100 p-3 text-center shadow-md">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               {isTicketData ? (
@@ -547,7 +550,9 @@ const handleSelectAll = () => {
                           {formatDateAndTime(new Date(item.dateCreated))}
                         </td>
 
-                        <td className="p-3">{item?.propertyId?.propertyCode}</td>
+                        <td className="p-3">
+                          {item?.propertyId?.propertyCode}
+                        </td>
 
                         <td className="p-3">
                           <div>
@@ -669,35 +674,49 @@ const handleSelectAll = () => {
                             <div className="text-xs text-gray-500">-</div>
                           )}
                         </td>
-                        <td className="p-3">{item?.propertyId?.propertyLocation}</td>
-
-                        <td className="sticky right-0 z-20 bg-white p-3 shadow-md">
-                          <div className="flex justify-center gap-2">
-                            <Link to={`/tickets/view/${item._id}`}>
-                              <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
-                                <Eye size={16} />
-                              </button>
-                            </Link>
-
-                            <Link
-                              to={`/tickets/edit/${item._id}`}
-                              state={{
-                                filters,
-                                search: debouncedSearch,
-                              }}
-                            >
-                              <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
-                                <Pencil size={16} />
-                              </button>
-                            </Link>
-                            <button
-                              onClick={() => handleDelete(item._id)}
-                              className="p-2 bg-red-100 rounded-lg hover:bg-red-200"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
+                        <td className="p-3">
+                          {item?.propertyId?.propertyLocation}
                         </td>
+
+                        {showActions && (
+                          <td className="sticky right-0 z-20 bg-white p-3 shadow-md">
+                            <div className="flex justify-center gap-2">
+                              {/* View */}
+                              {canViewTicket && (
+                                <Link to={`/tickets/view/${item._id}`}>
+                                  <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
+                                    <Eye size={16} />
+                                  </button>
+                                </Link>
+                              )}
+
+                              {/* Edit */}
+                              {canEditTicket && (
+                                <Link
+                                  to={`/tickets/edit/${item._id}`}
+                                  state={{
+                                    filters,
+                                    search: debouncedSearch,
+                                  }}
+                                >
+                                  <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
+                                    <Pencil size={16} />
+                                  </button>
+                                </Link>
+                              )}
+
+                              {/* Delete */}
+                              {canDeleteTicket && (
+                                <button
+                                  onClick={() => handleDelete(item._id)}
+                                  className="p-2 bg-red-100 rounded-lg hover:bg-red-200"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))
                   ) : (
@@ -769,7 +788,7 @@ const handleSelectAll = () => {
         selectedTickets={selectedTickets}
         totalTickets={apiData.length}
         onExport={handleExport}
-        isExporting = {isExporting}
+        isExporting={isExporting}
       />
     </>
   );
