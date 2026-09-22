@@ -250,6 +250,10 @@ function EBCalculationData() {
                   </th>
 
                   <th className="p-3 text-left">
+                    EB Month
+                  </th>
+
+                  <th className="p-3 text-left">
                     Clients
                   </th>
 
@@ -374,6 +378,19 @@ function EBCalculationData() {
                             {item.EBEndDate || "-"}
                           </td>
 
+                        <td className="p-3">
+                            {item.EBEndDate
+                              ? (() => {
+                                const date = new Date(item.EBEndDate);
+                                date.setMonth(date.getMonth() + 1);
+
+                                return date.toLocaleDateString("en-US", {
+                                  month: "short",
+                                  year: "numeric",
+                                });
+                              })()
+                              : "-"}
+                          </td>
                           {/* CLIENT COUNT */}
 
                           <td className="p-3">
@@ -420,8 +437,8 @@ function EBCalculationData() {
                                   handleExpandRow(item._id)
                                 }
                                 className={`px-2 rounded-lg transition ${expandedRow === item._id
-                                    ? "bg-red-100 text-red-600 hover:bg-red-200"
-                                    : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                                  ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                  : "bg-blue-100 text-blue-600 hover:bg-blue-200"
                                   }`}
                                 title={
                                   expandedRow === item._id
@@ -429,9 +446,9 @@ function EBCalculationData() {
                                     : "View Client Details"
                                 }
                               >
-                              <div className="flex justify-center items-center gap-2">
-                                 <Eye size={16} /> View
-                              </div>
+                                <div className="flex justify-center items-center gap-2">
+                                  <Eye size={16} /> View
+                                </div>
                               </button>
 
                             </div>
@@ -626,7 +643,7 @@ function EBCalculationData() {
                                           </th>
 
                                           <th className="p-3 text-left">
-                                            Total Client EB
+                                            Total Per Client EB
                                           </th>
 
                                           {/* <th className="p-3 text-left">

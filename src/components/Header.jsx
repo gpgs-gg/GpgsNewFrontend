@@ -5,11 +5,7 @@ import { useLogout } from "../auth/services";
 import { CiLogout } from "react-icons/ci";
 import { IoIosNotificationsOutline } from "react-icons/io";
 import { FaCalendarCheck, FaUserCircle } from "react-icons/fa";
-const Header = ({
-  collapsed,
-  setCollapsed,
-  setMobileOpen,
-}) => {
+const Header = ({ collapsed, setCollapsed, setMobileOpen }) => {
   const { user, loading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { mutate: logoutUser, isPending } = useLogout();
@@ -24,12 +20,12 @@ const Header = ({
   const handleAttendanceClick = () => {
     navigate("/check-in-out");
   };
-  const notificationCount = 2
+  const notificationCount = 2;
   return (
     <header
       className={`
         fixed top-0 right-0 h-16 bg-white shadow-md z-30
-        flex items-center justify-between px-4 transition-all duration-300
+        flex items-center  justify-between px-2 sm:px-4  transition-all duration-300
         left-0
         ${collapsed ? "md:left-20" : "md:left-64"}
       `}
@@ -58,27 +54,24 @@ const Header = ({
       </div>
 
       {/* Right Side */}
-      {/* Right Side */}
-      <div className="flex justify-center items-center gap-10">
-           {/* TODAY'S ATTENDANCE */}
+      <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
+        {/* TODAY'S ATTENDANCE */}
+        {["employee", "admin"].includes(user?.role?.toLowerCase()) && (
+          <button
+            type="button"
+            onClick={handleAttendanceClick}
+            className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-green-200 bg-green-50 px-2 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-green-700 transition hover:bg-green-100"
+          >
+            <FaCalendarCheck className="text-green-600" />
 
-        <button
-          type="button"
-          onClick={handleAttendanceClick}
-          className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 transition hover:bg-green-100"
-        >
-          <FaCalendarCheck className="text-green-600" />
+            <span className="hidden sm:inline">Today's Attendance</span>
 
-          <span className="hidden sm:inline">Today's Attendance</span>
-
-          <span className="sm:hidden">Attendance</span>
-        </button>
-
+            <span className="sm:hidden">Attendance</span>
+          </button>
+        )}
         <div className="relative cursor-pointer">
           {/* daily attendance check in check out */}
-     
           <IoIosNotificationsOutline className="text-2xl" />
-
           {notificationCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
               {notificationCount > 99 ? "99+" : notificationCount}
@@ -86,25 +79,21 @@ const Header = ({
           )}
         </div>
         <div className="p-3">
-          <div className="flex items-center gap-3 cursor-pointer rounded-lg">
+          <div className="flex items-center gap-2 sm:gap-3 cursor-pointer rounded-lg">
             {user?.profileImage ? (
               <img
                 src={user.profileImage}
                 alt={user.name}
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
               />
             ) : (
-              <FaUserCircle className="w-10 h-10 text-gray-400" />
+              <FaUserCircle className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
             )}
 
             {!loading && isAuthenticated && user && (
-              <div className="overflow-hidden capitalize">
-                <p className="font-semibold truncate">
-                  {user.name}
-                </p>
-                <p className="text-xs text-slate-500 ">
-                  {user.role}
-                </p>
+              <div className="hidden sm:block overflow-hidden capitalize">
+                <p className="font-semibold truncate">{user.name}</p>
+                <p className="text-xs text-slate-500">{user.role}</p>
               </div>
             )}
           </div>

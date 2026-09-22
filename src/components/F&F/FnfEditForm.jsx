@@ -98,11 +98,11 @@ function FnfEditForm({ client, onClose }) {
 
     const due = Number(client?.latestRentHistory?.currentDue || 0);
 
-    const deposit = Number(client?.latestRentHistory.depositAmount || 0);
+    // const deposit = Number(client?.latestRentHistory.depositAmount || 0);
 
     reset({
       currentDue: due,
-      totalPaidDeposit: deposit,
+      totalPaidDeposit: client.fnf?.totalPaidDeposit,
       bankDetailReceived: client?.fnf?.bankDetailReceived,
       remarks: client?.fnf?.remarks,
       status: client?.fnf?.status,
@@ -161,11 +161,11 @@ function FnfEditForm({ client, onClose }) {
     // NEW ATTACHMENTS
     // =========================================
 
-    if (formData.status === "HD") {
+    // if (formData.status === "HD") {
       handoverAttachments.forEach((file) => {
         data.append("handoverAttachment", file);
       });
-    }
+    // }
 
     updateClientData(
       {

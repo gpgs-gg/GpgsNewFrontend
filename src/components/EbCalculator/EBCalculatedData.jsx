@@ -11,7 +11,7 @@ function EBCalculationData() {
   const [search, setSearch] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [expandedComment, setExpandedComment] = useState(null);
   // Expanded client details row
   const [expandedRow, setExpandedRow] = useState(null);
 
@@ -248,6 +248,9 @@ function EBCalculationData() {
                   <th className="p-3 text-left">
                     EB End Date
                   </th>
+                  <th className="p-3 text-left">
+                    EB Month
+                  </th>
 
                   <th className="p-3 text-left">
                     Clients
@@ -374,6 +377,19 @@ function EBCalculationData() {
                             {item.EBEndDate || "-"}
                           </td>
 
+                          <td className="p-3">
+                            {item.EBEndDate
+                              ? (() => {
+                                const date = new Date(item.EBEndDate);
+                                date.setMonth(date.getMonth() + 1);
+
+                                return date.toLocaleDateString("en-US", {
+                                  month: "short",
+                                  year: "numeric",
+                                });
+                              })()
+                              : "-"}
+                          </td>
                           {/* CLIENT COUNT */}
 
                           <td className="p-3">
@@ -420,8 +436,8 @@ function EBCalculationData() {
                                   handleExpandRow(item._id)
                                 }
                                 className={`px-2 rounded-lg transition ${expandedRow === item._id
-                                    ? "bg-red-100 text-red-600 hover:bg-red-200"
-                                    : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                                  ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                  : "bg-blue-100 text-blue-600 hover:bg-blue-200"
                                   }`}
                                 title={
                                   expandedRow === item._id
@@ -429,9 +445,9 @@ function EBCalculationData() {
                                     : "View Client Details"
                                 }
                               >
-                              <div className="flex justify-center items-center gap-2">
-                                 <Eye size={16} /> View
-                              </div>
+                                <div className="flex justify-center items-center gap-2">
+                                  <Eye size={16} /> View
+                                </div>
                               </button>
 
                             </div>
@@ -626,7 +642,7 @@ function EBCalculationData() {
                                           </th>
 
                                           <th className="p-3 text-left">
-                                            Total Client EB
+                                            Total Per Client EB
                                           </th>
 
                                           {/* <th className="p-3 text-left">
@@ -735,7 +751,47 @@ function EBCalculationData() {
 
                                             {/* COMMENTS */}
                                             <td className="p-3">
-                                              {client.Comments1 || "-"}
+                                              {(() => {
+                                                const comment = [client.Comments1, client.Comments2]
+                                                  .filter(Boolean)
+                                                  .join(" | ");
+
+                                                if (!comment) return "-";
+
+                                                const isExpanded = expandedComment === client._id;
+                                                const shouldShowButton = comment.length > 40;
+
+                                                return (
+                                                  <div className="max-w-md">
+                                                    <div
+                                                      className={
+                                                        isExpanded
+                                                          ? "whitespace-pre-wrap wrap-break-words"
+                                                          : "truncate"
+                                                      }
+                                                      title={!isExpanded ? comment : ""}
+                                                    >
+                                                      {isExpanded
+                                                        ? comment
+                                                        : comment.length > 40
+                                                          ? `${comment.substring(0, 40)}...`
+                                                          : comment}
+                                                    </div>
+
+                                                    {shouldShowButton && (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                          setExpandedComment(isExpanded ? null : client._id)
+                                                        }
+                                                        className="text-blue-600 hover:text-blue-800 text-xs mt-1"
+                                                      >
+                                                        {isExpanded ? "View Less" : "View More"}
+                                                      </button>
+                                                    )}
+                                                  </div>
+                                                );
+                                              })()}
                                             </td>
 
                                           </tr>

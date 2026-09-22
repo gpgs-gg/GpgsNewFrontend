@@ -259,6 +259,7 @@ const EmployeesTable = () => {
     { key: "EmployeeName", label: "Employee Name" },
     { key: "loginEnabled", label: "Enabled Login" },
     { key: "DepartmentName", label: "Department" },
+    { key: "TeamCode", label: "Team Code" },
     { key: "Designation", label: "Designation" },
     { key: "dateOfJoining", label: "Date of Joining" },
     { key: "dateOfBirth", label: "Date of Birth" },

@@ -310,8 +310,9 @@ const NewBookingTable = () => {
     createClientFromBooking(
       {
         bookingId: selectedBooking._id,
-        narration: `Amount: ₹${data.paymentAmount || 0} - Narration: ${data.narration || ""}${data.remarks ? ` - Remarks: ${data.remarks}` : ""
-          }`,
+        narration: `Amount: ₹${data.paymentAmount || 0} - Narration: ${data.narration || ""}${
+          data.remarks ? ` - Remarks: ${data.remarks}` : ""
+        }`,
         paymentAmount: data.paymentAmount,
         remarks: data.remarks,
 
@@ -414,8 +415,8 @@ const NewBookingTable = () => {
         toast.dismiss();
         toast.error(
           error?.response?.data?.message ||
-          error?.message ||
-          "Something went wrong",
+            error?.message ||
+            "Something went wrong",
         );
         setShowDeleteModal(false);
         setDeleteId(null);
@@ -425,7 +426,7 @@ const NewBookingTable = () => {
 
   const handlePaymentVerification = (item) => {
     if (!canEditBooking) {
-      toast.dismiss()
+      toast.dismiss();
       toast.error("You don't have permission to verify");
       return;
     }
@@ -480,7 +481,7 @@ const NewBookingTable = () => {
     user?.Name || user?.name || user?.fullName || user?.username || "System";
   const handleStatusToggle = (item) => {
     if (!canEditBooking) {
-      toast.dismiss()
+      toast.dismiss();
       toast.error("You don't have permission to Update Status");
       return;
     }
@@ -507,8 +508,8 @@ const NewBookingTable = () => {
           toast.dismiss();
           toast.success(
             response?.message ||
-            response?.data?.message ||
-            "Status updated successfully",
+              response?.data?.message ||
+              "Status updated successfully",
           );
         },
         onError: (error) => {
@@ -622,11 +623,12 @@ const NewBookingTable = () => {
 
           <div className="flex-1 overflow-hidden">
             <div className="overflow-auto h-full">
-              <table className="w-full whitespace-nowrap border-collapse">
+              <table className="min-w-max w-full whitespace-nowrap border-collapse">
                 <thead className="sticky top-0 bg-gray-100 z-10">
                   <tr>
                     <th className="p-3 text-center">Sr No.</th>
                     <th className="p-3 text-center">Client Name</th>
+
                     <th className="p-3 text-center">Status</th>
                     <th className="p-3 text-center">Calling No</th>
                     <th className="p-3 text-center">Whatsapp No</th>
@@ -645,10 +647,11 @@ const NewBookingTable = () => {
                     <th className="p-3 text-center">Total Amt</th>
                     <th className="p-3 text-center">Booking Amt</th>
                     <th className="p-3 text-center">Balance Amt</th>
+                    <th className="p-3 text-center">Team Code</th>
 
                     {/* Sticky Header */}
                     {showActions && (
-                      <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
+                      <th className="p-3 text-center sticky right-0 bg-gray-100 z-80 min-w-[120px] shadow-[-4px_0_6px_rgba(0,0,0,0.1)] whitespace-nowrap">
                         Actions
                       </th>
                     )}
@@ -683,19 +686,21 @@ const NewBookingTable = () => {
                                   />
                                   <div className="w-11 h-5 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors">
                                     <div
-                                      className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${item.status === "Booked"
-                                        ? "translate-x-5"
-                                        : "translate-x-0.5"
-                                        }`}
+                                      className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${
+                                        item.status === "Booked"
+                                          ? "translate-x-5"
+                                          : "translate-x-0.5"
+                                      }`}
                                     />
                                   </div>
                                 </label>
 
                                 <span
-                                  className={`text-sm font-medium ${item.status === "Booked"
-                                    ? "text-green-600"
-                                    : "text-red-600"
-                                    }`}
+                                  className={`text-sm font-medium ${
+                                    item.status === "Booked"
+                                      ? "text-green-600"
+                                      : "text-red-600"
+                                  }`}
                                 >
                                   {item.status === "Booked"
                                     ? "Booked"
@@ -807,12 +812,15 @@ const NewBookingTable = () => {
                               ₹
                               {item.balanceAmount?.toLocaleString("en-IN") || 0}
                             </td>
-
+                            <td className="p-3 text-center">
+                              {item.teamCode || "-"}
+                            </td>
                             {/* Sticky Actions Column */}
                             {showActions && (
                               <td
-                                className={`p-3 sticky right-0 bg-white ${openMenuId === item._id ? "z-[9999]" : "z-20"
-                                  } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
+                                className={`p-3 sticky right-0 bg-white ${
+                                  openMenuId === item._id ? "z-[9999]" : "z-0"
+                                } min-w-[150px] shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
                               >
                                 <div className="flex justify-center relative">
                                   <button
@@ -825,10 +833,11 @@ const NewBookingTable = () => {
                                           : item._id,
                                       );
                                     }}
-                                    className={`p-2 rounded-md transition-colors ${openMenuId === item._id
-                                      ? "bg-blue-100 text-blue-600"
-                                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                      }`}
+                                    className={`p-2 rounded-md transition-colors ${
+                                      openMenuId === item._id
+                                        ? "bg-blue-100 text-blue-600"
+                                        : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                    }`}
                                   >
                                     <MoreVertical size={20} />
                                   </button>

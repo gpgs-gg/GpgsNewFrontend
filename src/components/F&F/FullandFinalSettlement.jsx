@@ -359,16 +359,21 @@ function FullandFinalSettlement() {
                                              {item.emailId || "-"}
                                          </td> */}
 
-                          <td className="p-3">
+                      <td className="p-3 text-center">
                             <span
-                              className={`px-2 py-1 rounded-full text-md font-semibold ${item.stayType === "P. Booked"
-                                  ? " text-green-700"
-                                  : item.stayType === "T. Booked"
-                                    ? " text-yellow-700"
-                                    : " text-gray-700"
-                                }`}
+                              className={`px-2.5 py-1 rounded-full text-md font-semibold ${
+                                item.bookingType === "Daily"
+                                  ? " text-indigo-700"
+                                  : item.stayType === "P. Booked"
+                                    ? " text-emerald-700"
+                                    : item.stayType === "T. Booked"
+                                      ? " text-amber-700"
+                                      : " text-gray-700"
+                              }`}
                             >
-                              {item.stayType || "-"}
+                              {item.bookingType === "Daily"
+                                ? "Daily"
+                                : item.stayType || "-"}
                             </span>
                           </td>
 

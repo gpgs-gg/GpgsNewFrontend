@@ -450,18 +450,11 @@ const AvailableBedsTable = () => {
                     {paginatedData?.length > 0 ? (
                       paginatedData.map((item, index) => {
                         const getRedFlagStatus = (item) => {
-                          const client = item?.client;
+                          const nld = item?.client?.NLD;
 
-                          // Client nahi hai => Red Flag
-                          if (!client) {
-                            return "Red Flag";
-                          }
-
-                          const nld = client?.noticeLastDate;
-
-                          // Notice Last Date nahi hai => No Red Flag
+                          // NLD nahi hai => Red Flag
                           if (!nld) {
-                            return "-";
+                            return "Red Flag";
                           }
 
                           const today = new Date();
@@ -473,7 +466,12 @@ const AvailableBedsTable = () => {
                           const diffDays =
                             (nldDate - today) / (1000 * 60 * 60 * 24);
 
-                          return diffDays <= 15 ? "Red Flag" : "-";
+                          // NLD 15 days ke andar hai ya date cross ho chuki hai
+                          if (diffDays <= 15) {
+                            return "Red Flag";
+                          }
+
+                          return "-";
                         };
 
                         const getBedAvailableFrom = (item) => {

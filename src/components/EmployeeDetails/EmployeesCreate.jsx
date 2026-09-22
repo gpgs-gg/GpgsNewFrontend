@@ -178,7 +178,7 @@ const EmployeesCreateEdit = () => {
     "parentcompanyoptions",
     "roleoptions",
     "subsidiaryoptions",
-    "teamcode",
+    "teamCode",
     "activeinactivestatus",
   ]);
 
@@ -211,7 +211,7 @@ const EmployeesCreateEdit = () => {
       EmployeeID: employee.employeeId || "",
       Name: employee.employeeName || "",
       department: employee.department || "",
-      teamCode: employee.teamcode || "",
+      teamCode: employee.teamCode || "",
       Designation: employee.designation || "",
       ParentCompany: employee.parentCompany || "",
       Subsidiary: employee.subsidiary || "",

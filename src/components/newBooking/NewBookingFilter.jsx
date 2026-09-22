@@ -105,10 +105,20 @@ const NewBookingFilter = ({
     { value: "Temporary", label: "Temporary" },
   ];
 
-  const teamCodeOptions = [
-    { value: "Sales 1", label: "Sales 1" },
-    { value: "Sales 2", label: "Sales 2" },
-  ];
+  // const teamCodeOptions = [
+  //   { value: "Sales-1", label: "Sales-1" },
+  //   { value: "Sales-2", label: "Sales-2" },
+  // ];
+  const teamCodeOptions = useMemo(() => {
+    const teamCodes = [
+      ...new Set(apiData?.map((item) => item?.teamCode).filter(Boolean)),
+    ];
+
+    return teamCodes.map((teamCode) => ({
+      value: teamCode,
+      label: teamCode,
+    }));
+  }, [apiData]);
   const onSubmit = (data) => {
     const filters = {
       ...data,
@@ -280,9 +290,9 @@ const NewBookingFilter = ({
 
       propertyId: initialFilters.propertyId
         ? {
-          value: initialFilters.propertyId,
-          label: initialFilters.propertyCode || initialFilters.propertyId,
-        }
+            value: initialFilters.propertyId,
+            label: initialFilters.propertyCode || initialFilters.propertyId,
+          }
         : null,
 
       propertyLocation: initialFilters.propertyLocation || "",
@@ -291,11 +301,11 @@ const NewBookingFilter = ({
 
       temporaryPropertyId: initialFilters.temporaryPropertyId
         ? {
-          value: initialFilters.temporaryPropertyId,
-          label:
-            initialFilters.temporaryPropertyCode ||
-            initialFilters.temporaryPropertyId,
-        }
+            value: initialFilters.temporaryPropertyId,
+            label:
+              initialFilters.temporaryPropertyCode ||
+              initialFilters.temporaryPropertyId,
+          }
         : null,
 
       temporaryBedNo: initialFilters.temporaryBedNo || "",
@@ -367,8 +377,9 @@ const NewBookingFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-[380px] bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 h-full w-[380px] bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         <div className="flex justify-between items-center p-5 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600">
           <h2 className="font-bold text-lg">Filters</h2>
@@ -531,8 +542,9 @@ const NewBookingFilter = ({
                   control={control}
                   render={({ field }) => (
                     <div
-                      className={`datepicker-group ${field.value ? "has-value" : ""
-                        }`}
+                      className={`datepicker-group ${
+                        field.value ? "has-value" : ""
+                      }`}
                     >
                       <DatePicker
                         selected={field.value ? new Date(field.value) : null}
@@ -566,8 +578,9 @@ const NewBookingFilter = ({
                   control={control}
                   render={({ field }) => (
                     <div
-                      className={`datepicker-group ${field.value ? "has-value" : ""
-                        }`}
+                      className={`datepicker-group ${
+                        field.value ? "has-value" : ""
+                      }`}
                     >
                       <DatePicker
                         selected={field.value ? new Date(field.value) : null}
@@ -611,8 +624,9 @@ const NewBookingFilter = ({
                   control={control}
                   render={({ field }) => (
                     <div
-                      className={`datepicker-group ${field.value ? "has-value" : ""
-                        }`}
+                      className={`datepicker-group ${
+                        field.value ? "has-value" : ""
+                      }`}
                     >
                       <DatePicker
                         selected={field.value ? new Date(field.value) : null}
@@ -646,8 +660,9 @@ const NewBookingFilter = ({
                   control={control}
                   render={({ field }) => (
                     <div
-                      className={`datepicker-group ${field.value ? "has-value" : ""
-                        }`}
+                      className={`datepicker-group ${
+                        field.value ? "has-value" : ""
+                      }`}
                     >
                       <DatePicker
                         selected={field.value ? new Date(field.value) : null}

@@ -12,9 +12,15 @@ import { useParams } from "react-router-dom";
 import { useRentHistoryData } from "./services";
 import { IoIosArrowBack } from "react-icons/io";
 import useDebounce from "../../components/hooks/useDebounce";
+import { useAuthorization } from "../../context/AuthorizationContext";
 const RentLadgerTable = () => {
   const { clientId } = useParams();
+  const { canEdit, canSingleView } = useAuthorization();
 
+  const canEditRentLedger = canEdit("rent_ledger");
+  const canViewRentLedger = canSingleView("rent_ledger");
+
+  const showActions = canViewRentLedger || canEditRentLedger;
   const [filters, setFilters] = useState({});
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
@@ -79,20 +85,20 @@ const RentLadgerTable = () => {
                   </p>
                 )}
               </div>
-           <button
-  type="button"
-  onClick={() => window.history.back()}
-  className="inline-flex items-center  px-4 py-1 rounded-lg
+              <button
+                type="button"
+                onClick={() => window.history.back()}
+                className="inline-flex items-center  px-4 py-1 rounded-lg
              border border-gray-300 bg-white text-gray-700
              text-sm font-medium
              hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900
              active:bg-gray-100
              focus:outline-none focus:ring-2 focus:ring-gray-200
              transition-all duration-200 shadow-sm mr-3"
->
-  <IoIosArrowBack className="text-base font-bold" />
-  Cancel
-</button>
+              >
+                <IoIosArrowBack className="text-base font-bold" />
+                Cancel
+              </button>
             </div>
           </div>
 
@@ -224,9 +230,11 @@ const RentLadgerTable = () => {
                   <th className="p-3 text-center">Remarks</th>
 
                   {/* Sticky Header */}
-                  <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
-                    Actions
-                  </th>
+                  {showActions && (
+                    <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -235,12 +243,13 @@ const RentLadgerTable = () => {
                     <tr
                       key={item._id}
                       className={`border-t border-gray-200 whitespace-nowrap text-center
-    ${item.monthName === currentMonth &&
-                          item.year === currentYear &&
-                          item.paymentStatus !== "Shifted"
-                          ? "bg-green-100 hover:bg-green-100"
-                          : "hover:bg-gray-50"
-                        }`}
+    ${
+      item.monthName === currentMonth &&
+      item.year === currentYear &&
+      item.paymentStatus !== "Shifted"
+        ? "bg-green-100 hover:bg-green-100"
+        : "hover:bg-gray-50"
+    }`}
                     >
                       <td className="p-3 font-bold">
                         {item.propertyId?.propertyCode}
@@ -248,14 +257,15 @@ const RentLadgerTable = () => {
                       <td className="p-3">
                         <span
                           className={`px-3 py-1 text-sm rounded-full font-semibold
-                             ${item.paymentStatus === "Paid"
-                              ? "bg-green-100 text-green-700"
-                              : item.paymentStatus === "Partial"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : item.paymentStatus === "Shifted"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-red-100 text-red-700"
-                            }`}
+                             ${
+                               item.paymentStatus === "Paid"
+                                 ? "bg-green-100 text-green-700"
+                                 : item.paymentStatus === "Partial"
+                                   ? "bg-yellow-100 text-yellow-700"
+                                   : item.paymentStatus === "Shifted"
+                                     ? "bg-blue-100 text-blue-700"
+                                     : "bg-red-100 text-red-700"
+                             }`}
                         >
                           {item.paymentStatus}
                         </span>
@@ -265,28 +275,30 @@ const RentLadgerTable = () => {
                       <td className="p-3">{item.year}</td>
                       {/* <td className="p-3">{item.stayType}</td> */}
                       <td
-                        className={`p-3 font-semibold ${item.currentDue > 0
-                          ? "text-red-600"
-                          : item.currentDue < 0
-                            ? "text-green-600"
-                            : "text-gray-700"
-                          }`}
+                        className={`p-3 font-semibold ${
+                          item.currentDue > 0
+                            ? "text-red-600"
+                            : item.currentDue < 0
+                              ? "text-green-600"
+                              : "text-gray-700"
+                        }`}
                       >
                         ₹{item.currentDue}
                       </td>
                       <td className="p-3 text-green-600">
                         <div className="relative group inline-block">
-
                           {/* Total */}
                           <span className="font-semibold cursor-pointer">
-                            ₹{Number(item.totalReceived || 0).toLocaleString("en-IN")}
+                            ₹
+                            {Number(item.totalReceived || 0).toLocaleString(
+                              "en-IN",
+                            )}
                           </span>
 
                           {/* Hover */}
                           {item.totalReceivedHistory?.length > 0 && (
                             <div className="absolute right-0 top-full mt-2 hidden group-hover:block z-[100] w-max">
                               <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3">
-
                                 <div className="text-xs text-gray-500 mb-1">
                                   Payment Breakdown
                                 </div>
@@ -294,15 +306,15 @@ const RentLadgerTable = () => {
                                 <div className="text-sm font-semibold text-green-600 whitespace-nowrap">
                                   {item.totalReceivedHistory
                                     .map((payment) =>
-                                      Number(payment.amount || 0).toLocaleString("en-IN")
+                                      Number(
+                                        payment.amount || 0,
+                                      ).toLocaleString("en-IN"),
                                     )
                                     .join(" + ")}
                                 </div>
-
                               </div>
                             </div>
                           )}
-
                         </div>
                       </td>
                       <td className="p-3 font-semibold">
@@ -317,9 +329,8 @@ const RentLadgerTable = () => {
                       <td className="p-3">₹{item.depositAmount}</td>
                       <td className="p-3">₹{item.processingFees}</td>
 
-    <td className="p-3 text-green-600">
+                      <td className="p-3 text-green-600">
                         <div className="relative group inline-block">
-
                           {/* Total */}
                           <span className="font-semibold cursor-pointer">
                             ₹{Number(item.adjAmt || 0).toLocaleString("en-IN")}
@@ -329,7 +340,6 @@ const RentLadgerTable = () => {
                           {item.adjustedAmountHistory?.length > 0 && (
                             <div className="absolute right-0 top-full mt-2 hidden group-hover:block z-[100] w-max">
                               <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3">
-
                                 <div className="text-xs text-gray-500 mb-1">
                                   Payment Breakdown
                                 </div>
@@ -337,15 +347,15 @@ const RentLadgerTable = () => {
                                 <div className="text-sm font-semibold text-green-600 whitespace-nowrap">
                                   {item.adjustedAmountHistory
                                     .map((payment) =>
-                                      Number(payment.amount || 0).toLocaleString("en-IN")
+                                      Number(
+                                        payment.amount || 0,
+                                      ).toLocaleString("en-IN"),
                                     )
                                     .join(" + ")}
                                 </div>
-
                               </div>
                             </div>
                           )}
-
                         </div>
                       </td>
 
@@ -380,7 +390,7 @@ const RentLadgerTable = () => {
                                   {(() => {
                                     const latestComment =
                                       item.paymentComments[
-                                      item.paymentComments.length - 1
+                                        item.paymentComments.length - 1
                                       ];
 
                                     const date = latestComment?.date
@@ -390,19 +400,19 @@ const RentLadgerTable = () => {
                                     const formattedDate =
                                       date && !isNaN(date.getTime())
                                         ? date.toLocaleDateString("en-GB", {
-                                          day: "2-digit",
-                                          month: "short",
-                                          year: "numeric",
-                                        })
+                                            day: "2-digit",
+                                            month: "short",
+                                            year: "numeric",
+                                          })
                                         : "";
 
                                     const formattedTime =
                                       date && !isNaN(date.getTime())
                                         ? date.toLocaleTimeString("en-US", {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                          hour12: true,
-                                        })
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: true,
+                                          })
                                         : "";
 
                                     const text = latestComment?.comment || "";
@@ -433,19 +443,19 @@ const RentLadgerTable = () => {
                                         const formattedDate =
                                           date && !isNaN(date.getTime())
                                             ? date.toLocaleDateString("en-GB", {
-                                              day: "2-digit",
-                                              month: "short",
-                                              year: "numeric",
-                                            })
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                              })
                                             : "";
 
                                         const formattedTime =
                                           date && !isNaN(date.getTime())
                                             ? date.toLocaleTimeString("en-US", {
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                              hour12: true,
-                                            })
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                                hour12: true,
+                                              })
                                             : "";
 
                                         return (
@@ -475,38 +485,44 @@ const RentLadgerTable = () => {
                       <td className="p-3">{item.remarks || "-"}</td>
 
                       {/* Sticky Actions Column */}
-                      <td
-                        className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${item.monthName === currentMonth &&
-                          Number(item.year) === currentYear &&
-                          item.paymentStatus !== "Shifted"
-                          ? "bg-green-100"
-                          : "bg-white"
+                      {showActions && (
+                        <td
+                          className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${
+                            item.monthName === currentMonth &&
+                            Number(item.year) === currentYear &&
+                            item.paymentStatus !== "Shifted"
+                              ? "bg-green-100"
+                              : "bg-white"
                           }`}
-                      >
-                        <div className="flex justify-center gap-2">
-                          <Link to={`/rent-ledger/view/${item._id}`}>
-                            <button
-                              disabled={
-                                !(
-                                  item.monthName === currentMonth &&
-                                  item.year === currentYear
-                                )
-                              }
-                              className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200"
-                            >
-                              <Eye size={16} />
-                            </button>
-                          </Link>
-
-                          <Link to={`/rent-ledger/edit/${item._id}`}>
-                            <button
-                              // disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
-                              className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                          </Link>
-                          {/* 
+                        >
+                          <div className="flex justify-center gap-2">
+                            {canViewRentLedger && (
+                              <Link to={`/rent-ledger/view/${item._id}`}>
+                                <button
+                                  disabled={
+                                    !(
+                                      item.monthName === currentMonth &&
+                                      item.year === currentYear
+                                    )
+                                  }
+                                  className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                              </Link>
+                            )}
+                            {/* EDIT */}
+                            {canEditRentLedger && (
+                              <Link to={`/rent-ledger/edit/${item._id}`}>
+                                <button
+                                  // disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
+                                  className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
+                                >
+                                  <Pencil size={16} />
+                                </button>
+                              </Link>
+                            )}
+                            {/* 
                           <button
                             onClick={() =>
                               handleDelete(item._id)
@@ -515,8 +531,9 @@ const RentLadgerTable = () => {
                           >
                             <Trash2 size={16} />
                           </button> */}
-                        </div>
-                      </td>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))
                 ) : (

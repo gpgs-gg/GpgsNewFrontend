@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import { useForm, Controller } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
@@ -291,6 +291,11 @@ const NewBookingCreateEdit = () => {
       ),
   })
 
+
+  const [showDojWarningModal, setShowDojWarningModal] = useState(false);
+  const [pendingDoj, setPendingDoj] = useState(null);
+  const [pendingCvd, setPendingCvd] = useState(null);
+  const submitLockRef = useRef(false);
 
   const validationSchema = yup.object({
     ...clientDetailsSchema.fields,
@@ -1013,6 +1018,10 @@ const NewBookingCreateEdit = () => {
 
 
   const handleFinalSubmit = async () => {
+    // Prevent duplicate API calls even if user clicks multiple times
+    // before React has time to update the button's disabled state.
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
     try {
       setIsLoading(true);
 
@@ -1176,10 +1185,12 @@ const NewBookingCreateEdit = () => {
 
               reset();
               setShowConfirmationModal(false);
+              submitLockRef.current = false;
               navigate("/new-bookings");
             },
 
             onError: (error) => {
+              submitLockRef.current = false;
               toast.error(
                 error?.response?.data?.message ||
                 error?.message ||
@@ -1197,10 +1208,12 @@ const NewBookingCreateEdit = () => {
 
             reset();
             setShowConfirmationModal(false);
+            submitLockRef.current = false;
             navigate("/new-bookings");
           },
 
           onError: (error) => {
+            submitLockRef.current = false;
             toast.error(
               error?.response?.data?.message ||
               error?.message ||
@@ -1220,6 +1233,11 @@ const NewBookingCreateEdit = () => {
 
 
   const handleDailySubmit = async () => {
+    // Prevent duplicate API calls even if user clicks multiple times
+    // before React has time to update the button's disabled state.
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
+
     try {
       const data = watch();
 
@@ -1619,7 +1637,7 @@ const NewBookingCreateEdit = () => {
                 )}
               </div>
 
-              <Controller
+              {/* <Controller
                 name="clientDoj"
                 control={control}
                 render={({ field }) => (
@@ -1662,8 +1680,58 @@ const NewBookingCreateEdit = () => {
                     )}
                   </div>
                 )}
-              />
+              /> */}
+              <Controller
+                name="clientDoj"
+                control={control}
+                render={({ field }) => (
+                  <div
+                    className={`datepicker-group ${field.value ? "has-value" : ""
+                      }`}
+                  >
+                    <label className="datepicker-label required-label">
+                      Client DOJ
+                    </label>
 
+                    <DatePicker
+                      isClearable
+                      selected={field.value}
+                      onChange={(date) => {
+                        const selectedBed = bedOptions.find(
+                          (bed) => bed.value === selectedbedId
+                        );
+
+                        const cvd =
+                          selectedBed?.bedData?.client?.clientVacatingDate;
+
+                        if (
+                          date &&
+                          cvd &&
+                          new Date(cvd) > date
+                        ) {
+                          // Selected date temporarily save karo
+                          setPendingDoj(date);
+                          setPendingCvd(cvd);
+                          setShowDojWarningModal(true);
+
+                          return;
+                        }
+
+                        // Normal case
+                        field.onChange(date);
+                      }}
+                      dateFormat="dd MMM yyyy"
+                      className="custom-datepicker"
+                    />
+
+                    {errors.clientDoj && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.clientDoj.message}
+                      </p>
+                    )}
+                  </div>
+                )}
+              />
               <Controller
                 name="clientLastDate"
                 control={control}
@@ -2311,8 +2379,6 @@ const NewBookingCreateEdit = () => {
 
             </>
           )}
-
-
         </div>
       </form>
       <BookingConfirmationModal
@@ -2323,6 +2389,91 @@ const NewBookingCreateEdit = () => {
         onConfirm={handleFinalSubmit}
       />
 
+      {showDojWarningModal && (
+        <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Confirm Client DOJ
+            </h2>
+
+            <div className="text-sm text-gray-600 leading-6 mb-6">
+              <p>
+                Client DOJ is earlier than the existing client's Vacating Date.
+              </p>
+
+              <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <div className="flex justify-between mb-2">
+                  <span className="font-medium text-gray-700">
+                    Client DOJ:
+                  </span>
+                  <span className="text-gray-900">
+                    {pendingDoj
+                      ? new Date(pendingDoj).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })
+                      : "-"}
+                  </span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="font-medium text-gray-700">
+                    Existing Client Vacating Date:
+                  </span>
+                  <span className="text-gray-900">
+                    {pendingCvd
+                      ? new Date(pendingCvd).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })
+                      : "-"}
+                  </span>
+                </div>
+              </div>
+
+              <p className="mt-4">
+                Do you want to continue?
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDojWarningModal(false);
+                  setPendingDoj(null);
+                  setPendingCvd(null);
+                }}
+                className="px-5 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (pendingDoj) {
+                    setValue("clientDoj", pendingDoj, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    });
+                  }
+
+                  setPendingDoj(null);
+                  setPendingCvd(null);
+                  setShowDojWarningModal(false);
+                }}
+                className="px-5 py-2 theme-btn text-white rounded-lg"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

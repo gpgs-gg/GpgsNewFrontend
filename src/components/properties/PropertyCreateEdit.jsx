@@ -66,7 +66,7 @@ const PropertyCreateEdit = () => {
   const isViewOnly = Boolean(id) && !canEditProperty;
   const userName =
     user?.Name || user?.name || user?.fullName || user?.username || "System";
-    const isAdmin = user?.role?.toLowerCase() === "admin";
+  const isAdmin = user?.role?.toLowerCase() === "admin";
   // API hooks and mutations
   const { mutate: submitProperty, isPending: isSubmitProperty } =
     usecreatePropertyData();
@@ -348,7 +348,7 @@ const PropertyCreateEdit = () => {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* property code  */}
             {/* Property Code */}
-        <div className="form-group">
+            <div className="form-group">
               <input
                 {...register("propertyCode", {
                   required: "Property code is required",
@@ -677,6 +677,17 @@ const PropertyCreateEdit = () => {
           <h2 className="text-xl font-semibold mb-4">Utility Details</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* EB Consumer Name */}
+            <div className="form-group">
+              <input
+                {...register("utility.ebConsumerName")}
+                placeholder=" "
+                type="text"
+                className="form-input"
+              />
+              <label className="form-label">EB Consumer Name</label>
+            </div>
+            {/* EB Consumer No */}
             <div className="form-group">
               <input
                 {...register("utility.ebConsumerNo")}
@@ -684,7 +695,7 @@ const PropertyCreateEdit = () => {
                 type="number"
                 className="form-input"
               />
-              <label className="form-label">EB Consumer No </label>
+              <label className="form-label">EB Consumer No</label>
             </div>
             <div className="form-group">
               <input
@@ -695,7 +706,6 @@ const PropertyCreateEdit = () => {
               />
               <label className="form-label">EB Billing Unit </label>
             </div>
-
             <div className="form-group">
               <input
                 {...register("utility.ebStartCycle")}
@@ -707,7 +717,6 @@ const PropertyCreateEdit = () => {
               />
               <label className="form-label">EB Start Cycle</label>
             </div>
-
             <div className="form-group">
               <input
                 {...register("utility.ebEndCycle")}
@@ -719,7 +728,6 @@ const PropertyCreateEdit = () => {
               />
               <label className="form-label">EB End Cycle</label>
             </div>
-
             <div className="form-group">
               <input
                 {...register("utility.ebPcWebLink")}
@@ -738,7 +746,6 @@ const PropertyCreateEdit = () => {
               />
               <label className="form-label">Gas Consumer No </label>
             </div>
-
             <div className="form-group">
               <input
                 {...register("utility.gasBillStartCycle")}
@@ -750,7 +757,6 @@ const PropertyCreateEdit = () => {
               />
               <label className="form-label">Gas Start Cycle</label>
             </div>
-
             <div className="form-group">
               <input
                 {...register("utility.gasBillEndCycle")}
@@ -762,7 +768,6 @@ const PropertyCreateEdit = () => {
               />
               <label className="form-label">Gas End Cycle</label>
             </div>
-
             <div className="form-group">
               <input
                 {...register("utility.waterBillConsumerNo")}
@@ -772,7 +777,6 @@ const PropertyCreateEdit = () => {
               />
               <label className="form-label">Water Bill Consumer No </label>
             </div>
-
             <div className="form-group">
               <input
                 {...register("utility.waterBillStartCycle")}
@@ -784,7 +788,6 @@ const PropertyCreateEdit = () => {
               />
               <label className="form-label">Water Start Cycle</label>
             </div>
-
             <div className="form-group">
               <input
                 {...register("utility.waterBillEndCycle")}

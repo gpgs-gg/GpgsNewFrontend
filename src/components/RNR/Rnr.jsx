@@ -69,7 +69,7 @@ function Rnr() {
     search: debouncedSearch,
     propertyId: filters.propertyId,
   });
-   console.log(1111111111, isLoading)
+  console.log(1111111111, isLoading)
   //  API response ko array me normalize kar rahe hain
   const data = Array.isArray(apiResponse)
     ? apiResponse
@@ -243,6 +243,16 @@ function Rnr() {
 
     setResetTrigger((prev) => prev + 1);
   };
+
+
+  const statusFullForm = {
+    RFH: "Ready for Handover",
+    "F&F C": "F&F Closed",
+    BDR: "Bank Details Revised",
+    "F&F DS": "F&F Details Sent",
+    HD: "Handover Done",
+  };
+
   return (
     <>
       <div className="space-y-5">
@@ -376,6 +386,7 @@ function Rnr() {
                   <th className="p-3 text-left">Calling No</th>
                   {/* <th className="p-3 text-left">Email</th> */}
                   <th className="p-3 text-left">Stay Type</th>
+                  <th className="p-3 text-left">Status</th>
                   <th className="p-3 text-left">Month/Year</th>
                   <th className="p-3 text-left">Rent Date</th>
                   <th className="p-3 text-left">DOJ</th>
@@ -392,78 +403,147 @@ function Rnr() {
                 </tr>
               </thead>
 
- {isFetching ? (
+              {isFetching ? (
                 <TableSkeleton rows={20} columns={20} showStatus showActions />
               ) : (
 
-              <tbody>
-                {data.length > 0 ? (
-                  data.map((item) => {
-                    const rentHistory = item.latestRentHistory || {};
+                <tbody>
+                  {data.length > 0 ? (
+                    data.map((item) => {
+                      const rentHistory = item.latestRentHistory || {};
+                      const getClientStatus = (item) => {
+                        const today = new Date();
 
-                    return (
-                      <tr
-                        key={item._id}
-                        className="border-t border-gray-300 hover:bg-gray-50 whitespace-nowrap"
-                      >
-                        <td className="p-3 font-semibold">
-                          {item.propertyCode || "-"}
-                        </td>
+                        if (item.isBookingCancelled) {
+                          return {
+                            text: "Cancelled",
+                            className:
+                              "bg-red-50 text-red-700 border border-red-200",
+                          };
+                        }
 
-                        <td className="p-3">{item.roomNo || "-"}</td>
+                        // Vacated highest priority
+                        if (item.clientVacatingDate) {
+                          const vacatedDate = new Date(item.clientVacatingDate);
 
-                        <td className="p-3">{item.bedNo || "-"}</td>
+                          if (vacatedDate <= today) {
+                            return {
+                              text: "RFH",
+                              className:
+                                "bg-orange-100 text-orange-700 border border-orange-200",
+                            };
+                          }
+                        }
 
-                        <td className="p-3 font-semibold">
-                          {item.fullName || "-"}
-                        </td>
+                        // Permanent Notice
+                        if (item.noticeStartDate) {
+                          return {
+                            text: "Notice",
+                            className:
+                              "bg-amber-50 text-amber-700 border border-amber-200",
+                          };
+                        }
 
-                        <td className="p-3">{item.whatsappNo || "-"}</td>
+                        return {
+                          text: "Active",
+                          className:
+                            "bg-emerald-50 text-emerald-700 border border-emerald-200",
+                        };
+                      };
+                      return (
+                        <tr
+                          key={item._id}
+                          className="border-t border-gray-300 hover:bg-gray-50 whitespace-nowrap"
+                        >
+                          <td className="p-3 font-semibold">
+                            {item.propertyCode || "-"}
+                          </td>
 
-                        <td className="p-3">{item.callingNo || "-"}</td>
+                          <td className="p-3">{item.roomNo || "-"}</td>
 
-                        {/* <td className="p-3">
+                          <td className="p-3">{item.bedNo || "-"}</td>
+
+                          <td className="p-3 font-semibold">
+                            {item.fullName || "-"}
+                          </td>
+
+                          <td className="p-3">{item.whatsappNo || "-"}</td>
+
+                          <td className="p-3">{item.callingNo || "-"}</td>
+
+                          {/* <td className="p-3">
                                              {item.emailId || "-"}
                                          </td> */}
-                        <td className="p-3">
-                          <span
-                            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
-                              item.stayType === "T. Booked"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : item.stayType === "P. Booked"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            {item.stayType || "-"}
-                          </span>
-                        </td>
-                        <td className="p-3">
-                          {rentHistory.monthName || 0} {rentHistory.year || 0}
-                        </td>
-                        <td className="p-3">Add karna h</td>
-                        <td className="p-3">
-                          {item.clientDoj ? formatDate(item.clientDoj) : "-"}
-                        </td>
-                        <td className="p-3">
-                          {item.noticeStartDate
-                            ? formatDate(item.noticeStartDate)
-                            : "-"}
-                        </td>
+                          <td className="p-3">
+                            <span
+                              className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${item.stayType === "T. Booked"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : item.stayType === "P. Booked"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-gray-100 text-gray-600"
+                                }`}
+                            >
+                              {item.stayType || "-"}
+                            </span>
+                          </td>
+   <td className="p-3 text-center">
+                            {(() => {
+                              const fnfStatus = item?.fnf?.status;
 
-                        <td className="p-3">
-                          {item.noticeLastDate
-                            ? formatDate(item.noticeLastDate)
-                            : "-"}
-                        </td>
+                              if (fnfStatus && fnfStatus.trim() !== "") {
+                                return (
+                                  <span
+                                    title={
+                                      statusFullForm[fnfStatus] || fnfStatus
+                                    }
+                                    className="px-2.5 py-1 text-sm rounded-full font-semibold bg-gray-100 text-gray-700 cursor-help"
+                                  >
+                                    {fnfStatus}
+                                  </span>
+                                );
+                              }
 
-                        <td className="p-3">
-                          {item.clientVacatingDate
-                            ? formatDate(item.clientVacatingDate)
-                            : "-"}
-                        </td>
+                              const status = getClientStatus(item);
 
-                        {/* <td className="p-3">
+                              return (
+                                <span
+                                  title={
+                                    statusFullForm[status.text] || status.text
+                                  }
+                                  className={`px-2.5 py-1 rounded-full text-sm font-semibold cursor-help ${status.className}`}
+                                >
+                                  {status.text}
+                                </span>
+                              );
+                            })()}
+                          </td>
+
+                          <td className="p-3">
+                            {rentHistory.monthName || 0} {rentHistory.year || 0}
+                          </td>
+                          <td className="p-3">Add karna h</td>
+                          <td className="p-3">
+                            {item.clientDoj ? formatDate(item.clientDoj) : "-"}
+                          </td>
+                          <td className="p-3">
+                            {item.noticeStartDate
+                              ? formatDate(item.noticeStartDate)
+                              : "-"}
+                          </td>
+
+                          <td className="p-3">
+                            {item.noticeLastDate
+                              ? formatDate(item.noticeLastDate)
+                              : "-"}
+                          </td>
+
+                          <td className="p-3">
+                            {item.clientVacatingDate
+                              ? formatDate(item.clientVacatingDate)
+                              : "-"}
+                          </td>
+
+                          {/* <td className="p-3">
                                                     ₹{rentHistory.monthlyRent || 0}
                                                 </td>
 
@@ -483,79 +563,79 @@ function Rnr() {
                                                     ₹{rentHistory.totalReceived || 0}
                                                 </td> */}
 
-                        <td className="p-3 text-red-500 font-bold">
-                          ₹{rentHistory.currentDue || 0}
-                        </td>
-                        <td className="p-3 ">
-                          <div className="flex items-center gap-2">
-                            {/* Comments */}
-                            <div className="relative group flex-1 min-w-0">
-                              {item?.rentNotReceivedComment?.comments?.length >
-                              0 ? (
-                                <>
-                                  {/* Latest comment */}
-                                  <div className="text-sm text-gray-700 cursor-pointer">
-                                    {(() => {
-                                      const latestComment =
-                                        item.rentNotReceivedComment?.comments?.[
+                          <td className="p-3 text-red-500 font-bold">
+                            ₹{rentHistory.currentDue || 0}
+                          </td>
+                          <td className="p-3 ">
+                            <div className="flex items-center gap-2">
+                              {/* Comments */}
+                              <div className="relative group flex-1 min-w-0">
+                                {item?.rentNotReceivedComment?.comments?.length >
+                                  0 ? (
+                                  <>
+                                    {/* Latest comment */}
+                                    <div className="text-sm text-gray-700 cursor-pointer">
+                                      {(() => {
+                                        const latestComment =
+                                          item.rentNotReceivedComment?.comments?.[
                                           item.rentNotReceivedComment.comments
                                             .length - 1
-                                        ];
+                                          ];
 
-                                      const date = latestComment?.date
-                                        ? new Date(latestComment.date)
-                                        : null;
+                                        const date = latestComment?.date
+                                          ? new Date(latestComment.date)
+                                          : null;
 
-                                      const formattedDate =
-                                        date && !isNaN(date.getTime())
-                                          ? date.toLocaleDateString("en-GB", {
+                                        const formattedDate =
+                                          date && !isNaN(date.getTime())
+                                            ? date.toLocaleDateString("en-GB", {
                                               day: "2-digit",
                                               month: "short",
                                               year: "numeric",
                                             })
-                                          : "";
+                                            : "";
 
-                                      const formattedTime =
-                                        date && !isNaN(date.getTime())
-                                          ? date.toLocaleTimeString("en-US", {
+                                        const formattedTime =
+                                          date && !isNaN(date.getTime())
+                                            ? date.toLocaleTimeString("en-US", {
                                               hour: "2-digit",
                                               minute: "2-digit",
                                               hour12: true,
                                             })
-                                          : "";
+                                            : "";
 
-                                      const text = latestComment?.comment || "";
-                                      const words = text.trim().split(/\s+/);
+                                        const text = latestComment?.comment || "";
+                                        const words = text.trim().split(/\s+/);
 
-                                      return (
-                                        <>
-                                          <span className="font-semibold text-gray-700">
-                                            {formattedDate} {formattedTime}
-                                          </span>{" "}
-                                          {words.slice(0, 2).join(" ")}
-                                          {words.length > 2 ? "..." : ""}
-                                        </>
-                                      );
-                                    })()}
-                                  </div>
-
-                                  {/* Hover Worklog */}
-                                  <div className="hidden group-hover:block absolute right-full top-full w-[520px] max-h-[300px]  overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-3">
-                                    <div className="font-semibold text-gray-800 text-sm mb-3 border-b border-gray-400 pb-2">
-                                      Worklog
+                                        return (
+                                          <>
+                                            <span className="font-semibold text-gray-700">
+                                              {formattedDate} {formattedTime}
+                                            </span>{" "}
+                                            {words.slice(0, 2).join(" ")}
+                                            {words.length > 2 ? "..." : ""}
+                                          </>
+                                        );
+                                      })()}
                                     </div>
 
-                                    <div className="space-y-3">
-                                      {[...item.rentNotReceivedComment.comments]
-                                        .reverse()
-                                        .map((comment, index) => {
-                                          const date = comment?.date
-                                            ? new Date(comment.date)
-                                            : null;
+                                    {/* Hover Worklog */}
+                                    <div className="hidden group-hover:block absolute right-full top-full w-[520px] max-h-[300px]  overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-3">
+                                      <div className="font-semibold text-gray-800 text-sm mb-3 border-b border-gray-400 pb-2">
+                                        Worklog
+                                      </div>
 
-                                          const formattedDate =
-                                            date && !isNaN(date.getTime())
-                                              ? date.toLocaleDateString(
+                                      <div className="space-y-3">
+                                        {[...item.rentNotReceivedComment.comments]
+                                          .reverse()
+                                          .map((comment, index) => {
+                                            const date = comment?.date
+                                              ? new Date(comment.date)
+                                              : null;
+
+                                            const formattedDate =
+                                              date && !isNaN(date.getTime())
+                                                ? date.toLocaleDateString(
                                                   "en-GB",
                                                   {
                                                     day: "2-digit",
@@ -563,11 +643,11 @@ function Rnr() {
                                                     year: "numeric",
                                                   },
                                                 )
-                                              : "";
+                                                : "";
 
-                                          const formattedTime =
-                                            date && !isNaN(date.getTime())
-                                              ? date.toLocaleTimeString(
+                                            const formattedTime =
+                                              date && !isNaN(date.getTime())
+                                                ? date.toLocaleTimeString(
                                                   "en-US",
                                                   {
                                                     hour: "2-digit",
@@ -575,59 +655,59 @@ function Rnr() {
                                                     hour12: true,
                                                   },
                                                 )
-                                              : "";
+                                                : "";
 
-                                          return (
-                                            <div
-                                              key={comment?._id || index}
-                                              className="text-sm text-gray-700 leading-relaxed whitespace-normal break-words"
-                                            >
-                                              <span className="font-semibold text-gray-800">
-                                                [{formattedDate} {formattedTime}
-                                                {comment?.user?.name
-                                                  ? ` - ${comment.user.name}`
-                                                  : ""}
-                                                ]
-                                              </span>{" "}
-                                              {comment?.comment}
-                                            </div>
-                                          );
-                                        })}
+                                            return (
+                                              <div
+                                                key={comment?._id || index}
+                                                className="text-sm text-gray-700 leading-relaxed whitespace-normal break-words"
+                                              >
+                                                <span className="font-semibold text-gray-800">
+                                                  [{formattedDate} {formattedTime}
+                                                  {comment?.user?.name
+                                                    ? ` - ${comment.user.name}`
+                                                    : ""}
+                                                  ]
+                                                </span>{" "}
+                                                {comment?.comment}
+                                              </div>
+                                            );
+                                          })}
+                                      </div>
                                     </div>
-                                  </div>
-                                </>
-                              ) : (
-                                <span className="text-gray-400 text-sm">
-                                  No comment
-                                </span>
-                              )}
-                            </div>
+                                  </>
+                                ) : (
+                                  <span className="text-gray-400 text-sm">
+                                    No comment
+                                  </span>
+                                )}
+                              </div>
 
-                            {/* Add Comment */}
-                            <button
-                              type="button"
-                              title="Add Comment"
-                              onClick={() => {
-                                setCommentClient(item);
-                                setCommentText("");
-                              }}
-                              className="shrink-0 p-2 text-gray-600 hover:bg-blue-50 rounded-md transition"
-                            >
-                              <MessageSquarePlus size={17} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan={18} className="p-5 text-center text-gray-500">
-                      No Notice Clients Found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
+                              {/* Add Comment */}
+                              <button
+                                type="button"
+                                title="Add Comment"
+                                onClick={() => {
+                                  setCommentClient(item);
+                                  setCommentText("");
+                                }}
+                                className="shrink-0 p-2 text-gray-600 hover:bg-blue-50 rounded-md transition"
+                              >
+                                <MessageSquarePlus size={17} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={18} className="p-5 text-center text-gray-500">
+                        No Notice Clients Found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
               )}
             </table>
           </div>

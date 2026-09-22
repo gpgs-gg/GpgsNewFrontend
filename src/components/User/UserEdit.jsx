@@ -41,6 +41,9 @@ const UserEdit = () => {
 
   const userName =
     user?.Name || user?.name || user?.fullName || user?.username || "System";
+  // Logged-in user's role
+  // This controls whether the current user can update another user.
+  const isAdmin = user?.role?.toLowerCase() === "admin";
   const { mutate: updateUser, isPending: updateLoading } = useUpdateUserData();
   const { data: userData } = useSingleUserData(id);
 
@@ -167,7 +170,7 @@ const UserEdit = () => {
                 })}
                 className="form-input"
                 placeholder=" "
-                disabled={role === "Employee" || role === "Client"}
+                disabled={!isAdmin}
               />
               {/* {errors.name && (
                 <p className="text-red-500 text-sm mt-1">
@@ -187,7 +190,7 @@ const UserEdit = () => {
                 })}
                 className="form-input"
                 placeholder=" "
-                disabled={role === "Employee" || role === "Client"}
+                disabled={!isAdmin}
               />
               {/* {errors.email && (
                 <p className="text-red-500 text-sm mt-1">
@@ -244,6 +247,7 @@ const UserEdit = () => {
                     placeholder=""
                     isClearable
                     value={RoleOptions.find((x) => x.value === field.value)}
+                    isDisabled={!isAdmin}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
                   />
@@ -279,6 +283,7 @@ const UserEdit = () => {
                   </label>
                   <Select
                     {...field}
+                    isDisabled={!isAdmin}
                     options={StatusOptions}
                     placeholder=""
                     isClearable
@@ -383,11 +388,7 @@ const UserEdit = () => {
         {isEdit && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Add WorkLog */}
-            <div className="form-group">
-            
-
-              
-            </div>
+            <div className="form-group"></div>
 
             {/* WorkLog History */}
             <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col">
