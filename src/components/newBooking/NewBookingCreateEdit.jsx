@@ -1235,8 +1235,8 @@ const NewBookingCreateEdit = () => {
   const handleDailySubmit = async () => {
     // Prevent duplicate API calls even if user clicks multiple times
     // before React has time to update the button's disabled state.
-    if (submitLockRef.current) return;
-    submitLockRef.current = true;
+    // if (submitLockRef.current) return;
+    // submitLockRef.current = true;
 
     try {
       const data = watch();

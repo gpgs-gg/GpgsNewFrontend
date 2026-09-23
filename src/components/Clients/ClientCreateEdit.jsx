@@ -30,8 +30,13 @@ const ClientCreateEdit = () => {
     const { clientId } = useParams();
 
     const isViewMode = window.location.pathname.includes("/view/");
+
+
     const { data: propertiesDropdown, isPending: ispropertiesDropdown } =
         usePropertiesDropdown();
+
+
+
     const { mutate: createClientData, isPending: isSubmitClientData } =
         useCreateClientData();
     const { data: singleClientData, isPending: isSingleClientData } =
@@ -40,6 +45,7 @@ const ClientCreateEdit = () => {
         useUpdateClientData(clientId);
 
     const { data: bedData } = useBedsData();
+
     const [photoFiles, setPhotoFiles] = useState([]);
     const [aadhaarFiles, setAadhaarFiles] = useState([]);
     const [companyFiles, setCompanyFiles] = useState([]);
@@ -58,20 +64,19 @@ const ClientCreateEdit = () => {
         },
     });
 
-    const propertiesOptions =
-        propertiesDropdown?.data?.map((property) => ({
-            value: property._id,
-            label: property.propertyCode,
-        })) || [];
+    const selectedPropertyOption = singleClientData?.data?.propertyId
+        ? {
+            value: singleClientData.data.propertyId._id,
+            label: singleClientData.data.propertyId.propertyCode,
+        }
+        : null;
 
-    const bedOptions =
-        bedData?.data
-            ?.filter((bed) => bed.propertyId?._id === watch("propertyId"))
-            .map((bed) => ({
-                value: bed._id,
-                label: bed.bedNo,
-            })) || [];
-
+    const selectedBedOption = singleClientData?.data?.bedId
+        ? {
+            value: singleClientData.data.bedId._id,
+            label: singleClientData.data.bedId.bedNo,
+        }
+        : null;
     const isBookingCancelledOptions = [
         {
             value: true,
@@ -369,18 +374,17 @@ const ClientCreateEdit = () => {
 
                                     <Select
                                         {...field}
-                                        options={propertiesOptions}
+                                        options={selectedPropertyOption ? [selectedPropertyOption] : []}
                                         isClearable
                                         placeholder=""
                                         isDisabled
-                                        value={propertiesOptions.find(
-                                            (option) => option.value === field.value,
-                                        )}
+                                        value={selectedPropertyOption}
                                         onChange={(selectedOption) =>
                                             field.onChange(selectedOption?.value)
                                         }
                                         styles={selectStyles}
                                     />
+
                                 </div>
                             )}
                         />
@@ -394,16 +398,17 @@ const ClientCreateEdit = () => {
                                     className={`select-group ${field.value ? "has-value" : ""}`}
                                 >
                                     <label className="select-label required-label">Bed No</label>
-
                                     <Select
                                         {...field}
-                                        options={bedOptions}
+                                        options={
+                                            selectedBedOption
+                                                ? [selectedBedOption]
+                                                : []
+                                        }
                                         isClearable
                                         isDisabled
                                         placeholder=""
-                                        value={bedOptions.find(
-                                            (option) => option.value === field.value,
-                                        )}
+                                        value={selectedBedOption}
                                         onChange={(selectedOption) =>
                                             field.onChange(selectedOption?.value)
                                         }
@@ -597,6 +602,15 @@ const ClientCreateEdit = () => {
                             )}
                         />
 
+
+                    </div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex justify-between">
+                        <h2 className="text-xl font-semibold mb-4">Noice Details</h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                         <Controller
                             name="noticeStartDate"
                             control={control}
@@ -662,102 +676,6 @@ const ClientCreateEdit = () => {
                         />
                     </div>
                 </div>
-                {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex justify-between">
-            <h2 className="text-xl font-semibold mb-4">Vacation Details</h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            <Controller
-              name="vacationStartDate1"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`datepicker-group ${
-                    field.value ? "has-value" : ""
-                  }`}
-                >
-                  <label className="datepicker-label required-label">
-                    Vacation Start Date1
-                  </label>
-                  <DatePicker
-                    isClearable
-                    selected={field.value}
-                    onChange={(date) => field.onChange(date)}
-                    dateFormat="dd MMM yyyy"
-                    className="custom-datepicker"
-                  />
-                </div>
-              )}
-            />
-            <Controller
-              name="vacationLastDate1"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`datepicker-group ${
-                    field.value ? "has-value" : ""
-                  }`}
-                >
-                  <label className="datepicker-label required-label">
-                    Vacation Last Date 1
-                  </label>
-                  <DatePicker
-                    isClearable
-                    selected={field.value}
-                    onChange={(date) => field.onChange(date)}
-                    dateFormat="dd MMM yyyy"
-                    className="custom-datepicker"
-                  />
-                </div>
-              )}
-            />
-            <Controller
-              name="vacationStartDate2"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`datepicker-group ${
-                    field.value ? "has-value" : ""
-                  }`}
-                >
-                  <label className="datepicker-label required-label">
-                    Vacation Start Date 2
-                  </label>
-                  <DatePicker
-                    isClearable
-                    selected={field.value}
-                    onChange={(date) => field.onChange(date)}
-                    dateFormat="dd MMM yyyy"
-                    className="custom-datepicker"
-                  />
-                </div>
-              )}
-            />
-            <Controller
-              name="vacationLastDate2"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`datepicker-group ${
-                    field.value ? "has-value" : ""
-                  }`}
-                >
-                  <label className="datepicker-label required-label">
-                    Vacation Last Date 2
-                  </label>
-                  <DatePicker
-                    isClearable
-                    selected={field.value}
-                    onChange={(date) => field.onChange(date)}
-                    dateFormat="dd MMM yyyy"
-                    className="custom-datepicker"
-                  />
-                </div>
-              )}
-            />
-          </div>
-        </div> */}
                 {/* Client Document Details */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h2 className="text-xl font-semibold mb-4">

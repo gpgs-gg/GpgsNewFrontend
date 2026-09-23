@@ -17,7 +17,7 @@ const TicketMobileCardClient = ({
   search,
 }) => {
   return (
-<div className="bg-white rounded-lg shadow-[0_0_15px_rgba(0,0,0,0.15)] p-4 mb-4 mx-5 mt-5 space-y-3">
+<div className="bg-white rounded-lg shadow-[0_0_15px_rgba(0,0,0,0.15)] p-4 mb-4 mx-5   mt-5 space-y-3">
       <article className="w-full max-w-full overflow-hidden bg-white rounded-lg  ">
         <div className="p-4 space-y-3">
           {/* ============================================================

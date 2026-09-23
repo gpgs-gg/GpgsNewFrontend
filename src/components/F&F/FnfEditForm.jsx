@@ -265,9 +265,7 @@ function FnfEditForm({ client, onClose }) {
                   value={fnfAmount}
                   readOnly
                   disabled
-                  className={`form-input cursor-not-allowed font-bold ${fnfAmount > 0
-                    ? "text-red-600"
-                    : fnfAmount < 0
+                  className={`form-input cursor-not-allowed font-bold ${fnfAmount < 0
                       ? "text-red-600"
                       : "text-green-600"
                     }`}
