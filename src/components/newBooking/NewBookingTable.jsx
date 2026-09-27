@@ -1,3 +1,4 @@
+// Note : Paymentvierfication : => ke liye :  loginEnable :  Key use Kiya h 
 import React, { useState, useMemo, useEffect } from "react";
 import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -5,7 +6,7 @@ import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import {
   useCancelNewBooking,
-  useClientFromNewBooking,
+  useClientFromNewBooking,                                 
   useDeleteNewBookingData,
   useNewBooking,
   useToggleClientLogin,
@@ -29,7 +30,9 @@ import { useAuthorization } from "../../context/AuthorizationContext";
 import { useAuth } from "../../context/authContext";
 const NewBookingTable = () => {
   const [search, setSearch] = useState("");
-
+const [todayBookings, setTodayBookings] = useState(() => {
+    return localStorage.getItem("new_booking_today") === "true";
+  });
   const [filterOpen, setFilterOpen] = useState(false);
   const DEFAULT_NEW_BOOKING_FILTERS = {
     teamCode: "",
@@ -78,6 +81,9 @@ const NewBookingTable = () => {
   useEffect(() => {
     localStorage.setItem("new_booking_page", String(currentPage));
   }, [currentPage]);
+  useEffect(() => {
+    localStorage.setItem("new_booking_today", String(todayBookings));
+  }, [todayBookings]);
   const filterLabels = useMemo(() => {
     const labels = [];
 
@@ -236,11 +242,13 @@ const NewBookingTable = () => {
 
     return labels;
   }, [filters]);
-  const hasActiveFilters = useMemo(() => {
-    return Object.values(filters).some(
+ const hasActiveFilters = useMemo(() => {
+    const hasFilters = Object.values(filters).some(
       (value) => value !== "" && value !== null && value !== undefined,
     );
-  }, [filters]);
+
+    return hasFilters || todayBookings;
+  }, [filters, todayBookings]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const debouncedSearch = useDebounce(search, 500);
   const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
@@ -258,11 +266,14 @@ const NewBookingTable = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const rowsPerPage = 20;
   const { user } = useAuth();
-  const apiFilters = useMemo(() => {
+ const apiFilters = useMemo(() => {
     const { propertyCode, temporaryPropertyCode, ...rest } = filters;
 
-    return rest;
-  }, [filters]);
+    return {
+      ...rest,
+      todayBookings,
+    };
+  }, [filters, todayBookings]);
 
   const { data: newBooking, isLoading } = useNewBooking({
     page: currentPage,
@@ -376,6 +387,9 @@ const NewBookingTable = () => {
 
     // Clear filter chips
     // Reset pagination
+   setTodayBookings(false);
+    // Clear filter chips
+    // Reset pagination
     setCurrentPage(1);
 
     // Tell filter drawer to reset its form
@@ -383,6 +397,7 @@ const NewBookingTable = () => {
 
     // Remove persisted page
     localStorage.removeItem("new_booking_page");
+    localStorage.removeItem("new_booking_today");
   };
 
   const handleRemoveFilter = (key) => {
@@ -433,6 +448,7 @@ const NewBookingTable = () => {
     // Verify
     if (!item.loginEnabled) {
       if (item.status !== "Booked") {
+         toast.dismiss();
         toast.error("Booking must be marked as 'Booked'.");
         return;
       }
@@ -529,7 +545,7 @@ const NewBookingTable = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold uppercase">New Bookings</h1>
+              <h1 className="text-2xl font-bold uppercase">{todayBookings ? "Today's Bookings" : "New Bookings"}</h1>
               <p className="text-sm text-gray-500">
                 Manage all client bookings
               </p>
@@ -597,12 +613,7 @@ const NewBookingTable = () => {
               ))}
             </div>
             <div className="flex gap-2">
-              <Link to="/clients">
-                <button className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50">
-                  <RiTelegram2Line size={19} />
-                  Clients List
-                </button>
-              </Link>
+              
               {hasActiveFilters && (
                 <button
                   onClick={handleReset}
@@ -611,6 +622,27 @@ const NewBookingTable = () => {
                   Reset
                 </button>
               )}
+            <button
+              onClick={() => {
+                setTodayBookings((prev) => !prev);
+                setCurrentPage(1);
+              }}
+              className={`border px-4 py-2 rounded-lg flex items-center gap-2 ${
+                todayBookings
+                  ? "bg-green-600 text-white border-green-600"
+                  : "border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              Today's Bookings
+            </button>
+            <div className="flex gap-2">
+              <Link to="/clients">
+                <button className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50">
+                  <RiTelegram2Line size={19} />
+                  Clients List
+                </button>
+              </Link>
+
               <button
                 onClick={() => setFilterOpen(true)}
                 className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
@@ -618,6 +650,7 @@ const NewBookingTable = () => {
                 <Filter size={16} />
                 Filters
               </button>
+            </div>
             </div>
           </div>
 
@@ -628,7 +661,6 @@ const NewBookingTable = () => {
                   <tr>
                     <th className="p-3 text-center">Sr No.</th>
                     <th className="p-3 text-center">Client Name</th>
-
                     <th className="p-3 text-center">Status</th>
                     <th className="p-3 text-center">Calling No</th>
                     <th className="p-3 text-center">Whatsapp No</th>
@@ -651,7 +683,7 @@ const NewBookingTable = () => {
 
                     {/* Sticky Header */}
                     {showActions && (
-                      <th className="p-3 text-center sticky right-0 bg-gray-100 z-80 min-w-[120px] shadow-[-4px_0_6px_rgba(0,0,0,0.1)] whitespace-nowrap">
+                      <th className="p-3 text-center sticky right-0 bg-gray-100 z-80 min-w-30 shadow-[-4px_0_6px_rgba(0,0,0,0.1)] whitespace-nowrap">
                         Actions
                       </th>
                     )}

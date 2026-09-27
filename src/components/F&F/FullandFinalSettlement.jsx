@@ -16,6 +16,13 @@ import TableSkeleton from "../common/TableSkelton";
 function FullandFinalSettlement() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [fnfClosedFilter, setFnfClosedFilter] = useState(() => {
+    return localStorage.getItem("fnf_fnf_closed") === "true";
+  });
+
+  const [fnfCancelledFilter, setFnfCancelledFilter] = useState(() => {
+    return localStorage.getItem("fnf_fnf_cancelled") === "true";
+  });
   const [filterOpen, setFilterOpen] = useState(false);
   const DEFAULT_FNF_FILTERS = {
     propertyId: "",
@@ -47,6 +54,17 @@ function FullandFinalSettlement() {
 
   const showActions = canEditFnf;
   //  const { mutate: deleteUserData, isPending } = useDeleteUserData();
+  const apiFilters = useMemo(() => {
+    return {
+      ...filters,
+      ...(fnfClosedFilter && {
+        fnfStatus: "F&F Closed",
+      }),
+      ...(fnfCancelledFilter && {
+        fnfStatus: "Cancelled",
+      }),
+    };
+  }, [filters, fnfClosedFilter, fnfCancelledFilter]);
 
   const {
     data: apiResponse,
@@ -58,7 +76,7 @@ function FullandFinalSettlement() {
     page: currentPage,
     limit: rowsPerPage,
     search: debouncedSearch,
-    filters,
+    filters:apiFilters,
   });
 
   const data = apiResponse?.data || [];
@@ -69,7 +87,12 @@ function FullandFinalSettlement() {
   const handleReset = () => {
     resetFilters();
     setSearch("");
+   setFnfClosedFilter(false);
+    setFnfCancelledFilter(false);
     setCurrentPage(1);
+
+    localStorage.removeItem("fnf_fnf_closed");
+    localStorage.removeItem("fnf_fnf_cancelled");
     setResetTrigger((prev) => prev + 1);
   };
 
@@ -81,7 +104,13 @@ function FullandFinalSettlement() {
   useEffect(() => {
     sessionStorage.setItem("fnfSearch", search);
   }, [search]);
+useEffect(() => {
+    localStorage.setItem("fnf_fnf_closed", String(fnfClosedFilter));
+  }, [fnfClosedFilter]);
 
+  useEffect(() => {
+    localStorage.setItem("fnf_fnf_cancelled", String(fnfCancelledFilter));
+  }, [fnfCancelledFilter]);
   const filterLabels = useMemo(() => {
     const labels = [];
 
@@ -205,18 +234,69 @@ function FullandFinalSettlement() {
               )}
               {/* BUTTONS */}
               <div className="flex gap-2">
-                {filterLabels.length > 0 && (
+                {(filterLabels.length > 0 ||
+                  fnfClosedFilter ||
+                  fnfCancelledFilter) && (
                   <button
                     onClick={handleReset}
-                    className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
+                    className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2 hover:bg-gray-50"
                   >
                     Reset
                   </button>
                 )}
 
+                {/* F&F CLOSED */}
+                <button
+                  onClick={() => {
+                    setFnfClosedFilter((prev) => {
+                      const next = !prev;
+
+                      if (next) {
+                        setFnfCancelledFilter(false);
+                      }
+
+                      return next;
+                    });
+
+                    setCurrentPage(1);
+                  }}
+                  className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${
+                    fnfClosedFilter
+                      ? "bg-green-50 border-green-300 text-green-700"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  F&F Closed
+                </button>
+
+                {/* CANCELLED */}
+                {/* <button
+                  onClick={() => {
+                    setFnfCancelledFilter((prev) => {
+                      const next = !prev;
+
+                      if (next) {
+                        setFnfClosedFilter(false);
+                      }
+
+                      return next;
+                    });
+
+                    setCurrentPage(1);
+                  }}
+                  className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${
+                    fnfCancelledFilter
+                      ? "bg-red-50 border-red-300 text-red-700"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  Cancelled
+                </button> */}
+
+                {/* NORMAL FILTER */}
                 <button
                   onClick={() => setFilterOpen(true)}
-                  className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
+                  className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
                 >
                   <Filter size={16} />
                   Filters

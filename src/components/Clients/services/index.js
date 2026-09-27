@@ -201,3 +201,64 @@ export const useUpdateVacationDates = () => {
         },
     });
 };
+
+
+const generateSingleClientMonthlyRent = async (clientId) => {
+  const response = await apiClient.post(
+    `/clients/generate-single-client-monthly-rent/${clientId}`
+  );
+
+  return response.data;
+};
+
+export const useGenerateSingleClientMonthlyRent = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: generateSingleClientMonthlyRent,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries(["client-rent-history"]);
+    },
+  });
+};
+
+const generateMonthlyRentForAllClient = async () => {
+  const response = await apiClient.post(
+    "/clients/generate-monthly-rent"
+  );
+
+  return response.data;
+};
+
+export const useGenerateMonthlyRentForAllClient = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: generateMonthlyRentForAllClient,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries(["client-rent-history"]);
+    },
+  });
+};
+
+
+
+const getRentGenerationLogs = async () => {
+  const response = await apiClient.get(
+    "/rent-generation-logs"
+  );
+
+  return response.data;
+};
+
+export const useRentGenerationLogs = (
+  enabled = true
+) => {
+  return useQuery({
+    queryKey: ["rent-generation-logs"],
+    queryFn: getRentGenerationLogs,
+    enabled,
+  });
+};

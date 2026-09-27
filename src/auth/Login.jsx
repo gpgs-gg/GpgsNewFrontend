@@ -9,7 +9,7 @@ import video1 from "../videos/PV1NL21-privateR.mp4";
 import Loader from "../components/common/Loader";
 
 const Login = () => {
-  const { mutate: sendLoginDetails, isLoading } = useLogin();
+  const { mutate: sendLoginDetails, isPending } = useLogin();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { data: currentUser } = useCurrentUser();
@@ -261,10 +261,10 @@ const onSubmit = async (data) => {
         
                 <button
                   type="submit"
-                  disabled={isSubmitting || isLoading}
+                  disabled={isSubmitting || isPending}
                   className="w-full bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  {isSubmitting || isLoading ? (
+                  {isSubmitting || isPending ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader />
                       Logging in...

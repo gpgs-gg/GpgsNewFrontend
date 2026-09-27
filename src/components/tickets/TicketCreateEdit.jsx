@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -6,16 +6,27 @@ import Select from "react-select";
 import { selectStyles } from "../../utils/selectStyles";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { useCreateTicketData, useSingleTicketData, useUpdateTicketData, getTicketNavigation } from "./services";
+import {
+  useCreateTicketData,
+  useSingleTicketData,
+  useUpdateTicketData,
+  getTicketNavigation,
+} from "./services";
 import { useEffect, useState } from "react";
-import { useCurrentUser } from '../../auth/services';
-import { convertStringFormatDate, formatDateAndTime } from '../../utils/dateFormatter';
-import Loader from '../common/Loader';
-import { getPropertyDropdown } from '../properties/services';
-import { AsyncPaginate } from 'react-select-async-paginate';
+import { useCurrentUser } from "../../auth/services";
+import {
+  convertStringFormatDate,
+  formatDateAndTime,
+} from "../../utils/dateFormatter";
+import Loader from "../common/Loader";
+import { getPropertyDropdown } from "../properties/services";
+import { AsyncPaginate } from "react-select-async-paginate";
 import { Link } from "react-router-dom";
-import FilePreview from '../common/FilePreview';
-import { useBatchOptions } from '../Options/services';
+import FilePreview from "../common/FilePreview";
+import { useBatchOptions } from "../Options/services";
+import { useManagerEmployees } from "../EmployeeDetails/Services/index";
+import { useEmployeeDetailsData } from "../EmployeeDetails/Services/index";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 function TicketCreateEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -30,8 +41,10 @@ function TicketCreateEdit() {
   } = useForm();
 
   // Api Hooks
-  const { mutate: createTicket, isPending: isCreateTicket } = useCreateTicketData();
-  const { mutate: updateTicket, isPending: isUpdateTicket } = useUpdateTicketData();
+  const { mutate: createTicket, isPending: isCreateTicket } =
+    useCreateTicketData();
+  const { mutate: updateTicket, isPending: isUpdateTicket } =
+    useUpdateTicketData();
   const { data: singleTicket } = useSingleTicketData(id);
   const { data: currentUser } = useCurrentUser();
   const { data: options = {} } = useBatchOptions([
@@ -41,6 +54,11 @@ function TicketCreateEdit() {
     "ticketstatus",
     "yesno",
   ]);
+  const { data: managerData } = useManagerEmployees();
+  const { data: employeeData } = useEmployeeDetailsData({
+    page: 1,
+    limit: 1000,
+  });
   const [navigation, setNavigation] = useState({
     previousId: null,
     nextId: null,
@@ -56,11 +74,11 @@ function TicketCreateEdit() {
       setSelectedProperty(
         ticket.propertyId
           ? {
-            value: ticket.propertyId._id,
-            label: ticket.propertyId.propertyCode,
-            propLocation: ticket.propertyId.propertyLocation,
-          }
-          : null
+              value: ticket.propertyId._id,
+              label: ticket.propertyId.propertyCode,
+              propLocation: ticket.propertyId.propertyLocation,
+            }
+          : null,
       );
 
       reset({
@@ -68,9 +86,7 @@ function TicketCreateEdit() {
 
         propertyId: ticket.propertyId?._id || "",
 
-        targetDate: ticket.targetDate
-          ? new Date(ticket.targetDate)
-          : null,
+        targetDate: ticket.targetDate ? new Date(ticket.targetDate) : null,
 
         acknowledgedDate: ticket.acknowledgedDate
           ? new Date(ticket.acknowledgedDate)
@@ -109,18 +125,13 @@ function TicketCreateEdit() {
     loadNavigation();
   }, [id, search, filters]);
 
-
   const DepartmentOptions = options.department || [];
   const CategoryOptions = options.categories || [];
   const PriorityOptions = options.priority || [];
   const StatusOptions = options.ticketstatus || [];
   const YesNoOptions = options.yesno || [];
 
-  const loadPropertyOptions = async (
-    search,
-    loadedOptions,
-    { page }
-  ) => {
+  const loadPropertyOptions = async (search, loadedOptions, { page }) => {
     const res = await getPropertyDropdown({
       page,
       limit: 10,
@@ -135,7 +146,7 @@ function TicketCreateEdit() {
             label: item.propertyCode,
             propLocation: item.propertyLocation, // <-- Add this
           },
-        ])
+        ]),
       ).values(),
     ];
 
@@ -148,20 +159,29 @@ function TicketCreateEdit() {
     };
   };
 
-  const ManagerOptions = [
-    { value: "Nerul ( E )", label: "Nerul ( E )" },
-    { value: "Nerul ( W )", label: "Nerul ( W )" },
-  ];
-  const AssigneeOptions = [
-    { value: "Nerul ( E )", label: "Nerul ( E )" },
-    { value: "Nerul ( W )", label: "Nerul ( W )" },
-  ];
+  const ManagerOptions =
+    managerData?.data?.map((employee) => ({
+      value: employee.employeeName,
+      label: employee.employeeName,
+    })) || [];
 
-
+  const TicketManagerOptions =
+    employeeData?.data
+      ?.filter((employee) => employee.ticketManager === true)
+      ?.map((employee) => ({
+        value: employee.employeeName,
+        label: employee.employeeName,
+      })) || [];
+  const AssigneeOptions =
+    employeeData?.data?.map((employee) => ({
+      value: employee.employeeId,
+      label: employee.employeeName,
+    })) || [];
   const onSubmit = (data) => {
     const hasAttachmentChanges =
       attachmentFiles.length > 0 ||
-      existingAttachments.length !== (singleTicket?.data?.attachment?.length || 0);
+      existingAttachments.length !==
+        (singleTicket?.data?.attachment?.length || 0);
 
     if (!isDirty && !hasAttachmentChanges) {
       toast.dismiss();
@@ -194,19 +214,15 @@ function TicketCreateEdit() {
     for (const [key, value] of formData.entries()) {
       console.log(key, value);
     }
-    formData.append("createdBy", currentUser?.user?.role || "");
+   if(!id){
+     formData.append("createdBy", currentUser?.user?.role || "");
     formData.append("createdByName", currentUser?.user?.name || "");
-    // formData.append("dateCreated", convertStringFormatDateTime(new Date()));      
+   }
+    // formData.append("dateCreated", convertStringFormatDateTime(new Date()));
     // formData.append("propertyLocation", )
-    formData.append(
-      "auditorLog",
-      data.auditorLog || ""
-    );
+    formData.append("auditorLog", data.auditorLog || "");
     // Existing attachments
-    formData.append(
-      "existingAttachments",
-      JSON.stringify(existingAttachments)
-    );
+    formData.append("existingAttachments", JSON.stringify(existingAttachments));
     // New Attachments
     attachmentFiles.forEach((file) => {
       formData.append("attachment", file);
@@ -220,7 +236,7 @@ function TicketCreateEdit() {
         },
         {
           onSuccess: (res) => {
-            toast.dismiss()
+            toast.dismiss();
             toast.success(res.message);
 
             // navigate("/tickets");
@@ -232,17 +248,15 @@ function TicketCreateEdit() {
           },
 
           onError: (err) => {
-            toast.dismiss()
-            toast.error(
-              err?.response?.data?.message || "Update Failed"
-            );
+            toast.dismiss();
+            toast.error(err?.response?.data?.message || "Update Failed");
           },
-        }
+        },
       );
     } else {
       createTicket(formData, {
         onSuccess: (res) => {
-          toast.dismiss()
+          toast.dismiss();
           toast.success(res.message);
 
           navigate("/tickets");
@@ -254,23 +268,20 @@ function TicketCreateEdit() {
         },
 
         onError: (err) => {
-          toast.dismiss()
-          toast.error(
-            err?.response?.data?.message || "Create Failed"
-          );
+          toast.dismiss();
+          toast.error(err?.response?.data?.message || "Create Failed");
         },
       });
     }
   };
 
+  
+
   return (
     <div className="max-w-12xl mx-auto px-6">
-
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-4 py-2">
-          <div className="flex justify-between items-center">
+          <div className="grid grid-cols-1 gap-2">
             <div>
               <h1 className="text-2xl font-bold">
                 {id ? "Update Ticket" : "Create Ticket"}
@@ -283,7 +294,7 @@ function TicketCreateEdit() {
               </p>
             </div>
 
-            <div className="flex justify-end gap-5">
+            <div className="flex justify-end  gap-5">
               <Link to="/tickets">
                 <button
                   type="button"
@@ -298,11 +309,15 @@ function TicketCreateEdit() {
                 disabled={isCreateTicket || isUpdateTicket}
                 className="theme-btn text-white px-5 py-2 rounded-lg"
               >
-                {isCreateTicket || isUpdateTicket
-                  ? <div className='flex justify-center items-center gap-2'><Loader /> Processing...</div>
-                  : id
-                    ? "Update Ticket"
-                    : "Create Ticket"}
+                {isCreateTicket || isUpdateTicket ? (
+                  <div className="flex justify-center items-center gap-2">
+                    <Loader /> Processing...
+                  </div>
+                ) : id ? (
+                  "Update Ticket"
+                ) : (
+                  "Create Ticket"
+                )}
               </button>
             </div>
 
@@ -313,39 +328,41 @@ function TicketCreateEdit() {
           <div className="flex justify-between items-center  mb-4">
             <h2 className="text-xl font-semibold mb-4">Ticket Details</h2>
             {id && (
-                <div className="flex justify-end gap-5">
-              <button
-                type="button"
-                disabled={!navigation.previousId}
-                className="border border-gray-600 theme-btn px-6 py-2 rounded-lg font-medium"
-                onClick={() =>
-                  navigate(`/tickets/edit/${navigation.previousId}`, {
-                    state: location.state,
-                  })
-                }
-              >
-                Previous
-              </button>
+              <div className="flex justify-end gap-5">
+                <button
+                  type="button"
+                  disabled={!navigation.previousId}
+                  className="border border-gray-600 theme-btn px-6 py-2 rounded-lg font-medium"
+                  onClick={() =>
+                    navigate(`/tickets/edit/${navigation.previousId}`, {
+                      state: location.state,
+                    })
+                  }
+                >
+                  <div className="flex">
+                    <ChevronLeft size={20} /> Previous
+                  </div>
+                </button>
 
-              <button
-                type="button"
-                disabled={!navigation.nextId}
-                className="border border-gray-600 theme-btn px-6 py-2 rounded-lg font-medium"
-                onClick={() =>
-                  navigate(`/tickets/edit/${navigation.nextId}`, {
-                    state: location.state,
-                  })
-                }
-              >
-                Next
-              </button>
-            </div>
+                <button
+                  type="button"
+                  disabled={!navigation.nextId}
+                  className="border border-gray-600 theme-btn px-6 py-2 rounded-lg font-medium"
+                  onClick={() =>
+                    navigate(`/tickets/edit/${navigation.nextId}`, {
+                      state: location.state,
+                    })
+                  }
+                >
+                   <div className="flex">
+                  Next <ChevronRight size={20} />
+                  </div>
+                </button>
+              </div>
             )}
-          
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-
             {/* Property */}
             <Controller
               name="propertyId"
@@ -354,7 +371,9 @@ function TicketCreateEdit() {
                 required: "Property is required",
               }}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
                   <label className="select-label form-label required-label">
                     Property Code
                   </label>
@@ -391,15 +410,19 @@ function TicketCreateEdit() {
                 required: "Department is required",
               }}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                  <label className="select-label form-label required-label">Department</label>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label form-label required-label">
+                    Department
+                  </label>
                   <Select
                     {...field}
                     options={DepartmentOptions}
                     placeholder=""
                     isClearable
                     value={DepartmentOptions.find(
-                      (x) => x.value === field.value
+                      (x) => x.value === field.value,
                     )}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
@@ -421,16 +444,18 @@ function TicketCreateEdit() {
                 required: "Category is required",
               }}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                  <label className="select-label form-label required-label">Category</label>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label form-label required-label">
+                    Category
+                  </label>
                   <Select
                     {...field}
                     options={CategoryOptions}
                     placeholder=""
                     isClearable
-                    value={CategoryOptions.find(
-                      (x) => x.value === field.value
-                    )}
+                    value={CategoryOptions.find((x) => x.value === field.value)}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
                   />
@@ -451,16 +476,20 @@ function TicketCreateEdit() {
                 required: assignee ? "Priority is required" : false,
               }}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                  <label className={`select-label form-label ${assignee ? "required-label" : ""}`}>Priority</label>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label
+                    className={`select-label form-label ${assignee ? "required-label" : ""}`}
+                  >
+                    Priority
+                  </label>
                   <Select
                     {...field}
                     options={PriorityOptions}
                     placeholder=""
                     isClearable
-                    value={PriorityOptions.find(
-                      (x) => x.value === field.value
-                    )}
+                    value={PriorityOptions.find((x) => x.value === field.value)}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
                   />
@@ -487,7 +516,9 @@ function TicketCreateEdit() {
                   {errors.title.message}
                 </p>
               )}
-              <label className="form-label form-label required-label">Title</label>
+              <label className="form-label form-label required-label">
+                Title
+              </label>
             </div>
 
             {/* Target Date */}
@@ -495,10 +526,10 @@ function TicketCreateEdit() {
               name="targetDate"
               control={control}
               render={({ field }) => (
-                <div className={`datepicker-group ${field.value ? "has-value" : ""}`}>
-                  <label className="datepicker-label">
-                    Target Date
-                  </label>
+                <div
+                  className={`datepicker-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="datepicker-label">Target Date</label>
 
                   <DatePicker
                     selected={field.value}
@@ -519,16 +550,18 @@ function TicketCreateEdit() {
                   required: "Status is required",
                 }}
                 render={({ field }) => (
-                  <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                    <label className="select-label form-label required-label">Status</label>
+                  <div
+                    className={`select-group ${field.value ? "has-value" : ""}`}
+                  >
+                    <label className="select-label form-label required-label">
+                      Status
+                    </label>
                     <Select
                       {...field}
                       options={StatusOptions}
                       placeholder=""
                       isClearable
-                      value={StatusOptions.find(
-                        (x) => x.value === field.value
-                      )}
+                      value={StatusOptions.find((x) => x.value === field.value)}
                       onChange={(e) => field.onChange(e?.value)}
                       styles={selectStyles}
                     />
@@ -546,18 +579,16 @@ function TicketCreateEdit() {
 
         {/* Internet Details */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-
-          <h2 className="text-xl font-semibold mb-4">
-            Assignment
-          </h2>
+          <h2 className="text-xl font-semibold mb-4">Assignment</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-
             <Controller
               name="manager"
               control={control}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
                   <label className="select-label">Manager</label>
 
                   <Select
@@ -565,11 +596,10 @@ function TicketCreateEdit() {
                     options={ManagerOptions}
                     placeholder=""
                     isClearable
-                    value={ManagerOptions.find(x => x.value === field.value)}
+                    value={ManagerOptions.find((x) => x.value === field.value)}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
                   />
-
                 </div>
               )}
             />
@@ -578,19 +608,22 @@ function TicketCreateEdit() {
               name="ticketManager"
               control={control}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
                   <label className="select-label">Ticket Manager</label>
 
                   <Select
                     {...field}
-                    options={ManagerOptions}
+                    options={TicketManagerOptions}
                     placeholder=""
                     isClearable
-                    value={ManagerOptions.find(x => x.value === field.value)}
+                    value={TicketManagerOptions.find(
+                      (x) => x.value === field.value,
+                    )}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
                   />
-
                 </div>
               )}
             />
@@ -599,7 +632,9 @@ function TicketCreateEdit() {
               name="assignee"
               control={control}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
                   <label className="select-label">Assignee</label>
 
                   <Select
@@ -607,11 +642,10 @@ function TicketCreateEdit() {
                     options={AssigneeOptions}
                     placeholder=""
                     isClearable
-                    value={AssigneeOptions.find(x => x.value === field.value)}
+                    value={AssigneeOptions.find((x) => x.value === field.value)}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
                   />
-
                 </div>
               )}
             />
@@ -623,15 +657,19 @@ function TicketCreateEdit() {
                 required: "Customer Impacted is required",
               }}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                  <label className="select-label form-label required-label">Customer Impacted</label>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label form-label required-label">
+                    Customer Impacted
+                  </label>
 
                   <Select
                     {...field}
                     options={YesNoOptions}
                     placeholder=""
                     isClearable
-                    value={YesNoOptions.find(x => x.value === field.value)}
+                    value={YesNoOptions.find((x) => x.value === field.value)}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
                   />
@@ -649,7 +687,9 @@ function TicketCreateEdit() {
               name="escalated"
               control={control}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
                   <label className="select-label">Escalated</label>
 
                   <Select
@@ -657,28 +697,70 @@ function TicketCreateEdit() {
                     options={YesNoOptions}
                     placeholder=""
                     isClearable
-                    value={YesNoOptions.find(x => x.value === field.value)}
+                    value={YesNoOptions.find((x) => x.value === field.value)}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
                   />
-
                 </div>
               )}
             />
+            <div className="form-group">
+              <input
+                {...register("roomNo")}
+                className="form-input"
+                placeholder=" "
+              />
+              <label className="form-label">Room No.</label>
+            </div>
 
+            {/* Bed No */}
+            <div className="form-group">
+              <input
+                {...register("bedNo")}
+                className="form-input"
+                placeholder=" "
+              />
+              <label className="form-label">Bed No.</label>
+            </div>
+            {/* Created By */}
+           {id && (
+               <div
+              className={`form-group ${currentUser?.user?.role ? "has-value" : ""}`}
+            >
+              <input
+                type="text"
+                value={
+                  id
+                    ? `${singleTicket?.data?.createdByName || ""} ${
+                        singleTicket?.data?.createdByRole
+                          ? `(${singleTicket.data.createdByRole})`
+                          : ""
+                      }`
+                    : `${currentUser?.user?.name || ""} ${
+                        currentUser?.user?.role
+                          ? `(${currentUser.user.role})`
+                          : ""
+                      }`
+                }
+                readOnly
+                className="form-input bg-gray-100 cursor-not-allowed"
+                placeholder=" "
+              />
+
+              <label className="form-label">Created By</label>
+
+
+              
+            </div>
+           )}
           </div>
-
         </div>
 
         {/* Utility Details */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-
-          <h2 className="text-xl font-semibold mb-4">
-            Description
-          </h2>
+          <h2 className="text-xl font-semibold mb-4">Description</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
             <div className="form-group">
               <textarea
                 disabled={id ? true : false}
@@ -696,7 +778,6 @@ function TicketCreateEdit() {
               <label className="form-label form-label required-label">
                 Description
               </label>
-
             </div>
 
             <div className="form-group md:col-span-1">
@@ -719,21 +800,19 @@ function TicketCreateEdit() {
                 }}
               />
 
-              <label className="form-label">
-                Attachment
-              </label>
+              <label className="form-label">Attachment</label>
 
               <FilePreview
                 files={attachmentFiles}
                 existingFiles={existingAttachments}
                 onRemoveExisting={(index) =>
                   setExistingAttachments((prev) =>
-                    prev.filter((_, i) => i !== index)
+                    prev.filter((_, i) => i !== index),
                   )
                 }
                 onRemoveNew={(index) =>
                   setAttachmentFiles((prev) =>
-                    prev.filter((_, i) => i !== index)
+                    prev.filter((_, i) => i !== index),
                   )
                 }
               />
@@ -742,25 +821,17 @@ function TicketCreateEdit() {
             {id && (
               <div className="form-group">
                 <textarea
-
                   rows={5}
-                  {...register("newWorkLog", {
-
-                  })}
+                  {...register("newWorkLog", {})}
                   className="form-input"
                 />
-                <label className="form-label form-label ">
-                  Add WorkLog
-                </label>
-
+                <label className="form-label form-label ">Add WorkLog</label>
               </div>
             )}
 
             {id && (
               <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col md:col-span-1">
-                <h3 className="font-semibold text-lg mb-1">
-                  Work Log History
-                </h3>
+                <h3 className="font-semibold text-lg mb-1">Work Log History</h3>
 
                 <div className="flex-1 overflow-y-auto">
                   {singleTicket?.data?.workLogs?.length > 0 ? (
@@ -779,8 +850,6 @@ function TicketCreateEdit() {
                           <p className="whitespace-pre-line text-sm">
                             {log.message}
                           </p>
-
-
                         </div>
                       ))
                   ) : (
@@ -791,34 +860,23 @@ function TicketCreateEdit() {
                 </div>
               </div>
             )}
-
-
-
           </div>
-
         </div>
 
         {/* Owner Details */}
         {id && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-
-            <h2 className="text-xl font-semibold mb-4">
-              Auditor
-            </h2>
+            <h2 className="text-xl font-semibold mb-4">Auditor</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
               <div className="form-group md:col-span-2">
                 <textarea
                   {...register("auditorLog")}
                   placeholder=" "
                   className="form-input min-h-25"
                 />
-                <label className="form-label">
-                  Auditor Log
-                </label>
+                <label className="form-label">Auditor Log</label>
               </div>
-
 
               <div className="form-group">
                 <input
@@ -827,9 +885,7 @@ function TicketCreateEdit() {
                   placeholder=" "
                 />
 
-                <label className="form-label">
-                  Actual Time
-                </label>
+                <label className="form-label">Actual Time</label>
               </div>
               {singleTicket?.data?.auditorLogs?.length > 0 && (
                 <div className="border rounded-lg p-4 bg-gray-50 h-48 col-span-4 flex flex-col">
@@ -846,9 +902,7 @@ function TicketCreateEdit() {
                           key={log._id}
                           className="border-b last:border-b-0 py-3"
                         >
-                          <p className="break-words">
-                            {log.message}
-                          </p>
+                          <p className="break-words">{log.message}</p>
 
                           <small className="text-gray-500">
                             {log.createdBy || "System"} •{" "}
@@ -860,7 +914,6 @@ function TicketCreateEdit() {
                 </div>
               )}
             </div>
-
           </div>
         )}
         <div className="flex justify-end gap-5">
@@ -878,17 +931,20 @@ function TicketCreateEdit() {
             disabled={isCreateTicket || isUpdateTicket}
             className="theme-btn text-white px-5 py-2 rounded-lg"
           >
-            {isCreateTicket || isUpdateTicket
-              ? <div className='flex justify-center items-center gap-2'><Loader /> Processing...</div>
-              : id
-                ? "Update Ticket"
-                : "Create Ticket"}
+            {isCreateTicket || isUpdateTicket ? (
+              <div className="flex justify-center items-center gap-2">
+                <Loader /> Processing...
+              </div>
+            ) : id ? (
+              "Update Ticket"
+            ) : (
+              "Create Ticket"
+            )}
           </button>
         </div>
-
       </form>
     </div>
   );
 }
 
-export default TicketCreateEdit
+export default TicketCreateEdit;

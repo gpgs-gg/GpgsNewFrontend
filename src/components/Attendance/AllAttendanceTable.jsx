@@ -577,8 +577,9 @@ const AllAttendanceTable = () => {
                           {formatMinutes(attendance.deficitMinutes)}
                         </td>
 
-                        {/* STATUS */}
+                      
 
+                  {/* STATUS */}
                         <td className="p-3 text-center">
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -589,7 +590,25 @@ const AllAttendanceTable = () => {
                                   : "bg-red-100 text-red-700"
                             }`}
                           >
-                            {statusData.label}
+                            {Number(attendance.status) === 1
+                              ? `Present ${
+                                  attendance.attendanceSource === "ADMIN"
+                                    ? "(Approved)"
+                                    : ""
+                                }`
+                              : Number(attendance.status) === 0.5
+                                ? `Half Day ${
+                                    attendance.attendanceSource === "ADMIN"
+                                      ? "(Approved)"
+                                      : ""
+                                  }`
+                                : Number(attendance.status) === 0
+                                  ? `Absent ${
+                                      attendance.attendanceSource === "ADMIN"
+                                        ? "(Rejected)"
+                                        : ""
+                                    }`
+                                  : ""}
                           </span>
                         </td>
                         {/* REGULARIZATION DOCUMENT */}

@@ -339,26 +339,58 @@ const BedCreateEdit = () => {
               )}
             />
             {/* Room No. */}
-            <div className="form-group">
-              <input
-                {...register("roomNo", {
-                  required: "Room No is required",
-                  validate: (value) =>
-                    value?.trim() !== "" || "Room No is required",
-                })}
-                placeholder=" "
-                className={`form-input ${errors.roomNo ? "border-red-500" : ""
-                  }`}
-              />
+       <Controller
+              name="roomNo"
+              control={control}
+              rules={{
+                required: "Room No is required",
+              }}
+              render={({ field }) => {
+                const roomNoOptions = [
+                  { value: "Hall", label: "Hall" },
+                  ...Array.from({ length: 50 }, (_, index) => ({
+                    value: `${index + 1}`,
+                    label: `${index + 1}`,
+                  })),
+                ];
 
-              <label className="form-label required-label">Room No</label>
+                return (
+                  <div>
+                    <div
+                      className={`select-group ${
+                        field.value ? "has-value" : ""
+                      }`}
+                    >
+                      <label className="select-label required-label">
+                        Room No
+                      </label>
 
-              {errors.roomNo && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.roomNo.message}
-                </p>
-              )}
-            </div>
+                      <Select
+                        options={roomNoOptions}
+                        isClearable
+                        placeholder=""
+                        value={
+                          roomNoOptions.find(
+                            (option) => option.value === field.value,
+                          ) || null
+                        }
+                        onChange={(selectedOption) =>
+                          field.onChange(selectedOption?.value || "")
+                        }
+                        isDisabled={false}
+                        styles={selectStyles}
+                      />
+                    </div>
+
+                    {errors.roomNo && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {errors.roomNo.message}
+                      </p>
+                    )}
+                  </div>
+                );
+              }}
+            />
 
             {/* Gender */}
             <Controller

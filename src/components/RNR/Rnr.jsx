@@ -279,9 +279,9 @@ function Rnr() {
               </div>
             </div>
             <Link to="/tickets/create">
-              <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+              {/* <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
                 + Add Ticket
-              </button>
+              </button> */}
             </Link>
           </div>
         </div>

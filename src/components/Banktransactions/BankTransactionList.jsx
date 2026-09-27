@@ -382,7 +382,7 @@ const BankTransactionList = () => {
           {/* TABLE CONTENT */}
           <div className="flex-1 overflow-auto">
             <table className="w-full">
-              <thead className="sticky top-0 bg-gray-100 whitespace-nowrap">
+              <thead className="sticky top-0 bg-gray-100 whitespace-nowrap z-20">
                 <tr>
                   <th className="p-3 text-center">Date</th>
                   <th className="p-3 text-left">Narration</th>

@@ -19,7 +19,7 @@ import {
   useUploadEmployeeDocs,
   useDropDowlList,
 } from "./Services/index";
-
+import { useAuth } from "../../context/authContext";
 import * as yup from "yup";
 const schema = yup.object({
   Name: yup.string().trim().required("Full Name is required"),
@@ -68,11 +68,12 @@ const formatWorklogValue = (value) => {
     return JSON.stringify(value);
   }
 
-  // Format dates if required
+  // Only format actual ISO date strings.
+  // Do NOT use Date.parse() because values like "Sales-1"
+  // can be incorrectly interpreted by JavaScript as dates.
   if (
     typeof value === "string" &&
-    !isNaN(Date.parse(value)) &&
-    value.includes("-")
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value)
   ) {
     return new Date(value).toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -147,7 +148,7 @@ const EmployeesCreateEdit = () => {
     useEmployeeById(id);
   const { mutate: uploadEmployeeDocs, isPending: isUploadingDocs } =
     useUploadEmployeeDocs();
-
+  const { user } = useAuth();
   // ================= DYNAMIC DROPDOWN OPTIONS =================
 
   const getDropdownOptions = (data) =>
@@ -178,13 +179,19 @@ const EmployeesCreateEdit = () => {
     "parentcompanyoptions",
     "roleoptions",
     "subsidiaryoptions",
-    "teamCode",
+    "teamcode",
     "activeinactivestatus",
   ]);
 
   const DepartmentOptions = options.department || [];
 
-  const ActiveInactiveStatus = options.activeinactivestatus || [];
+  const sActiveInactiveStatus = options.activeinactivestatus || [];
+
+  const ActiveInactiveStatus = [
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+  ];
+  //console.log(111111111, options);
   const DepartmentCompanyOptions = options.departmentCompanies || [];
 
   const DesignationOptions = options.designationoptions || [];
@@ -196,6 +203,7 @@ const EmployeesCreateEdit = () => {
   const SubsidiaryOptions = options.subsidiaryoptions || [];
 
   const TeamCodeOptions = options.teamcode || [];
+
   // for getting email
   const emailValue = watch("contact.email");
 
@@ -217,6 +225,7 @@ const EmployeesCreateEdit = () => {
       Subsidiary: employee.subsidiary || "",
       status: employee.status || "",
       Role: employee.role || "",
+      ticketManager: employee.ticketManager ?? false,
       workingHours: String(employee.workingHours ?? 9),
       halfDayHours: String(employee.halfDayHours ?? 5),
 
@@ -280,6 +289,7 @@ const EmployeesCreateEdit = () => {
       parentCompany: data.ParentCompany,
       subsidiary: data.Subsidiary,
       role: data.Role,
+      ticketManager: data.ticketManager ?? false,
       workingHours: data.workingHours || "9",
       halfDayHours: data.halfDayHours || "5",
       dateOfJoining: data.DOJ || null,
@@ -314,6 +324,13 @@ const EmployeesCreateEdit = () => {
             password: data.login.password,
           }
         : {}),
+      // Logged-in user name for worklog
+      updatedByName:
+        user?.name ||
+        user?.Name ||
+        user?.fullName ||
+        user?.username ||
+        "System",
     };
 
     // UPDATE EMPLOYEE
@@ -507,6 +524,16 @@ const EmployeesCreateEdit = () => {
 
     return formData;
   };
+  const TicketManagerOptions = [
+    {
+      value: true,
+      label: "Yes",
+    },
+    {
+      value: false,
+      label: "No",
+    },
+  ];
   return (
     <div className="overflow-auto border border-gray-200 rounded-lg p-2">
       <form
@@ -920,6 +947,37 @@ const EmployeesCreateEdit = () => {
                 );
               }}
             />
+            {/* Ticket Manager */}
+            <Controller
+              name="ticketManager"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${
+                    field.value !== undefined && field.value !== null
+                      ? "has-value"
+                      : ""
+                  }`}
+                >
+                  <label className="select-label">Ticket Manager</label>
+
+                  <Select
+                    options={TicketManagerOptions}
+                    isClearable={false}
+                    placeholder=""
+                    value={
+                      TicketManagerOptions.find(
+                        (option) => option.value === field.value,
+                      ) || null
+                    }
+                    onChange={(option) =>
+                      field.onChange(option?.value ?? false)
+                    }
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
           </div>
         </div>
         {/* =========================================================
@@ -959,6 +1017,7 @@ const EmployeesCreateEdit = () => {
                 {...register("contact.email")}
                 placeholder=" "
                 type="email"
+                autoComplete="off"
                 className="form-input"
               />
 
@@ -1080,6 +1139,7 @@ const EmployeesCreateEdit = () => {
                 {...register("login.loginId")}
                 placeholder=" "
                 type="email"
+                autoComplete="off"
                 className="form-input bg-gray-100 cursor-not-allowed"
                 readOnly
                 disabled
@@ -1094,6 +1154,7 @@ const EmployeesCreateEdit = () => {
                 <input
                   {...register("login.password")}
                   placeholder=" "
+                  autoComplete="new-password"
                   type={showPassword ? "text" : "password"}
                   className="form-input pr-12"
                 />

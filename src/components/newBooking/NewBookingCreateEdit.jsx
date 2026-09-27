@@ -1017,7 +1017,7 @@ const NewBookingCreateEdit = () => {
   };
 
 
-  const handleFinalSubmit = async () => {
+  const handleFinalSubmit = async (onSuccessCallback) => {
     // Prevent duplicate API calls even if user clicks multiple times
     // before React has time to update the button's disabled state.
     if (submitLockRef.current) return;
@@ -1182,7 +1182,8 @@ const NewBookingCreateEdit = () => {
               toast.success(
                 response?.message || "Booking Updated Successfully"
               );
-
+              // MongoDB me successfully create hone ke baad
+              onSuccessCallback?.();
               reset();
               setShowConfirmationModal(false);
               submitLockRef.current = false;
@@ -1205,7 +1206,8 @@ const NewBookingCreateEdit = () => {
             toast.success(
               response?.message || "Booking Created Successfully"
             );
-
+            // MongoDB me successfully update hone ke baad
+            onSuccessCallback?.();
             reset();
             setShowConfirmationModal(false);
             submitLockRef.current = false;
@@ -1306,9 +1308,23 @@ const NewBookingCreateEdit = () => {
                 {...register("fullName")}
                 placeholder=" "
                 className="form-input"
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  const capitalizedValue = value
+                    .toLowerCase()
+                    .replace(/\b\w/g, (char) => char.toUpperCase());
+
+                  setValue("fullName", capitalizedValue, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }}
               />
+
               <label className="form-label required-label">
-                Full Name </label>
+                Full Name
+              </label>
 
               {errors.fullName && (
                 <p className="text-red-500 text-xs mt-1">
@@ -1570,6 +1586,7 @@ const NewBookingCreateEdit = () => {
                   {...register("roomNo")}
                   placeholder=" "
                   type="text"
+                  disabled
                   className="form-input"
                 />
                 <label className="form-label required-label">
@@ -1591,6 +1608,7 @@ const NewBookingCreateEdit = () => {
                   placeholder=" "
                   type="text"
                   className="form-input"
+                  disabled
                 />
                 <label className="form-label required-label">
                   AC / Non AC
@@ -1609,6 +1627,7 @@ const NewBookingCreateEdit = () => {
                   {...register("monthlyRent")}
                   placeholder=" "
                   type="number"
+                  disabled
                   className="form-input"
                 />
                 <label className="form-label required-label">
@@ -1625,6 +1644,7 @@ const NewBookingCreateEdit = () => {
                   {...register("depositAmount")}
                   placeholder=" "
                   type="number"
+                  disabled
                   className="form-input"
                 />
                 <label className="form-label required-label">
@@ -1760,6 +1780,7 @@ const NewBookingCreateEdit = () => {
                   placeholder=" "
                   type="number"
                   className="form-input"
+                  disabled
                 />
                 <label className="form-label required-label">
                   Rent Amount As Per Client DOJ ( ₹ )
@@ -1809,6 +1830,7 @@ const NewBookingCreateEdit = () => {
                   placeholder=" "
                   type="text"
                   className="form-input"
+                  disabled
                 />
                 <label className="form-label">
                   Upcoming Rent Hike Date
@@ -1820,6 +1842,7 @@ const NewBookingCreateEdit = () => {
                   placeholder=" "
                   type="text"
                   className="form-input"
+                  disabled
                 />
                 <label className="form-label ">
                   Upcoming Rent Hike Amount
@@ -1931,6 +1954,7 @@ const NewBookingCreateEdit = () => {
                   placeholder=" "
                   type="text"
                   className="form-input"
+                  disabled
                 />
                 <label className="form-label required-label">
                   Room No
@@ -1942,6 +1966,7 @@ const NewBookingCreateEdit = () => {
                   placeholder=" "
                   type="text"
                   className="form-input"
+                  disabled
                 />
                 <label className="form-label required-label">
                   AC / Non AC
@@ -1956,6 +1981,7 @@ const NewBookingCreateEdit = () => {
                   placeholder=" "
                   type="number"
                   className="form-input"
+                  disabled
                 />
                 <label className="form-label required-label">
                   Monthly Fixed Rent ( ₹ )
@@ -2012,6 +2038,7 @@ const NewBookingCreateEdit = () => {
                   placeholder=" "
                   type="number"
                   className="form-input"
+                  disabled
                 />
                 <label className="form-label required-label">
                   Rent Amount As Per Client DOJ ( ₹ )
@@ -2109,6 +2136,7 @@ const NewBookingCreateEdit = () => {
                   placeholder=" "
                   type="text"
                   className="form-input"
+                  disabled
                 />
                 <label className="form-label required-label">
                   Room No
@@ -2119,6 +2147,7 @@ const NewBookingCreateEdit = () => {
                   {...register("dailyAcRoom")}
                   placeholder=" "
                   type="text"
+                  disabled
                   className="form-input"
                 />
                 <label className="form-label required-label">
@@ -2133,6 +2162,7 @@ const NewBookingCreateEdit = () => {
                   {...register("dailyMonthlyRent")}
                   placeholder=" "
                   type="number"
+                  disabled
                   className="form-input"
                 />
                 <label className="form-label required-label">
@@ -2189,6 +2219,7 @@ const NewBookingCreateEdit = () => {
                   {...register("dailyclientCalculatedRent")}
                   placeholder=" "
                   type="number"
+                  disabled
                   className="form-input"
                 />
                 <label className="form-label required-label">

@@ -9,6 +9,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { selectStyles } from "../../utils/selectStyles";
 import { useRegularizeAttendance } from "./services/index";
 import FilePreview from "../common/FilePreview";
+import { formatDateAndTime } from "../../utils/dateFormatter";
 // ============================================================
 // CONSTANTS
 // ============================================================
@@ -74,6 +75,7 @@ const AttendanceRegularizationModal = ({
       attendanceDate: "",
       status: "",
       remarks: "",
+      newWorkLog: "",
     },
     mode: "onSubmit",
   });
@@ -93,6 +95,7 @@ const AttendanceRegularizationModal = ({
       attendanceDate: "",
       status: "",
       remarks: "",
+      newWorkLog: "",
     });
 
     setSupportingDocuments([]);
@@ -207,6 +210,7 @@ const AttendanceRegularizationModal = ({
         attendanceDate: attendanceDateValue,
         status: statusValue,
         remarks: attendance.remarks || "",
+        newWorkLog: "",
       });
 
       setSelectedEmployee(employee || null);
@@ -412,6 +416,7 @@ const AttendanceRegularizationModal = ({
     formData.append("attendanceDate", data.attendanceDate);
     formData.append("status", numericStatus);
     formData.append("remarks", data.remarks.trim());
+    formData.append("newWorkLog", data.newWorkLog?.trim() || "");
 
     supportingDocuments.forEach((file) => {
       formData.append("supportingDocuments", file);
@@ -752,41 +757,20 @@ const AttendanceRegularizationModal = ({
                 REMARKS
             ==================================================== */}
 
-            <section className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-              <div className="mb-5 flex items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-base font-semibold text-gray-800">
-                    Remarks
-                  </h3>
+            <section className="rounded-x bg-white  p-3">
+                    <div className="rounded-xl  border-gray-200 bg-white p-2 shadow-sm">
+                  <div className="form-group">
+                    <textarea
+                      rows={3}
+                      {...register("newWorkLog")}
+                      placeholder=" "
+                      className="form-input resize-none"
+                    />
 
-                  {/* <p className="mt-1 text-xs text-gray-500">
-                    Add a reason or note for this attendance regularization.
-                  </p> */}
+                    <label className="form-label">Remarks</label>
+                  </div>
                 </div>
 
-                <span className="shrink-0 text-xs text-gray-400">
-                  {remarks.length}/500
-                </span>
-              </div>
-
-              <div className="form-group">
-                <textarea
-                  {...register("remarks", {
-                    maxLength: 500,
-                  })}
-                  placeholder=" "
-                  rows={2}
-                  maxLength={500}
-                  className="form-input min-h-[20px] resize-none"
-                />
-
-                <label className="form-label">
-                  Remarks
-                  <span className="ml-1 text-xs font-normal text-gray-400">
-                    (Optional)
-                  </span>
-                </label>
-              </div>
             </section>
             {/* ====================================================
     SUPPORTING DOCUMENTS
@@ -850,7 +834,50 @@ const AttendanceRegularizationModal = ({
                 </div>
               </div>
             </section>
+            {/* ====================================================
+    WORK LOG
+==================================================== */}
 
+            {isEditing && (
+              <section className="grid grid-cols-1 gap-5 md:grid-cols-1">
+                {/* Add WorkLog */}
+           
+
+                {/* WorkLog History */}
+                <div className="flex h-40 flex-col rounded-lg border bg-gray-50 px-4 py-2">
+                  <h3 className="mb-1 text-lg font-semibold">
+                    Work Log History
+                  </h3>
+
+                  <div className="flex-1 overflow-y-auto">
+                    {attendance?.workLogs?.length > 0 ? (
+                      attendance.workLogs
+                        .slice()
+                        .reverse()
+                        .map((log, index) => (
+                          <div
+                            key={log._id || index}
+                            className="border-b py-3 last:border-b-0"
+                          >
+                            <small className="text-gray-500">
+                              {log.createdBy || "System"} •{" "}
+                              {formatDateAndTime(log.createdAt)}
+                            </small>
+
+                            <p className="whitespace-pre-line text-sm">
+                              {log.message}
+                            </p>
+                          </div>
+                        ))
+                    ) : (
+                      <p className="mt-10 text-center text-gray-400">
+                        No Work Logs Available
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </section>
+            )}
             {/* ====================================================
                 EDIT INFORMATION
             ==================================================== */}

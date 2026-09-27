@@ -5,7 +5,37 @@ const TableSkeleton = ({
   columns = 5,
   showActions = false,
   showStatus = false,
+  mobile = false,
 }) => {
+  // Mobile skeleton should NOT render <tbody>
+  // because mobile layout is inside a <div>, not a <table>.
+  if (mobile) {
+    return (
+      <>
+        {Array.from({ length: rows }).map((_, rowIndex) => (
+          <div
+            key={rowIndex}
+            className="rounded-lg p-4 space-y-3 animate-pulse"
+          >
+            {Array.from({ length: columns }).map((_, colIndex) => (
+              <div
+                key={colIndex}
+                className={`h-4 rounded bg-gray-200 ${
+                  colIndex % 3 === 0
+                    ? "w-full"
+                    : colIndex % 3 === 1
+                      ? "w-20"
+                      : "w-24"
+                }`}
+              />
+            ))}
+          </div>
+        ))}
+      </>
+    );
+  }
+
+  // Desktop/table skeleton
   return (
     <tbody>
       {Array.from({ length: rows }).map((_, rowIndex) => (

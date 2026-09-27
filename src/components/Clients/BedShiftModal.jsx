@@ -52,7 +52,7 @@ const BedShiftModal = ({ isOpen, onClose, client, getAvailableBeds }) => {
 
     return {
       options: res.data.map((item) => ({
-        value: item._id,
+        value: `${item._id},${item.propertyCode}`,
         label: item.propertyCode,
       })),
 
@@ -200,7 +200,7 @@ const BedShiftModal = ({ isOpen, onClose, client, getAvailableBeds }) => {
                     value={
                       field.value
                         ? {
-                            value: field.value,
+                          label: field.value.split(",")[1],
                             label: field.value,
                           }
                         : null

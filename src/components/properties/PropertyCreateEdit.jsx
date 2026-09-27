@@ -549,6 +549,7 @@ const PropertyCreateEdit = () => {
                 {...register("internet.vendorLoginId")}
                 placeholder=" "
                 className="form-input"
+                autoComplete="off"
               />
               <label className="form-label">Vendor Login ID</label>
             </div>
@@ -558,6 +559,7 @@ const PropertyCreateEdit = () => {
                 type={showVendorPassword ? "text" : "password"}
                 placeholder=" "
                 className="form-input pr-10"
+                autoComplete="new-password"
               />
 
               <label className="form-label">Vendor Password</label>

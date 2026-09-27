@@ -104,8 +104,8 @@ ${data?.bookingType === "Daily"
       msg += "\n\n";
       msg += `
 Permanent PG Facility Code: ${data?.propertyId?.value?.split(",")[1] || "-"}
-Room No.: ${data?.roomNo || "-"}
-Bed No.: ${data?.bedId?.split(",")[1] || "-"}
+Room No: ${data?.roomNo || "-"}
+Bed No: ${data?.bedId?.split(",")[1] || "-"}
 AC Room: ${data?.acRoom || "-"}
 Start Date: ${formatWhatsAppDate(data?.clientDoj)}
 Last Date: ${formatWhatsAppDate(data?.clientLastDate)}
@@ -157,7 +157,7 @@ Note: This is a system-generated message and does not require a signature.`;
 
     const encodedMsg = encodeURIComponent(msg);
 
-    const number = data?.callingNo?.replace(/\D/g, "") || "";
+    const number = data?.whatsappNo?.replace(/\D/g, "") || "";
 
     if (!number) {
       alert("WhatsApp number is not available");
@@ -169,14 +169,6 @@ Note: This is a system-generated message and does not require a signature.`;
       "_blank"
     );
   };
-
-
-
-
-
-
-
-
 
 
   return (
@@ -352,10 +344,7 @@ Note: This is a system-generated message and does not require a signature.`;
           </button>
 
           <button
-            onClick={() => {
-              shareOnWhatsApp();
-              onConfirm();
-            }}
+            onClick={() => onConfirm(() => shareOnWhatsApp())}
             disabled={isLoading}
             className="theme-btn px-5 py-2"
           >

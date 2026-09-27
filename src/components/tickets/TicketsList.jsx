@@ -219,6 +219,7 @@ const TicketsList = () => {
     { label: "Assignee", key: "assignee" },
     { label: "Created By Id", key: "createdById" },
     { label: "Created By Name", key: "createdByName" },
+    { label: "Created By Role", key: "createdBy" },
     { label: "Updated By ID", key: "updatedById" },
     { label: "Updated By Name", key: "updatedByName" },
     { label: "Updated Date", key: "updatedDateTime" },
@@ -503,8 +504,8 @@ const TicketsList = () => {
                     <th className="p-3 text-left">Bed No</th>
                     <th className="p-3 text-left">Room No</th>
                     <th className="p-3 text-left">Created By</th>
-                    <th className="p-3 text-left">Updated By</th>
-                    <th className="p-3 text-left">Updated Date Time</th>
+                    {/* <th className="p-3 text-left">Updated By</th>
+                    <th className="p-3 text-left">Updated Date Time</th> */}
                     <th className="p-3 text-left">workLogs</th>
                     <th className="p-3 text-left">Location</th>
                     {showActions && (
@@ -556,25 +557,51 @@ const TicketsList = () => {
                             {item?.propertyId?.propertyCode}
                           </td>
 
-                          <td className="p-3">
-                            <div>
-                              <div className="font-medium">
-                                {item.title
-                                  ? item.title.length > 25
-                                    ? `${item.title.substring(0, 25)}...`
-                                    : item.title
-                                  : "N/A"}
-                              </div>
+                       
+<td className="p-3">
+  <div className="relative group max-w-75">
+    {/* Normal Display */}
+    <div className="font-medium truncate">
+      {item.title
+        ? item.title.length > 25
+          ? `${item.title.substring(0, 25)}...`
+          : item.title
+        : "N/A"}
+    </div>
 
-                              <div className="text-xs text-gray-500 wrap-break-word max-w-75 whitespace-nowrap overflow-hidden text-ellipsis">
-                                {item.description
-                                  ? item.description.length > 60
-                                    ? `${item.description.substring(0, 60)}...`
-                                    : item.description
-                                  : "No Description"}
-                              </div>
-                            </div>
-                          </td>
+    <div className="text-xs text-gray-500 truncate">
+      {item.description
+        ? item.description.length > 60
+          ? `${item.description.substring(0, 60)}...`
+          : item.description
+        : "No Description"}
+    </div>
+
+    {/* Hover Popup */}
+    <div
+      className="
+        absolute left-0 top-full mt-2 z-50
+        hidden group-hover:block
+        w-96 max-w-[90vw]
+        rounded-lg border border-gray-200
+        bg-white shadow-xl
+        p-4
+      "
+    >
+      {/* Full Title */}
+      <div className="text-sm font-semibold text-gray-900 mb-2 break-words">
+        {item.title || "N/A"}
+      </div>
+
+      {/* Full Description */}
+      <div className="text-sm text-gray-600 whitespace-pre-wrap break-words leading-5">
+        {item.description || "No Description"}
+      </div>
+    </div>
+  </div>
+</td>
+
+
 
                           <td className="p-3 text-center">
                             <span
@@ -620,11 +647,11 @@ const TicketsList = () => {
                                 {item.createdByName || "-"}
                               </span>
                               <span className="text-xs text-gray-500">
-                                {item.createdById || "-"}
+                                {item.createdBy || "-"}
                               </span>
                             </div>
                           </td>
-                          <td className="p-3">
+                          {/* <td className="p-3">
                             <div className="flex flex-col">
                               <span className="font-medium">
                                 {item.updatedByName || "-"}
@@ -633,8 +660,8 @@ const TicketsList = () => {
                                 {item.updatedById || "-"}
                               </span>
                             </div>
-                          </td>
-                          <td className="p-3">{item.updatedDateTime}</td>
+                          </td> */}
+                          {/* <td className="p-3">{item.updatedDateTime}</td> */}
                           <td className="px-2">
                             {item.workLogs?.length > 0 ? (
                               <div className="group relative cursor-pointer">
@@ -745,7 +772,7 @@ const TicketsList = () => {
             <div className="block md:hidden p-3">
               {isTicketData ? (
                 <div className="space-y-3">
-                  <TableSkeleton rows={5} columns={1} />
+                  <TableSkeleton rows={5} columns={1} mobile/>
                 </div>
               ) : apiData.length > 0 ? (
                 <div className="space-y-3">

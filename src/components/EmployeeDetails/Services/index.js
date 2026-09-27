@@ -375,3 +375,16 @@ export const useDropDowlList = () => {
     refetchOnWindowFocus: false,
   });
 };
+
+export const getManagerEmployees = async () => {
+  const response = await apiClient.get("/employees/managers");
+
+  return response.data;
+};
+
+export const useManagerEmployees = () => {
+  return useQuery({
+    queryKey: ["manager-employees"],
+    queryFn: getManagerEmployees,
+  });
+};

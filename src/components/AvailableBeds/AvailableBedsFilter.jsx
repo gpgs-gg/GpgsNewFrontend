@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { selectStyles } from "../../utils/selectStyles";
 import { getPropertyDropdown } from "../properties/services/index";
 import { AsyncPaginate } from "react-select-async-paginate";
+import { useBatchOptions } from "../Options/services";
 const AvailableBedsFilter = ({
   isOpen,
   onClose,
@@ -36,7 +37,7 @@ const AvailableBedsFilter = ({
     hasCvd: false,
     sortByRent: false,
   };
-
+const { data: options = {} } = useBatchOptions(["locations"]);
   const { control, handleSubmit, reset } = useForm({
     defaultValues,
   });
@@ -66,18 +67,7 @@ const AvailableBedsFilter = ({
   // ===========================
   // Location Options
   // ===========================
-  const locationOptions = useMemo(() => {
-    return [
-      ...new Set(
-        apiData
-          .map((item) => item?.propertyId?.propertyLocation)
-          .filter(Boolean),
-      ),
-    ].map((item) => ({
-      value: item,
-      label: item,
-    }));
-  }, [apiData]);
+  const locationOptions = options.locations || [];
 
   // ===========================
   // Room Options

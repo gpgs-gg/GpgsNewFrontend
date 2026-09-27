@@ -66,6 +66,7 @@ import PropAndPersDetails from "../clientComponents/PropAndPersDetails/PropAndPe
 import Agreement from "../clientComponents/AgreementDetails/Agreement";
 import AgreementPopup from "../clientComponents/PropAndPersDetails/AgreementPopup ";
 import { useAuth } from "../context/authContext";
+import BookingEnquiry from "../pages/BookingEnquiry";
 
 const AppRoutes = () => {
 
@@ -173,10 +174,11 @@ const AppRoutes = () => {
           <Route path="/eb-details-for-clients" element={<EBCalculationData />} />
           <Route path="/prop-perso-details" element={<PropAndPersDetails />} />
           <Route path="/agreement-details" element={<Agreement />} />
+         
 
         </Route>
       </Route>
-
+ <Route path="/booking" element={<BookingEnquiry />}/>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
     </>

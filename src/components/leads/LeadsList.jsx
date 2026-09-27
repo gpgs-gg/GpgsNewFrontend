@@ -23,6 +23,7 @@ import { useCurrentUser } from "../../auth/services";
 import { toast } from "react-toastify";
 import ConfirmModal from "../common/ConfirmModal";
 import TableSkeleton from "../common/TableSkelton";
+
 const statusColors = {
   New: "bg-blue-100 text-blue-700",
   Followup: "bg-yellow-100 text-yellow-700",
@@ -48,7 +49,7 @@ const LeadsList = () => {
   };
 
   const { filters, setFilters, removeFilter, resetFilters } =
-    usePersistedFilters("leads_filters", DEFAULT_LEAD_FILTERS);
+  usePersistedFilters("leads_filters", DEFAULT_LEAD_FILTERS);
   const { mutate: deleteLead } = useDeleteLeadData();
   const { data: currentUser } = useCurrentUser();
   const [search, setSearch] = useState("");
@@ -342,6 +343,7 @@ const LeadsList = () => {
               </div>
             )}
             <div className="flex gap-2">
+
               <div className="border border-gray-400 flex flex-col px-2 gap-1 justify-center items-center rounded-lg">
                 <label className="inline-flex items-center cursor-pointer gap-2">
                   <div className="relative">

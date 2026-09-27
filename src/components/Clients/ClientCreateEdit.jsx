@@ -283,28 +283,8 @@ const ClientCreateEdit = () => {
             });
         }
     };
-    const noticeStartDate = watch("noticeStartDate");
 
-    useEffect(() => {
-        if (!noticeStartDate) return;
 
-        const startDate = new Date(noticeStartDate);
-
-        // 30-day business month:
-        // Start date + 29 days = 30 days total
-        const noticeEndDate = new Date(startDate);
-        noticeEndDate.setDate(noticeEndDate.getDate() + 29);
-
-        setValue("noticeLastDate", noticeEndDate, {
-            shouldValidate: true,
-            shouldDirty: true,
-        });
-
-        setValue("clientVacatingDate", noticeEndDate, {
-            shouldValidate: true,
-            shouldDirty: true,
-        });
-    }, [noticeStartDate, setValue]);
     return (
         <div className="max-w-12xl mx-auto px-6 ">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -625,7 +605,37 @@ const ClientCreateEdit = () => {
                                     <DatePicker
                                         isClearable
                                         selected={field.value}
-                                        onChange={(date) => field.onChange(date)}
+                                        onChange={(date) => {
+                                            field.onChange(date);
+
+                                            if (!date) {
+                                                setValue("noticeLastDate", null, {
+                                                    shouldDirty: true,
+                                                });
+
+                                                setValue("clientVacatingDate", null, {
+                                                    shouldDirty: true,
+                                                });
+
+                                                return;
+                                            }
+
+                                            // Notice Start Date user ne change kiya hai
+                                            // Isliye NLD + CVD auto calculate honge
+                                            const noticeEndDate = new Date(date);
+
+                                            noticeEndDate.setDate(noticeEndDate.getDate() + 29);
+
+                                            setValue("noticeLastDate", noticeEndDate, {
+                                                shouldValidate: true,
+                                                shouldDirty: true,
+                                            });
+
+                                            setValue("clientVacatingDate", noticeEndDate, {
+                                                shouldValidate: true,
+                                                shouldDirty: true,
+                                            });
+                                        }}
                                         dateFormat="dd MMM yyyy"
                                         className="custom-datepicker"
                                     />

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import useDebounce from "../hooks/useDebounce";
-import { useClients } from "./services";
+import { useClients, useGenerateMonthlyRentForAllClient, useGenerateSingleClientMonthlyRent, useRentGenerationLogs } from "./services";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import { AsyncPaginate } from "react-select-async-paginate";
 import { formatDate } from "../../utils/dateFormatter";
@@ -16,9 +16,11 @@ import ClientsFilter from "./ClientsFilter";
 import ClientVacationModal from "./ClientVacationModal";
 import { useAuthorization } from "../../context/AuthorizationContext";
 import TableSkeleton from "../common/TableSkelton";
+import { useAuth } from "../../context/authContext";
+import RentGenerationLogPopup from "./RentGenerationLogPopup";
 const ClientsTable = () => {
   const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
-
+  const { user } = useAuth();
   const canAddClient = canAdd("clients");
   const canEditClient = canEdit("clients");
   const canDeleteClient = canDelete("clients");
@@ -31,11 +33,24 @@ const ClientsTable = () => {
 
     return savedPage ? Number(savedPage) : 1;
   });
-  const [fnfClosedFilter, setFnfClosedFilter] = useState(false);
-  const [fnfCancelledFilter, setFnfCancelledFilter] = useState(false);
+  const [fnfClosedFilter, setFnfClosedFilter] = useState(() => {
+    return localStorage.getItem("clients_fnf_closed") === "true";
+  });
+
+  const [fnfCancelledFilter, setFnfCancelledFilter] = useState(() => {
+    return localStorage.getItem("clients_fnf_cancelled") === "true";
+  });
   useEffect(() => {
     localStorage.setItem("clients_page", String(currentPage));
   }, [currentPage]);
+
+  useEffect(() => {
+    localStorage.setItem("clients_fnf_closed", String(fnfClosedFilter));
+  }, [fnfClosedFilter]);
+
+  useEffect(() => {
+    localStorage.setItem("clients_fnf_cancelled", String(fnfCancelledFilter));
+  }, [fnfCancelledFilter]);
   const [filterOpen, setFilterOpen] = useState(false);
 
   const DEFAULT_CLIENT_FILTERS = {
@@ -59,6 +74,7 @@ const ClientsTable = () => {
   const [showBedShiftModal, setShowBedShiftModal] = useState(false);
   const [showClientVacationModal, setShowClientVacationModal] = useState(false);
   const [showBedHistoryModal, setShowBedHistoryModal] = useState(false);
+  const [selectedRentLog, setSelectedRentLog] = useState(null);
   const [selectedClient, setSelectedClient] = useState();
   const debouncedSearch = useDebounce(search, 500);
   const filterLabels = useMemo(() => {
@@ -151,6 +167,87 @@ const ClientsTable = () => {
     filters: apiFilters,
   });
 
+  const {
+    mutate: generateMonthlyRent,
+    isPending: isGeneratingRent,
+  } = useGenerateSingleClientMonthlyRent();
+
+  const {
+    mutate: generateMonthlyRentForAllClient,
+    isFetching: isGeneratingRentAllClients,
+  } = useGenerateMonthlyRentForAllClient();
+
+  const {
+    data: rentGenerationLogsResponse,
+    isLoading: isRentGenerationLogsLoading,
+    isError: isRentGenerationLogsError,
+  } = useRentGenerationLogs();
+
+
+  const handleGenerateMonthlyRent = (clientId) => {
+    generateMonthlyRent(clientId, {
+      onSuccess: (data) => {
+        toast.dismiss();
+        toast.success(data?.message);
+      },
+
+      onError: (error) => {
+        toast.dismiss();
+        toast.error(
+          error?.response?.data?.message
+        );
+      },
+    });
+  };
+
+
+  const handleGenerateMonthlyRentForAllClients = () => {
+    generateMonthlyRentForAllClient(undefined, {
+      onSuccess: (data) => {
+        toast.dismiss();
+
+        toast.success(
+          <div className="text-left space-y-1">
+            <div>
+              <strong>Success:</strong> {String(data?.success)}
+            </div>
+
+            <div>
+              <strong>Inserted Count:</strong>{" "}
+              {data?.insertedCount ?? 0}
+            </div>
+
+            <div>
+              <strong>Failed Count:</strong>{" "}
+              {data?.failedCount ?? 0}
+            </div>
+
+            <div>
+              <strong>Total:</strong> {data?.total ?? 0}
+            </div>
+
+            <div>
+              <strong>Message:</strong>{" "}
+              {data?.message || "Monthly rent generation completed"}
+            </div>
+          </div>,
+          {
+            duration: 5000,
+          }
+        );
+      },
+
+      onError: (error) => {
+        toast.dismiss();
+
+        toast.error(
+          error?.response?.data?.message ||
+          "Failed to generate monthly rent"
+        );
+      },
+    });
+  };
+
   // Safely get bookings data
   const bookings = clients?.data || [];
 
@@ -180,6 +277,8 @@ const ClientsTable = () => {
     setCurrentPage(1);
 
     localStorage.setItem("clients_page", "1");
+    localStorage.removeItem("clients_fnf_closed");
+    localStorage.removeItem("clients_fnf_cancelled");
 
     setResetTrigger((prev) => prev + 1);
   };
@@ -228,11 +327,15 @@ const ClientsTable = () => {
               <p className="text-sm text-gray-500">Manage all clients</p>
             </div>
 
-            {/* <Link to="/newbooking/create">
-              <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                + Create Clients
-              </button>
-            </Link> */}
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedRentLog(rentGenerationLogsResponse?.data)
+              }
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100"
+            >
+              Rent Generation Log
+            </button>
           </div>
         </div>
 
@@ -297,6 +400,19 @@ const ClientsTable = () => {
                 </button>
               )}
 
+
+              {user?.role?.toLowerCase() === "admin" && (
+                <button
+                  type="button"
+                  onClick={handleGenerateMonthlyRentForAllClients}
+                  disabled={isGeneratingRentAllClients}
+                  className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
+                >
+                  {isGeneratingRentAllClients
+                    ? "Generating..."
+                    : "Generate Monthly Rent"}
+                </button>
+              )}
               <button
                 onClick={() => {
                   setFnfClosedFilter((prev) => {
@@ -311,11 +427,10 @@ const ClientsTable = () => {
 
                   setCurrentPage(1);
                 }}
-                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${
-                  fnfClosedFilter
-                    ? "bg-green-50 border-green-300 text-green-700"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${fnfClosedFilter
+                  ? "bg-green-50 border-green-300 text-green-700"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
               >
                 F&F Closed
               </button>
@@ -333,13 +448,12 @@ const ClientsTable = () => {
 
                   setCurrentPage(1);
                 }}
-                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${
-                  fnfCancelledFilter
-                    ? "bg-red-50 border-red-300 text-red-700"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${fnfCancelledFilter
+                  ? "bg-red-50 border-red-300 text-red-700"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
               >
-                F&F Cancelled
+                Cancelled
               </button>
               <button
                 onClick={() => setFilterOpen(true)}
@@ -537,15 +651,14 @@ const ClientsTable = () => {
 
                             <td className="p-3 text-center">
                               <span
-                                className={`px-2.5 py-1 rounded-full text-md font-semibold ${
-                                  item.bookingType === "Daily"
-                                    ? " text-indigo-700"
-                                    : item.stayType === "P. Booked"
-                                      ? " text-emerald-700"
-                                      : item.stayType === "T. Booked"
-                                        ? " text-amber-700"
-                                        : " text-gray-700"
-                                }`}
+                                className={`px-2.5 py-1 rounded-full text-md font-semibold ${item.bookingType === "Daily"
+                                  ? " text-indigo-700"
+                                  : item.stayType === "P. Booked"
+                                    ? " text-emerald-700"
+                                    : item.stayType === "T. Booked"
+                                      ? " text-amber-700"
+                                      : " text-gray-700"
+                                  }`}
                               >
                                 {item.bookingType === "Daily"
                                   ? "Daily"
@@ -554,7 +667,7 @@ const ClientsTable = () => {
                             </td>
                             <td className="p-3">
                               {item.stayType === "T. Booked" &&
-                              item.permanentBooking ? (
+                                item.permanentBooking ? (
                                 <div className="relative group inline-block">
                                   <Info
                                     size={18}
@@ -752,7 +865,7 @@ const ClientsTable = () => {
                                 </button>
 
                                 <div
-                                  className="absolute  top-full left-1/2 -translate-x-1/2 mt-2
+                                  className="absolute  top-full left-1/2 -translate-x-1/2 mt-[-20]
                hidden group-hover:block z-50 w-[350px]"
                                 >
                                   <div
@@ -820,54 +933,54 @@ const ClientsTable = () => {
                                                 {/* Vacation 1 */}
                                                 {(vacation.vacationStartDate1 ||
                                                   vacation.vacationLastDate1) && (
-                                                  <div className="flex items-center gap-5">
-                                                    <span className="font-medium text-gray-700">
-                                                      Vacation 1
-                                                    </span>
+                                                    <div className="flex items-center gap-5">
+                                                      <span className="font-medium text-gray-700">
+                                                        Vacation 1
+                                                      </span>
 
-                                                    <span className="text-gray-600">
-                                                      {vacation.vacationStartDate1
-                                                        ? formatDate(
+                                                      <span className="text-gray-600">
+                                                        {vacation.vacationStartDate1
+                                                          ? formatDate(
                                                             vacation.vacationStartDate1,
                                                           )
-                                                        : "-"}{" "}
-                                                      <span className="text-gray-400">
-                                                        →
-                                                      </span>{" "}
-                                                      {vacation.vacationLastDate1
-                                                        ? formatDate(
+                                                          : "-"}{" "}
+                                                        <span className="text-gray-400">
+                                                          →
+                                                        </span>{" "}
+                                                        {vacation.vacationLastDate1
+                                                          ? formatDate(
                                                             vacation.vacationLastDate1,
                                                           )
-                                                        : "-"}
-                                                    </span>
-                                                  </div>
-                                                )}
+                                                          : "-"}
+                                                      </span>
+                                                    </div>
+                                                  )}
 
                                                 {/* Vacation 2 */}
                                                 {(vacation.vacationStartDate2 ||
                                                   vacation.vacationLastDate2) && (
-                                                  <div className="flex items-center gap-5">
-                                                    <span className="font-medium text-gray-700">
-                                                      Vacation 2
-                                                    </span>
+                                                    <div className="flex items-center gap-5">
+                                                      <span className="font-medium text-gray-700">
+                                                        Vacation 2
+                                                      </span>
 
-                                                    <span className="text-gray-600">
-                                                      {vacation.vacationStartDate2
-                                                        ? formatDate(
+                                                      <span className="text-gray-600">
+                                                        {vacation.vacationStartDate2
+                                                          ? formatDate(
                                                             vacation.vacationStartDate2,
                                                           )
-                                                        : "-"}{" "}
-                                                      <span className="text-gray-400">
-                                                        →
-                                                      </span>{" "}
-                                                      {vacation.vacationLastDate2
-                                                        ? formatDate(
+                                                          : "-"}{" "}
+                                                        <span className="text-gray-400">
+                                                          →
+                                                        </span>{" "}
+                                                        {vacation.vacationLastDate2
+                                                          ? formatDate(
                                                             vacation.vacationLastDate2,
                                                           )
-                                                        : "-"}
-                                                    </span>
-                                                  </div>
-                                                )}
+                                                          : "-"}
+                                                      </span>
+                                                    </div>
+                                                  )}
                                               </div>
                                             </div>
                                           ))}
@@ -882,11 +995,10 @@ const ClientsTable = () => {
                               </div>
                             </td>
                             <td
-                              className={`p-3 font-semibold ${
-                                item.loginEnabled
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                              }`}
+                              className={`p-3 font-semibold ${item.loginEnabled
+                                ? "text-green-600"
+                                : "text-red-600"
+                                }`}
                             >
                               {item.loginEnabled ? "Enabled" : "Disabled"}
                             </td>
@@ -915,9 +1027,8 @@ const ClientsTable = () => {
                           </td> */}
 
                             <td
-                              className={`p-3 sticky right-0 bg-white ${
-                                openMenuId === item._id ? "z-[9999]" : ""
-                              } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
+                              className={`p-3 sticky right-0 bg-white ${openMenuId === item._id ? "z-[9999]" : ""
+                                } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
                             >
                               <div className="flex justify-center gap-2">
                                 {canViewClient && (
@@ -929,6 +1040,20 @@ const ClientsTable = () => {
                                     <span>Rent</span>
                                   </Link>
                                 )}
+                                {user?.role?.toLowerCase() === "admin" && (
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleGenerateMonthlyRent(item?._id)}
+                                    disabled={isGeneratingRent}
+                                    className="w-full flex items-center gap-1 px-2 py-1 rounded-lg border border-gray-300 hover:border-gray-800 text-left disabled:opacity-50"
+                                  >
+                                    <span>💰</span>
+                                    <span>{isGeneratingRent ? "GEN..." : "GEN"}</span>
+                                  </button>
+
+                                )}
+
                                 {showActions && (
                                   <button
                                     onClick={(e) => {
@@ -939,11 +1064,10 @@ const ClientsTable = () => {
                                           : item._id,
                                       );
                                     }}
-                                    className={`p-2 rounded-md transition-colors ${
-                                      openMenuId === item._id
-                                        ? "bg-blue-100 text-blue-600"
-                                        : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                    }`}
+                                    className={`p-2 rounded-md transition-colors ${openMenuId === item._id
+                                      ? "bg-blue-100 text-blue-600"
+                                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                      }`}
                                   >
                                     <FaEllipsisV />
                                   </button>
@@ -1123,6 +1247,13 @@ const ClientsTable = () => {
         handleReset={handleReset}
         resetTrigger={resetTrigger}
       />
+      {selectedRentLog && (
+        <RentGenerationLogPopup
+          logs={selectedRentLog}
+          onClose={() => setSelectedRentLog(null)}
+        />
+      )}
+
     </>
   );
 };

@@ -194,7 +194,7 @@ function FnfEditForm({ client, onClose }) {
   // ============================================================
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[9999]  flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-5xl h-auto overflow-y-auto rounded-xl bg-white shadow-2xl">
         {/* ==================================================
                     HEADER
@@ -220,7 +220,7 @@ function FnfEditForm({ client, onClose }) {
                     BODY
                 ================================================== */}
 
-        <form onSubmit={handleSubmit(submitForm)} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit(submitForm)} className="p-6 space-y-6 mb-9">
           {/* ==================================================
                         FNF CALCULATION
                     ================================================== */}
@@ -315,31 +315,40 @@ function FnfEditForm({ client, onClose }) {
                 <label className="form-label"> Bank / UPI Details</label>
               </div>
 
-              <Controller
-                name="status"
-                control={control}
-                defaultValue={null}
-                render={({ field }) => (
-                  <div
-                    className={`select-group ${field.value ? "has-value" : ""}`}
-                  >
-                    <label className="select-label">Status</label>
-                    <Select
-                      {...field}
-                      options={fnfStatusOptions}
-                      isClearable
-                      placeholder=""
-                      value={fnfStatusOptions.find(
-                        (option) => option.value === field.value,
-                      )}
-                      onChange={(selectedOption) =>
-                        field.onChange(selectedOption?.value)
-                      }
-                      styles={selectStyles}
-                    />
-                  </div>
-                )}
-              />
+          <Controller
+  name="status"
+  control={control}
+  defaultValue={null}
+  render={({ field }) => (
+    <div
+      className={`select-group ${field.value ? "has-value" : ""}`}
+    >
+      <label className="select-label">Status</label>
+
+      <Select
+        {...field}
+        options={fnfStatusOptions}
+        isClearable
+        placeholder=""
+        value={fnfStatusOptions.find(
+          (option) => option.value === field.value
+        )}
+        onChange={(selectedOption) =>
+          field.onChange(selectedOption?.value)
+        }
+        styles={{
+          ...selectStyles,
+
+          menuList: (provided) => ({
+            ...provided,
+            maxHeight: "150px",
+            overflowY: "auto",
+          }),
+        }}
+      />
+    </div>
+  )}
+/>
 
               <div className="form-group">
                 {/* ================================
