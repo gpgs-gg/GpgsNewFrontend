@@ -291,7 +291,7 @@ const NewBookingCreateEdit = () => {
       ),
   })
 
-
+  const [applyPermBedRent, setApplyPermBedRent] = useState(true);
   const [showDojWarningModal, setShowDojWarningModal] = useState(false);
   const [pendingDoj, setPendingDoj] = useState(null);
   const [pendingCvd, setPendingCvd] = useState(null);
@@ -1104,13 +1104,12 @@ const NewBookingCreateEdit = () => {
       // );
 
       // agr daily boking uncomment kro to ye comment kro .....................
-      payload.totalAmount = clientCalculatedRent + depositAmount + processingFees + parkingCharges + temporaryclientCalculatedRent + temporaryParkingCharges
+      payload.totalAmount =  (applyPermBedRent ? Number(clientCalculatedRent || 0) : 0)  + depositAmount + processingFees + parkingCharges + temporaryclientCalculatedRent + temporaryParkingCharges
       // payload.bookingAmount = payload.askFor === "FA" ? payload.totalAmount : monthlyRent;
       payload.bookingAmount = payload.askFor === "FA" ? payload.totalAmount : payload.askFor === "PA" ? partialAmount : monthlyRent;
       payload.balanceAmount =
         payload.totalAmount - payload.bookingAmount;
       payload.temporaryTotalAmount = temporaryclientCalculatedRent + temporaryParkingCharges;
-
 
       // WorkLog / Audit user
       if (id) {
@@ -1598,10 +1597,6 @@ const NewBookingCreateEdit = () => {
                   </p>
                 )}
               </div>
-
-
-
-
               <div className="form-group">
                 <input
                   {...register("acRoom")}
@@ -1619,9 +1614,6 @@ const NewBookingCreateEdit = () => {
                   </p>
                 )}
               </div>
-
-
-
               <div className="form-group">
                 <input
                   {...register("monthlyRent")}
@@ -1723,7 +1715,6 @@ const NewBookingCreateEdit = () => {
 
                         const cvd =
                           selectedBed?.bedData?.client?.clientVacatingDate;
-
                         if (
                           date &&
                           cvd &&
@@ -2418,6 +2409,8 @@ const NewBookingCreateEdit = () => {
         isLoading={isUpdateNewBooking || isSubmitNewBooking}
         onClose={() => setShowConfirmationModal(false)}
         onConfirm={handleFinalSubmit}
+          setApplyPermBedRent={setApplyPermBedRent}
+        applyPermBedRent={applyPermBedRent}
       />
 
       {showDojWarningModal && (

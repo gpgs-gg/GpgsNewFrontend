@@ -414,7 +414,7 @@ const TicketsList = () => {
                             {formatDateAndTime(new Date(item.dateCreated))}
                           </td>
 
-                          <td className="p-3">{item.propertyCode}</td>
+                          <td className="p-3">{item?.propertyId.propertyCode}</td>
 
                           <td className="p-3">
                             <div>

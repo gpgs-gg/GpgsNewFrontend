@@ -218,6 +218,7 @@ function TicketCreateEdit() {
      formData.append("createdBy", currentUser?.user?.role || "");
     formData.append("createdByName", currentUser?.user?.name || "");
    }
+   formData.append("worklogsAddedBy", currentUser?.user?.name || "");
     // formData.append("dateCreated", convertStringFormatDateTime(new Date()));
     // formData.append("propertyLocation", )
     formData.append("auditorLog", data.auditorLog || "");

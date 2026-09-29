@@ -18,6 +18,7 @@ import { useAuthorization } from "../../context/AuthorizationContext";
 import TableSkeleton from "../common/TableSkelton";
 import { useAuth } from "../../context/authContext";
 import RentGenerationLogPopup from "./RentGenerationLogPopup";
+import Loader from "../common/Loader";
 const ClientsTable = () => {
   const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
   const { user } = useAuth();
@@ -174,7 +175,7 @@ const ClientsTable = () => {
 
   const {
     mutate: generateMonthlyRentForAllClient,
-    isFetching: isGeneratingRentAllClients,
+    isPending: isGeneratingRentAllClients,
   } = useGenerateMonthlyRentForAllClient();
 
   const {
@@ -406,11 +407,16 @@ const ClientsTable = () => {
                   type="button"
                   onClick={handleGenerateMonthlyRentForAllClients}
                   disabled={isGeneratingRentAllClients}
-                  className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
+                  className="theme-btn"
                 >
-                  {isGeneratingRentAllClients
-                    ? "Generating..."
-                    : "Generate Monthly Rent"}
+                  {isGeneratingRentAllClients ? (
+                    <span className="flex items-center gap-2 ">
+                      <Loader />
+                      <span>please Wait...</span>
+                    </span>
+                  ) : (
+                    "Generate Monthly Rent"
+                  )}
                 </button>
               )}
               <button

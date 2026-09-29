@@ -32,10 +32,11 @@ import toast from "react-hot-toast";
 // import { queryClient as appQueryClient } from "../../../../src/queryClient.js";
 import { CloudCog } from "lucide-react";
 import { refresh } from "aos";
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  withCredentials: true, // IMPORTANT for refresh token cookies
-});
+import { apiClient } from "../../api/ApiClient";
+// const apiClient = axios.create({
+//   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+//   withCredentials: true, // IMPORTANT for refresh token cookies
+// });
 /* =========================================================
    AUTO TOKEN REFRESH
 ========================================================= */

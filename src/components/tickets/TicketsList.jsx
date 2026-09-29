@@ -715,7 +715,7 @@ const TicketsList = () => {
                               <div className="flex justify-center gap-2">
                                 {/* View */}
                                 {canViewTicket && (
-                                  <Link to={`/tickets/view/${item._id}`}>
+                                  <Link to={`/tickets/edit/${item._id}`}>
                                     <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
                                       <Eye size={16} />
                                     </button>

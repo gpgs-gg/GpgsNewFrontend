@@ -1,5 +1,4 @@
 
-
 import React from "react";
 import { formatDate } from "../../utils/dateFormatter";
 import { IoIosCall } from "react-icons/io";
@@ -10,6 +9,8 @@ const BookingConfirmationModal = ({
   onConfirm,
   data,
   isLoading,
+  setApplyPermBedRent,
+  applyPermBedRent
 }) => {
 
   if (!isOpen) return null;
@@ -64,7 +65,7 @@ const BookingConfirmationModal = ({
         : "NA";
 
     const totalAmount =
-      (Number(data?.clientCalculatedRent) || 0) +
+      (applyPermBedRent ? Number(data?.clientCalculatedRent) || 0 : 0)+
       (Number(data?.depositAmount) || 0) +
       (Number(data?.processingFees) || 0) +
       (Number(data?.parkingCharges) || 0) +
@@ -117,6 +118,11 @@ ${Number(data?.parkingCharges) > 0
           : ""}
 Total Amount to be paid: ₹${totalAmount}
 `.trim();
+   if (applyPermBedRent) {
+        msg += "  ( Please Note : Permanent Bed Rent is included )"
+      } else {
+        msg += "  ( Please Note : Permanent Bed Rent is not included )"
+      }
 
       if (data?.askFor === "BA") {
         msg += `
@@ -227,9 +233,20 @@ Note: This is a system-generated message and does not require a signature.`;
                   <p><strong>ACRoom :</strong> {data?.acRoom}</p>
                   <p><strong>Start Date :</strong> {formatDate(data?.clientDoj)}</p>
                   <p><strong>Last Date :</strong> {formatDate(data?.clientLastDate)}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <input
+                      type="checkbox"
+                      id="permanent-bed-rent"
+                      checked={applyPermBedRent} // 🔗 bind to state
+                      onChange={(e) => setApplyPermBedRent(e.target.checked)} // 🔁 update state
+                      className="w-4 h-4 rounded-2xl accent-red-400 border border-gray-500"
+                    />
+                    {
+                      applyPermBedRent ? (<label htmlFor="permanent-bed-rent" className='text-sm text-red-400'>Permanent Bed Rent Applied</label>) : (<label htmlFor="permanent-bed-rent" className='text-sm  text-red-400'>Permanent Bed Rent Not Applied</label>)
+                    }
+                  </div>
                 </div>
                 <div>
-
                   <p><strong>Permanent Bed Rent Amount :</strong> ₹ {data?.clientCalculatedRent}</p>
                   <div className="text-gray-600 whitespace-normal wrap-break-word">
                     ( This rent is from{" "}
@@ -244,13 +261,20 @@ Note: This is a system-generated message and does not require a signature.`;
                   <p><strong>Parking Charges :</strong> ₹ {data?.parkingCharges}</p>
                   <p>
                     <strong>Total Amount To Be Paid :</strong> ₹ {
-                      (Number(data?.clientCalculatedRent) || 0) +
+                      (applyPermBedRent ? Number(data?.clientCalculatedRent) || 0 : 0) +
                       (Number(data?.depositAmount) || 0) +
                       (Number(data?.processingFees) || 0) +
                       (Number(data?.parkingCharges) || 0) +
                       (Number(data?.temporaryParkingCharges) || 0) +
                       (Number(data?.temporaryclientCalculatedRent) || 0)
                     }
+                      <br />
+                      <p className="text-xs italic mt-1">
+
+                        {applyPermBedRent
+                          ? "( Please Note : Permanent Bed Rent is included )"
+                          : "( Please Note : Permanent Bed Rent is not included )"}
+                      </p>
                   </p>
                 </div>
 
@@ -272,7 +296,7 @@ Note: This is a system-generated message and does not require a signature.`;
                     The balance amount ₹{" "}
                     <strong>
                       {(
-                        (Number(data?.clientCalculatedRent) || 0) +
+                        (applyPermBedRent ? Number(data?.clientCalculatedRent) || 0 : 0) +
                         (Number(data?.depositAmount) || 0) +
                         (Number(data?.processingFees) || 0) +
                         (Number(data?.parkingCharges) || 0) +

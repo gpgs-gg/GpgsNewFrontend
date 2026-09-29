@@ -17,7 +17,7 @@ const TicketMobileCardClient = ({
   search,
 }) => {
   return (
-<div className="bg-white rounded-lg shadow-[0_0_15px_rgba(0,0,0,0.15)] p-4 mb-4 mx-5   mt-5 space-y-3">
+<div className="bg-white rounded-lg shadow-[0_0_15px_rgba(0,0,0,0.15)] p-4 mb-4 mx-5 mt-5 space-y-3">
       <article className="w-full max-w-full overflow-hidden bg-white rounded-lg  ">
         <div className="p-4 space-y-3">
           {/* ============================================================
@@ -42,7 +42,8 @@ const TicketMobileCardClient = ({
             {/* ACTIONS */}
             {/* ACTIONS */}
             <div className="flex shrink-0 items-center gap-3">
-              {canView && (
+
+              {/* {canView && (
                 <Link
                   to={`/client-tickets/view/${item._id}`}
                   aria-label="View Ticket"
@@ -51,7 +52,7 @@ const TicketMobileCardClient = ({
                 >
                   <Eye size={18} strokeWidth={2.5} />
                 </Link>
-              )}
+              )} */}
 
               <Link
                 to={`/client-tickets/edit/${item._id}`}

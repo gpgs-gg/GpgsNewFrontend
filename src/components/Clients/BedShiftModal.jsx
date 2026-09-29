@@ -38,7 +38,11 @@ const BedShiftModal = ({ isOpen, onClose, client, getAvailableBeds }) => {
     useAvailableBedsData();
   const { mutate: transferBed, isPending: isTransferBed } = useTransferBed();
 
-  const selectedPropertyId = watch("propertyId");
+     const selectedPropertyId = watch("propertyId");
+      console.log(111111111111, selectedPropertyId)
+
+
+
   // ============================================================
   // PROPERTY DROPDOWN
   // Same API/pagination logic as BedFilter
@@ -180,6 +184,7 @@ const BedShiftModal = ({ isOpen, onClose, client, getAvailableBeds }) => {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
+
           <div className="grid grid-cols-1 p-6 gap-4">
             <Controller
               name="propertyId"
@@ -198,12 +203,7 @@ const BedShiftModal = ({ isOpen, onClose, client, getAvailableBeds }) => {
                     debounceTimeout={500}
                     loadOptions={loadPropertyOptions}
                     value={
-                      field.value
-                        ? {
-                          label: field.value.split(",")[1],
-                            label: field.value,
-                          }
-                        : null
+                      field.label
                     }
                     isClearable
                     placeholder=""

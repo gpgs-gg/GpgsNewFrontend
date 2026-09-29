@@ -6,6 +6,7 @@ import {
     AlertTriangle,
     Clock3,
     RefreshCw,
+    Eye,
 } from "lucide-react";
 
 const RentGenerationLogPopup = ({
@@ -14,6 +15,8 @@ const RentGenerationLogPopup = ({
     isError = false,
     onClose,
 }) => {
+    const [selectedFailedLog, setSelectedFailedLog] = React.useState(null);
+   console.log(111111111, selectedFailedLog)
 
     const formatDateTime = (date) => {
         if (!date) return "N/A";
@@ -261,14 +264,21 @@ const RentGenerationLogPopup = ({
 
                                                     {/* Failed */}
                                                     <td className="px-5 py-4 text-center">
-                                                        <span
-                                                            className={`inline-flex min-w-10 items-center justify-center rounded-full px-2.5 py-1 font-semibold ${Number(log.failedCount || 0) > 0
-                                                                    ? "bg-red-50 text-red-700"
-                                                                    : "bg-gray-100 text-gray-600"
-                                                                }`}
-                                                        >
-                                                            {log.failedCount || 0}
-                                                        </span>
+                                                        {Number(log.failedCount || 0) > 0 ? (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setSelectedFailedLog(log)}
+                                                                className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1.5 font-semibold text-red-700 transition hover:bg-red-100"
+                                                            >
+                                                                <AlertTriangle size={14} />
+                                                                {log.failedCount}
+                                                                <Eye size={14} />
+                                                            </button>
+                                                        ) : (
+                                                            <span className="inline-flex min-w-10 items-center justify-center rounded-full bg-gray-100 px-2.5 py-1 font-semibold text-gray-600">
+                                                                0
+                                                            </span>
+                                                        )}
                                                     </td>
 
                                                     {/* Status */}
@@ -401,6 +411,165 @@ const RentGenerationLogPopup = ({
                     </button>
                 </div>
             </div>
+
+            {selectedFailedLog && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+                    onMouseDown={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setSelectedFailedLog(null);
+                        }
+                    }}
+                >
+                    <div className="flex max-h-[80vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+
+                        {/* Header */}
+                        <div className="flex items-center justify-between border-b px-6 py-4">
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                    Failed Rent Generation
+                                </h2>
+
+                                <p className="mt-1 text-sm text-gray-500">
+                                    {selectedFailedLog.monthName}{" "}
+                                    {selectedFailedLog.year}
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => setSelectedFailedLog(null)}
+                                className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+                            >
+                                <X size={21} />
+                            </button>
+                        </div>
+
+                        {/* Summary */}
+                        <div className="border-b bg-gray-50 px-6 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                                    <AlertTriangle
+                                        size={20}
+                                        className="text-red-600"
+                                    />
+                                </div>
+
+                                <div>
+                                    <p className="text-sm font-semibold text-gray-800">
+                                        {selectedFailedLog.failedCount || 0} Failed Client
+                                        {Number(selectedFailedLog.failedCount || 0) !== 1
+                                            ? "s"
+                                            : ""}
+                                    </p>
+
+                                    <p className="text-xs text-gray-500">
+                                        Rent generation failed for the following clients
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Failed Clients Table */}
+                        <div className="flex-1 overflow-auto p-6">
+                            {selectedFailedLog.failedClients?.length > 0 ? (
+                                <div className="overflow-hidden rounded-xl border border-gray-200">
+                                    <table className="w-full min-w-[750px] text-sm">
+                                        <thead className="bg-gray-50">
+                                            <tr className="border-b border-gray-200">
+                                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    #
+                                                </th>
+
+                                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    Client Name
+                                                </th>
+
+                                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    Client ID
+                                                </th>
+
+                                                <th className="whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                    Reason
+                                                </th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            {selectedFailedLog.failedClients.map(
+                                                (client, index) => (
+                                                    <tr
+                                                        key={
+                                                            client.clientId ||
+                                                            index
+                                                        }
+                                                        className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
+                                                    >
+                                                        {/* # */}
+                                                        <td className="px-5 py-4 text-gray-500">
+                                                            {index + 1}
+                                                        </td>
+
+                                                        {/* Client Name */}
+                                                        <td className="whitespace-nowrap px-5 py-4">
+                                                            <span className="font-medium text-gray-900">
+                                                                {client.fullName ||
+                                                                    "N/A"}
+                                                            </span>
+                                                        </td>
+
+                                                        {/* Client ID */}
+                                                        <td className="px-5 py-4">
+                                                            <span className="font-mono text-xs text-gray-600">
+                                                                {client.clientId ||
+                                                                    "N/A"}
+                                                            </span>
+                                                        </td>
+
+                                                        {/* Reason */}
+                                                        <td className="px-5 py-4">
+                                                            <div className="max-w-xl break-words text-sm text-red-600">
+                                                                {client.reason ||
+                                                                    "Unknown error"}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="flex min-h-40 items-center justify-center">
+                                    <div className="text-center">
+                                        <p className="text-sm font-medium text-gray-700">
+                                            No failed client details available
+                                        </p>
+
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Failed count exists, but client details were
+                                            not saved.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex justify-end border-t bg-gray-50 px-6 py-4">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedFailedLog(null)}
+                                className="rounded-lg bg-gray-800 px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-900"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
         </div>
     );
 };

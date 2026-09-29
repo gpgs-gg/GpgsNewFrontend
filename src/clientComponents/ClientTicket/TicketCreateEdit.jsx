@@ -98,65 +98,49 @@ useEffect(() => {
   const propertyInitialized = useRef(false);
 
 
-  useEffect(() => {
-    if (
-      id ||
-      !isClient ||
-      !clientTicketDetails?.success ||
-      !clientTicketDetails?.data ||
-      propertyInitialized.current
-    ) {
-      return;
-    }
+useEffect(() => {
+  if (
+    id ||
+    !isClient ||
+    !clientTicketDetails?.success ||
+    !clientTicketDetails?.data ||
+    propertyInitialized.current
+  ) {
+    return;
+  }
 
-    const clientDetails = clientTicketDetails.data;
+  const clientDetails = clientTicketDetails.data;
 
-    const propertyId =
-      clientDetails?.propertyId?._id || "";
+  const propertyId = clientDetails?.propertyId?._id || "";
+  const propertyCode = clientDetails?.propertyId?.propertyCode || "";
+  const propertyLocation =
+    clientDetails?.propertyId?.propertyLocation || "";
 
-    const propertyCode =
-      clientDetails?.propertyId?.propertyCode || "";
+  const bedNo = clientDetails?.bedId?.bedNo || "";
+  const roomNo = clientDetails?.bedId?.roomNo || "";
 
-    const bedNo =
-      clientDetails?.bedId?.bedNo || "";
+  if (!propertyId) return;
 
-    const roomNo =
-      clientDetails?.bedId?.roomNo || "";
+  // Directly save client property ID
+  setValue("propertyId", propertyId);
 
-    if (!propertyCode) return;
+  setValue("propertyLocation", propertyLocation);
 
-    const selectedProperty = propertiesOptions.find(
-      (property) => property.value === propertyId
-    );
+  if (bedNo) {
+    setValue("bedNo", bedNo);
+  }
 
-    // Property options अजून load झाले नसतील
-    if (!selectedProperty) return;
+  if (roomNo) {
+    setValue("roomNo", roomNo);
+  }
 
-    setValue("propertyId", propertyId);
-
-    // Property Options मधून Location
-    setValue(
-      "propertyLocation",
-      selectedProperty.propLocation || ""
-    );
-
-    if (bedNo) {
-      setValue("bedNo", bedNo);
-    }
-
-    if (roomNo) {
-      setValue("roomNo", roomNo);
-    }
-
-    propertyInitialized.current = true;
-
-  }, [
-    id,
-    isClient,
-    clientTicketDetails,
-    propertiesOptions,
-    setValue,
-  ]);
+  propertyInitialized.current = true;
+}, [
+  id,
+  isClient,
+  clientTicketDetails,
+  setValue,
+]);
 
 
   const loadPropertyOptions = async (
@@ -382,22 +366,32 @@ useEffect(() => {
                     loadOptions={loadPropertyOptions}
                     styles={selectStyles}
 
-                    value={
-                      field.value
-                        ? propertiesOptions.find(
-                          (property) => property.value === field.value
-                        ) || null
-                        : null
-                    }
-
-                    onChange={(selected) => {
-                      field.onChange(selected?.value || "");
-
-                      setValue(
-                        "propertyLocation",
-                        selected?.propLocation || ""
-                      );
-                    }}
+              value={
+  id && singleTicket?.data?.propertyId
+    ? typeof singleTicket.data.propertyId === "object"
+      ? {
+          value: singleTicket.data.propertyId._id,
+          label: singleTicket.data.propertyId.propertyCode,
+          propLocation:
+            singleTicket.data.propertyId.propertyLocation || "",
+        }
+      : propertiesOptions.find(
+          (property) =>
+            property.value === singleTicket.data.propertyId
+        ) || null
+    : !id && isClient && clientTicketDetails?.data?.propertyId
+      ? {
+          value: clientTicketDetails.data.propertyId._id,
+          label: clientTicketDetails.data.propertyId.propertyCode,
+          propLocation:
+            clientTicketDetails.data.propertyId.propertyLocation || "",
+        }
+      : field.value
+        ? propertiesOptions.find(
+            (property) => property.value === field.value
+          ) || null
+        : null
+}
                   />
 
                   {errors.propertyId && (

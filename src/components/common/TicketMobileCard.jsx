@@ -61,7 +61,7 @@ const TicketMobileCard = ({
             {/* VIEW */}
             {canView && (
               <Link
-                to={`/tickets/view/${item._id}`}
+                to={`/tickets/edit/${item._id}`}
                 aria-label="View Ticket"
                 title="View Ticket"
                 className="text-red-600 hover:text-red-900"
@@ -71,7 +71,7 @@ const TicketMobileCard = ({
             )}
 
             {/* EDIT */}
-            {canEdit && (
+            {/* {canEdit && ( */}
               <Link
                 to={`/tickets/edit/${item._id}`}
                 state={{
@@ -84,7 +84,7 @@ const TicketMobileCard = ({
               >
                 <Pencil size={17} strokeWidth={2.5} />
               </Link>
-            )}
+            {/* )} */}
 
             {/* DELETE */}
             {canDelete && (
