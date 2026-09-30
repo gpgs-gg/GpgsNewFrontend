@@ -31,10 +31,6 @@ import { useQueryClient } from "@tanstack/react-query";
 const SidebarMenuSkeleton = ({ expanded }) => {
   const skeletonItems = Array.from({ length: 8 });
 
-
-
-
-
   return (
     <div className="py-2">
       {skeletonItems.map((_, index) => (
@@ -132,7 +128,7 @@ const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
   // SIDEBAR EXPANSION
   // =====================================================
 
-  const expanded = !collapsed || hovered;
+const expanded = mobileOpen || !collapsed || hovered;
 
   // =====================================================
   // MODULE ICONS

@@ -54,32 +54,32 @@ function TicketCreateEdit() {
 
   const assignee = watch("assignee");
 
-useEffect(() => {
-  if (id && singleTicket?.data) {
-    const ticket = singleTicket.data;
+  useEffect(() => {
+    if (id && singleTicket?.data) {
+      const ticket = singleTicket.data;
 
-    reset({
-      ...ticket,
+      reset({
+        ...ticket,
 
-      // propertyId object nahi, sirf ID store karo
-      propertyId:
-        typeof ticket.propertyId === "object"
-          ? ticket.propertyId?._id || ""
-          : ticket.propertyId || "",
+        // propertyId object nahi, sirf ID store karo
+        propertyId:
+          typeof ticket.propertyId === "object"
+            ? ticket.propertyId?._id || ""
+            : ticket.propertyId || "",
 
-      // Property location bhi separately set karo
-      propertyLocation:
-        ticket.propertyLocation ||
-        ticket.propertyId?.propertyLocation ||
-        "",
+        // Property location bhi separately set karo
+        propertyLocation:
+          ticket.propertyLocation ||
+          ticket.propertyId?.propertyLocation ||
+          "",
 
-      bedNo: ticket.bedNo || "",
-      roomNo: ticket.roomNo || "",
-    });
+        bedNo: ticket.bedNo || "",
+        roomNo: ticket.roomNo || "",
+      });
 
-    setExistingAttachments(ticket.attachment || []);
-  }
-}, [id, singleTicket, reset]);
+      setExistingAttachments(ticket.attachment || []);
+    }
+  }, [id, singleTicket, reset]);
 
   const DepartmentOptions = options.department || [];
   const CategoryOptions = options.categories || [];
@@ -98,49 +98,49 @@ useEffect(() => {
   const propertyInitialized = useRef(false);
 
 
-useEffect(() => {
-  if (
-    id ||
-    !isClient ||
-    !clientTicketDetails?.success ||
-    !clientTicketDetails?.data ||
-    propertyInitialized.current
-  ) {
-    return;
-  }
+  useEffect(() => {
+    if (
+      id ||
+      !isClient ||
+      !clientTicketDetails?.success ||
+      !clientTicketDetails?.data ||
+      propertyInitialized.current
+    ) {
+      return;
+    }
 
-  const clientDetails = clientTicketDetails.data;
+    const clientDetails = clientTicketDetails.data;
 
-  const propertyId = clientDetails?.propertyId?._id || "";
-  const propertyCode = clientDetails?.propertyId?.propertyCode || "";
-  const propertyLocation =
-    clientDetails?.propertyId?.propertyLocation || "";
+    const propertyId = clientDetails?.propertyId?._id || "";
+    const propertyCode = clientDetails?.propertyId?.propertyCode || "";
+    const propertyLocation =
+      clientDetails?.propertyId?.propertyLocation || "";
 
-  const bedNo = clientDetails?.bedId?.bedNo || "";
-  const roomNo = clientDetails?.bedId?.roomNo || "";
+    const bedNo = clientDetails?.bedId?.bedNo || "";
+    const roomNo = clientDetails?.bedId?.roomNo || "";
 
-  if (!propertyId) return;
+    if (!propertyId) return;
 
-  // Directly save client property ID
-  setValue("propertyId", propertyId);
+    // Directly save client property ID
+    setValue("propertyId", propertyId);
 
-  setValue("propertyLocation", propertyLocation);
+    setValue("propertyLocation", propertyLocation);
 
-  if (bedNo) {
-    setValue("bedNo", bedNo);
-  }
+    if (bedNo) {
+      setValue("bedNo", bedNo);
+    }
 
-  if (roomNo) {
-    setValue("roomNo", roomNo);
-  }
+    if (roomNo) {
+      setValue("roomNo", roomNo);
+    }
 
-  propertyInitialized.current = true;
-}, [
-  id,
-  isClient,
-  clientTicketDetails,
-  setValue,
-]);
+    propertyInitialized.current = true;
+  }, [
+    id,
+    isClient,
+    clientTicketDetails,
+    setValue,
+  ]);
 
 
   const loadPropertyOptions = async (
@@ -366,32 +366,32 @@ useEffect(() => {
                     loadOptions={loadPropertyOptions}
                     styles={selectStyles}
 
-              value={
-  id && singleTicket?.data?.propertyId
-    ? typeof singleTicket.data.propertyId === "object"
-      ? {
-          value: singleTicket.data.propertyId._id,
-          label: singleTicket.data.propertyId.propertyCode,
-          propLocation:
-            singleTicket.data.propertyId.propertyLocation || "",
-        }
-      : propertiesOptions.find(
-          (property) =>
-            property.value === singleTicket.data.propertyId
-        ) || null
-    : !id && isClient && clientTicketDetails?.data?.propertyId
-      ? {
-          value: clientTicketDetails.data.propertyId._id,
-          label: clientTicketDetails.data.propertyId.propertyCode,
-          propLocation:
-            clientTicketDetails.data.propertyId.propertyLocation || "",
-        }
-      : field.value
-        ? propertiesOptions.find(
-            (property) => property.value === field.value
-          ) || null
-        : null
-}
+                    value={
+                      id && singleTicket?.data?.propertyId
+                        ? typeof singleTicket.data.propertyId === "object"
+                          ? {
+                            value: singleTicket.data.propertyId._id,
+                            label: singleTicket.data.propertyId.propertyCode,
+                            propLocation:
+                              singleTicket.data.propertyId.propertyLocation || "",
+                          }
+                          : propertiesOptions.find(
+                            (property) =>
+                              property.value === singleTicket.data.propertyId
+                          ) || null
+                        : !id && isClient && clientTicketDetails?.data?.propertyId
+                          ? {
+                            value: clientTicketDetails.data.propertyId._id,
+                            label: clientTicketDetails.data.propertyId.propertyCode,
+                            propLocation:
+                              clientTicketDetails.data.propertyId.propertyLocation || "",
+                          }
+                          : field.value
+                            ? propertiesOptions.find(
+                              (property) => property.value === field.value
+                            ) || null
+                            : null
+                    }
                   />
 
                   {errors.propertyId && (
@@ -590,63 +590,63 @@ useEffect(() => {
 
         {/* Utility Details */}
         {/* {singleTicket?.data?.workLogs?.length > 0 && ( */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
 
-            <h2 className="text-xl font-semibold mb-4">
-              WorkLog
-            </h2>
+          <h2 className="text-xl font-semibold mb-4">
+            WorkLog
+          </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-              {/* Add WorkLog */}
-              {id && (
-                <div className="form-group">
-                  <textarea
-                    rows={5}
-                    {...register("newWorkLog")}
-                    className="form-input"
-                  />
+            {/* Add WorkLog */}
+            {id && (
+              <div className="form-group">
+                <textarea
+                  rows={5}
+                  {...register("newWorkLog")}
+                  className="form-input"
+                />
 
-                  <label className="form-label">
-                    Add WorkLog
-                  </label>
+                <label className="form-label">
+                  Add WorkLog
+                </label>
+              </div>
+            )}
+
+            {/* Work Log History */}
+            {id && (
+              <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col md:col-span-1">
+
+                <h3 className="font-semibold text-lg mb-1">
+                  Work Log History
+                </h3>
+
+                <div className="flex-1 overflow-y-auto">
+                  {singleTicket?.data?.workLogs
+                    .slice()
+                    .reverse()
+                    .map((log) => (
+                      <div
+                        key={log._id}
+                        className="border-b py-3 last:border-b-0"
+                      >
+                        <small className="text-gray-500">
+                          {log.createdBy || "System"} •{" "}
+                          {formatDateAndTime(log.createdAt)}
+                        </small>
+
+                        <p className="whitespace-pre-line text-sm">
+                          {log.message}
+                        </p>
+                      </div>
+                    ))}
                 </div>
-              )}
 
-              {/* Work Log History */}
-              {id && (
-                <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col md:col-span-1">
+              </div>
+            )}
 
-                  <h3 className="font-semibold text-lg mb-1">
-                    Work Log History
-                  </h3>
-
-                  <div className="flex-1 overflow-y-auto">
-                    {singleTicket?.data?.workLogs
-                      .slice()
-                      .reverse()
-                      .map((log) => (
-                        <div
-                          key={log._id}
-                          className="border-b py-3 last:border-b-0"
-                        >
-                          <small className="text-gray-500">
-                            {log.createdBy || "System"} •{" "}
-                            {formatDateAndTime(log.createdAt)}
-                          </small>
-
-                          <p className="whitespace-pre-line text-sm">
-                            {log.message}
-                          </p>
-                        </div>
-                      ))}
-                  </div>
-
-                </div>
-              )}
-
-            </div>
           </div>
+        </div>
         {/* )} */}
 
         {/* Owner Details */}

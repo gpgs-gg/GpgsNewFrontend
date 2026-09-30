@@ -7,10 +7,13 @@ import {
   FaLinkedinIn,
 } from "react-icons/fa";
 import { Mail, Phone, MapPin, ArrowUpRight, MessageCircle } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/authContext";
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+  const navigate = useNavigate();
   return (
     <footer className="relative overflow-hidden bg-[#0b0b0b] text-white">
       {/* ================= BACKGROUND ================= */}
@@ -271,8 +274,6 @@ const Footer = () => {
                     <p className="text-xs text-gray-500">Quick response</p>
                   </div>
                 </div>
-
-                
               </a>
             </div>
           </div>
@@ -293,6 +294,22 @@ const Footer = () => {
               </span>
             </p>
           </div>
+          {/* register */}
+          {/* Create Account Link */}
+          {isAdmin && (
+            <div className="text-center pt-2">
+              <p className="text-sm text-gray-600">
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => navigate("/register")}
+                  className="font-semibold text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                >
+                  Create Account
+                </button>
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </footer>

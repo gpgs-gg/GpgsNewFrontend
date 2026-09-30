@@ -612,7 +612,7 @@ const EmployeesCreateEdit = () => {
               </div>
             )}
             {/* Active */}
-            {isEdit && (
+            {/* {isEdit && (
               <Controller
                 name="status"
                 control={control}
@@ -639,7 +639,7 @@ const EmployeesCreateEdit = () => {
                   </div>
                 )}
               />
-            )}
+            )} */}
             {/* Full Name */}
             <div className="form-group">
               <input

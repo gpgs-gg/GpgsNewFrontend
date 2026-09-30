@@ -27,6 +27,7 @@ import { useBatchOptions } from "../Options/services";
 import { useManagerEmployees } from "../EmployeeDetails/Services/index";
 import { useEmployeeDetailsData } from "../EmployeeDetails/Services/index";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useAuth } from "../../context/authContext";
 function TicketCreateEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -39,7 +40,7 @@ function TicketCreateEdit() {
     watch,
     formState: { errors, isDirty },
   } = useForm();
-
+const { user } = useAuth();
   // Api Hooks
   const { mutate: createTicket, isPending: isCreateTicket } =
     useCreateTicketData();
@@ -67,6 +68,7 @@ function TicketCreateEdit() {
   const [existingAttachments, setExistingAttachments] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const assignee = watch("assignee");
+  const userName = user?.Name || user?.name || user?.fullName || user?.username || "System";
   useEffect(() => {
     if (id && singleTicket?.data) {
       const ticket = singleTicket.data;
@@ -159,24 +161,30 @@ function TicketCreateEdit() {
     };
   };
 
-  const ManagerOptions =
-    managerData?.data?.map((employee) => ({
+const ManagerOptions =
+  managerData?.data
+    ?.filter((employee) => employee.loginEnabled === true)
+    ?.map((employee) => ({
       value: employee.employeeName,
       label: employee.employeeName,
     })) || [];
 
-  const TicketManagerOptions =
-    employeeData?.data
-      ?.filter((employee) => employee.ticketManager === true)
-      ?.map((employee) => ({
-        value: employee.employeeName,
-        label: employee.employeeName,
-      })) || [];
-  const AssigneeOptions =
-    employeeData?.data?.map((employee) => ({
-      value: employee.employeeId,
+const TicketManagerOptions =
+  employeeData?.data
+    ?.filter((employee) => employee.ticketManager === true && employee.loginEnabled === true)
+    ?.map((employee) => ({
+      value: employee.employeeName,
       label: employee.employeeName,
     })) || [];
+
+const AssigneeOptions =
+  employeeData?.data
+    ?.filter((employee) => employee.loginEnabled === true)
+    ?.map((employee) => ({
+      value: employee.employeeName,
+      label: employee.employeeName,
+    })) || [];
+
   const onSubmit = (data) => {
     const hasAttachmentChanges =
       attachmentFiles.length > 0 ||
@@ -189,7 +197,6 @@ function TicketCreateEdit() {
       return;
     }
     const formData = new FormData();
-
     Object.keys(data).forEach((key) => {
       const value = data[key];
 
@@ -199,7 +206,8 @@ function TicketCreateEdit() {
         key !== "attachment" &&
         key !== "workLogs" &&
         key !== "createdBy" &&
-        key !== "createdByName"
+        key !== "createdByName" && 
+          key !== "updatedByName"
       ) {
         if (key === "targetDate" && value instanceof Date) {
           formData.append(key, convertStringFormatDate(value));
@@ -218,7 +226,7 @@ function TicketCreateEdit() {
      formData.append("createdBy", currentUser?.user?.role || "");
     formData.append("createdByName", currentUser?.user?.name || "");
    }
-   formData.append("worklogsAddedBy", currentUser?.user?.name || "");
+   formData.append("updatedByName", currentUser?.user?.name || "");
     // formData.append("dateCreated", convertStringFormatDateTime(new Date()));
     // formData.append("propertyLocation", )
     formData.append("auditorLog", data.auditorLog || "");

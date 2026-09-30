@@ -34,6 +34,7 @@ const onSubmit = async (data) => {
   sendLoginDetails(data, {
     onSuccess: async (response) => {
       if (!response?.success) {
+         toast.dismiss()
         toast.error(
           response?.message || "Login failed. Please try again."
         );
@@ -44,7 +45,7 @@ const onSubmit = async (data) => {
       await queryClient.invalidateQueries({
         queryKey: ["currentUser"],
       });
-
+       toast.dismiss()
       toast.success(
         "Welcome back! You have been logged in successfully."
       );
@@ -71,7 +72,7 @@ const onSubmit = async (data) => {
         error?.response?.data?.message ||
         error?.message ||
         "Invalid email or password. Please check your credentials.";
-
+     toast.dismiss()
       toast.error(errorMessage);
     },
   });
@@ -275,7 +276,7 @@ const onSubmit = async (data) => {
                 </button>
 
                 {/* Create Account Link */}
-                <div className="text-center pt-2">
+                {/* <div className="text-center pt-2">
                   <p className="text-sm text-gray-600">
                     Don't have an account?{" "}
                     <button
@@ -286,7 +287,8 @@ const onSubmit = async (data) => {
                       Create Account
                     </button>
                   </p>
-                </div>
+                </div> */}
+
               </form>
             </div>
           </div>

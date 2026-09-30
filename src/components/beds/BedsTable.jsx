@@ -21,6 +21,7 @@ import TableSkeleton from "../../components/common/TableSkelton";
 import { toast } from "react-toastify";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import { useAuthorization } from "../../context/AuthorizationContext";
+import { useAuth } from "../../context/authContext";
 const BedsTable = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(() => {
@@ -53,7 +54,8 @@ const BedsTable = () => {
 
   const { filters, setFilters, removeFilter, resetFilters } =
     usePersistedFilters("bed_filters", DEFAULT_BED_FILTERS);
-
+  const { user } = useAuth();
+    const isAdmin = user?.role?.toLowerCase() === "admin";
   const [resetTrigger, setResetTrigger] = useState(0);
   const rowsPerPage = PAGINATION.BEDS_PER_PAGE || 10;
   const debouncedSearch = useDebounce(search);
@@ -400,6 +402,7 @@ const BedsTable = () => {
             <table className="w-full">
               <thead className="z-30 sticky top-0 bg-gray-100 whitespace-nowrap">
                 <tr>
+                    {isAdmin && (
                   <th className="p-3 text-left whitespace-nowrap sticky left-0 z-20 bg-gray-100">
                     <input
                       type="checkbox"
@@ -408,11 +411,13 @@ const BedsTable = () => {
                       onChange={handleSelectAll}
                     />
                   </th>
+                    )}
                   <th className="p-3 text-left whitespace-nowrap sticky left-7.5 z-20 bg-gray-100">
                     Property Code
                   </th>
                   <th className="p-3 text-center">Room No </th>
                   <th className="p-3 text-center">Bed No</th>
+                  <th className="p-3 text-center">Location</th>
                   <th className="p-3 text-center">Gender</th>
                   <th className="p-3 text-center">Sharing Type</th>
                   <th className="p-3 text-center">Bath Attached</th>
@@ -443,6 +448,7 @@ const BedsTable = () => {
                         key={item._id}
                         className="border-t border-gray-300 whitespace-nowrap text-center hover:bg-gray-50"
                       >
+                        {isAdmin && (
                         <td className="p-3 text-center sticky bg-white left-0 z-10">
                           <input
                             type="checkbox"
@@ -451,11 +457,13 @@ const BedsTable = () => {
                             onChange={() => handleSelect(item._id)}
                           />
                         </td>
+                        )}
                         <td className="p-3 sticky left-[30px] z-10 bg-white text-center font-semibold">
                           {item?.propertyId?.propertyCode}
                         </td>
                         <td className="p-3 text-center">{item.roomNo}</td>
                         <td className="p-3 text-center">{item.bedNo}</td>
+                        <td className="p-3 text-center">{item?.propertyId?.propertyLocation}</td>
                         <td className="p-3 text-center">{item?.gender}</td>
                         <td className="p-3 text-center">{item?.sharingType}</td>
                         <td className="p-3 text-center">

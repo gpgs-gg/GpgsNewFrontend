@@ -59,6 +59,7 @@ const PropertyCreateEdit = () => {
     mode: "onSubmit",
   });
   const { user } = useAuth();
+    const isAdmin = user?.role?.toLowerCase() === "admin";
   const { canEdit, canAdd } = useAuthorization();
 
   const canEditProperty = canEdit("properties");
@@ -66,7 +67,7 @@ const PropertyCreateEdit = () => {
   const isViewOnly = Boolean(id) && !canEditProperty;
   const userName =
     user?.Name || user?.name || user?.fullName || user?.username || "System";
-  const isAdmin = user?.role?.toLowerCase() === "admin";
+
   // API hooks and mutations
   const { mutate: submitProperty, isPending: isSubmitProperty } =
     usecreatePropertyData();

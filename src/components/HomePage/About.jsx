@@ -91,38 +91,19 @@ const About = () => {
             MAIN ABOUT GRID
         ========================================================== */}
 
-        <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
           {/* ========================================================
               LEFT — STORY
           ======================================================== */}
 
           <div
-            data-aos="fade-right"
+            data-aos="fade-up"
             className="relative overflow-hidden rounded-[30px] bg-[#f7f4ee] p-7 sm:p-9 lg:p-10"
           >
             {/* Experience Badge */}
 
-            <div
-              className="
-                absolute
-                right-6
-                top-6
-                flex
-                h-28
-                w-28
-                flex-col
-                items-center
-                justify-center
-                rounded-full
-                bg-[#14223f]
-                text-center
-                text-white
-                shadow-lg
-                sm:h-32
-                sm:w-32
-              "
-            >
-              <span className="text-3xl font-semibold">10+</span>
+            <div className="absolute right-4 top-4 flex h-24 w-24 flex-col items-center justify-center rounded-full bg-[#14223f] text-center text-white shadow-lg sm:right-6 sm:top-6 sm:h-32 sm:w-32">
+              <span className="text-2xl font-semibold sm:text-3xl">10+</span>
 
               <span className="mt-1 text-[10px] uppercase tracking-[0.15em] text-white/60">
                 Years
@@ -133,7 +114,7 @@ const About = () => {
 
             {/* Intro */}
 
-            <div className="max-w-[80%] pt-2">
+            <div className="max-w-[calc(100%-90px)] pt-2 sm:max-w-[80%]">
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#9b6845]">
                 Our story
               </span>
@@ -233,7 +214,7 @@ const About = () => {
           ======================================================== */}
 
           <div
-            data-aos="fade-left"
+            data-aos="fade-up"
             className="
               overflow-hidden
               rounded-[30px]
@@ -266,13 +247,7 @@ const About = () => {
                       <img
                         src={image}
                         alt={`Gopal's PG property ${index + 1}`}
-                        className="
-                          h-[360px]
-                          w-full
-                          object-cover
-                          sm:h-[460px]
-                          lg:h-[580px]
-                        "
+                        className="h-[360px] w-full object-cover sm:h-[420px] md:h-[480px] lg:h-[540px] xl:h-[580px]"
                       />
 
                       {/* Image Overlay */}
@@ -306,13 +281,13 @@ const About = () => {
 
             {/* Gallery Footer */}
 
-            <div className="flex flex-col gap-5 px-3 pb-3 pt-6 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+            <div className="flex flex-col gap-5 px-3 pb-3 pt-6 sm:flex-row sm:items-center sm:justify-between sm:px-4 md:gap-6">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4a06e]">
                   Our spaces
                 </p>
 
-                <h3 className="mt-1 text-xl font-semibold text-white">
+                <h3 className="mt-1 text-lg font-semibold text-white sm:text-xl">
                   Designed for modern living.
                 </h3>
               </div>
@@ -357,7 +332,7 @@ const About = () => {
             lg:p-11
           "
         >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#9b6845]">
                 The difference
@@ -368,7 +343,7 @@ const About = () => {
               </h3>
             </div>
 
-            <p className="max-w-md text-sm leading-6 text-[#77736c]">
+            <p className="max-w-xl text-sm leading-6 text-[#77736c] xl:max-w-md">
               From daily housekeeping to responsive maintenance, every detail is
               managed to make your stay simpler and more comfortable.
             </p>
@@ -376,7 +351,7 @@ const About = () => {
 
           {/* Feature Grid */}
 
-          <div className="mt-9 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-9 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {reasons.map((reason, index) => (
               <div
                 key={index}
@@ -439,8 +414,8 @@ const About = () => {
             lg:px-12
           "
         >
-          <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-2xl">
+          <div className="flex flex-col gap-7 xl:flex-row xl:items-center xl:justify-between">
+            <div className="max-w-3xl xl:max-w-2xl">
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4a06e]">
                 Your next chapter
               </span>

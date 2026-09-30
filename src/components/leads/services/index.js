@@ -245,3 +245,26 @@ export const useUpdateGlobalSettings = () => {
     },
   });
 };
+
+const bulkTransferLeads = async (data) => {
+  const response = await apiClient.put(
+    "/leads/bulk-transfer",
+    data
+  );
+
+  return response.data;
+};
+
+export const useBulkTransferLeads = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkTransferLeads,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["leads-data"],
+      });
+    },
+  });
+};

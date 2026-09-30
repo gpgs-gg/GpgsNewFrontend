@@ -1,19 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
-
 import HousePng from "../../logo/House.png";
-
 import { MapPin, Navigation, ArrowUpRight, Clock3, Info } from "lucide-react";
-
 import "./styles.css";
-
 // ---------------------------------------------------------
 // Google Map
 // ---------------------------------------------------------
-
 const brightStyle = [];
-
 const GoogleMapWithMarkers = ({ sectors }) => {
   const mapRef = useRef(null);
 
@@ -422,7 +416,7 @@ const Location = () => {
           =================================================== */}
 
           <div
-            data-aos="fade-right"
+            data-aos="fade-up"
             className="
               overflow-hidden
               rounded-[30px]
@@ -499,7 +493,7 @@ const Location = () => {
           =================================================== */}
 
           <div
-            data-aos="fade-left"
+            data-aos="fade-up"
             className="
               rounded-[30px]
               bg-[#14223f]

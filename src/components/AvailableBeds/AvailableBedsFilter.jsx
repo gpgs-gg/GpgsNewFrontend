@@ -14,6 +14,7 @@ const AvailableBedsFilter = ({
   handleReset,
   resetTrigger,
   initialFilters = {},
+
 }) => {
   const defaultValues = {
     propertyId: null,
@@ -36,8 +37,9 @@ const AvailableBedsFilter = ({
     clientName: "",
     hasCvd: false,
     sortByRent: false,
+    gender: "",
   };
-const { data: options = {} } = useBatchOptions(["locations"]);
+  const { data: options = {} } = useBatchOptions(["locations"]);
   const { control, handleSubmit, reset } = useForm({
     defaultValues,
   });
@@ -63,7 +65,19 @@ const { data: options = {} } = useBatchOptions(["locations"]);
       },
     };
   };
-
+  // ===========================
+  // Gender
+  // ===========================
+  const genderOptions = [
+    {
+      value: "Male",
+      label: "Male",
+    },
+    {
+      value: "Female",
+      label: "Female",
+    },
+  ];
   // ===========================
   // Location Options
   // ===========================
@@ -182,11 +196,15 @@ const { data: options = {} } = useBatchOptions(["locations"]);
         title: "Property",
         value: data.propertyId.label,
       },
-
       data.propertyLocation && {
         key: "propertyLocation",
         title: "Location",
         value: data.propertyLocation,
+      },
+      data.gender && {
+        key: "gender",
+        title: "Gender",
+        value: data.gender,
       },
       data.hasCvd && {
         key: "hasCvd",
@@ -251,19 +269,16 @@ const { data: options = {} } = useBatchOptions(["locations"]);
         title: "Rent ≤",
         value: data.monthlyRentMax,
       },
-
       data.depositAmountMin && {
         key: "depositAmountMin",
         title: "Deposit ≥",
         value: data.depositAmountMin,
       },
-
       data.depositAmountMax && {
         key: "depositAmountMax",
         title: "Deposit ≤",
         value: data.depositAmountMax,
       },
-
       data.clientName && {
         key: "clientName",
         title: "Client",
@@ -281,9 +296,9 @@ const { data: options = {} } = useBatchOptions(["locations"]);
     reset({
       propertyId: initialFilters.propertyId
         ? {
-            value: initialFilters.propertyId,
-            label: initialFilters.propertyCode || initialFilters.propertyId,
-          }
+          value: initialFilters.propertyId,
+          label: initialFilters.propertyCode || initialFilters.propertyId,
+        }
         : null,
 
       propertyLocation: initialFilters.propertyLocation || "",
@@ -292,19 +307,17 @@ const { data: options = {} } = useBatchOptions(["locations"]);
       sharingType: initialFilters.sharingType || "",
       acRoom: initialFilters.acRoom || "",
       bathAttached: initialFilters.bathAttached || "",
+      gender: initialFilters.gender || "",
       availableFrom: initialFilters.availableFrom || "",
       redFlag: initialFilters.redFlag || "",
-
       monthlyRentMin: initialFilters.monthlyRentMin || "",
       monthlyRentMax: initialFilters.monthlyRentMax || "",
-
       depositAmountMin: initialFilters.depositAmountMin || "",
       depositAmountMax: initialFilters.depositAmountMax || "",
-
       clientName: initialFilters.clientName || "",
-
       hasCvd: Boolean(initialFilters.hasCvd),
-      sortByRent: Boolean(initialFilters.sortByRent),
+      sortByRent: Boolean(initialFilters.sortByRent
+      ),
     });
   }, [isOpen, initialFilters, reset]);
 
@@ -315,9 +328,8 @@ const { data: options = {} } = useBatchOptions(["locations"]);
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* Header */}
         <div className="flex justify-between items-center p-5 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600">
@@ -386,13 +398,40 @@ const { data: options = {} } = useBatchOptions(["locations"]);
                 </div>
               )}
             />
+            {/* Gender */}
+            <Controller
+              name="gender"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Gender</label>
 
+                  <Select
+                    {...field}
+                    options={genderOptions}
+                    isClearable
+                    placeholder=""
+                    styles={selectStyles}
+                    value={
+                      genderOptions.find(
+                        (option) => option.value === field.value,
+                      ) || null
+                    }
+                    onChange={(selected) =>
+                      field.onChange(selected?.value || "")
+                    }
+                  />
+                </div>
+              )}
+            />
             {/* CVD- Client Vacating Date */}
             <Controller
               name="hasCvd"
               control={control}
               render={({ field }) => (
-                <div   onClick={() => field.onChange(!field.value)}  className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3 shadow-sm">
+                <div onClick={() => field.onChange(!field.value)} className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3 shadow-sm">
                   <div>
                     <label className="text-md font-medium text-gray-900">
                       CVD
@@ -401,15 +440,13 @@ const { data: options = {} } = useBatchOptions(["locations"]);
 
                   <button
                     type="button"
-                  
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
-                      field.value ? "bg-blue-600" : "bg-gray-300"
-                    }`}
+
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${field.value ? "bg-blue-600" : "bg-gray-300"
+                      }`}
                   >
                     <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${
-                        field.value ? "translate-x-5" : "translate-x-1"
-                      }`}
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${field.value ? "translate-x-5" : "translate-x-1"
+                        }`}
                     />
                   </button>
                 </div>
@@ -420,7 +457,7 @@ const { data: options = {} } = useBatchOptions(["locations"]);
               name="sortByRent"
               control={control}
               render={({ field }) => (
-                <div  onClick={() => field.onChange(!field.value)} className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3  shadow-sm">
+                <div onClick={() => field.onChange(!field.value)} className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3  shadow-sm">
                   <div>
                     <label className="text-md font-medium text-gray-900">
                       Rent (Minimum)
@@ -429,15 +466,13 @@ const { data: options = {} } = useBatchOptions(["locations"]);
 
                   <button
                     type="button"
-                   
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
-                      field.value ? "bg-green-600" : "bg-gray-300"
-                    }`}
+
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${field.value ? "bg-green-600" : "bg-gray-300"
+                      }`}
                   >
                     <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${
-                        field.value ? "translate-x-5" : "translate-x-1"
-                      }`}
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${field.value ? "translate-x-5" : "translate-x-1"
+                        }`}
                     />
                   </button>
                 </div>

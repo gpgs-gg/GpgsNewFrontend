@@ -8,12 +8,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Loader from '../common/Loader';
 import { convertStringFormatDate, formatDate } from '../../utils/dateFormatter';
 import { toast } from 'react-toastify';
-import { useBedsData, useCreateClientData, usePropertiesDropdown, useSingleClientData, useUpdateClientData } from '../Clients/services';
 import { useSingleClientRentData, useUpdateRentData } from './services';
-
+import { useAuth } from "../../context/authContext";
 const RentLadgerEdit = () => {
     const navigate = useNavigate()
     const { clientId } = useParams();
+    const { user } = useAuth();
+    const userName =
+        user?.Name || user?.name || user?.fullName || user?.username || "System";
+
     const { data: singleClientRentData, isPending: isSingleClientRentData } = useSingleClientRentData(clientId)
     const { mutate: updateClientRentData, isPending: isUpdateClientRentData } = useUpdateRentData(clientId)
 
@@ -23,10 +26,7 @@ const RentLadgerEdit = () => {
     const bed = singleClientRentData?.data?.bedId ?? {};
     const totalReceivedHistory = singleClientRentData?.data?.totalReceivedHistory ?? {};
     const adjustedAmountHistory = singleClientRentData?.data?.adjustedAmountHistory ?? {};
-    const [aadhaarFiles, setAadhaarFiles] = useState([]);
-    const [companyFiles, setCompanyFiles] = useState([]);
-    const [nocFiles, setNocFiles] = useState([]);
-    const [agreementFiles, setAgreementFiles] = useState([]);
+
     const {
         control,
         register,
@@ -35,21 +35,13 @@ const RentLadgerEdit = () => {
         setValue,
         watch,
         formState: { isDirty, dirtyFields },
-    } = useForm();
-
-
-
-
-    const isBookingCancelledOptions = [
+    } = useForm(
         {
-            value: true,
-            label: "Yes",
-        },
-        {
-            value: false,
-            label: "No",
-        },
-    ];
+            defaultValues: {
+                newWorkLog: "",
+            },
+        }
+    );
 
     useEffect(() => {
         const ClientData = singleClientRentData?.data;
@@ -73,24 +65,25 @@ const RentLadgerEdit = () => {
             daysCount: ClientData.daysCount,
 
             previousDue: ClientData.previousDue,
-            month: `${ClientData?.monthName}/${ClientData?.year}`
+            month: `${ClientData?.monthName}/${ClientData?.year}`,
+            newWorkLog: ""
         });
 
     }, [singleClientRentData, reset]);
 
 
     const onSubmit = (data) => {
+        data.updatedByName = userName;  // for worklog ...
+
         if (!isDirty) {
             toast.dismiss()
             toast.info("No changes detected.");
             return;
             // 👉 EDIT MODE
         }
-
         if (!dirtyFields.totalReceived) {
             data.totalReceived = 0;
         }
-
         if (clientId) {
             updateClientRentData(
                 { id: clientId, data: data },
@@ -513,6 +506,59 @@ const RentLadgerEdit = () => {
                         </div>
                     </div>
                 </div>
+
+{/* ====================== WORK LOG ====================== */}
+
+        {clientId && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Add WorkLog */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="form-group">
+                <textarea
+                  rows={5}
+                  {...register("newWorkLog")}
+                  className="form-input"
+                  placeholder=" "
+                />
+
+                <label className="form-label">Add WorkLog</label>
+              </div>
+            </div>
+
+            {/* WorkLog History */}
+            <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col">
+              <h3 className="font-semibold text-lg mb-1">Work Log History</h3>
+
+              <div className="flex-1 overflow-y-auto">
+                {singleClientRentData?.data?.workLogs?.length > 0 ? (
+                  singleClientRentData.data.workLogs
+                    .slice()
+                    .reverse()
+                    .map((log) => (
+                      <div
+                        key={log._id}
+                        className="border-b py-3 last:border-b-0"
+                      >
+                        <small className="text-gray-500">
+                          {log.createdBy || "System"} •{" "}
+                          {formatDate(log.createdAt)}
+                        </small>
+
+                        <p className="whitespace-pre-line text-sm">
+                          {log.message}
+                        </p>
+                      </div>
+                    ))
+                ) : (
+                  <p className="text-gray-400 text-center mt-10">
+                    No Work Logs Available
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
             </form>
         </div>
     )

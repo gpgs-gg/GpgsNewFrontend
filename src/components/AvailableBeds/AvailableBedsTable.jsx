@@ -43,6 +43,7 @@ const AvailableBedsTable = () => {
     clientName: "",
     hasCvd: false,
     sortByRent: false,
+    gender: ""
   };
 
   const { filters, setFilters, removeFilter, resetFilters } =
@@ -101,7 +102,13 @@ const AvailableBedsTable = () => {
         value: filters.propertyLocation,
       });
     }
-
+    if (filters.gender) {
+      labels.push({
+        key: "gender",
+        title: "Gender",
+        value: filters.gender,
+      });
+    }
     if (filters.hasCvd) {
       labels.push({
         key: "hasCvd",
@@ -385,7 +392,9 @@ const AvailableBedsTable = () => {
                     <th className="p-3 text-center whitespace-nowrap">
                       Property Code
                     </th>
-
+                    <th className="p-3 text-center whitespace-nowrap">
+                      Gender
+                    </th>
                     <th className="p-3 text-center whitespace-nowrap">
                       Red Flag
                     </th>
@@ -505,6 +514,9 @@ const AvailableBedsTable = () => {
                             <td className="p-3 text-center">
                               {item.propertyId?.propertyCode || "-"}
                             </td>
+                            <td className="p-3 text-center">
+                              {item.gender || "-"}
+                            </td>
 
                             {/* Red Flag */}
                             <td className="p-3 text-center">
@@ -542,8 +554,8 @@ const AvailableBedsTable = () => {
 
                             {/* NLD */}
                             <td className="p-3 text-center">
-                              {item.client?.clientVacatingDate
-                                ? formatDate(item.client.clientVacatingDate)
+                              {item.client?.noticeLastDate
+                                ? formatDate(item.client.noticeLastDate)
                                 : "-"}
                             </td>
 

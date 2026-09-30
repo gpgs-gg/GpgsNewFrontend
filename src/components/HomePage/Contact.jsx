@@ -75,7 +75,7 @@ const Contact = () => {
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* ================= HEADER ================= */}
-          <div className="mx-auto mb-14 max-w-3xl text-center">
+          <div className="hidden md:block mx-auto mb-14 max-w-3xl text-center">
             <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-600 shadow-sm">
               <MessageCircle size={14} />
               We're here to help
@@ -85,7 +85,7 @@ const Contact = () => {
               Let’s Find Your
               <span className="block text-gray-500">Perfect Stay</span>
             </h2>
-
+    
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-gray-600 sm:text-lg">
               Have a question about our PGs, rooms, pricing or availability? Our
               team is ready to help you find the right accommodation.

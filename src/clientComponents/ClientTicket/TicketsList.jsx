@@ -293,7 +293,7 @@ const TicketsList = () => {
 
             <div className="flex items-center gap-2 flex-shrink-0">
               <div className="flex items-center gap-2 flex-shrink-0">
-                <button
+                {/* <button
                   onClick={handleSelectedColoum}
                   className="border border-gray-300 px-3 py-2 rounded-lg flex items-center justify-center gap-2 text-sm flex-1 md:flex-none"
                 >
@@ -302,7 +302,7 @@ const TicketsList = () => {
                   {selectedTickets.size > 0
                     ? `(${selectedTickets.size} selected)`
                     : "(All)"}
-                </button>
+                </button> */}
 
                 {/* <button 
                                     onClick={() => setShowColumnSelector(!showColumnSelector)}

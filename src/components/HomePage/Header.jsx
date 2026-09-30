@@ -288,12 +288,13 @@ const Header = () => {
     border-0
     cursor-pointer
 
-    ${activeSection === item.section
-            ? transparentHeader
-              ? "text-white"
-              : "text-[#9b6845]"
-            : navTextClass
-          }
+    ${
+      activeSection === item.section
+        ? transparentHeader
+          ? "text-white"
+          : "text-[#9b6845]"
+        : navTextClass
+    }
   `}
       >
         <span>{item.label}</span>
@@ -333,12 +334,13 @@ const Header = () => {
           transition-all
           duration-500
 
-          ${transparentHeader
-            ? `
+          ${
+            transparentHeader
+              ? `
                 bg-transparent
                 border-transparent
               `
-            : `
+              : `
                 bg-[#f7f4ee]/95
                 border-b
                 border-[#e5e0d6]
@@ -373,7 +375,7 @@ const Header = () => {
               <img
                 src={transparentHeader ? gpgsLogo : gpgsLogo}
                 alt="GPGS Logo"
-                className="md:h-[72px]
+                className="h-[57px] md:h-[72px]
       w-auto
       object-contain
       transition-all
@@ -424,8 +426,9 @@ const Header = () => {
           transition-all
           duration-300
 
-          ${transparentHeader
-                        ? `
+          ${
+            transparentHeader
+              ? `
                 bg-white/10
                 border
                 border-white/20
@@ -433,12 +436,12 @@ const Header = () => {
                 backdrop-blur-md
                 hover:bg-white/20
               `
-                        : `
+              : `
                 bg-[#eeebe4]
                 text-[#14223f]
                 hover:bg-[#e5e0d6]
               `
-                      }
+          }
         `}
                   >
                     {/* ================= PROFILE IMAGE ================= */}
@@ -468,10 +471,11 @@ const Header = () => {
               font-bold
               flex-shrink-0
 
-              ${transparentHeader
-                            ? "bg-white text-[#14223f]"
-                            : "bg-[#14223f] text-white"
-                          }
+              ${
+                transparentHeader
+                  ? "bg-white text-[#14223f]"
+                  : "bg-[#14223f] text-white"
+              }
             `}
                       >
                         {getInitials(userName)}
@@ -685,8 +689,9 @@ const Header = () => {
           transition-all
           duration-300
 
-          ${transparentHeader
-                        ? `
+          ${
+            transparentHeader
+              ? `
                 border
                 border-white/30
                 bg-white/10
@@ -694,14 +699,14 @@ const Header = () => {
                 backdrop-blur-md
                 hover:bg-white/20
               `
-                        : `
+              : `
                 border
                 border-[#d8d1c6]
                 bg-transparent
                 text-[#14223f]
                 hover:bg-[#eeebe4]
               `
-                      }
+          }
         `}
                   >
                     Login
@@ -757,9 +762,10 @@ const Header = () => {
                     font-bold
                     transition-all
 
-                    ${transparentHeader
-                      ? "bg-white text-[#14223f]"
-                      : "bg-[#14223f] text-white"
+                    ${
+                      transparentHeader
+                        ? "bg-white text-[#14223f]"
+                        : "bg-[#14223f] text-white"
                     }
                   `}
                 >
@@ -782,9 +788,10 @@ const Header = () => {
                   transition-all
                   duration-300
 
-                  ${transparentHeader
-                    ? "bg-white/10 border border-white/20 text-white backdrop-blur-md"
-                    : "bg-[#14223f] text-white"
+                  ${
+                    transparentHeader
+                      ? "bg-white/10 border border-white/20 text-white backdrop-blur-md"
+                      : "bg-[#14223f] text-white"
                   }
                 `}
                 aria-label="Toggle Menu"

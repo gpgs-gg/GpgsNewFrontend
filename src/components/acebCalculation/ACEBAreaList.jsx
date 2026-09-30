@@ -151,7 +151,23 @@ function ACEBAreaList() {
                                                 {item?.propertyId?.propertyLocation}
                                             </td>
                                             <td className="p-3">
-                                                {Array.isArray(item.areas) ? item.areas.length : 0}
+                                                <div className="relative group inline-block cursor-pointer">
+                                                    <span>
+                                                        {Array.isArray(item.areas) ? item.areas.length : 0}
+                                                    </span>
+
+                                                    <div className="absolute hidden group-hover:block z-50 left-1/2 -translate-x-1/2 top-full mt-2 bg-black text-white text-xs rounded-md px-3 py-2 whitespace-nowrap shadow-lg">
+                                                        {Array.isArray(item.areas) && item.areas.length > 0 ? (
+                                                            item.areas.map((area) => (
+                                                                <div key={area.areaId}>
+                                                                    {area.name}
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div>No Rooms</div>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td className="p-3">
                                                 {item.lastMonth}

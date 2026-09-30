@@ -297,7 +297,7 @@ function LeadsCreateEdit() {
         }
     };
     return (
-        <div className="max-w-12xl h-[80vh] mx-auto my-5 bg-white shadow border border-gray-300 p-4 rounded-xl">
+        <div className="max-w-12xl h-fit mx-auto my-5 bg-white shadow border border-gray-300 p-4 rounded-xl">
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="flex gap-4 mb-10 justify-center">
                     {!id && (

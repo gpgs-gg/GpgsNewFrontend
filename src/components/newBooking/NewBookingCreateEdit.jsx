@@ -459,8 +459,8 @@ const NewBookingCreateEdit = () => {
           const endDay =
             currentDate.getFullYear() === end.getFullYear() &&
               currentDate.getMonth() === end.getMonth()
-              ? end.getDate()
-              : new Date(year, month + 1, 0).getDate();
+              ? Math.min(end.getDate(), billingDays)
+              : billingDays;
 
           const daysInPeriod =
             endDay - startDay + 1;
@@ -491,11 +491,12 @@ const NewBookingCreateEdit = () => {
               ? start.getDate()
               : 1;
 
+       
           const endDay =
             currentDate.getFullYear() === end.getFullYear() &&
               currentDate.getMonth() === end.getMonth()
-              ? end.getDate()
-              : new Date(year, month + 1, 0).getDate();
+              ? Math.min(end.getDate(), billingDays)
+              : billingDays;
 
           const daysInPeriod =
             endDay - startDay + 1;
@@ -1104,7 +1105,7 @@ const NewBookingCreateEdit = () => {
       // );
 
       // agr daily boking uncomment kro to ye comment kro .....................
-      payload.totalAmount =  (applyPermBedRent ? Number(clientCalculatedRent || 0) : 0)  + depositAmount + processingFees + parkingCharges + temporaryclientCalculatedRent + temporaryParkingCharges
+      payload.totalAmount = (applyPermBedRent ? Number(clientCalculatedRent || 0) : 0) + depositAmount + processingFees + parkingCharges + temporaryclientCalculatedRent + temporaryParkingCharges
       // payload.bookingAmount = payload.askFor === "FA" ? payload.totalAmount : monthlyRent;
       payload.bookingAmount = payload.askFor === "FA" ? payload.totalAmount : payload.askFor === "PA" ? partialAmount : monthlyRent;
       payload.balanceAmount =
@@ -2409,7 +2410,7 @@ const NewBookingCreateEdit = () => {
         isLoading={isUpdateNewBooking || isSubmitNewBooking}
         onClose={() => setShowConfirmationModal(false)}
         onConfirm={handleFinalSubmit}
-          setApplyPermBedRent={setApplyPermBedRent}
+        setApplyPermBedRent={setApplyPermBedRent}
         applyPermBedRent={applyPermBedRent}
       />
 

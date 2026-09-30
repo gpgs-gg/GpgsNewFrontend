@@ -21,7 +21,23 @@ const Home = () => {
       easing: "ease-out-cubic",
     });
   }, []);
+  const scrollToContact = () => {
+    const section = document.getElementById("contact");
 
+    if (section) {
+      const headerOffset = 76;
+
+      const elementPosition = section.getBoundingClientRect().top;
+
+      const offsetPosition =
+        elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  };
   return (
     <>
       {/* ================= HERO ================= */}
@@ -51,7 +67,7 @@ const Home = () => {
         <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-black/80 to-transparent" />
 
         {/* Hero Content */}
-        <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-5 pb-28 pt-32 sm:px-8 lg:px-10">
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-5 lg:pb-28 lg:pt-32 sm:px-8 lg:px-10">
           <div className="w-full max-w-4xl">
             {/* Small Badge */}
             <div
@@ -110,15 +126,16 @@ const Home = () => {
               data-aos-delay="400"
               className="mt-9 flex flex-col gap-3 sm:flex-row"
             >
-              <Link
-                to="/contact"
+              <button
+                type="button"
+                onClick={scrollToContact}
                 className="group flex items-center justify-center gap-3 rounded-full bg-white px-7 py-4 text-sm font-semibold text-black transition-all duration-300 hover:bg-[#f2eee9] hover:shadow-2xl"
               >
-                Explore Your Stay
+                Book Your Stay With Us Today
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black text-white transition-transform duration-300 group-hover:translate-x-1">
                   <FaArrowRight className="text-xs" />
                 </span>
-              </Link>
+              </button>
 
               {/* <Link
                 to="/properties"

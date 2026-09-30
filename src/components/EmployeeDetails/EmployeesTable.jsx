@@ -255,7 +255,7 @@ const EmployeesTable = () => {
   const TABLE_COLUMNS = [
     { key: "SrNo", label: "Sr No" },
     { key: "EmployeeID", label: "Employee ID" },
-    { key: "status", label: "Is Active" },
+    // { key: "status", label: "Is Active" },
     { key: "EmployeeName", label: "Employee Name" },
     { key: "loginEnabled", label: "Enabled Login" },
     { key: "DepartmentName", label: "Department" },
@@ -812,16 +812,32 @@ const EmployeesTable = () => {
                               )}
 
                               {/* DELETE EMPLOYEE */}
+                            {/* DELETE EMPLOYEE */}
                               {canDeleteEmployee && (
                                 <button
                                   type="button"
                                   onClick={() => {
+                                    if (row.loginEnabled === true) {
+                                      toast.dismiss()
+                                      toast.warning(
+                                        "Employee cannot be deleted while login is enabled. Please disable login first.",
+                                      );
+                                      return;
+                                    }
                                     setDeleteId(row._id);
                                     setShowDeleteModal(true);
                                   }}
                                   disabled={deletingEmployee}
-                                  className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 disabled:opacity-50"
-                                  title="Delete Employee"
+                                  className={`p-2 rounded-lg ${
+                                    row.loginEnabled
+                                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                      : "bg-red-100 text-red-600 hover:bg-red-200"
+                                  } disabled:opacity-50`}
+                                  title={
+                                    row.loginEnabled
+                                      ? "Disable employee login before deleting"
+                                      : "Delete Employee"
+                                  }
                                 >
                                   <Trash2 size={16} />
                                 </button>
