@@ -681,7 +681,7 @@ const ClientsTable = () => {
                                   />
 
                                   {/* Hover Details */}
-                                  <div className="absolute left-0 top-full mt-2 hidden group-hover:block z-50 w-80">
+                                  <div className="absolute left-0 top-full hidden group-hover:block z-50 w-80">
                                     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl">
                                       {/* Header */}
                                       <div className="flex items-center justify-between bg-gray-50 px-4 py-3 border-b border-gray-200">
@@ -700,79 +700,73 @@ const ClientsTable = () => {
                                       </div>
 
                                       {/* Details */}
-                                      <div className="p-4">
-                                        <div className="divide-y divide-gray-100">
+                                      <div className="px-4 py-3">
+                                        <div className="grid grid-cols-2 gap-x-8 gap-y-1">
+
                                           {/* Property */}
-                                          <div className="flex items-center justify-between py-2.5">
+                                          <div className="flex items-center justify-between border-b border-gray-100 py-2">
                                             <span className="text-xs font-medium text-gray-500">
                                               Property
                                             </span>
-                                            <span className="text-sm font-semibold text-gray-900">
-                                              {item.permanentBooking
-                                                ?.propertyCode || "-"}
-                                            </span>
-                                          </div>
-
-                                          {/* Location */}
-                                          <div className="flex items-start justify-between gap-4 py-2.5">
-                                            <span className="text-xs font-medium text-gray-500">
-                                              Location
-                                            </span>
-                                            <span className="max-w-[190px] text-right text-sm text-gray-800">
-                                              {item.permanentBooking
-                                                ?.propertyLocation || "-"}
+                                            <span className="ml-4 text-sm font-semibold text-gray-900">
+                                              {item.permanentBooking?.propertyCode || "-"}
                                             </span>
                                           </div>
 
                                           {/* Room */}
-                                          <div className="flex items-center justify-between py-2.5">
+                                          <div className="flex items-center justify-between border-b border-gray-100 py-2">
                                             <span className="text-xs font-medium text-gray-500">
                                               Room No
                                             </span>
-                                            <span className="text-sm font-medium text-gray-900">
-                                              {item.permanentBooking?.roomNo ||
-                                                "-"}
+                                            <span className="ml-4 text-sm font-medium text-gray-900">
+                                              {item.permanentBooking?.roomNo || "-"}
                                             </span>
                                           </div>
 
                                           {/* Bed */}
-                                          <div className="flex items-center justify-between py-2.5">
+                                          <div className="flex items-center justify-between border-b border-gray-100 py-2">
                                             <span className="text-xs font-medium text-gray-500">
                                               Bed No
                                             </span>
-                                            <span className="text-sm font-medium text-gray-900">
-                                              {item.permanentBooking?.bedNo ||
-                                                "-"}
+                                            <span className="ml-4 text-sm font-medium text-gray-900">
+                                              {item.permanentBooking?.bedNo || "-"}
                                             </span>
                                           </div>
 
-                                          {/* Rent */}
-                                          <div className="flex items-center justify-between py-2.5">
+                                          {/* DOJ */}
+                                          <div className="flex items-center justify-between border-b border-gray-100 py-2">
+                                            <span className="text-xs font-medium text-gray-500">
+                                              DOJ
+                                            </span>
+                                            <span className="ml-4 text-sm font-medium text-gray-900">
+                                              {item.clientDoj ? formatDate(item.clientDoj) : "-"}
+                                            </span>
+                                          </div>
+
+                                          {/* Monthly Rent */}
+                                          <div className="flex items-center justify-between border-b border-gray-100 py-2">
                                             <span className="text-xs font-medium text-gray-500">
                                               Monthly Rent
                                             </span>
-                                            <span className="text-sm font-semibold text-gray-900">
-                                              ₹
-                                              {Number(
-                                                item.permanentBooking
-                                                  ?.monthlyRent || 0,
+                                            <span className="ml-4 text-sm font-semibold text-gray-900">
+                                              ₹{Number(
+                                                item.permanentBooking?.monthlyRent || 0
                                               ).toLocaleString("en-IN")}
                                             </span>
                                           </div>
 
                                           {/* Deposit */}
-                                          <div className="flex items-center justify-between py-2.5">
+                                          <div className="flex items-center justify-between border-b border-gray-100 py-2">
                                             <span className="text-xs font-medium text-gray-500">
                                               Deposit
                                             </span>
-                                            <span className="text-sm font-semibold text-gray-900">
-                                              ₹
-                                              {Number(
-                                                item.permanentBooking
-                                                  ?.depositAmount || 0,
+                                            <span className="ml-4 text-sm font-semibold text-gray-900">
+                                              ₹{Number(
+                                                item.permanentBooking?.depositAmount || 0
                                               ).toLocaleString("en-IN")}
                                             </span>
                                           </div>
+
                                         </div>
                                       </div>
 
@@ -832,13 +826,13 @@ const ClientsTable = () => {
                             {/* Monthly Rent */}
                             <td className="p-3">
                               ₹
-                              {(item?.monthlyRent || 0).toLocaleString("en-IN")}
+                              {(item?.bedId?.monthlyRent || 0).toLocaleString("en-IN")}
                             </td>
 
                             {/* Deposit */}
                             <td className="p-3">
                               ₹
-                              {(item?.depositAmount || 0).toLocaleString(
+                              {(item?.bedId?.depositAmount || 0).toLocaleString(
                                 "en-IN",
                               )}
                             </td>

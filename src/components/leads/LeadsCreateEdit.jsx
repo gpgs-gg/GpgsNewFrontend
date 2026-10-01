@@ -233,6 +233,7 @@ function LeadsCreateEdit() {
                     id: oldData._id,
                     data: updatedData
                 });
+                toast.dismiss()
                 toast.success("Lead updated successfully");
                 return;
             }
@@ -262,6 +263,7 @@ function LeadsCreateEdit() {
                     }))
                 };
                 await bulkCreateLead(payload);
+                toast.dismiss()
                 toast.success(
                     `${numbers.length} Leads Created Successfully`
                 );
