@@ -17,7 +17,7 @@ const BankTransactionList = () => {
   const DEFAULT_BANK_TRANSACTION_FILTERS = {
     fromDate: "",
     toDate: "",
-    source: "",
+    account: "",
     propertyId: "",
     status: "",
     userId: "",
@@ -90,10 +90,10 @@ const BankTransactionList = () => {
       });
     }
 
-    if (filters.source) {
+    if (filters.account) {
       labels.push({
-        key: "source",
-        label: `Bank : ${filters.source}`,
+        key: "account",
+        label: `Account : ${filters.account}`,
       });
     }
 
@@ -166,6 +166,7 @@ const BankTransactionList = () => {
     search: debouncedSearch,
     filters,
   });
+
   const apiData = apiResponse?.data || [];
 
   const totalPages = apiResponse?.totalPages || 1;
@@ -385,6 +386,7 @@ const BankTransactionList = () => {
               <thead className="sticky top-0 bg-gray-100 whitespace-nowrap z-20">
                 <tr>
                   <th className="p-3 text-center">Date</th>
+                  <th className="p-3 text-center">Account</th>
                   <th className="p-3 text-left">Narration</th>
                   <th className="p-3 text-center">Cheque / Ref No.</th>
                   <th className="p-3 text-right">Withdrawal</th>
@@ -417,6 +419,9 @@ const BankTransactionList = () => {
                     >
                       <td className="p-3 text-center">
                         {formatDate(item.date)}
+                      </td>
+                      <td className="p-3 text-center">
+                        {item.account}
                       </td>
 
 
@@ -608,13 +613,14 @@ const BankTransactionList = () => {
         onClose={() => setFilterOpen(false)}
         apiData={apiData}
         filters={filters}
+       availableAccounts={apiResponse?.availableAccounts || []}
         onApply={(data) => {
           // Persist filters
           setFilters({
             ...DEFAULT_BANK_TRANSACTION_FILTERS,
             ...data,
           });
-
+           
           // New filter => first page
           setCurrentPage(1);
         }}

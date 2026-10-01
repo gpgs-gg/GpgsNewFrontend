@@ -19,6 +19,7 @@ const BankTransactionFilter = ({
   onApply,
   handleReset,
   resetTrigger,
+  availableAccounts
 }) => {
   const { data: dropdownData } = usePropertyDropdown({
     page: 1,
@@ -50,26 +51,15 @@ const BankTransactionFilter = ({
       additional: { page: page + 1 },
     };
   };
-  const bankAccountOptions = [
-    {
-      value: "HDFC",
-      label: "HDFC",
-    },
-    {
-      value: "ICICI",
-      label: "ICICI",
-    },
-  ];
-  const statusOptions = [
-    {
-      value: "Updated",
-      label: "Updated",
-    },
-    {
-      value: "Pending",
-      label: "Pending",
-    },
-  ];
+
+const bankAccountOptions = useMemo(() => {
+    return availableAccounts.map((account) => ({
+      value: account,
+      label: account,
+    }));
+  }, [availableAccounts]);
+
+ 
   const transactionTypeOptions = [
     {
       value: "deposit",
@@ -79,19 +69,6 @@ const BankTransactionFilter = ({
       value: "withdrawal",
       label: "Withdrawal",
     },
-  ];
-  const assigneeOptions = [
-    ...new Map(
-      apiData
-        .filter((item) => item.userId)
-        .map((item) => [
-          item.userId._id,
-          {
-            value: item.userId._id,
-            label: item.userId.fullName,
-          },
-        ]),
-    ).values(),
   ];
 
   const onSubmit = (data) => {
@@ -104,7 +81,7 @@ const BankTransactionFilter = ({
     if (data.toDate) {
       filters.toDate = formatDate(data.toDate);
     }
-    if (data.bankAccount) filters.source = data.bankAccount.value;
+    if (data.bankAccount) filters.account = data.bankAccount.value;
 
     if (data.propertyId) filters.propertyId = data.propertyId.value;
 
@@ -169,8 +146,8 @@ const BankTransactionFilter = ({
     reset({
       fromDate: filters.fromDate ? new Date(filters.fromDate) : null,
       toDate: filters.toDate ? new Date(filters.toDate) : null,
-      bankAccount: filters.source
-        ? bankAccountOptions.find((x) => x.value === filters.source)
+      bankAccount: filters.account
+        ? bankAccountOptions.find((x) => x.value === filters.account)
         : null,
       transactionType: filters.transactionType
         ? transactionTypeOptions.find(

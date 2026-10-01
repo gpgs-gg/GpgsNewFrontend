@@ -37,6 +37,62 @@ const getModulesData = async ({
   return response.data;
 };
 
+const getMenuModulesData = async ({
+  page = 1,
+  limit = 10,
+  search = "",
+  moduleType = "",
+  isActive = "",
+}) => {
+  const params = {
+    page,
+    limit,
+  };
+
+  if (search?.trim()) {
+    params.search = search.trim();
+  }
+
+  if (moduleType) {
+    params.moduleType = moduleType;
+  }
+
+  if (isActive !== "") {
+    params.isActive = isActive;
+  }
+
+  const response = await apiClient.get("/modules/menu", {
+    params,
+  });
+
+  return response.data;
+};
+
+export const useMenuModulesData = ({
+  page = 1,
+  limit = 10,
+  search = "",
+  moduleType = "",
+  isActive = "",
+  enabled = true,
+}) => {
+  return useQuery({
+    queryKey: ["modules-data", page, limit, search, moduleType, isActive],
+
+    queryFn: () =>
+      getMenuModulesData({
+        page,
+        limit,
+        search,
+        moduleType,
+        isActive,
+      }),
+
+    enabled,
+
+    keepPreviousData: true,
+  });
+};
 export const useModulesData = ({
   page = 1,
   limit = 10,

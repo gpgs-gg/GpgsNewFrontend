@@ -22,7 +22,7 @@ import { convertStringFormatDate, formatDateAndTime } from "../../utils/dateForm
 import { Link } from "react-router-dom";
 import Loader from "../common/Loader";
 import { useBatchOptions } from "../Options/services";
-
+import { useEmployeeDetailsData } from "../EmployeeDetails/Services/index";
 
 // Validation
 
@@ -110,7 +110,10 @@ function LeadsCreateEdit() {
         "teamcode",
         "yesno",
     ]);
-
+const { data: employeeData } = useEmployeeDetailsData({
+    page: 1,
+    limit: 1000,
+  });
     // const filters = useMemo(
     //     () => location.state?.filters || {},
     //     [location.state]
@@ -160,11 +163,13 @@ function LeadsCreateEdit() {
     const ReasonOptions = options.leadsreason || [];
     const LocationOptions = options.locations || [];
     const TeamCodeOptions = options.teamcode || [];
-    const ManagerOptions = [
-        { value: "Akash", label: "Akash" },
-        { value: "Rahul", label: "Rahul" },
-        { value: "Priya", label: "Priya" }
-    ];
+   const ManagerOptions =
+    employeeData?.data
+      ?.filter((employee) => employee.loginEnabled === true)
+      ?.map((employee) => ({
+        value: employee.employeeName,
+        label: employee.employeeName,
+      })) || [];
 
     // Edit Data Load
     useEffect(() => {

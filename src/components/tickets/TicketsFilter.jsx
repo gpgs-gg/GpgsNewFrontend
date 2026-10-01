@@ -7,7 +7,10 @@ import { getTicketDropdown, useTicketDropdown } from "./services";
 import { AsyncPaginate } from "react-select-async-paginate";
 import { getPropertyDropdown } from "../properties/services";
 import { useBatchOptions } from "../Options/services";
-
+import {
+  useManagerEmployees,
+  useEmployeeDetailsData,
+} from "../EmployeeDetails/Services/index";
 const TicketsFilter = ({
   isOpen,
   onClose,
@@ -40,7 +43,12 @@ const TicketsFilter = ({
     "yesno",
     "locations",
   ]);
+  const { data: managerData } = useManagerEmployees();
 
+  const { data: employeeData } = useEmployeeDetailsData({
+    page: 1,
+    limit: 1000,
+  });
   const loadPropertyOptions = async (search, loadedOptions, { page }) => {
     const res = await getPropertyDropdown({
       page,
@@ -78,16 +86,21 @@ const TicketsFilter = ({
   // const assigneeOptions  = options.department || [];
   // const managerOptions   = options.department || [];
 
-  const managerOptions = [
-    { value: "Akash", label: "Akash" },
-    { value: "Rahul", label: "Rahul" },
-    { value: "Priya", label: "Priya" },
-  ];
-  const assigneeOptions = [
-    { value: "Akash", label: "Akash" },
-    { value: "Rahul", label: "Rahul" },
-    { value: "Priya", label: "Priya" },
-  ];
+  const managerOptions =
+    managerData?.data
+      ?.filter((employee) => employee.loginEnabled === true)
+      ?.map((employee) => ({
+        value: employee.employeeName,
+        label: employee.employeeName,
+      })) || [];
+
+  const assigneeOptions =
+    employeeData?.data
+      ?.filter((employee) => employee.loginEnabled === true)
+      ?.map((employee) => ({
+        value: employee.employeeName,
+        label: employee.employeeName,
+      })) || [];
 
   const lateStatusOptions = [
     { value: "LateAcknowledged", label: "Late Acknowledged" },

@@ -63,6 +63,8 @@ const ClientsTable = () => {
     stayType: "",
     loginEnabled: "",
     clientStatus: "",
+    clientDojFrom: "",
+    clientDojTo: "",
   };
   const {
     filters,
@@ -89,6 +91,13 @@ const ClientsTable = () => {
       });
     }
 
+    if (filters.clientDojFrom || filters.clientDojTo) {
+      labels.push({
+        key: "clientDoj",
+        title: "DOJ",
+        value: `${filters.clientDojFrom || "Any"} - ${filters.clientDojTo || "Any"}`,
+      });
+    }
     if (filters.propertyLocation) {
       labels.push({
         key: "propertyLocation",
@@ -290,7 +299,14 @@ const ClientsTable = () => {
         propertyId: "",
         propertyCode: "",
       }));
-    } else {
+    } else if (key === "clientDoj") {
+      setFilters((prev) => ({
+        ...prev,
+        clientDojFrom: "",
+        clientDojTo: "",
+      }));
+    }
+    else {
       removePersistedFilter(key);
     }
 

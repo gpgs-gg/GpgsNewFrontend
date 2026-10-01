@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 import { getPropertyDropdown } from "../properties/services/index";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
+import { useBatchOptions } from "../Options/services";
 const NewBookingFilter = ({
   isOpen,
   onClose,
@@ -58,7 +58,7 @@ const NewBookingFilter = ({
       balanceAmountMax: "",
     },
   });
-
+    const { data: options = {} } = useBatchOptions(["locations"]);
   // Load property options for async select
   const loadPropertyOptions = async (search, loadedOptions, { page }) => {
     const res = await getPropertyDropdown({
@@ -80,18 +80,7 @@ const NewBookingFilter = ({
   };
 
   // Location Options
-  const locationOptions = useMemo(() => {
-    return [
-      ...new Set(
-        apiData
-          ?.map((item) => item?.propertyId?.propertyLocation)
-          .filter(Boolean),
-      ),
-    ].map((item) => ({
-      value: item,
-      label: item,
-    }));
-  }, [apiData]);
+    const locationOptions = options.locations || [];
 
   // Status Options
   const statusOptions = [

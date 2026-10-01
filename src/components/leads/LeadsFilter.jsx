@@ -8,6 +8,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { convertStringFormatDate, formatDate } from "../../utils/dateFormatter";
 import { useBatchOptions } from "../Options/services";
+import { useEmployeeDetailsData } from "../EmployeeDetails/Services/index";
 const LeadsFilter = ({
   isOpen,
   onClose,
@@ -40,7 +41,10 @@ const LeadsFilter = ({
     "teamcode",
     "yesno",
   ]);
-
+  const { data: employeeData } = useEmployeeDetailsData({
+    page: 1,
+    limit: 1000,
+  });
   useEffect(() => {
     if (!isOpen) return;
 
@@ -85,16 +89,21 @@ const LeadsFilter = ({
   const locationOptions = options.locations || [];
   const teamCodeOptions = options.teamcode || [];
 
-  const assigneeOptions = [
-    { value: "Akash", label: "Akash" },
-    { value: "Rahul", label: "Rahul" },
-    { value: "Priya", label: "Priya" },
-  ];
-  const fieldMemberOptions = [
-    { value: "Akash", label: "Akash" },
-    { value: "Rahul", label: "Rahul" },
-    { value: "Priya", label: "Priya" },
-  ];
+  const assigneeOptions =
+    employeeData?.data
+      ?.filter((employee) => employee.loginEnabled === true)
+      ?.map((employee) => ({
+        value: employee.employeeName,
+        label: employee.employeeName,
+      })) || [];
+
+  const fieldMemberOptions =
+    employeeData?.data
+      ?.filter((employee) => employee.loginEnabled === true)
+      ?.map((employee) => ({
+        value: employee.employeeName,
+        label: employee.employeeName,
+      })) || [];
 
   const renderSelect = (name, label, options) => (
     <Controller

@@ -4,7 +4,7 @@ import { useAuth } from "./authContext";
 
 import { useMyPermissionsData } from "../components/RolePermission/services/index";
 
-import { useModulesData } from "../components/moduleSidebar/services/index";
+import { useMenuModulesData } from "../components/moduleSidebar/services/index";
 
 const AuthorizationContext = createContext(null);
 
@@ -28,7 +28,7 @@ export const AuthorizationProvider = ({ children }) => {
   // MODULES
   // =====================================================
 
-  const { data: modulesResponse, isLoading: modulesLoading } = useModulesData({
+  const { data: modulesResponse, isLoading: modulesLoading } = useMenuModulesData({
     page: 1,
     limit: 1000,
     moduleType: "MENU",

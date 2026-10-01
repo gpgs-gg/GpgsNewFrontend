@@ -10,12 +10,14 @@ import {
     useCreateElectricityBillData,
     useUpdateElectricityBillData,
 } from "./services";
+
 import FilePreview from "../common/FilePreview";
 import { selectStyles } from "../../utils/selectStyles";
 import Loader from "../common/Loader";
 import { useCurrentUser } from "../../auth/services";
 import { formatDateAndTime } from "../../utils/dateFormatter";
 import { useBatchOptions } from "../Options/services";
+import { useEmployeeDetailsData } from "../EmployeeDetails/Services/index";
 
 const EBInfoCreateEdit = () => {
     const navigate = useNavigate();
@@ -25,6 +27,10 @@ const EBInfoCreateEdit = () => {
     const { data: options = {} } = useBatchOptions([
         "paidornotpaid"
     ]);
+    const { data: employeeData } = useEmployeeDetailsData({
+        page: 1,
+        limit: 1000,
+    });
     // =========================
     // CREATE / EDIT
     // =========================
@@ -96,11 +102,16 @@ const EBInfoCreateEdit = () => {
         createLoading || updateLoading;
 
     const PaidornotpaidOptions = options.paidornotpaid || [];
-    const ManagerOptions = [
-        { value: "Akash", label: "Akash" },
-        { value: "Rahul", label: "Rahul" },
-        { value: "Priya", label: "Priya" }
-    ];
+
+    const ManagerOptions =
+        employeeData?.data
+            ?.filter((employee) => employee.department === "Account")
+            ?.map((employee) => ({
+                value: employee.employeeName,
+                label: employee.employeeName,
+            })) || [];
+
+
     // =========================
     // EDIT DATA RESET
     // =========================
@@ -121,7 +132,24 @@ const EBInfoCreateEdit = () => {
                 ebPaidStatus: data.ebPaidStatus || "",
 
             });
-            setExistingAttachments(data.attachment || []);
+            let attachments = data.attachment || [];
+
+            if (typeof attachments === "string") {
+                try {
+                    const parsed = JSON.parse(attachments);
+
+                    attachments = Array.isArray(parsed) ? parsed : [attachments];
+                } catch (error) {
+                    // API returns multiple URLs as a comma-separated string
+                    attachments = attachments
+                        .split(",")
+                        .map((url) => url.trim())
+                        .filter(Boolean);
+                }
+            }
+
+            setExistingAttachments(Array.isArray(attachments) ? attachments : []);
+            setAttachmentFiles([]);
             setAttachmentFiles([]);
         }
     }, [isEdit, singleResponse, reset]);
