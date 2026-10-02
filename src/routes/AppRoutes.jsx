@@ -93,9 +93,7 @@ const AppRoutes = () => {
       <Route
         path="/register"
         element={
-          <PublicRoute>
             <SignupPage />
-          </PublicRoute>
         }
       />
 

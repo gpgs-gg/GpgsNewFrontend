@@ -327,6 +327,7 @@ const BankTransactionList = () => {
               Today's Transactions
             </button> */}
             <div className="flex items-center gap-2">
+              
               <button
                 onClick={() => applyTransactionType("salary")}
                 className={`px-4 py-2 rounded-lg border ${filters.transactionType === "salary"

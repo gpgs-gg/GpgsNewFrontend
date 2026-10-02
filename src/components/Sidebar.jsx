@@ -62,6 +62,7 @@ const SidebarMenuSkeleton = ({ expanded }) => {
     </div>
   );
 };
+
 const Sidebar = ({ collapsed, mobileOpen, setMobileOpen }) => {
     const { user,setUser, loading, isAuthenticated } = useAuth();
 

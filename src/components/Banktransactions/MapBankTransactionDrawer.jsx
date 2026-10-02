@@ -8,6 +8,7 @@ import { AsyncPaginate } from "react-select-async-paginate";
 import { getPropertyDropdown } from "../properties/services";
 import { useClientDataByProperty, useUpdateBankTransactionReceived } from "./services";
 import { toast } from "react-toastify";
+import { useAuth } from "../../context/authContext";
 
 
 // ===========================
@@ -54,6 +55,7 @@ const paymentTypeOptions = [
 ];
 
 const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
+    const {user} = useAuth()
     const currentMonthOption = monthOptions.find(
         (item) => item.value === new Date().getMonth() + 1
     );
@@ -131,9 +133,11 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
             month: data.month.value,
             year: new Date().getFullYear(),
             expenseCategory: data.paymentType.value,
+            status: "Updated",
             amount: Number(transaction.deposit || 0),
             transactionDate: transaction.date,
             narration: transaction.narration,
+            user : user?.name
         };
 
         updateBankTransactionReceived(payload, {

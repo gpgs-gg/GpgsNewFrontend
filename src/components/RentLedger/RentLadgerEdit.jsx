@@ -84,6 +84,10 @@ const RentLadgerEdit = () => {
         if (!dirtyFields.totalReceived) {
             data.totalReceived = 0;
         }
+     // Adjustment change nahi kiya to 0 bhejo
+if (!dirtyFields.adjAmt) {
+    data.adjAmt = 0;
+}
         if (clientId) {
             updateClientRentData(
                 { id: clientId, data: data },
@@ -507,57 +511,57 @@ const RentLadgerEdit = () => {
                     </div>
                 </div>
 
-{/* ====================== WORK LOG ====================== */}
+                {/* ====================== WORK LOG ====================== */}
 
-        {clientId && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Add WorkLog */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="form-group">
-                <textarea
-                  rows={5}
-                  {...register("newWorkLog")}
-                  className="form-input"
-                  placeholder=" "
-                />
+                {clientId && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Add WorkLog */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div className="form-group">
+                                <textarea
+                                    rows={5}
+                                    {...register("newWorkLog")}
+                                    className="form-input"
+                                    placeholder=" "
+                                />
 
-                <label className="form-label">Add WorkLog</label>
-              </div>
-            </div>
+                                <label className="form-label">Add WorkLog</label>
+                            </div>
+                        </div>
 
-            {/* WorkLog History */}
-            <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col">
-              <h3 className="font-semibold text-lg mb-1">Work Log History</h3>
+                        {/* WorkLog History */}
+                        <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col">
+                            <h3 className="font-semibold text-lg mb-1">Work Log History</h3>
 
-              <div className="flex-1 overflow-y-auto">
-                {singleClientRentData?.data?.workLogs?.length > 0 ? (
-                  singleClientRentData.data.workLogs
-                    .slice()
-                    .reverse()
-                    .map((log) => (
-                      <div
-                        key={log._id}
-                        className="border-b py-3 last:border-b-0"
-                      >
-                        <small className="text-gray-500">
-                          {log.createdBy || "System"} •{" "}
-                          {formatDate(log.createdAt)}
-                        </small>
+                            <div className="flex-1 overflow-y-auto">
+                                {singleClientRentData?.data?.workLogs?.length > 0 ? (
+                                    singleClientRentData.data.workLogs
+                                        .slice()
+                                        .reverse()
+                                        .map((log) => (
+                                            <div
+                                                key={log._id}
+                                                className="border-b py-3 last:border-b-0"
+                                            >
+                                                <small className="text-gray-500">
+                                                    {log.createdBy || "System"} •{" "}
+                                                    {formatDate(log.createdAt)}
+                                                </small>
 
-                        <p className="whitespace-pre-line text-sm">
-                          {log.message}
-                        </p>
-                      </div>
-                    ))
-                ) : (
-                  <p className="text-gray-400 text-center mt-10">
-                    No Work Logs Available
-                  </p>
+                                                <p className="whitespace-pre-line text-sm">
+                                                    {log.message}
+                                                </p>
+                                            </div>
+                                        ))
+                                ) : (
+                                    <p className="text-gray-400 text-center mt-10">
+                                        No Work Logs Available
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 )}
-              </div>
-            </div>
-          </div>
-        )}
 
             </form>
         </div>

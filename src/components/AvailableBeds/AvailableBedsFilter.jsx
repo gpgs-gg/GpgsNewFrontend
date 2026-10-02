@@ -82,31 +82,6 @@ const AvailableBedsFilter = ({
   // Location Options
   // ===========================
   const locationOptions = options.locations || [];
-
-  // ===========================
-  // Room Options
-  // ===========================
-  const roomOptions = useMemo(() => {
-    return [...new Set(apiData.map((i) => i.roomNo).filter(Boolean))]
-      .sort()
-      .map((room) => ({
-        value: room,
-        label: room,
-      }));
-  }, [apiData]);
-
-  // ===========================
-  // Bed Options
-  // ===========================
-  const bedOptions = useMemo(() => {
-    return [...new Set(apiData.map((i) => i.bedNo).filter(Boolean))]
-      .sort()
-      .map((bed) => ({
-        value: bed,
-        label: bed,
-      }));
-  }, [apiData]);
-
   // ===========================
   // Sharing Options
   // ===========================
@@ -156,33 +131,8 @@ const AvailableBedsFilter = ({
     },
   ];
 
-  // ===========================
-  // Available From
-  // ===========================
-  const availableFromOptions = [
-    {
-      value: "Immediate Available",
-      label: "Immediate Available",
-    },
-    {
-      value: "CVD",
-      label: "After CVD",
-    },
-  ];
 
-  // ===========================
-  // Red Flag
-  // ===========================
-  const redFlagOptions = [
-    {
-      value: "Yes",
-      label: "Red Flag",
-    },
-    {
-      value: "No",
-      label: "Normal",
-    },
-  ];
+
 
   const onSubmit = (data) => {
     const filters = {

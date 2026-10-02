@@ -68,6 +68,8 @@ const [todayBookings, setTodayBookings] = useState(() => {
     bookingAmountMax: "",
     balanceAmountMin: "",
     balanceAmountMax: "",
+    bookingCreatedFrom: "",
+    bookingCreatedTo: "",
   };
 
   const { filters, setFilters, removeFilter, resetFilters } =
@@ -94,7 +96,21 @@ const [todayBookings, setTodayBookings] = useState(() => {
         value: filters.fullName,
       });
     }
+if (filters.bookingCreatedFrom) {
+      labels.push({
+        key: "bookingCreatedFrom",
+        title: "Created From",
+        value: filters.bookingCreatedFrom,
+      });
+    }
 
+    if (filters.bookingCreatedTo) {
+      labels.push({
+        key: "bookingCreatedTo",
+        title: "Created To",
+        value: filters.bookingCreatedTo,
+      });
+    }
     if (filters.callingNo) {
       labels.push({
         key: "callingNo",
@@ -321,7 +337,7 @@ const [todayBookings, setTodayBookings] = useState(() => {
     createClientFromBooking(
       {
         bookingId: selectedBooking._id,
-        narration: `Amount: ₹${data.paymentAmount || 0} - Narration: ${data.narration || ""}${
+        narration: `${user?.name} - Amount: ₹${data.paymentAmount || 0} - Narration: ${data.narration || ""}${
           data.remarks ? ` - Remarks: ${data.remarks}` : ""
         }`,
         paymentAmount: data.paymentAmount,
@@ -659,7 +675,7 @@ const [todayBookings, setTodayBookings] = useState(() => {
               <table className="min-w-max w-full whitespace-nowrap border-collapse">
                 <thead className="sticky top-0 bg-gray-100 z-10">
                   <tr>
-                    <th className="p-3 text-center">Sr No.</th>
+                    <th className="p-3 text-center">Date</th>
                     <th className="p-3 text-center">Client Name</th>
                     <th className="p-3 text-center">Status</th>
                     <th className="p-3 text-center">Calling No</th>
@@ -701,7 +717,7 @@ const [todayBookings, setTodayBookings] = useState(() => {
                             className="border-t border-gray-300 hover:bg-gray-50"
                           >
                             <td className="p-3 font-medium">
-                              {(currentPage - 1) * rowsPerPage + index + 1}
+                              {formatDate(item.createdAt)}
                             </td>
 
                             <td className="p-3">{item.fullName || "-"}</td>
@@ -762,7 +778,7 @@ const [todayBookings, setTodayBookings] = useState(() => {
 
                             <td className="p-3">
                               <div className="flex items-center justify-center gap-3">
-                                {!item.loginEnabled && (
+                                {/* {!item.loginEnabled && ( */}
                                   <label className="relative inline-flex items-center cursor-pointer">
                                     <input
                                       type="checkbox"
@@ -778,7 +794,7 @@ const [todayBookings, setTodayBookings] = useState(() => {
 
                                     <div className="absolute left-0.5 top-0.5 w-5 h-4 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
                                   </label>
-                                )}
+                                {/* )} */}
 
                                 {item.loginEnabled ? (
                                   <div className="flex items-center gap-2">

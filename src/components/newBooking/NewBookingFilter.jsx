@@ -42,6 +42,8 @@ const NewBookingFilter = ({
       clientDojTo: "",
       temporaryClientDojFrom: "",
       temporaryClientDojTo: "",
+      bookingCreatedFrom: "",
+      bookingCreatedTo: "",
 
       // Amount filters
       monthlyRentMin: "",
@@ -58,7 +60,7 @@ const NewBookingFilter = ({
       balanceAmountMax: "",
     },
   });
-    const { data: options = {} } = useBatchOptions(["locations"]);
+  const { data: options = {} } = useBatchOptions(["locations"]);
   // Load property options for async select
   const loadPropertyOptions = async (search, loadedOptions, { page }) => {
     const res = await getPropertyDropdown({
@@ -80,7 +82,7 @@ const NewBookingFilter = ({
   };
 
   // Location Options
-    const locationOptions = options.locations || [];
+  const locationOptions = options.locations || [];
 
   // Status Options
   const statusOptions = [
@@ -130,6 +132,17 @@ const NewBookingFilter = ({
         key: "callingNo",
         title: "Calling No",
         value: data.callingNo,
+      },
+      data.bookingCreatedFrom && {
+        key: "bookingCreatedFrom",
+        title: "Created From",
+        value: data.bookingCreatedFrom,
+      },
+
+      data.bookingCreatedTo && {
+        key: "bookingCreatedTo",
+        title: "Created To",
+        value: data.bookingCreatedTo,
       },
       data.whatsappNo && {
         key: "whatsappNo",
@@ -306,6 +319,9 @@ const NewBookingFilter = ({
 
       temporaryClientDojTo: initialFilters.temporaryClientDojTo || "",
 
+      bookingCreatedFrom: initialFilters.bookingCreatedFrom || "",
+      bookingCreatedTo: initialFilters.bookingCreatedTo || "",
+
       monthlyRentMin: initialFilters.monthlyRentMin || "",
       monthlyRentMax: initialFilters.monthlyRentMax || "",
 
@@ -344,6 +360,8 @@ const NewBookingFilter = ({
       clientDojTo: "",
       temporaryClientDojFrom: "",
       temporaryClientDojTo: "",
+      bookingCreatedFrom: "",
+      bookingCreatedTo: "",
       monthlyRentMin: "",
       monthlyRentMax: "",
       depositAmountMin: "",
@@ -410,7 +428,86 @@ const NewBookingFilter = ({
                 </div>
               )}
             />
+            {/* Booking Created Date Range */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Booking Created Date
+              </label>
 
+              <div className="grid grid-cols-2 gap-3">
+                {/* Created From */}
+                <Controller
+                  name="bookingCreatedFrom"
+                  control={control}
+                  render={({ field }) => (
+                    <div
+                      className={`datepicker-group ${
+                        field.value ? "has-value" : ""
+                      }`}
+                    >
+                      <DatePicker
+                        selected={field.value ? new Date(field.value) : null}
+                        onChange={(date) => {
+                          if (date) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(
+                              2,
+                              "0",
+                            );
+                            const day = String(date.getDate()).padStart(2, "0");
+
+                            field.onChange(`${year}-${month}-${day}`);
+                          } else {
+                            field.onChange("");
+                          }
+                        }}
+                        dateFormat="dd MMM yyyy"
+                        isClearable
+                        placeholderText="From Date"
+                        popperPlacement="bottom-start"
+                        className="custom-datepicker w-full"
+                      />
+                    </div>
+                  )}
+                />
+
+                {/* Created To */}
+                <Controller
+                  name="bookingCreatedTo"
+                  control={control}
+                  render={({ field }) => (
+                    <div
+                      className={`datepicker-group ${
+                        field.value ? "has-value" : ""
+                      }`}
+                    >
+                      <DatePicker
+                        selected={field.value ? new Date(field.value) : null}
+                        onChange={(date) => {
+                          if (date) {
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(
+                              2,
+                              "0",
+                            );
+                            const day = String(date.getDate()).padStart(2, "0");
+
+                            field.onChange(`${year}-${month}-${day}`);
+                          } else {
+                            field.onChange("");
+                          }
+                        }}
+                        dateFormat="dd MMM yyyy"
+                        isClearable
+                        placeholderText="To Date"
+                        popperPlacement="bottom-end"
+                        className="custom-datepicker w-full"
+                      />
+                    </div>
+                  )}
+                />
+              </div>
+            </div>
             {/* Booking Type */}
             <Controller
               name="bookingType"

@@ -13,6 +13,7 @@ import { useRentHistoryData } from "./services";
 import { IoIosArrowBack } from "react-icons/io";
 import useDebounce from "../../components/hooks/useDebounce";
 import { useAuthorization } from "../../context/AuthorizationContext";
+import RentLedgerSkeleton from "./RentLedgerSkeleton";
 const RentLadgerTable = () => {
   const { clientId } = useParams();
   const { canEdit, canSingleView } = useAuthorization();
@@ -24,7 +25,7 @@ const RentLadgerTable = () => {
   const [filters, setFilters] = useState({});
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
-  const { data: apiResponse } = useRentHistoryData({
+  const { data: apiResponse, isLoading, isFetching } = useRentHistoryData({
     clientId: filters.clientId || clientId,
     propertyId: filters.propertyId,
     search: debouncedSearch,
@@ -65,6 +66,10 @@ const RentLadgerTable = () => {
     month: "long",
   });
   const currentYear = new Date().getFullYear();
+
+   if(isLoading){
+    return <RentLedgerSkeleton/>
+   }
 
   return (
     <>
