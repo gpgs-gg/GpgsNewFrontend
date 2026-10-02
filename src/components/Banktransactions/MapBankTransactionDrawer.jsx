@@ -55,7 +55,7 @@ const paymentTypeOptions = [
 ];
 
 const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
-    const {user} = useAuth()
+    const { user } = useAuth()
     const currentMonthOption = monthOptions.find(
         (item) => item.value === new Date().getMonth() + 1
     );
@@ -85,7 +85,7 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
 
 
 
-    const { mutate: updateBankTransactionReceived } =
+    const { mutate: updateBankTransactionReceived, isPending: isUpdateBankTransactionReceived } =
         useUpdateBankTransactionReceived();
 
     // const clientOptions = clientData?.data?.map((item) => ({
@@ -137,7 +137,8 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
             amount: Number(transaction.deposit || 0),
             transactionDate: transaction.date,
             narration: transaction.narration,
-            user : user?.name
+            user: user?.name,
+            assignee: user?.name
         };
 
         updateBankTransactionReceived(payload, {
@@ -320,7 +321,7 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
                     {/* Payment Type */}
                     <Controller
                         name="paymentType"
-                            rules={{
+                        rules={{
                             required: "PaymentType is required.",
                         }}
                         control={control}
@@ -401,9 +402,10 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
 
                         <button
                             type="submit"
-                            className="w-full rounded-lg py-2 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900"
+                            disabled={isUpdateBankTransactionReceived}
+                            className="w-full rounded-lg py-2 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Apply Payment
+                            {isUpdateBankTransactionReceived ? "Apply..." : "Apply Payment"}
                         </button>
                     </div>
                 </form>
