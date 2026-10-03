@@ -29,54 +29,54 @@ const Login = () => {
     },
   });
 
- 
-const onSubmit = async (data) => {
-  sendLoginDetails(data, {
-    onSuccess: async (response) => {
-      if (!response?.success) {
-         toast.dismiss()
-        toast.error(
-          response?.message || "Login failed. Please try again."
+
+  const onSubmit = async (data) => {
+    sendLoginDetails(data, {
+      onSuccess: async (response) => {
+        if (!response?.success) {
+          toast.dismiss()
+          toast.error(
+            response?.message || "Login failed. Please try again."
+          );
+          return;
+        }
+
+        // Current user data refresh
+        await queryClient.invalidateQueries({
+          queryKey: ["currentUser"],
+        });
+        toast.dismiss()
+        toast.success(
+          "Welcome back! You have been logged in successfully."
         );
-        return;
-      }
 
-      // Current user data refresh
-      await queryClient.invalidateQueries({
-        queryKey: ["currentUser"],
-      });
-       toast.dismiss()
-      toast.success(
-        "Welcome back! You have been logged in successfully."
-      );
+        reset();
 
-      reset();
+        // Get role directly from login response
+        const role = response?.user?.role?.toLowerCase();
 
-      // Get role directly from login response
-      const role = response?.user?.role?.toLowerCase();
+        // Role based redirect
+        if (role === "client") {
+          navigate("/renthistory", {
+            replace: true,
+          });
+        } else {
+          navigate("/dashboard", {
+            replace: true,
+          });
+        }
+      },
 
-      // Role based redirect
-      if (role === "client") {
-        navigate("/renthistory", {
-          replace: true,
-        });
-      } else {
-        navigate("/dashboard", {
-          replace: true,
-        });
-      }
-    },
-
-    onError: (error) => {
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Invalid email or password. Please check your credentials.";
-     toast.dismiss()
-      toast.error(errorMessage);
-    },
-  });
-};
+      onError: (error) => {
+        const errorMessage =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Invalid email or password. Please check your credentials.";
+        toast.dismiss()
+        toast.error(errorMessage);
+      },
+    });
+  };
 
   const togglePasswordVisibility = () => {
     setShowPassword((prevState) => !prevState);
@@ -127,13 +127,12 @@ const onSubmit = async (data) => {
             <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold text-gray-900">
-                  Admin Login
+                  Log in to your account
                 </h2>
                 <p className="text-gray-500 mt-2">
                   Enter your credentials to access the dashboard
                 </p>
               </div>
-
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 {/* Email Field */}
                 <div>
@@ -146,7 +145,7 @@ const onSubmit = async (data) => {
                   <input
                     id="email"
                     type="email"
-                    placeholder="admin@example.com"
+                    placeholder="example@gmail.com"
                     {...register("email", {
                       required: "Email address is required",
                       pattern: {
@@ -259,7 +258,7 @@ const onSubmit = async (data) => {
                 </div>
 
                 {/* Login Button */}
-        
+
                 <button
                   type="submit"
                   disabled={isSubmitting || isPending}

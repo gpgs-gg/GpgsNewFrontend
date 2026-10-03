@@ -14,6 +14,8 @@ const accountOptions = [
     { value: "AC5", label: "50200072487017 ( 210610628 )", shortLabel: "ACCOUNT 5" },
 ];
 
+
+
 const BankStatementUpload = () => {
     const navigate = useNavigate();
     const fileInputRef = useRef(null);

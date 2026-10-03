@@ -26,7 +26,8 @@ import Select from "react-select";
 import TableSkeleton from "../common/TableSkelton";
 import { selectStyles } from "../../utils/selectStyles";
 import ConfirmModal from "../common/ConfirmModal";
-
+import { useAuthorization } from "../../context/AuthorizationContext";
+import { useAuth } from "../../context/authContext";
 
 const statusColors = {
   New: "bg-blue-100 text-blue-700",
@@ -66,6 +67,10 @@ const LeadsList = () => {
 
     return savedPage ? Number(savedPage) : 1;
   });
+
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+
   useEffect(() => {
     localStorage.setItem("leads_page", String(currentPage));
   }, [currentPage]);
@@ -87,6 +92,14 @@ const LeadsList = () => {
     ...filters,
   });
 
+  const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
+
+  const canAddLead = canAdd("pg_leads");
+  const canEditLead = canEdit("pg_leads");
+  const canDeleteLead = canDelete("pg_leads");
+  const canViewLead = canSingleView("pg_leads");
+
+  const showActions = canViewLead || canEditLead || canDeleteLead;
 
   const apiData = apiResponse?.data || [];
   const totalPages = apiResponse?.totalPages || 1;
@@ -97,12 +110,9 @@ const LeadsList = () => {
   } = useBulkTransferLeads();
   const handleReset = () => {
     resetFilters();
-
     localStorage.removeItem("leads_page");
-
     setSearch("");
     setCurrentPage(1);
-
     setResetTrigger((prev) => prev + 1);
   };
   const assigneeOptions = [
@@ -375,12 +385,13 @@ const LeadsList = () => {
                 {`Total Leads: ${totalRecords}`}
               </p>
             </div>
-
-            <Link to="/leads/create">
-              <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                + Add Lead
-              </button>
-            </Link>
+            {canAddLead && (
+              <Link to="/leads/create">
+                <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                  + Add Lead
+                </button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -436,73 +447,77 @@ const LeadsList = () => {
             )}
             <div className="flex gap-2">
 
-              <div className="border border-gray-400 flex flex-col px-2 gap-1 justify-center items-center rounded-lg">
-                <label className="inline-flex items-center cursor-pointer gap-2">
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={globalSettings?.data?.leadAutoTransfer || false}
-                      onChange={handleAutoTransfer}
-                    // disabled={
-                    //     isPending ||
-                    //     !globalSettings?.data?.teamAutoAssignment
-                    // }
-                    />
+              {isAdmin && (
+                <div className="border border-gray-400 flex flex-col px-2 gap-1 justify-center items-center rounded-lg">
+                  <label className="inline-flex items-center cursor-pointer gap-2">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={
+                          globalSettings?.data?.leadAutoTransfer || false
+                        }
+                        onChange={handleAutoTransfer}
+                      // disabled={
+                      //     isPending ||
+                      //     !globalSettings?.data?.teamAutoAssignment
+                      // }
+                      />
 
-                    {/* Track */}
-                    <div className="w-9 h-4 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors duration-300"></div>
+                      {/* Track */}
+                      <div className="w-9 h-4 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors duration-300"></div>
 
-                    {/* Knob */}
-                    <div
-                      className={`absolute top-0.5 left-0.5 w-4 h-3 bg-white rounded-full shadow transition-transform duration-300 ${globalSettings?.data?.leadAutoTransfer
-                        ? "translate-x-4"
-                        : "translate-x-0"
-                        }`}
-                    />
-                  </div>
+                      {/* Knob */}
+                      <div
+                        className={`absolute top-0.5 left-0.5 w-4 h-3 bg-white rounded-full shadow transition-transform duration-300 ${globalSettings?.data?.leadAutoTransfer
+                            ? "translate-x-4"
+                            : "translate-x-0"
+                          }`}
+                      />
+                    </div>
 
-                  <span className="text-xs text-gray-500 font-medium">
-                    {isPending
-                      ? "Updating..."
-                      : !globalSettings?.data?.teamAutoAssignment
-                        ? "Auto Transfer Disabled"
-                        : globalSettings?.data?.leadAutoTransfer
-                          ? "Auto Transfer ON"
-                          : "Auto Transfer OFF"}
-                  </span>
-                </label>
-                <label className="inline-flex items-center cursor-pointer gap-2">
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={
-                        globalSettings?.data?.teamAutoAssignment || false
-                      }
-                      onChange={handleTeamAssignment}
-                      disabled={isPending}
-                    />
+                    <span className="text-xs text-gray-500 font-medium">
+                      {isPending
+                        ? "Updating..."
+                        : !globalSettings?.data?.teamAutoAssignment
+                          ? "Auto Transfer Disabled"
+                          : globalSettings?.data?.leadAutoTransfer
+                            ? "Auto Transfer ON"
+                            : "Auto Transfer OFF"}
+                    </span>
+                  </label>
+                  <label className="inline-flex items-center cursor-pointer gap-2">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={
+                          globalSettings?.data?.teamAutoAssignment || false
+                        }
+                        onChange={handleTeamAssignment}
+                        disabled={isPending}
+                      />
 
-                    <div className="w-9 h-4 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors duration-300"></div>
+                      <div className="w-9 h-4 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors duration-300"></div>
 
-                    <div
-                      className={`absolute top-0.5 left-0.5 w-4 h-3 bg-white rounded-full shadow transition-transform duration-300 ${globalSettings?.data?.teamAutoAssignment
-                        ? "translate-x-4"
-                        : "translate-x-0"
-                        }`}
-                    />
-                  </div>
+                      <div
+                        className={`absolute top-0.5 left-0.5 w-4 h-3 bg-white rounded-full shadow transition-transform duration-300 ${globalSettings?.data?.teamAutoAssignment
+                            ? "translate-x-4"
+                            : "translate-x-0"
+                          }`}
+                      />
+                    </div>
 
-                  <span className="text-xs text-gray-500 font-medium">
-                    {isPending
-                      ? "Updating..."
-                      : globalSettings?.data?.teamAutoAssignment
-                        ? "Team Assignment ON"
-                        : "Team Assignment OFF"}
-                  </span>
-                </label>
-              </div>
+                    <span className="text-xs text-gray-500 font-medium">
+                      {isPending
+                        ? "Updating..."
+                        : globalSettings?.data?.teamAutoAssignment
+                          ? "Team Assignment ON"
+                          : "Team Assignment OFF"}
+                    </span>
+                  </label>
+                </div>
+              )}
               {selectedLeads.length > 0 && (
                 <button
                   type="button"
@@ -540,6 +555,7 @@ const LeadsList = () => {
 
           <div className="flex-1 overflow-auto">
             <table className="w-max min-w-full">
+
               <thead className="sticky top-0 z-40 bg-gray-100 whitespace-nowrap">
                 <tr>
                   <th className="p-3 text-center">
@@ -572,9 +588,11 @@ const LeadsList = () => {
                   <th className="p-3 text-left">workLogs</th>
                   <th className="p-3 text-left">Transfer History</th>
                   <th className="p-3 text-left">Assignee</th>
-                  <th className="sticky right-0 bg-gray-100 p-3 text-center">
-                    Actions
-                  </th>
+                  {showActions && (
+                    <th className="sticky right-0 bg-gray-100 p-3 text-center">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               {isLoading ? (
@@ -697,34 +715,43 @@ const LeadsList = () => {
                           </div>
                         </td>
                         <td className="p-3">{item.Assignee}</td>
-                        <td className="sticky right-0 z-20 bg-white p-3 shadow-md">
-                          <div className="flex justify-center gap-2">
-                            <Link to={`/leads/view/${item._id}`}>
-                              <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
-                                <Eye size={16} />
-                              </button>
-                            </Link>
 
-                            <Link
-                              to={`/leads/edit/${item._id}`}
-                              state={{
-                                search,
-                                filters,
-                              }}
-                            >
-                              <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
-                                <Pencil size={16} />
-                              </button>
-                            </Link>
+                    {showActions && (
+                          <td className="sticky right-0 z-20 bg-white p-3 shadow-md">
+                            <div className="flex justify-center gap-2">
+                              {canViewLead && (
+                                <Link to={`/leads/view/${item._id}`}>
+                                  <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
+                                    <Eye size={16} />
+                                  </button>
+                                </Link>
+                              )}
 
-                            <button
-                              onClick={() => handleDelete(item._id)}
-                              className="p-2 bg-red-100 rounded-lg hover:bg-red-200"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
+                              {canEditLead && (
+                                <Link
+                                  to={`/leads/edit/${item._id}`}
+                                  state={{
+                                    search,
+                                    filters,
+                                  }}
+                                >
+                                  <button className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200">
+                                    <Pencil size={16} />
+                                  </button>
+                                </Link>
+                              )}
+
+                              {canDeleteLead && (
+                                <button
+                                  onClick={() => handleDelete(item._id)}
+                                  className="p-2 bg-red-100 rounded-lg hover:bg-red-200"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))
                   ) : (

@@ -28,10 +28,10 @@ const AvailableBedsTable = () => {
   const DEFAULT_AVAILABLE_BEDS_FILTERS = {
     propertyId: "",
     propertyCode: "",
-    propertyLocation: "",
+    propertyLocation: [],
     roomNo: "",
     bedNo: "",
-    sharingType: "",
+    sharingType: [],
     acRoom: "",
     bathAttached: "",
     availableFrom: "",
@@ -95,13 +95,14 @@ const AvailableBedsTable = () => {
       });
     }
 
-    if (filters.propertyLocation) {
+ if (filters.propertyLocation?.length > 0) {
       labels.push({
         key: "propertyLocation",
         title: "Location",
-        value: filters.propertyLocation,
+        value: filters.propertyLocation.join(", "),
       });
     }
+
     if (filters.gender) {
       labels.push({
         key: "gender",
@@ -141,11 +142,11 @@ const AvailableBedsTable = () => {
       });
     }
 
-    if (filters.sharingType) {
+if (filters.sharingType?.length > 0) {
       labels.push({
         key: "sharingType",
         title: "Sharing",
-        value: filters.sharingType,
+        value: filters.sharingType.join(", "),
       });
     }
 

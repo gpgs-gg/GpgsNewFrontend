@@ -14,14 +14,13 @@ const AvailableBedsFilter = ({
   handleReset,
   resetTrigger,
   initialFilters = {},
-
 }) => {
   const defaultValues = {
     propertyId: null,
-    propertyLocation: "",
+    propertyLocation: [],
     roomNo: "",
     bedNo: "",
-    sharingType: "",
+    sharingType: [],
     acRoom: "",
     bathAttached: "",
 
@@ -82,6 +81,31 @@ const AvailableBedsFilter = ({
   // Location Options
   // ===========================
   const locationOptions = options.locations || [];
+
+  // ===========================
+  // Room Options
+  // ===========================
+  const roomOptions = useMemo(() => {
+    return [...new Set(apiData.map((i) => i.roomNo).filter(Boolean))]
+      .sort()
+      .map((room) => ({
+        value: room,
+        label: room,
+      }));
+  }, [apiData]);
+
+  // ===========================
+  // Bed Options
+  // ===========================
+  const bedOptions = useMemo(() => {
+    return [...new Set(apiData.map((i) => i.bedNo).filter(Boolean))]
+      .sort()
+      .map((bed) => ({
+        value: bed,
+        label: bed,
+      }));
+  }, [apiData]);
+
   // ===========================
   // Sharing Options
   // ===========================
@@ -131,8 +155,33 @@ const AvailableBedsFilter = ({
     },
   ];
 
+  // ===========================
+  // Available From
+  // ===========================
+  const availableFromOptions = [
+    {
+      value: "Immediate Available",
+      label: "Immediate Available",
+    },
+    {
+      value: "CVD",
+      label: "After CVD",
+    },
+  ];
 
-
+  // ===========================
+  // Red Flag
+  // ===========================
+  const redFlagOptions = [
+    {
+      value: "Yes",
+      label: "Red Flag",
+    },
+    {
+      value: "No",
+      label: "Normal",
+    },
+  ];
 
   const onSubmit = (data) => {
     const filters = {
@@ -146,10 +195,10 @@ const AvailableBedsFilter = ({
         title: "Property",
         value: data.propertyId.label,
       },
-      data.propertyLocation && {
+      data.propertyLocation?.length > 0 && {
         key: "propertyLocation",
         title: "Location",
-        value: data.propertyLocation,
+        value: data.propertyLocation.join(", "),
       },
       data.gender && {
         key: "gender",
@@ -178,10 +227,10 @@ const AvailableBedsFilter = ({
         value: data.bedNo,
       },
 
-      data.sharingType && {
+      data.sharingType?.length > 0 && {
         key: "sharingType",
         title: "Sharing",
-        value: data.sharingType,
+        value: data.sharingType.join(", "),
       },
 
       data.acRoom && {
@@ -246,15 +295,15 @@ const AvailableBedsFilter = ({
     reset({
       propertyId: initialFilters.propertyId
         ? {
-          value: initialFilters.propertyId,
-          label: initialFilters.propertyCode || initialFilters.propertyId,
-        }
+            value: initialFilters.propertyId,
+            label: initialFilters.propertyCode || initialFilters.propertyId,
+          }
         : null,
 
-      propertyLocation: initialFilters.propertyLocation || "",
+      propertyLocation: initialFilters.propertyLocation || [],
       roomNo: initialFilters.roomNo || "",
       bedNo: initialFilters.bedNo || "",
-      sharingType: initialFilters.sharingType || "",
+      sharingType: initialFilters.sharingType || [],
       acRoom: initialFilters.acRoom || "",
       bathAttached: initialFilters.bathAttached || "",
       gender: initialFilters.gender || "",
@@ -266,8 +315,7 @@ const AvailableBedsFilter = ({
       depositAmountMax: initialFilters.depositAmountMax || "",
       clientName: initialFilters.clientName || "",
       hasCvd: Boolean(initialFilters.hasCvd),
-      sortByRent: Boolean(initialFilters.sortByRent
-      ),
+      sortByRent: Boolean(initialFilters.sortByRent),
     });
   }, [isOpen, initialFilters, reset]);
 
@@ -278,8 +326,9 @@ const AvailableBedsFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         {/* Header */}
         <div className="flex justify-between items-center p-5 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600">
@@ -320,35 +369,7 @@ const AvailableBedsFilter = ({
                 </div>
               )}
             />
-
-            {/* Property Location */}
-            <Controller
-              name="propertyLocation"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`select-group ${field.value ? "has-value" : ""}`}
-                >
-                  <label className="select-label">Property Location</label>
-
-                  <Select
-                    {...field}
-                    options={locationOptions}
-                    isClearable
-                    placeholder=""
-                    styles={selectStyles}
-                    value={
-                      locationOptions.find((o) => o.value === field.value) ||
-                      null
-                    }
-                    onChange={(selected) =>
-                      field.onChange(selected?.value || "")
-                    }
-                  />
-                </div>
-              )}
-            />
-            {/* Gender */}
+      {/* Gender */}
             <Controller
               name="gender"
               control={control}
@@ -376,12 +397,44 @@ const AvailableBedsFilter = ({
                 </div>
               )}
             />
+            {/* Property Location */}
+            <Controller
+              name="propertyLocation"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${
+                    field.value?.length ? "has-value" : ""
+                  }`}
+                >
+                  <label className="select-label">Location</label>
+
+                  <Select
+                    options={locationOptions}
+                    isMulti
+                    isClearable
+                    placeholder=""
+                    styles={selectStyles}
+                    value={locationOptions.filter((o) =>
+                      field.value?.includes(o.value),
+                    )}
+                    onChange={(selected) =>
+                      field.onChange(selected?.map((item) => item.value) || [])
+                    }
+                  />
+                </div>
+              )}
+            />
+      
             {/* CVD- Client Vacating Date */}
             <Controller
               name="hasCvd"
               control={control}
               render={({ field }) => (
-                <div onClick={() => field.onChange(!field.value)} className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3 shadow-sm">
+                <div
+                  onClick={() => field.onChange(!field.value)}
+                  className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3 shadow-sm"
+                >
                   <div>
                     <label className="text-md font-medium text-gray-900">
                       CVD
@@ -390,13 +443,14 @@ const AvailableBedsFilter = ({
 
                   <button
                     type="button"
-
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${field.value ? "bg-blue-600" : "bg-gray-300"
-                      }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
+                      field.value ? "bg-blue-600" : "bg-gray-300"
+                    }`}
                   >
                     <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${field.value ? "translate-x-5" : "translate-x-1"
-                        }`}
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${
+                        field.value ? "translate-x-5" : "translate-x-1"
+                      }`}
                     />
                   </button>
                 </div>
@@ -407,7 +461,10 @@ const AvailableBedsFilter = ({
               name="sortByRent"
               control={control}
               render={({ field }) => (
-                <div onClick={() => field.onChange(!field.value)} className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3  shadow-sm">
+                <div
+                  onClick={() => field.onChange(!field.value)}
+                  className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3  shadow-sm"
+                >
                   <div>
                     <label className="text-md font-medium text-gray-900">
                       Rent (Minimum)
@@ -416,13 +473,14 @@ const AvailableBedsFilter = ({
 
                   <button
                     type="button"
-
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${field.value ? "bg-green-600" : "bg-gray-300"
-                      }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
+                      field.value ? "bg-green-600" : "bg-gray-300"
+                    }`}
                   >
                     <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${field.value ? "translate-x-5" : "translate-x-1"
-                        }`}
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${
+                        field.value ? "translate-x-5" : "translate-x-1"
+                      }`}
                     />
                   </button>
                 </div>
@@ -489,22 +547,23 @@ const AvailableBedsFilter = ({
               control={control}
               render={({ field }) => (
                 <div
-                  className={`select-group ${field.value ? "has-value" : ""}`}
+                  className={`select-group ${
+                    field.value?.length ? "has-value" : ""
+                  }`}
                 >
                   <label className="select-label">Sharing Type</label>
 
                   <Select
-                    {...field}
                     options={sharingTypeOptions}
+                    isMulti
                     isClearable
                     placeholder=""
                     styles={selectStyles}
-                    value={
-                      sharingTypeOptions.find((o) => o.value === field.value) ||
-                      null
-                    }
+                    value={sharingTypeOptions.filter((o) =>
+                      field.value?.includes(o.value),
+                    )}
                     onChange={(selected) =>
-                      field.onChange(selected?.value || "")
+                      field.onChange(selected?.map((item) => item.value) || [])
                     }
                   />
                 </div>

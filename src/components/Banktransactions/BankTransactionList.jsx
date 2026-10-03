@@ -13,6 +13,8 @@ import BankTransactionFilter from "./BankTranscationFilter";
 import { toast } from "react-toastify";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import TableSkeleton from "../common/TableSkelton";
+import { useAuthorization } from "../../context/AuthorizationContext";
+
 const BankTransactionList = () => {
   const DEFAULT_BANK_TRANSACTION_FILTERS = {
     fromDate: "",
@@ -66,6 +68,8 @@ const BankTransactionList = () => {
     "bank_transactions_filters",
     DEFAULT_BANK_TRANSACTION_FILTERS,
   );
+  const { canEdit } = useAuthorization();
+  const canEditSalary = canEdit("all_salary");
   const rowsPerPage = PAGINATION.BEDS_PER_PAGE || 10;
   const debouncedSearch = useDebounce(search);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -160,7 +164,7 @@ const BankTransactionList = () => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
 
   // fetch data with pagination, search and filters
-  const { data: apiResponse , isFetching} = useBankTransactionData({
+  const { data: apiResponse, isFetching } = useBankTransactionData({
     page: currentPage,
     limit: rowsPerPage,
     search: debouncedSearch,
@@ -327,22 +331,23 @@ const BankTransactionList = () => {
               Today's Transactions
             </button> */}
             <div className="flex items-center gap-2">
-              
-              <button
-                onClick={() => applyTransactionType("salary")}
-                className={`px-4 py-2 rounded-lg border ${filters.transactionType === "salary"
+              {canEditSalary && (
+                <button
+                  onClick={() => applyTransactionType("salary")}
+                  className={`px-4 py-2 rounded-lg border ${filters.transactionType === "salary"
                     ? "bg-green-600 text-white"
                     : "bg-white"
-                  }`}
-              >
-                Salary
-              </button>
+                    }`}
+                >
+                  Salary
+                </button>
+              )}
 
               <button
                 onClick={() => applyTransactionType("deposit")}
                 className={`px-4 py-2 rounded-lg border ${filters.transactionType === "deposit"
-                    ? "bg-green-600 text-white"
-                    : "bg-white"
+                  ? "bg-green-600 text-white"
+                  : "bg-white"
                   }`}
               >
                 Deposit
@@ -351,8 +356,8 @@ const BankTransactionList = () => {
               <button
                 onClick={() => applyTransactionType("withdrawal")}
                 className={`px-4 py-2 rounded-lg border ${filters.transactionType === "withdrawal"
-                    ? "bg-red-600 text-white"
-                    : "bg-white"
+                  ? "bg-red-600 text-white"
+                  : "bg-white"
                   }`}
               >
                 Withdrawal
@@ -408,188 +413,194 @@ const BankTransactionList = () => {
                   <th className="p-3 text-center">Actions</th>
                 </tr>
               </thead>
-  {isFetching ? (
-                  <TableSkeleton rows={20} columns={20} />
-                ) : (
-              <tbody>
-                {paginatedData.length > 0 ? (
-                  paginatedData.map((item) => (
-                    <tr
-                      key={item._id}
-                      className="border-t border-gray-300 hover:bg-gray-50 whitespace-nowrap"
-                    >
-                      <td className="p-3 text-center">
-                        {formatDate(item.date)}
-                      </td>
-                      <td className="p-3 text-center">
-                        {item.account}
-                      </td>
+              {isFetching ? (
+                <TableSkeleton rows={20} columns={20} />
+              ) : (
+                <tbody>
+                  {paginatedData.length > 0 ? (
+                    paginatedData.map((item) => (
+                      <tr
+                        key={item._id}
+                        className="border-t border-gray-300 hover:bg-gray-50 whitespace-nowrap"
+                      >
+                        <td className="p-3 text-center">
+                          {formatDate(item.date)}
+                        </td>
+                        <td className="p-3 text-center">
+                          {item.account}
+                        </td>
 
 
-                      <td className="p-3 max-w-md">
-                        <div className="flex items-center gap-2">
-                          <div className="relative group flex-1 min-w-0">
-                            <div className="truncate cursor-pointer">
-                              {item.narration}
+                        <td className="p-3 max-w-md">
+                          <div className="flex items-center gap-2">
+                            <div className="relative group flex-1 min-w-0">
+                              <div className="truncate cursor-pointer">
+                                {item.narration}
+                              </div>
+
+                              {/* Full narration on hover */}
+                              <div className="absolute left-0 left-full mt-1 z-50 hidden group-hover:block w-max max-w-lg bg-gray-200 border border-gray-200 text-md rounded-md px-3 py-2 shadow-lg whitespace-normal break-words">
+                                {item.narration}
+                              </div>
                             </div>
 
-                            {/* Full narration on hover */}
-                            <div className="absolute left-0 left-full mt-1 z-50 hidden group-hover:block w-max max-w-lg bg-gray-200 border border-gray-200 text-md rounded-md px-3 py-2 shadow-lg whitespace-normal break-words">
-                              {item.narration}
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(item.narration)}
+                              className="text-gray-500 hover:text-blue-600 transition-colors shrink-0"
+                              title="Copy narration"
+                            >
+                              <FiCopy size={16} />
+                            </button>
                           </div>
-
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(item.narration)}
-                            className="text-gray-500 hover:text-blue-600 transition-colors shrink-0"
-                            title="Copy narration"
-                          >
-                            <FiCopy size={16} />
-                          </button>
-                        </div>
-                      </td>
+                        </td>
 
 
 
-                      <td className="p-3 text-center">{item.chqNo || "-"}</td>
+                        <td className="p-3 text-center">{item.chqNo || "-"}</td>
 
-                      <td className="p-3 text-right text-red-600 font-medium">
-                        {item.withdrawal
-                          ? Number(item.withdrawal).toLocaleString("en-IN")
-                          : "-"}
-                      </td>
+                        <td className="p-3 text-right text-red-600 font-medium">
+                          {item.withdrawal
+                            ? Number(item.withdrawal).toLocaleString("en-IN")
+                            : "-"}
+                        </td>
 
-                      <td className="p-3 text-right text-green-600 font-medium">
-                        {item.deposit
-                          ? Number(item.deposit).toLocaleString("en-IN")
-                          : "-"}
-                      </td>
+                        <td className="p-3 text-right text-green-600 font-medium">
+                          {item.deposit
+                            ? Number(item.deposit).toLocaleString("en-IN")
+                            : "-"}
+                        </td>
 
-                      <td className="p-3 text-center">
-                        {item?.propertyId?.propertyCode ||
-                          item?.expenseCode?.label}
-                      </td>
-                      <td className="p-3 text-center">
-                        {item?.expenseCategory || "-"}
-                      </td>
-                      <td className="p-3 text-center">
-                        {item?.assignee || "-"}
-                      </td>
-                      <td className="p-3 text-center">{item?.status || "-"}</td>
-                      <td className="p-3 text-center">
-                        {item?.reviewer || "-"}
-                      </td>
-                      <td className="p-3 text-center">
-                        {item?.auditor || "-"}
-                      </td>
+                        <td className="p-3 text-center">
+                          {item?.propertyId?.propertyCode ||
+                            item?.expenseCode?.label}
+                        </td>
+                        <td className="p-3 text-center">
+                          {item?.expenseCategory || "-"}
+                        </td>
+                        <td className="p-3 text-center">
+                          {item?.assignee || "-"}
+                        </td>
+                        <td className="p-3 text-center">{item?.status || "-"}</td>
+                        <td className="p-3 text-center">
+                          {item?.reviewer || "-"}
+                        </td>
+                        <td className="p-3 text-center">
+                          {item?.auditor || "-"}
+                        </td>
 
-                      <td className="p-3 text-right font-semibold">
-                        {Number(item.balance || 0).toLocaleString("en-IN")}
-                      </td>
+                        <td className="p-3 text-right font-semibold">
+                          {Number(item.balance || 0).toLocaleString("en-IN")}
+                        </td>
 
-                      <td className="p-3 text-center">
-                        {formatDate(item.valueDate)}
-                      </td>
+                        <td className="p-3 text-center">
+                          {formatDate(item.valueDate)}
+                        </td>
 
-                      <td className="p-3 text-center">
-                        <span className="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs">
-                          {item.source}
-                        </span>
-                      </td>
+                        <td className="p-3 text-center">
+                          <span className="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs">
+                            {item.source}
+                          </span>
+                        </td>
 
-                      <td className="px-2">
-                        {item.workLogs?.length > 0 ? (
-                          <div className="group relative cursor-pointer">
-                            {/* Short Text */}
-                            <div className="truncate max-w-28 text-xs">
-                              {
-                                [...item.workLogs].sort(
-                                  (a, b) =>
-                                    new Date(b.createdAt) -
-                                    new Date(a.createdAt),
-                                )[0]?.message
-                              }
-                            </div>
+                        <td className="px-2">
+                          {item.workLogs?.length > 0 ? (
+                            <div className="group relative cursor-pointer">
+                              {/* Short Text */}
+                              <div className="truncate max-w-28 text-xs">
+                                {
+                                  [...item.workLogs].sort(
+                                    (a, b) =>
+                                      new Date(b.createdAt) -
+                                      new Date(a.createdAt),
+                                  )[0]?.message
+                                }
+                              </div>
 
-                            {/* Hover Popup */}
-                            <div className="absolute right-0 top-4 hidden group-hover:block bg-white border shadow-xl rounded-lg p-3 w-80 max-h-62.5 overflow-y-auto whitespace-pre-line text-xs z-50">
-                              {[...item.workLogs]
-                                .sort(
-                                  (a, b) =>
-                                    new Date(b.createdAt) -
-                                    new Date(a.createdAt),
-                                )
-                                .map((log, index) => (
-                                  <div key={log._id || index} className="mb-3">
-                                    <div className="text-gray-700">
-                                      {log.createdBy}
-                                      <span className="mx-1">•</span>
-                                      {formatDateAndTime(log.createdAt)}
+                              {/* Hover Popup */}
+                              <div className="absolute right-0 top-4 hidden group-hover:block bg-white border shadow-xl rounded-lg p-3 w-80 max-h-62.5 overflow-y-auto whitespace-pre-line text-xs z-50">
+                                {[...item.workLogs]
+                                  .sort(
+                                    (a, b) =>
+                                      new Date(b.createdAt) -
+                                      new Date(a.createdAt),
+                                  )
+                                  .map((log, index) => (
+                                    <div key={log._id || index} className="mb-3">
+                                      <div className="text-gray-700">
+                                        {log.createdBy}
+                                        <span className="mx-1">•</span>
+                                        {formatDateAndTime(log.createdAt)}
+                                      </div>
+
+                                      <div className="mt-1 font-medium">
+                                        {log.message}
+                                      </div>
                                     </div>
-
-                                    <div className="mt-1 font-medium">
-                                      {log.message}
-                                    </div>
-                                  </div>
-                                ))}
+                                  ))}
+                              </div>
                             </div>
+                          ) : (
+                            <div className="text-xs text-gray-500">-</div>
+                          )}
+                        </td>
+
+                        <td className="p-3 text-center">
+                          {item.userId?.fullName || "-"}
+                        </td>
+
+                        <td className="p-3 text-center">
+                          {formatDate(item.createdAt)}
+                        </td>
+
+                        <td className="p-3 text-center">
+                          {item?.deposit > 0 && (
+                            <button
+                              disabled={item?.isMapped}
+                              onClick={() => {
+                                setSelectedTransaction(item);
+                                setDrawerOpen(true);
+                              }}
+                              className={`px-3 py-1 rounded ${item?.isMapped
+                                ? "bg-gray-300 cursor-not-allowed"
+                                : "bg-green-600 hover:bg-green-700"
+                                } text-white text-sm`}
+                            >
+                              Link Payment
+                            </button>
+                          )}
+                        </td>
+
+                        <td className="p-3">
+                          <div className="flex justify-center gap-2">
+                            <button className="p-2 bg-blue-100 rounded hover:bg-blue-200">
+                              <Eye size={16} />
+                            </button>
+
+                            <Link
+                              to={`/bank/edit/${item.account}/${item._id}`}
+                              className="p-2 bg-yellow-100 rounded hover:bg-yellow-200 inline-flex"
+                            >
+                              <Pencil size={16} />
+                            </Link>
                           </div>
-                        ) : (
-                          <div className="text-xs text-gray-500">-</div>
-                        )}
-                      </td>
-
-                      <td className="p-3 text-center">
-                        {item.userId?.fullName || "-"}
-                      </td>
-
-                      <td className="p-3 text-center">
-                        {formatDate(item.createdAt)}
-                      </td>
-                      <td className="p-3 text-center">
-                        <button
-                          disabled={item?.isMapped}
-                          onClick={() => {
-                            setSelectedTransaction(item);
-                            setDrawerOpen(true);
-                          }}
-                          className={`px-3 py-1 rounded ${item?.isMapped ? "bg-gray-300 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"}  text-white text-sm `}
-                        >
-                          {item?.isMapped ? "Link Payment" : "Link Payment"}
-                        </button>
-                      </td>
-
-                      <td className="p-3">
-                        <div className="flex justify-center gap-2">
-                          <button className="p-2 bg-blue-100 rounded hover:bg-blue-200">
-                            <Eye size={16} />
-                          </button>
-
-                          <Link
-                            to={`/bank/edit/${item.account}/${item._id}`}
-                            className="p-2 bg-yellow-100 rounded hover:bg-yellow-200 inline-flex"
-                          >
-                            <Pencil size={16} />
-                          </Link>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={11} className="h-64">
+                        <div className="flex justify-center items-center h-full">
+                          <NoDataFound
+                            title="No Transactions Found"
+                            description="Upload a bank statement to get started."
+                          />
                         </div>
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={11} className="h-64">
-                      <div className="flex justify-center items-center h-full">
-                        <NoDataFound
-                          title="No Transactions Found"
-                          description="Upload a bank statement to get started."
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-                )}
+                  )}
+                </tbody>
+              )}
             </table>
           </div>
 
@@ -614,14 +625,14 @@ const BankTransactionList = () => {
         onClose={() => setFilterOpen(false)}
         apiData={apiData}
         filters={filters}
-       availableAccounts={apiResponse?.availableAccounts || []}
+        availableAccounts={apiResponse?.availableAccounts || []}
         onApply={(data) => {
           // Persist filters
           setFilters({
             ...DEFAULT_BANK_TRANSACTION_FILTERS,
             ...data,
           });
-           
+
           // New filter => first page
           setCurrentPage(1);
         }}

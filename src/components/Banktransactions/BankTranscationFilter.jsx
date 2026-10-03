@@ -11,6 +11,7 @@ import {
   getPropertyDropdown,
   usePropertyDropdown,
 } from "../../components/properties/services/index";
+import { useBatchOptions } from "../Options/services";
 const BankTransactionFilter = ({
   isOpen,
   onClose,
@@ -19,14 +20,14 @@ const BankTransactionFilter = ({
   onApply,
   handleReset,
   resetTrigger,
-  availableAccounts
+  availableAccounts,
 }) => {
   const { data: dropdownData } = usePropertyDropdown({
     page: 1,
     limit: 10,
     search: "",
   });
-
+  const { data: options = {} } = useBatchOptions(["bankstatus"]);
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       fromDate: null,
@@ -51,15 +52,14 @@ const BankTransactionFilter = ({
       additional: { page: page + 1 },
     };
   };
-
-const bankAccountOptions = useMemo(() => {
+  const statusOptions = options.bankstatus || [];
+  const bankAccountOptions = useMemo(() => {
     return availableAccounts.map((account) => ({
       value: account,
       label: account,
     }));
   }, [availableAccounts]);
 
- 
   const transactionTypeOptions = [
     {
       value: "deposit",
@@ -149,13 +149,16 @@ const bankAccountOptions = useMemo(() => {
       bankAccount: filters.account
         ? bankAccountOptions.find((x) => x.value === filters.account)
         : null,
+      status: filters.status
+        ? statusOptions.find((x) => x.value === filters.status)
+        : null,
       transactionType: filters.transactionType
         ? transactionTypeOptions.find(
             (x) => x.value === filters.transactionType,
           )
         : null,
     });
-  }, [filters, isOpen, reset]);
+  }, [filters, isOpen, reset, bankAccountOptions]);
   return (
     <>
       {isOpen && (
@@ -262,20 +265,26 @@ const bankAccountOptions = useMemo(() => {
               </div>
             )}
           />
-          {/* status */}
-          {/* <Controller
+          {/* Status */}
+          <Controller
             name="status"
             control={control}
             render={({ field }) => (
-              <Select
-                options={statusOptions}
-                value={field.value}
-                onChange={field.onChange}
-                styles={selectStyles}
-                isClearable
-              />
+              <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <label className="select-label">Status</label>
+
+                <Select
+                  options={statusOptions}
+                  isSearchable
+                  isClearable
+                  placeholder="Status"
+                  value={field.value}
+                  onChange={(option) => field.onChange(option)}
+                  styles={selectStyles}
+                />
+              </div>
             )}
-          /> */}
+          />
           {/* assignee */}
           {/* <Controller
             name="assignee"

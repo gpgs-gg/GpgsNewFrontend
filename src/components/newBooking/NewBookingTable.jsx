@@ -6,7 +6,7 @@ import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import {
   useCancelNewBooking,
-  useClientFromNewBooking,                                 
+  useClientFromNewBooking,
   useDeleteNewBookingData,
   useNewBooking,
   useToggleClientLogin,
@@ -30,7 +30,7 @@ import { useAuthorization } from "../../context/AuthorizationContext";
 import { useAuth } from "../../context/authContext";
 const NewBookingTable = () => {
   const [search, setSearch] = useState("");
-const [todayBookings, setTodayBookings] = useState(() => {
+  const [todayBookings, setTodayBookings] = useState(() => {
     return localStorage.getItem("new_booking_today") === "true";
   });
   const [filterOpen, setFilterOpen] = useState(false);
@@ -41,10 +41,10 @@ const [todayBookings, setTodayBookings] = useState(() => {
     whatsappNo: "",
     status: "",
     bookingType: "",
-
+    sharingType: [],
     propertyId: "",
     propertyCode: "",
-    propertyLocation: "",
+    propertyLocation: [],
     roomNo: "",
     bedNo: "",
 
@@ -96,14 +96,20 @@ const [todayBookings, setTodayBookings] = useState(() => {
         value: filters.fullName,
       });
     }
-if (filters.bookingCreatedFrom) {
+    if (filters.bookingCreatedFrom) {
       labels.push({
         key: "bookingCreatedFrom",
         title: "Created From",
         value: filters.bookingCreatedFrom,
       });
     }
-
+    if (filters.paymentStatus) {
+      labels.push({
+        key: "paymentStatus",
+        title: "Payment Status",
+        value: filters.paymentStatus,
+      });
+    }
     if (filters.bookingCreatedTo) {
       labels.push({
         key: "bookingCreatedTo",
@@ -111,6 +117,7 @@ if (filters.bookingCreatedFrom) {
         value: filters.bookingCreatedTo,
       });
     }
+
     if (filters.callingNo) {
       labels.push({
         key: "callingNo",
@@ -143,6 +150,13 @@ if (filters.bookingCreatedFrom) {
       });
     }
 
+    if (filters.sharingType?.length) {
+      labels.push({
+        key: "sharingType",
+        title: "Sharing Type",
+        value: filters.sharingType.join(", "),
+      });
+    }
     if (filters.teamCode) {
       labels.push({
         key: "teamCode",
@@ -159,11 +173,11 @@ if (filters.bookingCreatedFrom) {
       });
     }
 
-    if (filters.propertyLocation) {
+ if (filters.propertyLocation?.length) {
       labels.push({
         key: "propertyLocation",
         title: "Location",
-        value: filters.propertyLocation,
+        value: filters.propertyLocation.join(", "),
       });
     }
 
@@ -258,13 +272,22 @@ if (filters.bookingCreatedFrom) {
 
     return labels;
   }, [filters]);
+
+
  const hasActiveFilters = useMemo(() => {
-    const hasFilters = Object.values(filters).some(
-      (value) => value !== "" && value !== null && value !== undefined,
-    );
+    const hasFilters = Object.values(filters).some((value) => {
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+
+      return value !== "" && value !== null && value !== undefined;
+    });
 
     return hasFilters || todayBookings;
   }, [filters, todayBookings]);
+
+
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const debouncedSearch = useDebounce(search, 500);
   const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
@@ -282,7 +305,7 @@ if (filters.bookingCreatedFrom) {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const rowsPerPage = 20;
   const { user } = useAuth();
- const apiFilters = useMemo(() => {
+  const apiFilters = useMemo(() => {
     const { propertyCode, temporaryPropertyCode, ...rest } = filters;
 
     return {
@@ -337,9 +360,8 @@ if (filters.bookingCreatedFrom) {
     createClientFromBooking(
       {
         bookingId: selectedBooking._id,
-        narration: `${user?.name} - Amount: ₹${data.paymentAmount || 0} - Narration: ${data.narration || ""}${
-          data.remarks ? ` - Remarks: ${data.remarks}` : ""
-        }`,
+        narration: `${user?.name} - Amount: ₹${data.paymentAmount || 0} - Narration: ${data.narration || ""}${data.remarks ? ` - Remarks: ${data.remarks}` : ""
+          }`,
         paymentAmount: data.paymentAmount,
         remarks: data.remarks,
 
@@ -403,7 +425,7 @@ if (filters.bookingCreatedFrom) {
 
     // Clear filter chips
     // Reset pagination
-   setTodayBookings(false);
+    setTodayBookings(false);
     // Clear filter chips
     // Reset pagination
     setCurrentPage(1);
@@ -446,8 +468,8 @@ if (filters.bookingCreatedFrom) {
         toast.dismiss();
         toast.error(
           error?.response?.data?.message ||
-            error?.message ||
-            "Something went wrong",
+          error?.message ||
+          "Something went wrong",
         );
         setShowDeleteModal(false);
         setDeleteId(null);
@@ -464,7 +486,7 @@ if (filters.bookingCreatedFrom) {
     // Verify
     if (!item.loginEnabled) {
       if (item.status !== "Booked") {
-         toast.dismiss();
+        toast.dismiss();
         toast.error("Booking must be marked as 'Booked'.");
         return;
       }
@@ -511,6 +533,7 @@ if (filters.bookingCreatedFrom) {
   // };
   const userName =
     user?.Name || user?.name || user?.fullName || user?.username || "System";
+    
   const handleStatusToggle = (item) => {
     if (!canEditBooking) {
       toast.dismiss();
@@ -540,8 +563,8 @@ if (filters.bookingCreatedFrom) {
           toast.dismiss();
           toast.success(
             response?.message ||
-              response?.data?.message ||
-              "Status updated successfully",
+            response?.data?.message ||
+            "Status updated successfully",
           );
         },
         onError: (error) => {
@@ -629,7 +652,7 @@ if (filters.bookingCreatedFrom) {
               ))}
             </div>
             <div className="flex gap-2">
-              
+
               {hasActiveFilters && (
                 <button
                   onClick={handleReset}
@@ -638,35 +661,34 @@ if (filters.bookingCreatedFrom) {
                   Reset
                 </button>
               )}
-            <button
-              onClick={() => {
-                setTodayBookings((prev) => !prev);
-                setCurrentPage(1);
-              }}
-              className={`border px-4 py-2 rounded-lg flex items-center gap-2 ${
-                todayBookings
-                  ? "bg-green-600 text-white border-green-600"
-                  : "border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              Today's Bookings
-            </button>
-            <div className="flex gap-2">
-              <Link to="/clients">
-                <button className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50">
-                  <RiTelegram2Line size={19} />
-                  Clients List
-                </button>
-              </Link>
-
               <button
-                onClick={() => setFilterOpen(true)}
-                className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
+                onClick={() => {
+                  setTodayBookings((prev) => !prev);
+                  setCurrentPage(1);
+                }}
+                className={`border px-4 py-2 rounded-lg flex items-center gap-2 ${todayBookings
+                    ? "bg-green-600 text-white border-green-600"
+                    : "border-gray-300 hover:bg-gray-50"
+                  }`}
               >
-                <Filter size={16} />
-                Filters
+                Today's Bookings
               </button>
-            </div>
+              <div className="flex gap-2">
+                <Link to="/clients">
+                  <button className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50">
+                    <RiTelegram2Line size={19} />
+                    Clients List
+                  </button>
+                </Link>
+
+                <button
+                  onClick={() => setFilterOpen(true)}
+                  className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
+                >
+                  <Filter size={16} />
+                  Filters
+                </button>
+              </div>
             </div>
           </div>
 
@@ -734,21 +756,19 @@ if (filters.bookingCreatedFrom) {
                                   />
                                   <div className="w-11 h-5 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors">
                                     <div
-                                      className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${
-                                        item.status === "Booked"
+                                      className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${item.status === "Booked"
                                           ? "translate-x-5"
                                           : "translate-x-0.5"
-                                      }`}
+                                        }`}
                                     />
                                   </div>
                                 </label>
 
                                 <span
-                                  className={`text-sm font-medium ${
-                                    item.status === "Booked"
+                                  className={`text-sm font-medium ${item.status === "Booked"
                                       ? "text-green-600"
                                       : "text-red-600"
-                                  }`}
+                                    }`}
                                 >
                                   {item.status === "Booked"
                                     ? "Booked"
@@ -778,7 +798,7 @@ if (filters.bookingCreatedFrom) {
 
                             <td className="p-3">
                               <div className="flex items-center justify-center gap-3">
-                                {/* {!item.loginEnabled && ( */}
+                                {!item.loginEnabled && (
                                   <label className="relative inline-flex items-center cursor-pointer">
                                     <input
                                       type="checkbox"
@@ -794,7 +814,7 @@ if (filters.bookingCreatedFrom) {
 
                                     <div className="absolute left-0.5 top-0.5 w-5 h-4 bg-white rounded-full shadow-md transition-transform duration-300 peer-checked:translate-x-5"></div>
                                   </label>
-                                {/* )} */}
+                                )}
 
                                 {item.loginEnabled ? (
                                   <div className="flex items-center gap-2">
@@ -866,9 +886,8 @@ if (filters.bookingCreatedFrom) {
                             {/* Sticky Actions Column */}
                             {showActions && (
                               <td
-                                className={`p-3 sticky right-0 bg-white ${
-                                  openMenuId === item._id ? "z-[9999]" : "z-0"
-                                } min-w-[150px] shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
+                                className={`p-3 sticky right-0 bg-white ${openMenuId === item._id ? "z-[9999]" : "z-0"
+                                  } min-w-[150px] shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
                               >
                                 <div className="flex justify-center relative">
                                   <button
@@ -881,11 +900,10 @@ if (filters.bookingCreatedFrom) {
                                           : item._id,
                                       );
                                     }}
-                                    className={`p-2 rounded-md transition-colors ${
-                                      openMenuId === item._id
+                                    className={`p-2 rounded-md transition-colors ${openMenuId === item._id
                                         ? "bg-blue-100 text-blue-600"
                                         : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                    }`}
+                                      }`}
                                   >
                                     <MoreVertical size={20} />
                                   </button>

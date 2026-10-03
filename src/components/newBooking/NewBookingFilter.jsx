@@ -26,6 +26,7 @@ const NewBookingFilter = ({
       whatsappNo: "",
       status: "",
       bookingType: "",
+      paymentStatus: "",
 
       // Property related
       propertyId: null,
@@ -80,7 +81,10 @@ const NewBookingFilter = ({
       },
     };
   };
-
+  const paymentStatusOptions = [
+    { value: "Verified", label: "Verified" },
+    { value: "Pending", label: "Pending" },
+  ];
   // Location Options
   const locationOptions = options.locations || [];
 
@@ -120,6 +124,8 @@ const NewBookingFilter = ({
       // Temporary property
       temporaryPropertyId: data.temporaryPropertyId?.value || "",
       temporaryPropertyCode: data.temporaryPropertyId?.label || "",
+      propertyLocation: data.propertyLocation || [],
+      sharingType: data.sharingType || [],
     };
 
     const labels = [
@@ -127,6 +133,11 @@ const NewBookingFilter = ({
         key: "fullName",
         title: "Client Name",
         value: data.fullName,
+      },
+      data.paymentStatus && {
+        key: "paymentStatus",
+        title: "Payment Status",
+        value: data.paymentStatus,
       },
       data.callingNo && {
         key: "callingNo",
@@ -288,6 +299,7 @@ const NewBookingFilter = ({
       callingNo: initialFilters.callingNo || "",
       whatsappNo: initialFilters.whatsappNo || "",
       status: initialFilters.status || "",
+      paymentStatus: initialFilters.paymentStatus || "",
       bookingType: initialFilters.bookingType || "",
 
       propertyId: initialFilters.propertyId
@@ -297,7 +309,8 @@ const NewBookingFilter = ({
           }
         : null,
 
-      propertyLocation: initialFilters.propertyLocation || "",
+      propertyLocation: initialFilters.propertyLocation || [],
+      sharingType: initialFilters.sharingType || [],
       roomNo: initialFilters.roomNo || "",
       bedNo: initialFilters.bedNo || "",
 
@@ -350,8 +363,10 @@ const NewBookingFilter = ({
       whatsappNo: "",
       status: "",
       bookingType: "",
+      sharingType: [],
       propertyId: "",
-      propertyLocation: "",
+      propertyLocation: [],
+      paymentStatus: "",
       roomNo: "",
       bedNo: "",
       temporaryPropertyId: "",
@@ -376,7 +391,24 @@ const NewBookingFilter = ({
       balanceAmountMax: "",
     });
   }, [resetTrigger, reset]);
-
+  const sharingTypeOptions = [
+    {
+      value: "Private",
+      label: "Private",
+    },
+    {
+      value: "Double",
+      label: "Double",
+    },
+    {
+      value: "Triple",
+      label: "Triple",
+    },
+    {
+      value: "Quad",
+      label: "Quad",
+    },
+  ];
   return (
     <>
       {isOpen && (
@@ -428,7 +460,205 @@ const NewBookingFilter = ({
                 </div>
               )}
             />
-            {/* Booking Created Date Range */}
+
+                   {/* Payment Status */}
+            <Controller
+              name="paymentStatus"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Payment Status</label>
+
+                  <Select
+                    {...field}
+                    options={paymentStatusOptions}
+                    isClearable
+                    placeholder=""
+                    value={
+                      paymentStatusOptions.find(
+                        (option) => option.value === field.value,
+                      ) || null
+                    }
+                    onChange={(selectedOption) =>
+                      field.onChange(selectedOption?.value || "")
+                    }
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+         
+            {/* Booking Type */}
+            <Controller
+              name="bookingType"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Booking Type</label>
+                  <Select
+                    {...field}
+                    options={bookingTypeOptions}
+                    isClearable
+                    placeholder=""
+                    value={
+                      bookingTypeOptions.find(
+                        (option) => option.value === field.value,
+                      ) || null
+                    }
+                    onChange={(selectedOption) =>
+                      field.onChange(selectedOption?.value || "")
+                    }
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+            {/* Payment Status */}
+            <Controller
+              name="paymentStatus"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Payment Status</label>
+
+                  <Select
+                    {...field}
+                    options={paymentStatusOptions}
+                    isClearable
+                    placeholder=""
+                    value={
+                      paymentStatusOptions.find(
+                        (option) => option.value === field.value,
+                      ) || null
+                    }
+                    onChange={(selectedOption) =>
+                      field.onChange(selectedOption?.value || "")
+                    }
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+            {/* Sharing Type */}
+            {/* <Controller
+              name="sharingType"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${
+                    field.value?.length ? "has-value" : ""
+                  }`}
+                >
+                  <label className="select-label">Sharing Type</label>
+
+                  <Select
+                    options={sharingTypeOptions}
+                    isMulti
+                    isClearable
+                    closeMenuOnSelect={false}
+                    placeholder=""
+                    value={sharingTypeOptions.filter((option) =>
+                      field.value?.includes(option.value),
+                    )}
+                    onChange={(selectedOptions) =>
+                      field.onChange(
+                        selectedOptions?.map((option) => option.value) || [],
+                      )
+                    }
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            /> */}
+            {/* Team Code */}
+            {/* <Controller
+              name="teamCode"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Team Code</label>
+
+                  <Select
+                    {...field}
+                    options={teamCodeOptions}
+                    isClearable
+                    placeholder=""
+                    value={
+                      teamCodeOptions.find(
+                        (option) => option.value === field.value,
+                      ) || null
+                    }
+                    onChange={(selectedOption) =>
+                      field.onChange(selectedOption?.value || "")
+                    }
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            /> */}
+            {/* Property Code */}
+            <Controller
+              name="propertyId"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Property Code</label>
+                  <AsyncPaginate
+                    additional={{ page: 1 }}
+                    debounceTimeout={500}
+                    loadOptions={loadPropertyOptions}
+                    value={field.value}
+                    isClearable
+                    placeholder=""
+                    styles={selectStyles}
+                    onChange={(option) => field.onChange(option)}
+                  />
+                </div>
+              )}
+            />
+
+            {/* Location */}
+            <Controller
+              name="propertyLocation"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${
+                    field.value?.length ? "has-value" : ""
+                  }`}
+                >
+                  <label className="select-label">Location</label>
+
+                  <Select
+                    options={locationOptions}
+                    isMulti
+                    isClearable
+                    closeMenuOnSelect={false}
+                    placeholder=""
+                    value={locationOptions.filter((option) =>
+                      field.value?.includes(option.value),
+                    )}
+                    onChange={(selectedOptions) =>
+                      field.onChange(
+                        selectedOptions?.map((option) => option.value) || [],
+                      )
+                    }
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+   {/* Booking Created Date Range */}
             <div>
               <label className="block text-sm font-medium mb-2">
                 Booking Created Date
@@ -508,112 +738,6 @@ const NewBookingFilter = ({
                 />
               </div>
             </div>
-            {/* Booking Type */}
-            <Controller
-              name="bookingType"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`select-group ${field.value ? "has-value" : ""}`}
-                >
-                  <label className="select-label">Booking Type</label>
-                  <Select
-                    {...field}
-                    options={bookingTypeOptions}
-                    isClearable
-                    placeholder=""
-                    value={
-                      bookingTypeOptions.find(
-                        (option) => option.value === field.value,
-                      ) || null
-                    }
-                    onChange={(selectedOption) =>
-                      field.onChange(selectedOption?.value || "")
-                    }
-                    styles={selectStyles}
-                  />
-                </div>
-              )}
-            />
-            {/* Team Code */}
-            <Controller
-              name="teamCode"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`select-group ${field.value ? "has-value" : ""}`}
-                >
-                  <label className="select-label">Team Code</label>
-
-                  <Select
-                    {...field}
-                    options={teamCodeOptions}
-                    isClearable
-                    placeholder=""
-                    value={
-                      teamCodeOptions.find(
-                        (option) => option.value === field.value,
-                      ) || null
-                    }
-                    onChange={(selectedOption) =>
-                      field.onChange(selectedOption?.value || "")
-                    }
-                    styles={selectStyles}
-                  />
-                </div>
-              )}
-            />
-            {/* Property Code */}
-            <Controller
-              name="propertyId"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`select-group ${field.value ? "has-value" : ""}`}
-                >
-                  <label className="select-label">Property Code</label>
-                  <AsyncPaginate
-                    additional={{ page: 1 }}
-                    debounceTimeout={500}
-                    loadOptions={loadPropertyOptions}
-                    value={field.value}
-                    isClearable
-                    placeholder=""
-                    styles={selectStyles}
-                    onChange={(option) => field.onChange(option)}
-                  />
-                </div>
-              )}
-            />
-
-            {/* Location */}
-            <Controller
-              name="propertyLocation"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`select-group ${field.value ? "has-value" : ""}`}
-                >
-                  <label className="select-label">Location</label>
-                  <Select
-                    {...field}
-                    options={locationOptions}
-                    isClearable
-                    placeholder=""
-                    value={
-                      locationOptions.find(
-                        (option) => option.value === field.value,
-                      ) || null
-                    }
-                    onChange={(selectedOption) =>
-                      field.onChange(selectedOption?.value || "")
-                    }
-                    styles={selectStyles}
-                  />
-                </div>
-              )}
-            />
-
             {/* Client DOJ Range */}
             {/* Client DOJ Range */}
             <div>

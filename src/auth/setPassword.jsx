@@ -37,13 +37,12 @@ const ProgressSteps = ({ currentStep, totalSteps = 3 }) => {
           return (
             <div key={step.number} className="flex flex-col items-center relative z-10">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  isCompleted
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${isCompleted
                     ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/30"
                     : isActive
-                    ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/30 ring-4 ring-indigo-200"
-                    : "bg-gray-200 text-gray-500"
-                }`}
+                      ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/30 ring-4 ring-indigo-200"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
               >
                 {isCompleted ? (
                   <CheckCircle size={20} className="text-white" />
@@ -52,9 +51,8 @@ const ProgressSteps = ({ currentStep, totalSteps = 3 }) => {
                 )}
               </div>
               <span
-                className={`text-xs font-medium mt-2 ${
-                  isActive ? "text-indigo-600" : "text-gray-500"
-                }`}
+                className={`text-xs font-medium mt-2 ${isActive ? "text-indigo-600" : "text-gray-500"
+                  }`}
               >
                 {step.label}
               </span>
@@ -132,9 +130,8 @@ const PasswordStrengthIndicator = ({ password }) => {
         ].map((criterion, index) => (
           <div
             key={index}
-            className={`flex items-center gap-1 ${
-              criterion.test ? "text-emerald-600" : "text-gray-400"
-            }`}
+            className={`flex items-center gap-1 ${criterion.test ? "text-emerald-600" : "text-gray-400"
+              }`}
           >
             {criterion.test ? (
               <CheckCircle size={12} className="text-emerald-500" />
@@ -338,7 +335,7 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
           setEmailMatched(trimmedEmail);
           setStep(2);
           setResendCooldown(30); // 30 seconds cooldown
-          
+
           // Auto-dismiss any existing toasts
           toast.dismiss();
         },
@@ -455,15 +452,15 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
                   {step === 1
                     ? "Reset Password"
                     : step === 2
-                    ? "Verify OTP"
-                    : "Set New Password"}
+                      ? "Verify OTP"
+                      : "Set New Password"}
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {step === 1
                     ? "Enter your email to receive OTP"
                     : step === 2
-                    ? "Enter the 6-digit code sent to your email"
-                    : "Create a strong password for your account"}
+                      ? "Enter the 6-digit code sent to your email"
+                      : "Create a strong password for your account"}
                 </p>
               </div>
             </div>
@@ -503,11 +500,10 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
                       },
                     })}
                     placeholder="you@company.com"
-                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${
-                      errors.email
+                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${errors.email
                         ? "border-red-300 bg-red-50 focus:ring-red-500"
                         : "border-gray-300 hover:border-gray-400"
-                    }`}
+                      }`}
                     aria-invalid={errors.email ? "true" : "false"}
                     disabled={isGettingOtp}
                   />
@@ -573,14 +569,14 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
                 <button
                   type="button"
                   onClick={handleResendOtp}
-                  disabled={resendCooldown > 0}
+                  disabled={isGettingOtp || resendCooldown > 0}
                   className="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {resendCooldown > 0 ? (
-                    `Resend in ${resendCooldown}s`
-                  ) : (
-                    "Resend OTP"
-                  )}
+                  {isGettingOtp
+                    ? "Sending..."
+                    : resendCooldown > 0
+                      ? `Resend in ${resendCooldown}s`
+                      : "Resend OTP"}
                 </button>
               </div>
 
@@ -720,9 +716,8 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
                   ].map((req, index) => (
                     <div
                       key={index}
-                      className={`flex items-center gap-1.5 text-xs ${
-                        req.test ? "text-emerald-600" : "text-gray-400"
-                      }`}
+                      className={`flex items-center gap-1.5 text-xs ${req.test ? "text-emerald-600" : "text-gray-400"
+                        }`}
                     >
                       {req.test ? (
                         <CheckCircle size={12} className="text-emerald-500 flex-shrink-0" />
