@@ -24,7 +24,10 @@ const AvailableBedsTable = () => {
   useEffect(() => {
     localStorage.setItem("available_beds_page", String(currentPage));
   }, [currentPage]);
+
+
   const [filterOpen, setFilterOpen] = useState(false);
+
   const DEFAULT_AVAILABLE_BEDS_FILTERS = {
     propertyId: "",
     propertyCode: "",
@@ -51,6 +54,7 @@ const AvailableBedsTable = () => {
       "available_beds_filters",
       DEFAULT_AVAILABLE_BEDS_FILTERS,
     );
+    
   const [resetTrigger, setResetTrigger] = useState(0);
   const debouncedSearch = useDebounce(search);
   const rowsPerPage = 20;
@@ -74,6 +78,9 @@ const AvailableBedsTable = () => {
   const totalPages = getAvailableBeds?.totalPages || 1;
 
   const totalRecords = getAvailableBeds?.totalRecords || 0;
+  const totalCount = getAvailableBeds?.totalRecords || 0;
+  const IACount = getAvailableBeds?.IACount || 0;
+  const redFlag = getAvailableBeds?.redFlag || 0;
 
   const handleReset = () => {
     resetFilters();
@@ -95,7 +102,7 @@ const AvailableBedsTable = () => {
       });
     }
 
- if (filters.propertyLocation?.length > 0) {
+    if (filters.propertyLocation?.length > 0) {
       labels.push({
         key: "propertyLocation",
         title: "Location",
@@ -142,7 +149,7 @@ const AvailableBedsTable = () => {
       });
     }
 
-if (filters.sharingType?.length > 0) {
+    if (filters.sharingType?.length > 0) {
       labels.push({
         key: "sharingType",
         title: "Sharing",
@@ -294,6 +301,8 @@ if (filters.sharingType?.length > 0) {
     }
   };
 
+
+
   return (
     <>
       <div className="space-y-5">
@@ -307,11 +316,21 @@ if (filters.sharingType?.length > 0) {
               </p>
             </div>
 
-            {/* <Link to="/newbooking/create">
-              <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                + New Booking
-              </button>
-            </Link> */}
+            <div className="flex items-center gap-4">
+            
+              <span className="text-sm font-semibold text-green-600">
+                IA: {IACount}
+              </span>
+
+              <span className="text-sm font-semibold text-red-600">
+                RF: {redFlag}
+              </span>
+
+                <span className="text-sm font-semibold text-gray-700">
+                Total: {totalCount}
+              </span>
+
+            </div>
           </div>
         </div>
 
@@ -460,30 +479,23 @@ if (filters.sharingType?.length > 0) {
                     {paginatedData?.length > 0 ? (
                       paginatedData.map((item, index) => {
                         const getRedFlagStatus = (item) => {
-                          const nld = item?.client?.NLD;
-
+                          const nld = item?.client?.noticeLastDate;
                           // NLD nahi hai => Red Flag
                           if (!nld) {
                             return "Red Flag";
                           }
-
                           const today = new Date();
                           today.setHours(0, 0, 0, 0);
-
                           const nldDate = new Date(nld);
                           nldDate.setHours(0, 0, 0, 0);
-
                           const diffDays =
                             (nldDate - today) / (1000 * 60 * 60 * 24);
-
                           // NLD 15 days ke andar hai ya date cross ho chuki hai
                           if (diffDays <= 15) {
                             return "Red Flag";
                           }
-
                           return "-";
                         };
-
                         const getBedAvailableFrom = (item) => {
                           const cvd = item?.client?.clientVacatingDate;
 

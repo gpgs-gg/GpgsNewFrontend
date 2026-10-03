@@ -936,9 +936,9 @@ const ClientsTable = () => {
                                                     );
                                                   }}
                                                   className="flex items-center gap-1 px-2.5 py-1
-             text-xs font-medium text-blue-600
-             border border-blue-200 rounded-md
-             hover:bg-blue-50 transition"
+                                                    text-xs font-medium text-blue-600
+                                                   border border-blue-200 rounded-md
+                                                    hover:bg-blue-50 transition"
                                                 >
                                                   <Pencil size={13} />
                                                 </button>
@@ -997,6 +997,36 @@ const ClientsTable = () => {
                                                       </span>
                                                     </div>
                                                   )}
+                                              </div>
+                                              {/* Vacation Comments */}
+                                              <div className="max-h-40 text-[5px] overflow-y-auto space-y-2 pr-1 p-5 border border-gray-200 rounded">
+                                                {vacation.vacationComments
+                                                  ?.slice()
+                                                  .reverse()
+                                                  .map((comment, commentIndex) => (
+                                                    <div
+                                                      key={comment._id || commentIndex}
+                                                      className="text-sm text-gray-700 border-b border-gray-100 pb-2"
+                                                    >
+                                                      <span className="font-semibold text-xs text-gray-600">
+                                                        [{comment.createdAt
+                                                          ? new Date(comment.createdAt).toLocaleString("en-IN", {
+                                                            day: "2-digit",
+                                                            month: "short",
+                                                            year: "numeric",
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                            hour12: true,
+                                                          })
+                                                          : "-"}]
+                                                      </span>{" "}
+
+                                                      <span className="font-medium text-xs text-gray-800">
+                                                        {comment.createdBy || "-"}
+                                                      </span>{" "}
+                                                      - {comment.message}
+                                                    </div>
+                                                  ))}
                                               </div>
                                             </div>
                                           ))}

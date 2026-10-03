@@ -7,6 +7,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useUpdateVacationDates, useVacationDates } from "./services";
 import { toast } from "react-toastify";
+import { useAuth } from "../../context/authContext";
 
 const schema = yup.object({
     vacationStartDate1: yup
@@ -38,6 +39,7 @@ const ClientVacationModal = ({
         control,
         handleSubmit,
         reset,
+        register,
         setValue,
         formState: { errors },
     } = useForm({
@@ -49,6 +51,8 @@ const ClientVacationModal = ({
             vacationLastDate2: null,
         },
     });
+
+    const { user } = useAuth()
 
     useEffect(() => {
         if (!isOpen) return;
@@ -144,6 +148,9 @@ const ClientVacationModal = ({
             vacationLastDate2: formatDateToString(
                 data.vacationLastDate2
             ),
+            vacationComments: data.vacationComments,
+            user: user?.name
+
         };
 
 
@@ -402,6 +409,20 @@ const ClientVacationModal = ({
                                 </div>
                             )}
                         />
+
+                        <div className="form-group md:col-span-2">
+                            <textarea
+                                rows={5}
+                                {...register("vacationComments", {
+                                    required: "Description is required",
+                                })}
+                                className="form-input h-20"
+                            />
+
+                            <label className="form-label form-label">
+                                Comments
+                            </label>
+                        </div>
 
                     </div>
 
