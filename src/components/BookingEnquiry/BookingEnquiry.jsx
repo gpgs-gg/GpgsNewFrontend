@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { convertStringFormatDate } from "../../utils/dateFormatter";
+import { useCreateBookingEnquiry } from "./services";
 
 const BookingEnquiry = () => {
     const [formData, setFormData] = useState({
@@ -21,7 +23,7 @@ const BookingEnquiry = () => {
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
-
+    const { mutate : bookingEnquiry , isPending } = useCreateBookingEnquiry()
     // ==========================================
     // HANDLE INPUT
     // ==========================================
@@ -168,53 +170,49 @@ const BookingEnquiry = () => {
     // SUBMIT
     // ==========================================
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+   const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        if (!validate()) {
-            return;
-        }
+    if (!validate()) {
+        return;
+    }
 
-        try {
-            setIsSubmitting(true);
+    bookingEnquiry(
+        {
+            ...formData,
+            joiningDate: convertStringFormatDate(formData.joiningDate),
+        },
+        {
+            onSuccess: (response) => {
+                if (response?.success) {
+                    setSubmitted(true);
 
-            const response = await axios.post(
-                "/api/booking-enquiries",
-                {
-                    ...formData,
-                    joiningDate: formData.joiningDate,
+                    setFormData({
+                        fullName: "",
+                        whatsappNumber: "",
+                        callingNumber: "",
+                        email: "",
+                        companyCollegeName: "",
+                        profile: "",
+                        joiningDate: null,
+                        fatherName: "",
+                        fatherContact: "",
+                        motherName: "",
+                        motherContact: "",
+                    });
                 }
-            );
+            },
+            onError: (error) => {
+                console.error("Booking enquiry error:", error);
 
-            if (response.data.success) {
-                setSubmitted(true);
-
-                setFormData({
-                    fullName: "",
-                    whatsappNumber: "",
-                    callingNumber: "",
-                    email: "",
-                    companyCollegeName: "",
-                    profile: "",
-                    joiningDate: null,
-                    fatherName: "",
-                    fatherContact: "",
-                    motherName: "",
-                    motherContact: "",
-                });
-            }
-        } catch (error) {
-            console.error("Booking enquiry error:", error);
-
-            alert(
-                error?.response?.data?.message ||
-                "Something went wrong. Please try again."
-            );
-        } finally {
-            setIsSubmitting(false);
+                alert(
+                    error?.response?.data?.message ||
+                    "Something went wrong. Please try again."
+                );
+            },
         }
-    };
-
+    );
+};
     // ==========================================
     // SUCCESS SCREEN
     // ==========================================

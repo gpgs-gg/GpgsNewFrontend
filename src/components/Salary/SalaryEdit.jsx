@@ -477,7 +477,7 @@ const SalaryEdit = () => {
 
             <div className="form-group">
               <input
-                type="number"
+                 type="text"
                 {...register("paidLeaveDays")}
                 min="0"
                 step="0.5"
@@ -491,7 +491,7 @@ const SalaryEdit = () => {
 
             <div className="form-group">
               <input
-                type="number"
+                 type="text"
                 {...register("publicHolidayDays")}
                 min="0"
                 step="0.5"
@@ -505,7 +505,7 @@ const SalaryEdit = () => {
 
             <div className="form-group">
               <input
-                type="number"
+                 type="text"
                 {...register("monthlySalary")}
                 min="0"
                 step="0.01"
@@ -651,7 +651,7 @@ const SalaryEdit = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-group">
                   <input
-                    type="number"
+                     type="text"
                     {...register("adjustmentDetails.newSpecialPerk.amount")}
                     min="0"
                     step="0.01"
@@ -715,7 +715,7 @@ const SalaryEdit = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-group">
                   <input
-                    type="number"
+                     type="text"
                     {...register("adjustmentDetails.newDeduction.amount")}
                     min="0"
                     step="0.01"
@@ -821,7 +821,7 @@ const SalaryEdit = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-group">
                   <input
-                    type="number"
+                     type="text"
                     {...register("paidAmountDetails.newAdvanceAmount.amount")}
                     min="0"
                     step="0.01"
@@ -881,7 +881,7 @@ const SalaryEdit = () => {
 
                 <div className="form-group">
                   <input
-                    type="number"
+                     type="text"
                     {...register("paidAmountDetails.deductedAmount.amount")}
                     min="0"
                     step="0.01"
@@ -920,7 +920,7 @@ const SalaryEdit = () => {
 
             <div className="form-group">
               <input
-                type="number"
+                 type="text"
                 {...register("previousDue")}
                 step="0.01"
                 placeholder=" "

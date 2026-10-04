@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -40,7 +40,7 @@ function TicketCreateEdit() {
     watch,
     formState: { errors, isDirty },
   } = useForm();
-const { user } = useAuth();
+  const { user } = useAuth();
   // Api Hooks
   const { mutate: createTicket, isPending: isCreateTicket } =
     useCreateTicketData();
@@ -67,6 +67,7 @@ const { user } = useAuth();
   const [attachmentFiles, setAttachmentFiles] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const submitLockRef = useRef(false);
   const assignee = watch("assignee");
   const userName = user?.Name || user?.name || user?.fullName || user?.username || "System";
   useEffect(() => {
@@ -76,10 +77,10 @@ const { user } = useAuth();
       setSelectedProperty(
         ticket.propertyId
           ? {
-              value: ticket.propertyId._id,
-              label: ticket.propertyId.propertyCode,
-              propLocation: ticket.propertyId.propertyLocation,
-            }
+            value: ticket.propertyId._id,
+            label: ticket.propertyId.propertyCode,
+            propLocation: ticket.propertyId.propertyLocation,
+          }
           : null,
       );
 
@@ -161,41 +162,46 @@ const { user } = useAuth();
     };
   };
 
-const ManagerOptions =
-  managerData?.data
-    ?.filter((employee) => employee.loginEnabled === true)
-    ?.map((employee) => ({
-      value: employee.employeeName,
-      label: employee.employeeName,
-    })) || [];
+  const ManagerOptions =
+    managerData?.data
+      ?.filter((employee) => employee.loginEnabled === true)
+      ?.map((employee) => ({
+        value: employee.employeeName,
+        label: employee.employeeName,
+      })) || [];
 
-const TicketManagerOptions =
-  employeeData?.data
-    ?.filter((employee) => employee.ticketManager === true && employee.loginEnabled === true)
-    ?.map((employee) => ({
-      value: employee.employeeName,
-      label: employee.employeeName,
-    })) || [];
+  const TicketManagerOptions =
+    employeeData?.data
+      ?.filter((employee) => employee.ticketManager === true && employee.loginEnabled === true)
+      ?.map((employee) => ({
+        value: employee.employeeName,
+        label: employee.employeeName,
+      })) || [];
 
-const AssigneeOptions =
-  employeeData?.data
-    ?.filter((employee) => employee.loginEnabled === true)
-    ?.map((employee) => ({
-      value: employee.employeeName,
-      label: employee.employeeName,
-    })) || [];
+  const AssigneeOptions =
+    employeeData?.data
+      ?.filter((employee) => employee.loginEnabled === true)
+      ?.map((employee) => ({
+        value: employee.employeeName,
+        label: employee.employeeName,
+      })) || [];
 
   const onSubmit = (data) => {
+  
+
     const hasAttachmentChanges =
       attachmentFiles.length > 0 ||
       existingAttachments.length !==
-        (singleTicket?.data?.attachment?.length || 0);
+      (singleTicket?.data?.attachment?.length || 0);
 
     if (!isDirty && !hasAttachmentChanges) {
       toast.dismiss();
       toast.info("No changes detected.");
       return;
     }
+
+      if (submitLockRef.current) return;
+    submitLockRef.current = true;
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
       const value = data[key];
@@ -206,8 +212,8 @@ const AssigneeOptions =
         key !== "attachment" &&
         key !== "workLogs" &&
         key !== "createdBy" &&
-        key !== "createdByName" && 
-          key !== "updatedByName"
+        key !== "createdByName" &&
+        key !== "updatedByName"
       ) {
         if (key === "targetDate" && value instanceof Date) {
           formData.append(key, convertStringFormatDate(value));
@@ -222,11 +228,11 @@ const AssigneeOptions =
     for (const [key, value] of formData.entries()) {
       console.log(key, value);
     }
-   if(!id){
-     formData.append("createdBy", currentUser?.user?.role || "");
-    formData.append("createdByName", currentUser?.user?.name || "");
-   }
-   formData.append("updatedByName", currentUser?.user?.name || "");
+    if (!id) {
+      formData.append("createdBy", currentUser?.user?.role || "");
+      formData.append("createdByName", currentUser?.user?.name || "");
+    }
+    formData.append("updatedByName", currentUser?.user?.name || "");
     // formData.append("dateCreated", convertStringFormatDateTime(new Date()));
     // formData.append("propertyLocation", )
     formData.append("auditorLog", data.auditorLog || "");
@@ -247,16 +253,14 @@ const AssigneeOptions =
           onSuccess: (res) => {
             toast.dismiss();
             toast.success(res.message);
-
+            submitLockRef.current = false;
             // navigate("/tickets");
-
             reset();
-
             setAttachmentFiles([]);
             setExistingAttachments([]);
           },
-
           onError: (err) => {
+            submitLockRef.current = false;
             toast.dismiss();
             toast.error(err?.response?.data?.message || "Update Failed");
           },
@@ -267,7 +271,7 @@ const AssigneeOptions =
         onSuccess: (res) => {
           toast.dismiss();
           toast.success(res.message);
-
+          submitLockRef.current = false;
           navigate("/tickets");
 
           reset();
@@ -277,6 +281,7 @@ const AssigneeOptions =
         },
 
         onError: (err) => {
+          submitLockRef.current = false;
           toast.dismiss();
           toast.error(err?.response?.data?.message || "Create Failed");
         },
@@ -284,7 +289,7 @@ const AssigneeOptions =
     }
   };
 
-  
+
 
   return (
     <div className="max-w-12xl mx-auto px-6">
@@ -363,8 +368,8 @@ const AssigneeOptions =
                     })
                   }
                 >
-                   <div className="flex">
-                  Next <ChevronRight size={20} />
+                  <div className="flex">
+                    Next <ChevronRight size={20} />
                   </div>
                 </button>
               </div>
@@ -732,36 +737,34 @@ const AssigneeOptions =
               <label className="form-label">Bed No.</label>
             </div>
             {/* Created By */}
-           {id && (
-               <div
-              className={`form-group ${currentUser?.user?.role ? "has-value" : ""}`}
-            >
-              <input
-                type="text"
-                value={
-                  id
-                    ? `${singleTicket?.data?.createdByName || ""} ${
-                        singleTicket?.data?.createdByRole
-                          ? `(${singleTicket.data.createdByRole})`
-                          : ""
+            {id && (
+              <div
+                className={`form-group ${currentUser?.user?.role ? "has-value" : ""}`}
+              >
+                <input
+                  type="text"
+                  value={
+                    id
+                      ? `${singleTicket?.data?.createdByName || ""} ${singleTicket?.data?.createdByRole
+                        ? `(${singleTicket.data.createdByRole})`
+                        : ""
                       }`
-                    : `${currentUser?.user?.name || ""} ${
-                        currentUser?.user?.role
-                          ? `(${currentUser.user.role})`
-                          : ""
+                      : `${currentUser?.user?.name || ""} ${currentUser?.user?.role
+                        ? `(${currentUser.user.role})`
+                        : ""
                       }`
-                }
-                readOnly
-                className="form-input bg-gray-100 cursor-not-allowed"
-                placeholder=" "
-              />
+                  }
+                  readOnly
+                  className="form-input bg-gray-100 cursor-not-allowed"
+                  placeholder=" "
+                />
 
-              <label className="form-label">Created By</label>
+                <label className="form-label">Created By</label>
 
 
-              
-            </div>
-           )}
+
+              </div>
+            )}
           </div>
         </div>
 

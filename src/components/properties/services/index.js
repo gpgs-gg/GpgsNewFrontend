@@ -192,3 +192,28 @@ export const useDeleteMultiplePropertiesData = () => {
     },
   });
 };
+
+// Create property sequence in bulk
+const createPropertySequenceData = async (data) => {
+  const response = await apiClient.post("/property-sequence/bulk", data);
+  return response.data;
+};
+export const useCreatePropertySequenceData = () => {
+  return useMutation({
+    mutationFn: createPropertySequenceData,
+  });
+};
+
+// Get all property sequences
+const getPropertySequencesData = async () => {
+  const response = await apiClient.get("/property-sequence");
+  return response.data;
+};
+
+export const usePropertySequencesData = (enabled = true) => {
+  return useQuery({
+    queryKey: ["property-sequences"],
+    queryFn: getPropertySequencesData,
+    enabled,
+  });
+};

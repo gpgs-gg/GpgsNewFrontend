@@ -90,6 +90,8 @@ const getBedsData = async ({ page = 1, limit = 10, search, filters = {} }) => {
   });
   return response.data;
 };
+
+
 export const useBedsData = ({
   page = 1,
   limit = 10,
@@ -142,6 +144,7 @@ export const useBedsData = ({
   });
 };
 
+
 // ✅ 
 const createBedData = async (data) => {
   const response = await apiClient.post("/beds", data);
@@ -158,19 +161,20 @@ export const usecreateBedData = () => {
   });
 };
 
+
+
 const getSingleBedsData = async (id) => {
   const response = await apiClient.get(`/beds/${id}`);
   return response.data;
 };
-
 export const useSingleBedsData = (id) => {
-
   return useQuery({
     queryKey: ["beds", id],
     queryFn: () => getSingleBedsData(id),
     enabled: !!id,
   });
 };
+
 
 // ✅ Update Bed Sheet
 const updateBedsData = async ({ id, data }) => {

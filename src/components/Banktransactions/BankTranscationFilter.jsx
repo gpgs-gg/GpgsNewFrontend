@@ -12,6 +12,7 @@ import {
   usePropertyDropdown,
 } from "../../components/properties/services/index";
 import { useBatchOptions } from "../Options/services";
+import { useEmployeeDetailsData } from "../EmployeeDetails/Services/index";
 const BankTransactionFilter = ({
   isOpen,
   onClose,
@@ -22,12 +23,21 @@ const BankTransactionFilter = ({
   resetTrigger,
   availableAccounts,
 }) => {
-  const { data: dropdownData } = usePropertyDropdown({
+  // const { data: dropdownData } = usePropertyDropdown({
+  //   page: 1,
+  //   limit: 10,
+  //   search: "",
+  // });
+
+  const { data: employeeData } = useEmployeeDetailsData({
     page: 1,
-    limit: 10,
-    search: "",
+    limit: 1000,
   });
-  const { data: options = {} } = useBatchOptions(["bankstatus"]);
+  const { data: options = {} } = useBatchOptions([
+    "bankstatus",
+    "expensecategory",
+  ]);
+
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       fromDate: null,
@@ -36,6 +46,8 @@ const BankTransactionFilter = ({
       status: null,
       assignee: null,
       transactionType: null,
+      propertyId: null,
+      expenseCategory: [],
     },
   });
 
@@ -52,7 +64,19 @@ const BankTransactionFilter = ({
       additional: { page: page + 1 },
     };
   };
+
   const statusOptions = options.bankstatus || [];
+
+  const assigneeOptions =
+    employeeData?.data
+      ?.filter((employee) => employee.department === "Account")
+      ?.map((employee) => ({
+        value: employee.employeeName,
+        label: employee.employeeName,
+      })) || [];
+
+  const expenseCategoryOptions = options.expensecategory || [];
+
   const bankAccountOptions = useMemo(() => {
     return availableAccounts.map((account) => ({
       value: account,
@@ -87,7 +111,15 @@ const BankTransactionFilter = ({
 
     if (data.status) filters.status = data.status.value;
 
-    if (data.assignee) filters.userId = data.assignee.value;
+    if (data.assignee) {
+      filters.assignee = data.assignee.value;
+    }
+
+    if (data.expenseCategory?.length) {
+      filters.expenseCategory = data.expenseCategory.map(
+        (option) => option.value,
+      );
+    }
 
     if (data.transactionType) {
       filters.transactionType = data.transactionType.value;
@@ -126,6 +158,22 @@ const BankTransactionFilter = ({
         key: "status",
         label: `Status : ${data.status.label}`,
       },
+
+      data.propertyId && {
+        key: "propertyId",
+        label: `Property : ${data.propertyId.label}`,
+      },
+
+      data.assignee && {
+        key: "assignee",
+        label: `Assignee : ${data.assignee.label}`,
+      },
+      data.expenseCategory?.length > 0 && {
+        key: "expenseCategory",
+        label: `Expense Category : ${data.expenseCategory
+          .map((item) => item.label)
+          .join(", ")}`,
+      },
     ].filter(Boolean);
 
     onApply(filters, labels);
@@ -138,6 +186,13 @@ const BankTransactionFilter = ({
       propertyLocation: null,
       bedCount: null,
       status: null,
+      fromDate: null,
+      toDate: null,
+      bankAccount: null,
+      assignee: null,
+      propertyId: null,
+      expenseCategory: [],
+      transactionType: null,
     });
   }, [resetTrigger, reset]);
   useEffect(() => {
@@ -146,19 +201,44 @@ const BankTransactionFilter = ({
     reset({
       fromDate: filters.fromDate ? new Date(filters.fromDate) : null,
       toDate: filters.toDate ? new Date(filters.toDate) : null,
+
       bankAccount: filters.account
         ? bankAccountOptions.find((x) => x.value === filters.account)
         : null,
+
       status: filters.status
         ? statusOptions.find((x) => x.value === filters.status)
         : null,
       transactionType: filters.transactionType
         ? transactionTypeOptions.find(
-            (x) => x.value === filters.transactionType,
-          )
+          (x) => x.value === filters.transactionType,
+        )
         : null,
+      expenseCategory: Array.isArray(filters?.expenseCategory)
+        ? filters.expenseCategory.map((value) => {
+          const option = expenseCategoryOptions.find(
+            (x) => x.value === value,
+          );
+
+          return (
+            option || {
+              value,
+              label: value,
+            }
+          );
+        })
+        : [],
+
+      assignee: filters?.assignee
+        ? {
+          value: filters.assignee,
+          label: filters.assignee,
+        }
+        : null,
+
     });
-  }, [filters, isOpen, reset, bankAccountOptions]);
+
+  }, [filters, isOpen, reset, bankAccountOptions, expenseCategoryOptions]);
   return (
     <>
       {isOpen && (
@@ -166,9 +246,8 @@ const BankTransactionFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="flex justify-between items-center p-5 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600">
           <h2 className="font-bold text-lg">Filters</h2>
@@ -202,6 +281,50 @@ const BankTransactionFilter = ({
               </div>
             )}
           /> */}
+
+          <Controller
+            name="assignee"
+            control={control}
+            render={({ field }) => (
+              <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <label className="select-label">Assignee</label>
+
+                <Select
+                  options={assigneeOptions}
+                  value={field.value}
+                  onChange={field.onChange}
+                  styles={selectStyles}
+                  isClearable
+                  isSearchable
+                  placeholder="Assignee"
+                />
+              </div>
+            )}
+          />
+          <Controller
+            name="expenseCategory"
+            control={control}
+            render={({ field }) => (
+              <div
+                className={`select-group ${field.value?.length ? "has-value" : ""
+                  }`}
+              >
+                <label className="select-label">Expense Category</label>
+
+                <Select
+                  options={expenseCategoryOptions}
+                  value={field.value}
+                  onChange={field.onChange}
+                  styles={selectStyles}
+                  isClearable
+                  isMulti
+                  isSearchable
+                  placeholder="Expense Category"
+                />
+              </div>
+            )}
+          />
+
           {/* from date */}
           <Controller
             name="fromDate"

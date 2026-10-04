@@ -24,7 +24,7 @@ const BankStatementUpload = () => {
     const [uploadResult, setUploadResult] = useState(null);
     const { mutate: uploadBankStatement, isPending: uploadLoading } =
         useUploadBankStatement();
-
+    const submitLockRef = useRef(false);
     const {
         handleSubmit,
         setValue,
@@ -83,6 +83,10 @@ const BankStatementUpload = () => {
             return;
         }
 
+        if (submitLockRef.current) return;
+        submitLockRef.current = true;
+
+
         uploadBankStatement(
             {
                 file: selectedFile,
@@ -94,7 +98,7 @@ const BankStatementUpload = () => {
 
                     const summary = res?.summary || {};
                     const details = res?.details || {};
-
+                    submitLockRef.current = false;
                     // Upload result save करा
                     setUploadResult({
                         summary,
@@ -124,7 +128,7 @@ const BankStatementUpload = () => {
 
                 onError: (err) => {
                     toast.dismiss();
-
+                    submitLockRef.current = false;
                     toast.error(
                         err?.response?.data?.message ||
                         "Bank statement upload failed"

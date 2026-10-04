@@ -12,7 +12,7 @@ import Pagination from "../common/Pagination";
 // CONSTANTS
 // ============================================================
 
-const ROWS_PER_PAGE = 8;
+const ROWS_PER_PAGE = 20;
 
 const CURRENT_DATE = new Date();
 
@@ -505,7 +505,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                         <tr
                           key={salary?._id || salary?.employeeId || idx}
                           className="
-    group
+                                  group
     border-b border-gray-300
     bg-white
     hover:bg-gray-50 text-md
@@ -516,34 +516,15 @@ const SalaryTable = ({ params = {}, onView }) => {
                       ================================================= */}
 
                           <td
-                            className="
-    sticky left-0 z-20
-    bg-white
-    group-hover:bg-gray-50
-    border-r border-gray-300
-    px-2 py-1.5
-    text-center
-   
-    whitespace-nowrap
-  "
+                            className="sticky left-0 z-20 bg-white group-hover:bg-gray-50 border-r border-gray-300 px-2 py-1.5 text-center whitespace-nowrap"
                           >
                             {(currentPage - 1) * ROWS_PER_PAGE + idx + 1}
                           </td>
                           {/* =================================================
                           EMPLOYEE ID
                       ================================================= */}
-
                           <td
-                            className="
-    sticky left-[42px] z-20
-    bg-white
-    group-hover:bg-gray-50
-    border-r border-gray-300
-    px-2 py-1.5
-   
-    font-semibold
-    whitespace-nowrap
-  "
+                            className="sticky left-[42px] z-20 bg-white group-hover:bg-gray-50 border-r border-gray-300 px-2 py-1.5 font-semibold whitespace-nowrap"
                           >
                             {salary.employeeId || "-"}
                           </td>
@@ -553,15 +534,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                       ================================================= */}
 
                           <td
-                            className="
-    sticky left-[130px] z-20
-    bg-white
-    group-hover:bg-gray-50
-    border-r border-gray-300
-    px-3 py-1.5
-  
-    whitespace-nowrap
-  "
+                            className="sticky left-[130px] z-20 bg-white group-hover:bg-gray-50 border-r border-gray-300 px-3 py-1.5 whitespace-nowrap"
                           >
                             <div className="flex flex-col leading-tight">
                               <span className="text-md font-semibold text-gray-800">
@@ -648,17 +621,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                       ================================================= */}
 
                           <td
-                            className="
-    px-3 py-1.5
-    text-center
-   
-    font-bold
-    text-gray-800
-    whitespace-nowrap
-    border-r border-gray-300
-    bg-gray-50
-    group-hover:bg-gray-100
-  "
+                            className="px-3 py-1.5 text-center font-bold text-gray-800 whitespace-nowrap border-r border-gray-300 bg-gray-50 group-hover:bg-gray-100"
                           >
                             {totalPresentDays}
                           </td>

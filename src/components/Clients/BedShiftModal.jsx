@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import Select from "react-select";
 import { useForm, Controller } from "react-hook-form";
 import { X } from "lucide-react";
@@ -13,7 +13,6 @@ import DatePicker from "react-datepicker";
 import { AsyncPaginate } from "react-select-async-paginate";
 const schema = yup.object({
   propertyId: yup.string().required("Property is required"),
-
   bedId: yup.string().required("Bed is required"),
   startDate: yup.string().required("New property start date is required"),
   endDate: yup.string().required("Existing property end date is required"),
@@ -38,11 +37,8 @@ const BedShiftModal = ({ isOpen, onClose, client, getAvailableBeds }) => {
     useAvailableBedsData();
   const { mutate: transferBed, isPending: isTransferBed } = useTransferBed();
 
-     const selectedPropertyId = watch("propertyId");
-      console.log(111111111111, selectedPropertyId)
-
-
-
+  const selectedPropertyId = watch("propertyId");
+  const submitLockRef = useRef(false);
   // ============================================================
   // PROPERTY DROPDOWN
   // Same API/pagination logic as BedFilter
@@ -108,6 +104,9 @@ const BedShiftModal = ({ isOpen, onClose, client, getAvailableBeds }) => {
   if (!isOpen) return null;
 
   const onSubmit = (data) => {
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
+
     const propertyId = data.propertyId?.split(",")[0];
 
     const bedId = data.bedId?.split(",")[0];
@@ -124,10 +123,10 @@ const BedShiftModal = ({ isOpen, onClose, client, getAvailableBeds }) => {
         onSuccess: (response) => {
           toast.success(
             response?.message ||
-              response?.data?.message ||
-              "Bed transferred successfully",
+            response?.data?.message ||
+            "Bed transferred successfully",
           );
-
+           submitLockRef.current = false;
           onClose();
           reset();
         },
@@ -135,9 +134,10 @@ const BedShiftModal = ({ isOpen, onClose, client, getAvailableBeds }) => {
         onError: (error) => {
           toast.error(
             error?.response?.data?.message ||
-              error?.message ||
-              "Something went wrong",
+            error?.message ||
+            "Something went wrong",
           );
+          submitLockRef.current = false
         },
       },
     );
@@ -258,9 +258,8 @@ const BedShiftModal = ({ isOpen, onClose, client, getAvailableBeds }) => {
               control={control}
               render={({ field }) => (
                 <div
-                  className={`datepicker-group ${
-                    field.value ? "has-value" : ""
-                  }`}
+                  className={`datepicker-group ${field.value ? "has-value" : ""
+                    }`}
                 >
                   <label className="datepicker-label required-label">
                     Existing Property End Date
@@ -310,9 +309,8 @@ const BedShiftModal = ({ isOpen, onClose, client, getAvailableBeds }) => {
               control={control}
               render={({ field }) => (
                 <div
-                  className={`datepicker-group ${
-                    field.value ? "has-value" : ""
-                  }`}
+                  className={`datepicker-group ${field.value ? "has-value" : ""
+                    }`}
                 >
                   <label className="datepicker-label required-label">
                     New Property Start Date
@@ -344,9 +342,13 @@ const BedShiftModal = ({ isOpen, onClose, client, getAvailableBeds }) => {
             >
               Cancel
             </button>
-
-            <button type="submit" className="px-5 py-2.5 rounded-xl theme-btn">
-              Shift Bed
+            <button
+              type="submit"
+              disabled={isTransferBed}
+              className={`px-5 py-2.5 rounded-xl theme-btn ${isTransferBed ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+            >
+              {isTransferBed ? "Shifting..." : "Shift Bed"}
             </button>
           </div>
         </form>

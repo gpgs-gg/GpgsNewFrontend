@@ -8,7 +8,12 @@ import "react-datepicker/dist/react-datepicker.css";
 import { selectStyles } from "../../utils/selectStyles";
 import Loader from "../common/Loader";
 import { usePropertiesDropdown } from "../beds/services";
-import { useAvailableBedsData, useCreateNewBooking, useSingleNewBookingData, useUpdateNewBooking } from "./services";
+import {
+  useAvailableBedsData,
+  useCreateNewBooking,
+  useSingleNewBookingData,
+  useUpdateNewBooking,
+} from "./services";
 import BookingConfirmationModal from "./BookingConfirmationModal";
 import { formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { getPropertyDropdown } from "../properties/services";
@@ -17,28 +22,19 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAuthorization } from "../../context/AuthorizationContext";
 import { useAuth } from "../../context/authContext";
+import BookingEnquiryList from "./BookingEnquiryList";
 const NewBookingCreateEdit = () => {
   const dailyDetailsSchema = yup.object({
-    dailyPropertyId: yup
-      .mixed()
-      .required("Daily Property Code is required"),
+    dailyPropertyId: yup.mixed().required("Daily Property Code is required"),
 
-    dailyBedId: yup
-      .string()
-      .required("Bed No is required"),
+    dailyBedId: yup.string().required("Bed No is required"),
 
-    dailyRoomNo: yup
-      .string()
-      .trim()
-      .required("Room No is required"),
+    dailyRoomNo: yup.string().trim().required("Room No is required"),
 
     dailyAcRoom: yup
       .string()
       .required("AC / Non AC is required")
-      .oneOf(
-        ["AC", "Non AC"],
-        "Select a valid AC / Non AC "
-      ),
+      .oneOf(["AC", "Non AC"], "Select a valid AC / Non AC "),
 
     dailyMonthlyRent: yup
       .number()
@@ -57,7 +53,7 @@ const NewBookingCreateEdit = () => {
       .typeError("Invalid Client Last Date")
       .min(
         yup.ref("dailyClientDoj"),
-        "Client Last Date cannot be before Client DOJ"
+        "Client Last Date cannot be before Client DOJ",
       ),
 
     dailyclientCalculatedRent: yup
@@ -130,24 +126,14 @@ const NewBookingCreateEdit = () => {
     askFor: yup
       .string()
       .required("Please select Ask For")
-      .oneOf(
-        ["PA", "BA", "FA"],
-        "Please select a valid Ask For option"
-      ),
+      .oneOf(["PA", "BA", "FA"], "Please select a valid Ask For option"),
 
     // ================= PERMANENT PROPERTY =================
-    propertyId: yup
-      .mixed()
-      .required("Property Code is required"),
+    propertyId: yup.mixed().required("Property Code is required"),
 
-    bedId: yup
-      .string()
-      .required("Bed No is required"),
+    bedId: yup.string().required("Bed No is required"),
 
-    roomNo: yup
-      .string()
-      .trim()
-      .required("Room No is required"),
+    roomNo: yup.string().trim().required("Room No is required"),
 
     acRoom: yup
       .string()
@@ -177,7 +163,7 @@ const NewBookingCreateEdit = () => {
       .typeError("Invalid Client Last Date")
       .min(
         yup.ref("clientDoj"),
-        "Client Last Date cannot be before Client DOJ"
+        "Client Last Date cannot be before Client DOJ",
       ),
 
     clientCalculatedRent: yup
@@ -228,8 +214,7 @@ const NewBookingCreateEdit = () => {
           schema
             .required("Partial Amount is required")
             .min(1, "Partial Amount must be greater than 0"),
-        otherwise: (schema) =>
-          schema.notRequired().nullable(),
+        otherwise: (schema) => schema.notRequired().nullable(),
       }),
   });
 
@@ -285,16 +270,14 @@ const NewBookingCreateEdit = () => {
     askFor: yup
       .string()
       .required("Please select Ask For")
-      .oneOf(
-        ["PA", "BA", "FA"],
-        "Please select a valid Ask For option"
-      ),
-  })
+      .oneOf(["PA", "BA", "FA"], "Please select a valid Ask For option"),
+  });
 
   const [applyPermBedRent, setApplyPermBedRent] = useState(true);
   const [showDojWarningModal, setShowDojWarningModal] = useState(false);
   const [pendingDoj, setPendingDoj] = useState(null);
   const [pendingCvd, setPendingCvd] = useState(null);
+  const [showEnquiries, setShowEnquiries] = useState(null);
   const submitLockRef = useRef(false);
 
   const validationSchema = yup.object({
@@ -336,11 +319,15 @@ const NewBookingCreateEdit = () => {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [formPreviewData, setFormPreviewData] = useState(null);
   const [activeTab, setActiveTab] = useState("Permanent");
-  const { data: bedAvailableData, isPending: isBedAvailableData } = useAvailableBedsData()
-  const { mutate: submitNewBooking, isPending: isSubmitNewBooking } = useCreateNewBooking();
-  const { mutate: updateNewBooking, isPending: isUpdateNewBooking } = useUpdateNewBooking();
+  const { data: bedAvailableData, isPending: isBedAvailableData } =
+    useAvailableBedsData();
+  const { mutate: submitNewBooking, isPending: isSubmitNewBooking } =
+    useCreateNewBooking();
+  const { mutate: updateNewBooking, isPending: isUpdateNewBooking } =
+    useUpdateNewBooking();
   // const { mutate: updateNewBooking, isPending: isUpdateNewBooking } = useUpdateNewBooking();
-  const { data: bookingData, isPending: isBookingLoading } = useSingleNewBookingData(id);
+  const { data: bookingData, isPending: isBookingLoading } =
+    useSingleNewBookingData(id);
   // watch section Permanent
   const selectedPropertyId = watch("propertyId")?.value;
 
@@ -371,15 +358,16 @@ const NewBookingCreateEdit = () => {
   };
 
   // permanent property Logic ............................... start
-  const bedOptions = bedAvailableData?.data
-    ?.filter(
-      (bed) => bed.propertyId?._id === selectedPropertyId?.split(",")[0]
-    )
-    ?.map((bed) => ({
-      value: `${bed._id},${bed.bedNo}`,
-      label: `${bed.bedNo}`,
-      bedData: bed,
-    })) || [];
+  const bedOptions =
+    bedAvailableData?.data
+      ?.filter(
+        (bed) => bed.propertyId?._id === selectedPropertyId?.split(",")[0],
+      )
+      ?.map((bed) => ({
+        value: `${bed._id},${bed.bedNo}`,
+        label: `${bed.bedNo}`,
+        bedData: bed,
+      })) || [];
 
   useEffect(() => {
     if (!selectedbedId) {
@@ -391,9 +379,7 @@ const NewBookingCreateEdit = () => {
       setValue("clientCalculatedRent", "");
       return;
     }
-    const selectedBed = bedOptions.find(
-      (bed) => bed.value === selectedbedId
-    );
+    const selectedBed = bedOptions.find((bed) => bed.value === selectedbedId);
     if (!selectedBed) return;
     const bedData = selectedBed.bedData;
     setValue("roomNo", bedData.roomNo);
@@ -409,9 +395,7 @@ const NewBookingCreateEdit = () => {
   useEffect(() => {
     if (watchClientDoj && watchMonthlyRent) {
       const start = new Date(watchClientDoj);
-      const end = watchClientLastDate
-        ? new Date(watchClientLastDate)
-        : null;
+      const end = watchClientLastDate ? new Date(watchClientLastDate) : null;
 
       start.setHours(0, 0, 0, 0);
       if (end) end.setHours(0, 0, 0, 0);
@@ -440,10 +424,8 @@ const NewBookingCreateEdit = () => {
 
         while (
           currentDate.getFullYear() < end.getFullYear() ||
-          (
-            currentDate.getFullYear() === end.getFullYear() &&
-            currentDate.getMonth() <= end.getMonth()
-          )
+          (currentDate.getFullYear() === end.getFullYear() &&
+            currentDate.getMonth() <= end.getMonth())
         ) {
           const year = currentDate.getFullYear();
           const month = currentDate.getMonth();
@@ -452,18 +434,17 @@ const NewBookingCreateEdit = () => {
 
           const startDay =
             currentDate.getFullYear() === start.getFullYear() &&
-              currentDate.getMonth() === start.getMonth()
+            currentDate.getMonth() === start.getMonth()
               ? start.getDate()
               : 1;
 
           const endDay =
             currentDate.getFullYear() === end.getFullYear() &&
-              currentDate.getMonth() === end.getMonth()
+            currentDate.getMonth() === end.getMonth()
               ? Math.min(end.getDate(), billingDays)
               : billingDays;
 
-          const daysInPeriod =
-            endDay - startDay + 1;
+          const daysInPeriod = endDay - startDay + 1;
 
           remainingDays += Math.max(daysInPeriod, 0);
 
@@ -475,10 +456,8 @@ const NewBookingCreateEdit = () => {
 
         while (
           currentDate.getFullYear() < end.getFullYear() ||
-          (
-            currentDate.getFullYear() === end.getFullYear() &&
-            currentDate.getMonth() <= end.getMonth()
-          )
+          (currentDate.getFullYear() === end.getFullYear() &&
+            currentDate.getMonth() <= end.getMonth())
         ) {
           const year = currentDate.getFullYear();
           const month = currentDate.getMonth();
@@ -487,22 +466,19 @@ const NewBookingCreateEdit = () => {
 
           const startDay =
             currentDate.getFullYear() === start.getFullYear() &&
-              currentDate.getMonth() === start.getMonth()
+            currentDate.getMonth() === start.getMonth()
               ? start.getDate()
               : 1;
 
-       
           const endDay =
             currentDate.getFullYear() === end.getFullYear() &&
-              currentDate.getMonth() === end.getMonth()
+            currentDate.getMonth() === end.getMonth()
               ? Math.min(end.getDate(), billingDays)
               : billingDays;
 
-          const daysInPeriod =
-            endDay - startDay + 1;
+          const daysInPeriod = endDay - startDay + 1;
 
-          const dailyRent =
-            Number(watchMonthlyRent) / billingDays;
+          const dailyRent = Number(watchMonthlyRent) / billingDays;
 
           totalRent += dailyRent * Math.max(daysInPeriod, 0);
 
@@ -518,28 +494,18 @@ const NewBookingCreateEdit = () => {
 
         const startDay = start.getDate();
 
-        const remainingDays =
-          billingDays - startDay + 1;
+        const remainingDays = billingDays - startDay + 1;
 
-        const dailyRent =
-          Number(watchMonthlyRent) / billingDays;
+        const dailyRent = Number(watchMonthlyRent) / billingDays;
 
-        totalRent = Math.round(
-          dailyRent * remainingDays
-        );
+        totalRent = Math.round(dailyRent * remainingDays);
       }
 
       setValue("clientCalculatedRent", totalRent);
     } else {
       setValue("clientCalculatedRent", "");
     }
-  }, [
-    watchClientDoj,
-    watchClientLastDate,
-    watchMonthlyRent,
-    setValue,
-  ]);
-
+  }, [watchClientDoj, watchClientLastDate, watchMonthlyRent, setValue]);
 
   useEffect(() => {
     if (!selectedPropertyId) {
@@ -555,28 +521,10 @@ const NewBookingCreateEdit = () => {
   // permanent property Logic ...............................end
 
   // Temporary property Logic ...............................start
-  const TempBedOptions = bedAvailableData?.data
-    ?.filter(
-      (bed) => bed.propertyId?._id === selectedTempPropertyId?.split(",")[0]
-    )
-    ?.map((bed) => ({
-      value: `${bed._id},${bed.bedNo}`,
-      label: `${bed.bedNo}`,
-      bedData: bed,
-    })) || [];
-
-  const selectedDailyPropertyId =
-    watch("dailyPropertyId")?.value;
-  const watchDailyClientDoj = watch("dailyClientDoj");
-  const watchDailyClientLastDate = watch("dailyClientLastDate");
-  const watchDailyMonthlyRent = watch("dailyMonthlyRent");
-
-  const DailyBedOptions =
+  const TempBedOptions =
     bedAvailableData?.data
       ?.filter(
-        (bed) =>
-          bed.propertyId?._id ===
-          selectedDailyPropertyId?.split(",")[0]
+        (bed) => bed.propertyId?._id === selectedTempPropertyId?.split(",")[0],
       )
       ?.map((bed) => ({
         value: `${bed._id},${bed.bedNo}`,
@@ -584,6 +532,21 @@ const NewBookingCreateEdit = () => {
         bedData: bed,
       })) || [];
 
+  const selectedDailyPropertyId = watch("dailyPropertyId")?.value;
+  const watchDailyClientDoj = watch("dailyClientDoj");
+  const watchDailyClientLastDate = watch("dailyClientLastDate");
+  const watchDailyMonthlyRent = watch("dailyMonthlyRent");
+
+  const DailyBedOptions =
+    bedAvailableData?.data
+      ?.filter(
+        (bed) => bed.propertyId?._id === selectedDailyPropertyId?.split(",")[0],
+      )
+      ?.map((bed) => ({
+        value: `${bed._id},${bed.bedNo}`,
+        label: `${bed.bedNo}`,
+        bedData: bed,
+      })) || [];
 
   useEffect(() => {
     if (watchDailyClientDoj && watchDailyMonthlyRent) {
@@ -605,11 +568,7 @@ const NewBookingCreateEdit = () => {
 
       // ================= BILLING DAYS =================
       const getBillingDays = (year, month) => {
-        const actualDays = new Date(
-          year,
-          month + 1,
-          0
-        ).getDate();
+        const actualDays = new Date(year, month + 1, 0).getDate();
 
         // 31 days => 30
         // 30 days => 30
@@ -625,10 +584,8 @@ const NewBookingCreateEdit = () => {
 
         while (
           currentDate.getFullYear() < end.getFullYear() ||
-          (
-            currentDate.getFullYear() === end.getFullYear() &&
-            currentDate.getMonth() <= end.getMonth()
-          )
+          (currentDate.getFullYear() === end.getFullYear() &&
+            currentDate.getMonth() <= end.getMonth())
         ) {
           const year = currentDate.getFullYear();
           const month = currentDate.getMonth();
@@ -636,39 +593,25 @@ const NewBookingCreateEdit = () => {
           const billingDays = getBillingDays(year, month);
 
           const startDay =
-            year === start.getFullYear() &&
-              month === start.getMonth()
+            year === start.getFullYear() && month === start.getMonth()
               ? start.getDate()
               : 1;
 
-          const actualLastDay = new Date(
-            year,
-            month + 1,
-            0
-          ).getDate();
+          const actualLastDay = new Date(year, month + 1, 0).getDate();
 
           const endDay =
-            year === end.getFullYear() &&
-              month === end.getMonth()
+            year === end.getFullYear() && month === end.getMonth()
               ? end.getDate()
               : actualLastDay;
 
-          const daysInPeriod =
-            endDay - startDay + 1;
+          const daysInPeriod = endDay - startDay + 1;
 
           // Monthly rent → Daily rent
-          const dailyRent =
-            Number(watchDailyMonthlyRent) /
-            billingDays;
+          const dailyRent = Number(watchDailyMonthlyRent) / billingDays;
 
-          totalRent +=
-            dailyRent * Math.max(daysInPeriod, 0);
+          totalRent += dailyRent * Math.max(daysInPeriod, 0);
 
-          currentDate = new Date(
-            year,
-            month + 1,
-            1
-          );
+          currentDate = new Date(year, month + 1, 1);
         }
 
         totalRent = Math.round(totalRent);
@@ -679,34 +622,20 @@ const NewBookingCreateEdit = () => {
         const year = start.getFullYear();
         const month = start.getMonth();
 
-        const billingDays = getBillingDays(
-          year,
-          month
-        );
+        const billingDays = getBillingDays(year, month);
 
         const startDay = start.getDate();
 
-        const remainingDays =
-          billingDays - startDay + 1;
+        const remainingDays = billingDays - startDay + 1;
 
-        const dailyRent =
-          Number(watchDailyMonthlyRent) /
-          billingDays;
+        const dailyRent = Number(watchDailyMonthlyRent) / billingDays;
 
-        totalRent = Math.round(
-          dailyRent * remainingDays
-        );
+        totalRent = Math.round(dailyRent * remainingDays);
       }
 
-      setValue(
-        "dailyclientCalculatedRent",
-        totalRent * 2
-      );
+      setValue("dailyclientCalculatedRent", totalRent * 2);
     } else {
-      setValue(
-        "dailyclientCalculatedRent",
-        ""
-      );
+      setValue("dailyclientCalculatedRent", "");
     }
   }, [
     watchDailyClientDoj,
@@ -715,9 +644,7 @@ const NewBookingCreateEdit = () => {
     setValue,
   ]);
 
-
   useEffect(() => {
-
     if (!selectedTempbedId) {
       setValue("temporaryRoomNo", "");
       setValue("temporaryAcRoom", "");
@@ -728,7 +655,7 @@ const NewBookingCreateEdit = () => {
     }
 
     const selectedTempBed = TempBedOptions.find(
-      (bed) => bed.value === selectedTempbedId
+      (bed) => bed.value === selectedTempbedId,
     );
     if (!selectedTempBed) return;
     const bedData = selectedTempBed.bedData;
@@ -758,11 +685,7 @@ const NewBookingCreateEdit = () => {
       }
 
       const getBillingDays = (year, month) => {
-        const actualDays = new Date(
-          year,
-          month + 1,
-          0
-        ).getDate();
+        const actualDays = new Date(year, month + 1, 0).getDate();
 
         return actualDays === 31 ? 30 : actualDays;
       };
@@ -774,52 +697,33 @@ const NewBookingCreateEdit = () => {
 
         while (
           currentDate.getFullYear() < end.getFullYear() ||
-          (
-            currentDate.getFullYear() === end.getFullYear() &&
-            currentDate.getMonth() <= end.getMonth()
-          )
+          (currentDate.getFullYear() === end.getFullYear() &&
+            currentDate.getMonth() <= end.getMonth())
         ) {
           const year = currentDate.getFullYear();
           const month = currentDate.getMonth();
 
-          const billingDays = getBillingDays(
-            year,
-            month
-          );
+          const billingDays = getBillingDays(year, month);
 
           const startDay =
-            year === start.getFullYear() &&
-              month === start.getMonth()
+            year === start.getFullYear() && month === start.getMonth()
               ? start.getDate()
               : 1;
 
-          const actualLastDay = new Date(
-            year,
-            month + 1,
-            0
-          ).getDate();
+          const actualLastDay = new Date(year, month + 1, 0).getDate();
 
           const endDay =
-            year === end.getFullYear() &&
-              month === end.getMonth()
+            year === end.getFullYear() && month === end.getMonth()
               ? end.getDate()
               : actualLastDay;
 
-          const diffDays =
-            endDay - startDay + 1;
+          const diffDays = endDay - startDay + 1;
 
-          const dailyRent =
-            Number(watchTempMonthlyRent) /
-            billingDays;
+          const dailyRent = Number(watchTempMonthlyRent) / billingDays;
 
-          totalTempRent +=
-            dailyRent * Math.max(diffDays, 0);
+          totalTempRent += dailyRent * Math.max(diffDays, 0);
 
-          currentDate = new Date(
-            year,
-            month + 1,
-            1
-          );
+          currentDate = new Date(year, month + 1, 1);
         }
 
         totalTempRent = Math.round(totalTempRent);
@@ -827,34 +731,20 @@ const NewBookingCreateEdit = () => {
         const year = start.getFullYear();
         const month = start.getMonth();
 
-        const billingDays = getBillingDays(
-          year,
-          month
-        );
+        const billingDays = getBillingDays(year, month);
 
         const startDay = start.getDate();
 
-        const remainingDays =
-          billingDays - startDay + 1;
+        const remainingDays = billingDays - startDay + 1;
 
-        const dailyRent =
-          Number(watchTempMonthlyRent) /
-          billingDays;
+        const dailyRent = Number(watchTempMonthlyRent) / billingDays;
 
-        totalTempRent = Math.round(
-          dailyRent * remainingDays
-        );
+        totalTempRent = Math.round(dailyRent * remainingDays);
       }
 
-      setValue(
-        "temporaryclientCalculatedRent",
-        totalTempRent
-      );
+      setValue("temporaryclientCalculatedRent", totalTempRent);
     } else {
-      setValue(
-        "temporaryclientCalculatedRent",
-        ""
-      );
+      setValue("temporaryclientCalculatedRent", "");
     }
   }, [
     watchTempClientDoj,
@@ -862,8 +752,6 @@ const NewBookingCreateEdit = () => {
     watchTempMonthlyRent,
     setValue,
   ]);
-
-
 
   useEffect(() => {
     if (!selectedTempPropertyId) {
@@ -876,8 +764,6 @@ const NewBookingCreateEdit = () => {
     }
   }, [selectedTempPropertyId, setValue]);
 
-
-
   useEffect(() => {
     if (!selectedDailyPropertyId) {
       setValue("dailyBedId", null);
@@ -888,7 +774,6 @@ const NewBookingCreateEdit = () => {
       return;
     }
   }, [selectedDailyPropertyId, setValue]);
-
 
   const selectedDailyBedId = watch("dailyBedId");
 
@@ -902,7 +787,7 @@ const NewBookingCreateEdit = () => {
     }
 
     const selectedBed = DailyBedOptions.find(
-      (bed) => bed.value === selectedDailyBedId
+      (bed) => bed.value === selectedDailyBedId,
     );
 
     if (!selectedBed) return;
@@ -914,7 +799,6 @@ const NewBookingCreateEdit = () => {
     setValue("dailyMonthlyRent", bedData.monthlyRent || "");
   }, [selectedDailyBedId, DailyBedOptions, setValue]);
 
-
   const askForOptions = [
     { value: "PA", label: "Partial Amount" },
     { value: "BA", label: "Booking Amount" },
@@ -922,15 +806,11 @@ const NewBookingCreateEdit = () => {
   ];
 
   useEffect(() => {
-
     // Fetch data if editing
     if (id) {
       // Fetch booking data here
     }
   }, [id]);
-
-
-
 
   useEffect(() => {
     if (!bookingData?.data) return;
@@ -941,22 +821,22 @@ const NewBookingCreateEdit = () => {
       // React Select values
       propertyId: booking.propertyId
         ? {
-          value: `${booking.propertyId._id},${booking.propertyId.propertyCode}`,
-          label: booking.propertyId.propertyCode,
-          location: booking.propertyId.propertyLocation,
-          bedCount: booking.propertyId.bedCount,
-        }
+            value: `${booking.propertyId._id},${booking.propertyId.propertyCode}`,
+            label: booking.propertyId.propertyCode,
+            location: booking.propertyId.propertyLocation,
+            bedCount: booking.propertyId.bedCount,
+          }
         : null,
       bedId: booking.bedId
         ? `${booking.bedId._id},${booking.bedId.bedNo}`
         : null,
       temporaryPropertyId: booking.temporaryPropertyId
         ? {
-          value: `${booking.temporaryPropertyId._id},${booking.temporaryPropertyId.propertyCode}`,
-          label: booking.temporaryPropertyId.propertyCode,
-          location: booking.temporaryPropertyId.propertyLocation,
-          bedCount: booking.temporaryPropertyId.bedCount,
-        }
+            value: `${booking.temporaryPropertyId._id},${booking.temporaryPropertyId.propertyCode}`,
+            label: booking.temporaryPropertyId.propertyCode,
+            location: booking.temporaryPropertyId.propertyLocation,
+            bedCount: booking.temporaryPropertyId.bedCount,
+          }
         : null,
       temporaryBedId: booking.temporaryBedId
         ? `${booking.temporaryBedId._id},${booking.temporaryBedId.bedNo}`
@@ -989,34 +869,26 @@ const NewBookingCreateEdit = () => {
       parkingCharges: booking.parkingCharges,
       temporaryParkingCharges: booking.temporaryParkingCharges,
       clientCalculatedRent: booking.clientCalculatedRent,
-      temporaryclientCalculatedRent:
-        booking.temporaryclientCalculatedRent,
+      temporaryclientCalculatedRent: booking.temporaryclientCalculatedRent,
       partialAmount: booking.partialAmount,
     });
   }, [bookingData, reset]);
-
 
   useEffect(() => {
     if (!bookingData?.data || !bookingData.data.bedId) return;
 
     const booking = bookingData.data;
 
-    setValue(
-      "bedId",
-      `${booking.bedId._id},${booking.bedId.bedNo}`,
-      {
-        shouldValidate: false,
-        shouldDirty: false,
-      }
-    );
+    setValue("bedId", `${booking.bedId._id},${booking.bedId.bedNo}`, {
+      shouldValidate: false,
+      shouldDirty: false,
+    });
   }, [bookingData, setValue]);
-
 
   const onSubmit = (data) => {
     setFormPreviewData(data);
     setShowConfirmationModal(true);
   };
-
 
   const handleFinalSubmit = async (onSuccessCallback) => {
     // Prevent duplicate API calls even if user clicks multiple times
@@ -1075,11 +947,7 @@ const NewBookingCreateEdit = () => {
         }
 
         // Baaki fields
-        else if (
-          value !== undefined &&
-          value !== null &&
-          value !== ""
-        ) {
+        else if (value !== undefined && value !== null && value !== "") {
           payload[key] = value;
         }
       });
@@ -1089,8 +957,12 @@ const NewBookingCreateEdit = () => {
       const depositAmount = Number(payload.depositAmount || 0);
       const processingFees = Number(payload.processingFees || 0);
       const parkingCharges = Number(payload.parkingCharges || 0);
-      const temporaryParkingCharges = Number(payload.temporaryParkingCharges || 0);
-      const temporaryclientCalculatedRent = Number(payload.temporaryclientCalculatedRent || 0);
+      const temporaryParkingCharges = Number(
+        payload.temporaryParkingCharges || 0,
+      );
+      const temporaryclientCalculatedRent = Number(
+        payload.temporaryclientCalculatedRent || 0,
+      );
       const partialAmount = Number(payload.partialAmount || 0);
       // const dailyMonthlyRent = Number(
       //   payload.dailyMonthlyRent || 0
@@ -1105,12 +977,23 @@ const NewBookingCreateEdit = () => {
       // );
 
       // agr daily boking uncomment kro to ye comment kro .....................
-      payload.totalAmount = (applyPermBedRent ? Number(clientCalculatedRent || 0) : 0) + depositAmount + processingFees + parkingCharges + temporaryclientCalculatedRent + temporaryParkingCharges
+      payload.totalAmount =
+        (applyPermBedRent ? Number(clientCalculatedRent || 0) : 0) +
+        depositAmount +
+        processingFees +
+        parkingCharges +
+        temporaryclientCalculatedRent +
+        temporaryParkingCharges;
       // payload.bookingAmount = payload.askFor === "FA" ? payload.totalAmount : monthlyRent;
-      payload.bookingAmount = payload.askFor === "FA" ? payload.totalAmount : payload.askFor === "PA" ? partialAmount : monthlyRent;
-      payload.balanceAmount =
-        payload.totalAmount - payload.bookingAmount;
-      payload.temporaryTotalAmount = temporaryclientCalculatedRent + temporaryParkingCharges;
+      payload.bookingAmount =
+        payload.askFor === "FA"
+          ? payload.totalAmount
+          : payload.askFor === "PA"
+            ? partialAmount
+            : monthlyRent;
+      payload.balanceAmount = payload.totalAmount - payload.bookingAmount;
+      payload.temporaryTotalAmount =
+        temporaryclientCalculatedRent + temporaryParkingCharges;
 
       // WorkLog / Audit user
       if (id) {
@@ -1118,7 +1001,6 @@ const NewBookingCreateEdit = () => {
       } else {
         payload.createdByName = userName;
       }
-
 
       // ================= DAILY BOOKING =================
       // if (formPreviewData?.isDailyBooking) {
@@ -1170,17 +1052,13 @@ const NewBookingCreateEdit = () => {
       //     temporaryParkingCharges;
       // }
 
-
-
-
-
       if (id) {
         updateNewBooking(
           { id, payload },
           {
             onSuccess: (response) => {
               toast.success(
-                response?.message || "Booking Updated Successfully"
+                response?.message || "Booking Updated Successfully",
               );
               // MongoDB me successfully create hone ke baad
               onSuccessCallback?.();
@@ -1194,18 +1072,16 @@ const NewBookingCreateEdit = () => {
               submitLockRef.current = false;
               toast.error(
                 error?.response?.data?.message ||
-                error?.message ||
-                "Something went wrong"
+                  error?.message ||
+                  "Something went wrong",
               );
             },
-          }
+          },
         );
       } else {
         submitNewBooking(payload, {
           onSuccess: (response) => {
-            toast.success(
-              response?.message || "Booking Created Successfully"
-            );
+            toast.success(response?.message || "Booking Created Successfully");
             // MongoDB me successfully update hone ke baad
             onSuccessCallback?.();
             reset();
@@ -1218,21 +1094,18 @@ const NewBookingCreateEdit = () => {
             submitLockRef.current = false;
             toast.error(
               error?.response?.data?.message ||
-              error?.message ||
-              "Something went wrong"
+                error?.message ||
+                "Something went wrong",
             );
           },
         });
       }
     } catch (error) {
-
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
     }
   };
-
-
 
   const handleDailySubmit = async () => {
     // Prevent duplicate API calls even if user clicks multiple times
@@ -1264,11 +1137,9 @@ const NewBookingCreateEdit = () => {
         temporaryClientLastDate: data.dailyClientLastDate,
 
         temporaryMonthlyRent: data.dailyMonthlyRent,
-        temporaryclientCalculatedRent:
-          data.dailyclientCalculatedRent,
+        temporaryclientCalculatedRent: data.dailyclientCalculatedRent,
 
-        temporaryParkingCharges:
-          data.dailyParkingCharges,
+        temporaryParkingCharges: data.dailyParkingCharges,
 
         temporaryComments: data.dailyComments,
 
@@ -1277,9 +1148,7 @@ const NewBookingCreateEdit = () => {
       });
 
       setShowConfirmationModal(true);
-
-    }
-    catch (error) {
+    } catch (error) {
       if (error.inner?.length) {
         toast.dismiss();
 
@@ -1288,20 +1157,29 @@ const NewBookingCreateEdit = () => {
           autoClose: 3000,
         });
       } else {
-        toast.error(
-          error.message || "Please check the form"
-        );
+        toast.error(error.message || "Please check the form");
       }
     }
   };
-
 
   return (
     <div className="max-w-12xl mx-auto px-4 ">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Client Details Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Client Details</h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Client Details
+            </h2>{" "}
+            <button
+              type="button"
+              onClick={() => setShowEnquiries(true)}
+              className="mb-4 border px-2 border-gray-100 rounded hover:font-bold hover:border-gray-400"
+            >
+              {" "}
+              Check Booking Enquiries{" "}
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="form-group">
               <input
@@ -1322,9 +1200,7 @@ const NewBookingCreateEdit = () => {
                 }}
               />
 
-              <label className="form-label required-label">
-                Full Name
-              </label>
+              <label className="form-label required-label">Full Name</label>
 
               {errors.fullName && (
                 <p className="text-red-500 text-xs mt-1">
@@ -1339,16 +1215,13 @@ const NewBookingCreateEdit = () => {
                 type="number"
                 className="form-input"
               />
-              <label className="form-label required-label">
-                WhatsApp No.
-              </label>
+              <label className="form-label required-label">WhatsApp No.</label>
               {errors.whatsappNo && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.whatsappNo.message}
                 </p>
               )}
             </div>
-
 
             <div className="form-group">
               <input
@@ -1357,9 +1230,7 @@ const NewBookingCreateEdit = () => {
                 type="number"
                 className="form-input"
               />
-              <label className="form-label required-label">
-                Calling No.
-              </label>
+              <label className="form-label required-label">Calling No.</label>
               {errors.callingNo && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.callingNo.message}
@@ -1373,7 +1244,8 @@ const NewBookingCreateEdit = () => {
                 className="form-input"
               />
               <label className="form-label required-label">
-                Emergency Contact1 Full Name </label>
+                Emergency Contact1 Full Name{" "}
+              </label>
               {errors.emergencyContact1FullName && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.emergencyContact1FullName.message}
@@ -1404,7 +1276,8 @@ const NewBookingCreateEdit = () => {
                 className="form-input"
               />
               <label className="form-label required-label">
-                Emergency Contact2 Full Name </label>
+                Emergency Contact2 Full Name{" "}
+              </label>
               {errors.emergencyContact2FullName && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.emergencyContact2FullName.message}
@@ -1429,15 +1302,13 @@ const NewBookingCreateEdit = () => {
               )}
             </div>
 
-
             <div className="form-group">
               <input
                 {...register("emailId")}
                 placeholder=" "
                 className="form-input"
               />
-              <label className="form-label required-label">
-                Email Id </label>
+              <label className="form-label required-label">Email Id </label>
               {errors.emailId && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.emailId.message}
@@ -1449,10 +1320,10 @@ const NewBookingCreateEdit = () => {
               control={control}
               defaultValue={null}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                  <label className="select-label required-label">
-                    AskFor
-                  </label>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label required-label">AskFor</label>
 
                   <Select
                     {...field}
@@ -1460,7 +1331,7 @@ const NewBookingCreateEdit = () => {
                     isClearable
                     placeholder=""
                     value={askForOptions.find(
-                      (option) => option.value === field.value
+                      (option) => option.value === field.value,
                     )}
                     onChange={(selectedOption) =>
                       field.onChange(selectedOption?.value)
@@ -1475,7 +1346,6 @@ const NewBookingCreateEdit = () => {
                 </div>
               )}
             />
-
           </div>
         </div>
         {/* Tabs Section */}
@@ -1483,10 +1353,11 @@ const NewBookingCreateEdit = () => {
           <button
             type="button"
             onClick={() => setActiveTab("Permanent")}
-            className={`px-4 py-2 rounded-lg font-medium  ${activeTab === "Permanent"
-              ? "theme-btn text-white"
-              : "bg-gray-100 text-gray-700"
-              }`}
+            className={`px-4 py-2 rounded-lg font-medium  ${
+              activeTab === "Permanent"
+                ? "theme-btn text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
           >
             Permanent Property Details
           </button>
@@ -1494,10 +1365,11 @@ const NewBookingCreateEdit = () => {
           <button
             type="button"
             onClick={() => setActiveTab("Temporary")}
-            className={`px-4 py-2 rounded-lg font-medium ${activeTab === "Temporary"
-              ? "theme-btn text-white"
-              : "bg-gray-100 text-gray-700"
-              }`}
+            className={`px-4 py-2 rounded-lg font-medium ${
+              activeTab === "Temporary"
+                ? "theme-btn text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
           >
             Temporary Property Details
           </button>
@@ -1505,10 +1377,11 @@ const NewBookingCreateEdit = () => {
           <button
             type="button"
             onClick={() => setActiveTab("daily")}
-            className={`px-4 py-2 rounded-lg font-medium ${activeTab === "daily"
-              ? "theme-btn text-white"
-              : "bg-gray-100 text-gray-700"
-              }`}
+            className={`px-4 py-2 rounded-lg font-medium ${
+              activeTab === "daily"
+                ? "theme-btn text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
           >
             Daily Basis Property Detials
           </button>
@@ -1517,14 +1390,18 @@ const NewBookingCreateEdit = () => {
         {/* Permanent Property Details Section */}
         {activeTab === "Permanent" && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Permanent Property Details</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Permanent Property Details
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Controller
                 name="propertyId"
                 control={control}
                 defaultValue={null}
                 render={({ field }) => (
-                  <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                  <div
+                    className={`select-group ${field.value ? "has-value" : ""}`}
+                  >
                     <label className="select-label required-label">
                       Property Code
                     </label>
@@ -1554,7 +1431,9 @@ const NewBookingCreateEdit = () => {
                 control={control}
                 defaultValue={null}
                 render={({ field }) => (
-                  <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                  <div
+                    className={`select-group ${field.value ? "has-value" : ""}`}
+                  >
                     <label className="select-label required-label">
                       Bed No
                     </label>
@@ -1565,7 +1444,7 @@ const NewBookingCreateEdit = () => {
                       isClearable
                       placeholder=""
                       value={bedOptions.find(
-                        (option) => option.value === field.value
+                        (option) => option.value === field.value,
                       )}
                       onChange={(selectedOption) =>
                         field.onChange(selectedOption?.value || null)
@@ -1589,9 +1468,7 @@ const NewBookingCreateEdit = () => {
                   disabled
                   className="form-input"
                 />
-                <label className="form-label required-label">
-                  Room No
-                </label>
+                <label className="form-label required-label">Room No</label>
                 {errors.roomNo && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.roomNo.message}
@@ -1606,9 +1483,7 @@ const NewBookingCreateEdit = () => {
                   className="form-input"
                   disabled
                 />
-                <label className="form-label required-label">
-                  AC / Non AC
-                </label>
+                <label className="form-label required-label">AC / Non AC</label>
                 {errors.acRoom && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.acRoom.message}
@@ -1699,8 +1574,9 @@ const NewBookingCreateEdit = () => {
                 control={control}
                 render={({ field }) => (
                   <div
-                    className={`datepicker-group ${field.value ? "has-value" : ""
-                      }`}
+                    className={`datepicker-group ${
+                      field.value ? "has-value" : ""
+                    }`}
                   >
                     <label className="datepicker-label required-label">
                       Client DOJ
@@ -1711,16 +1587,12 @@ const NewBookingCreateEdit = () => {
                       selected={field.value}
                       onChange={(date) => {
                         const selectedBed = bedOptions.find(
-                          (bed) => bed.value === selectedbedId
+                          (bed) => bed.value === selectedbedId,
                         );
 
                         const cvd =
                           selectedBed?.bedData?.client?.clientVacatingDate;
-                        if (
-                          date &&
-                          cvd &&
-                          new Date(cvd) > date
-                        ) {
+                        if (date && cvd && new Date(cvd) > date) {
                           // Selected date temporarily save karo
                           setPendingDoj(date);
                           setPendingCvd(cvd);
@@ -1749,8 +1621,9 @@ const NewBookingCreateEdit = () => {
                 control={control}
                 render={({ field }) => (
                   <div
-                    className={`datepicker-group ${field.value ? "has-value" : ""
-                      }`}
+                    className={`datepicker-group ${
+                      field.value ? "has-value" : ""
+                    }`}
                   >
                     <label className="datepicker-label">
                       Client Last Date (Optional)
@@ -1806,9 +1679,7 @@ const NewBookingCreateEdit = () => {
                   type="number"
                   className="form-input"
                 />
-                <label className="form-label ">
-                  Parking Charges ( ₹ )
-                </label>
+                <label className="form-label ">Parking Charges ( ₹ )</label>
                 {/* {errors.parkingCharges && (
                   <p className="text-red-500 text-xs mt-1">
                     {errors.parkingCharges.message}
@@ -1824,9 +1695,7 @@ const NewBookingCreateEdit = () => {
                   className="form-input"
                   disabled
                 />
-                <label className="form-label">
-                  Upcoming Rent Hike Date
-                </label>
+                <label className="form-label">Upcoming Rent Hike Date</label>
               </div>
               <div className="form-group">
                 <input
@@ -1836,13 +1705,8 @@ const NewBookingCreateEdit = () => {
                   className="form-input"
                   disabled
                 />
-                <label className="form-label ">
-                  Upcoming Rent Hike Amount
-                </label>
+                <label className="form-label ">Upcoming Rent Hike Amount</label>
               </div>
-
-
-
 
               <div className="form-group">
                 <input
@@ -1851,9 +1715,7 @@ const NewBookingCreateEdit = () => {
                   type="text"
                   className="form-input"
                 />
-                <label className="form-label ">
-                  Comments
-                </label>
+                <label className="form-label ">Comments</label>
               </div>
 
               {watchAskFor === "PA" && (
@@ -1874,25 +1736,25 @@ const NewBookingCreateEdit = () => {
                   )}
                 </div>
               )}
-
-
             </div>
           </div>
         )}
 
-
         {activeTab === "Temporary" && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Temporary Property Details</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Temporary Property Details
+            </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
               <Controller
                 name="temporaryPropertyId"
                 control={control}
                 defaultValue={null}
                 render={({ field }) => (
-                  <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                  <div
+                    className={`select-group ${field.value ? "has-value" : ""}`}
+                  >
                     <label className="select-label required-label">
                       Temporary Property Code
                     </label>
@@ -1918,7 +1780,9 @@ const NewBookingCreateEdit = () => {
                 control={control}
                 defaultValue={null}
                 render={({ field }) => (
-                  <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                  <div
+                    className={`select-group ${field.value ? "has-value" : ""}`}
+                  >
                     <label className="select-label required-label">
                       Bed No
                     </label>
@@ -1929,7 +1793,7 @@ const NewBookingCreateEdit = () => {
                       isClearable
                       placeholder=""
                       value={TempBedOptions.find(
-                        (option) => option.value === field.value
+                        (option) => option.value === field.value,
                       )}
                       onChange={(selectedOption) =>
                         field.onChange(selectedOption?.value || null)
@@ -1948,9 +1812,7 @@ const NewBookingCreateEdit = () => {
                   className="form-input"
                   disabled
                 />
-                <label className="form-label required-label">
-                  Room No
-                </label>
+                <label className="form-label required-label">Room No</label>
               </div>
               <div className="form-group">
                 <input
@@ -1960,12 +1822,8 @@ const NewBookingCreateEdit = () => {
                   className="form-input"
                   disabled
                 />
-                <label className="form-label required-label">
-                  AC / Non AC
-                </label>
+                <label className="form-label required-label">AC / Non AC</label>
               </div>
-
-
 
               <div className="form-group">
                 <input
@@ -1985,8 +1843,9 @@ const NewBookingCreateEdit = () => {
                 control={control}
                 render={({ field }) => (
                   <div
-                    className={`datepicker-group ${field.value ? "has-value" : ""
-                      }`}
+                    className={`datepicker-group ${
+                      field.value ? "has-value" : ""
+                    }`}
                   >
                     <label className="datepicker-label required-label">
                       Client DOJ
@@ -2007,8 +1866,9 @@ const NewBookingCreateEdit = () => {
                 control={control}
                 render={({ field }) => (
                   <div
-                    className={`datepicker-group ${field.value ? "has-value" : ""
-                      }`}
+                    className={`datepicker-group ${
+                      field.value ? "has-value" : ""
+                    }`}
                   >
                     <label className="datepicker-label required-label">
                       Client Last Date
@@ -2044,9 +1904,7 @@ const NewBookingCreateEdit = () => {
                   type="number"
                   className="form-input"
                 />
-                <label className="form-label ">
-                  Parking Charges ( ₹ )
-                </label>
+                <label className="form-label ">Parking Charges ( ₹ )</label>
               </div>
               <div className="form-group">
                 <input
@@ -2055,9 +1913,7 @@ const NewBookingCreateEdit = () => {
                   type="text"
                   className="form-input"
                 />
-                <label className="form-label ">
-                  Comments
-                </label>
+                <label className="form-label ">Comments</label>
               </div>
             </div>
           </div>
@@ -2065,16 +1921,19 @@ const NewBookingCreateEdit = () => {
 
         {activeTab === "daily" && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Daily Basis Property Details</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Daily Basis Property Details
+            </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
               <Controller
                 name="dailyPropertyId"
                 control={control}
                 defaultValue={null}
                 render={({ field }) => (
-                  <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                  <div
+                    className={`select-group ${field.value ? "has-value" : ""}`}
+                  >
                     <label className="select-label required-label">
                       Daily Property Code
                     </label>
@@ -2100,7 +1959,9 @@ const NewBookingCreateEdit = () => {
                 control={control}
                 defaultValue={null}
                 render={({ field }) => (
-                  <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                  <div
+                    className={`select-group ${field.value ? "has-value" : ""}`}
+                  >
                     <label className="select-label required-label">
                       Bed No
                     </label>
@@ -2110,9 +1971,11 @@ const NewBookingCreateEdit = () => {
                       options={DailyBedOptions}
                       isClearable
                       placeholder=""
-                      value={DailyBedOptions.find(
-                        (option) => option.value === field.value
-                      ) || null}
+                      value={
+                        DailyBedOptions.find(
+                          (option) => option.value === field.value,
+                        ) || null
+                      }
                       onChange={(selectedOption) =>
                         field.onChange(selectedOption?.value || null)
                       }
@@ -2130,9 +1993,7 @@ const NewBookingCreateEdit = () => {
                   className="form-input"
                   disabled
                 />
-                <label className="form-label required-label">
-                  Room No
-                </label>
+                <label className="form-label required-label">Room No</label>
               </div>
               <div className="form-group">
                 <input
@@ -2142,12 +2003,8 @@ const NewBookingCreateEdit = () => {
                   disabled
                   className="form-input"
                 />
-                <label className="form-label required-label">
-                  AC / Non AC
-                </label>
+                <label className="form-label required-label">AC / Non AC</label>
               </div>
-
-
 
               <div className="form-group">
                 <input
@@ -2167,8 +2024,9 @@ const NewBookingCreateEdit = () => {
                 control={control}
                 render={({ field }) => (
                   <div
-                    className={`datepicker-group ${field.value ? "has-value" : ""
-                      }`}
+                    className={`datepicker-group ${
+                      field.value ? "has-value" : ""
+                    }`}
                   >
                     <label className="datepicker-label required-label">
                       Client DOJ
@@ -2189,8 +2047,9 @@ const NewBookingCreateEdit = () => {
                 control={control}
                 render={({ field }) => (
                   <div
-                    className={`datepicker-group ${field.value ? "has-value" : ""
-                      }`}
+                    className={`datepicker-group ${
+                      field.value ? "has-value" : ""
+                    }`}
                   >
                     <label className="datepicker-label required-label">
                       Client Last Date
@@ -2227,10 +2086,7 @@ const NewBookingCreateEdit = () => {
                   className="form-input"
                 />
 
-
-                <label className="form-label ">
-                  Parking Charges ( ₹ )
-                </label>
+                <label className="form-label ">Parking Charges ( ₹ )</label>
               </div>
               <div className="form-group">
                 <input
@@ -2239,9 +2095,7 @@ const NewBookingCreateEdit = () => {
                   type="text"
                   className="form-input"
                 />
-                <label className="form-label ">
-                  Comments
-                </label>
+                <label className="form-label ">Comments</label>
               </div>
             </div>
           </div>
@@ -2345,11 +2199,8 @@ const NewBookingCreateEdit = () => {
             Cancel
           </button>
 
-
-
           {!isViewMode && (
             <>
-
               {activeTab === "daily" ? (
                 <>
                   {((id && canEditNewBooking) || (!id && canAddNewBooking)) && (
@@ -2379,9 +2230,7 @@ const NewBookingCreateEdit = () => {
                   {((id && canEditNewBooking) || (!id && canAddNewBooking)) && (
                     <button
                       type="submit"
-                      disabled={
-                        isLoading
-                      }
+                      disabled={isLoading}
                       className="flex-1 sm:flex-none px-6 py-2.5 theme-btn transition-colors flex items-center justify-center gap-2"
                     >
                       {isLoading ? (
@@ -2398,8 +2247,6 @@ const NewBookingCreateEdit = () => {
                   )}
                 </>
               )}
-
-
             </>
           )}
         </div>
@@ -2413,11 +2260,13 @@ const NewBookingCreateEdit = () => {
         setApplyPermBedRent={setApplyPermBedRent}
         applyPermBedRent={applyPermBedRent}
       />
-
+      <BookingEnquiryList
+        isOpen={showEnquiries}
+        onClose={() => setShowEnquiries(false)}
+      />
       {showDojWarningModal && (
         <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 px-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
               Confirm Client DOJ
             </h2>
@@ -2429,16 +2278,14 @@ const NewBookingCreateEdit = () => {
 
               <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
                 <div className="flex justify-between mb-2">
-                  <span className="font-medium text-gray-700">
-                    Client DOJ:
-                  </span>
+                  <span className="font-medium text-gray-700">Client DOJ:</span>
                   <span className="text-gray-900">
                     {pendingDoj
                       ? new Date(pendingDoj).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
                       : "-"}
                   </span>
                 </div>
@@ -2450,18 +2297,16 @@ const NewBookingCreateEdit = () => {
                   <span className="text-gray-900">
                     {pendingCvd
                       ? new Date(pendingCvd).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
                       : "-"}
                   </span>
                 </div>
               </div>
 
-              <p className="mt-4">
-                Do you want to continue?
-              </p>
+              <p className="mt-4">Do you want to continue?</p>
             </div>
 
             <div className="flex justify-end gap-3">

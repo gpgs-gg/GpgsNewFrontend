@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Eye, Pencil, Filter, Phone, MessageCircle } from "lucide-react";
+import { Eye, Pencil, Filter, Phone, MessageCircle ,Trash2} from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
@@ -14,13 +14,19 @@ import { IoIosArrowBack } from "react-icons/io";
 import useDebounce from "../../components/hooks/useDebounce";
 import { useAuthorization } from "../../context/AuthorizationContext";
 import RentLedgerSkeleton from "./RentLedgerSkeleton";
+import { useDeleteRentData } from "./services/index";
+import { useAuth } from "../../context/authContext";
+import ConfirmModal from "../common/ConfirmModal";
+import { toast } from "react-toastify";
 const RentLadgerTable = () => {
   const { clientId } = useParams();
   const { canEdit, canSingleView } = useAuthorization();
 
   const canEditRentLedger = canEdit("rent_ledger");
   const canViewRentLedger = canSingleView("rent_ledger");
-
+const deleteRentMutation = useDeleteRentData();
+  const [deleteId, setDeleteId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const showActions = canViewRentLedger || canEditRentLedger;
   const [filters, setFilters] = useState({});
   const [search, setSearch] = useState("");
@@ -30,6 +36,8 @@ const RentLadgerTable = () => {
     propertyId: filters.propertyId,
     search: debouncedSearch,
   });
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toLowerCase() === "admin";
   // API response
   const client = apiResponse?.data?.[0]?.clientId ?? {};
   const property = apiResponse?.data?.[0]?.propertyId ?? {};
@@ -67,10 +75,27 @@ const RentLadgerTable = () => {
   });
   const currentYear = new Date().getFullYear();
 
-   if(isLoading){
-    return <RentLedgerSkeleton/>
-   }
+  if (isLoading) {
+    return <RentLedgerSkeleton />
+  }
 
+
+  const handleDeleteRent = () => {
+    deleteRentMutation.mutate(deleteId, {
+      onSuccess: (data) => {
+        toast.success(data?.message || "Rent history deleted successfully.");
+
+        setDeleteId(null);
+        setShowDeleteModal(false);
+      },
+
+      onError: (error) => {
+        toast.error(
+          error?.response?.data?.message || "Failed to delete rent history.",
+        );
+      },
+    });
+  };
   return (
     <>
       <div className="space-y-5">
@@ -248,13 +273,12 @@ const RentLadgerTable = () => {
                     <tr
                       key={item._id}
                       className={`border-t border-gray-200 whitespace-nowrap text-center
-    ${
-      item.monthName === currentMonth &&
-      item.year === currentYear &&
-      item.paymentStatus !== "Shifted"
-        ? "bg-green-100 hover:bg-green-100"
-        : "hover:bg-gray-50"
-    }`}
+    ${item.monthName === currentMonth &&
+                          item.year === currentYear &&
+                          item.paymentStatus !== "Shifted"
+                          ? "bg-green-100 hover:bg-green-100"
+                          : "hover:bg-gray-50"
+                        }`}
                     >
                       <td className="p-3 font-bold">
                         {item.propertyId?.propertyCode}
@@ -262,15 +286,14 @@ const RentLadgerTable = () => {
                       <td className="p-3">
                         <span
                           className={`px-3 py-1 text-sm rounded-full font-semibold
-                             ${
-                               item.paymentStatus === "Paid"
-                                 ? "bg-green-100 text-green-700"
-                                 : item.paymentStatus === "Partial"
-                                   ? "bg-yellow-100 text-yellow-700"
-                                   : item.paymentStatus === "Shifted"
-                                     ? "bg-blue-100 text-blue-700"
-                                     : "bg-red-100 text-red-700"
-                             }`}
+                             ${item.paymentStatus === "Paid"
+                              ? "bg-green-100 text-green-700"
+                              : item.paymentStatus === "Partial"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : item.paymentStatus === "Shifted"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-red-100 text-red-700"
+                            }`}
                         >
                           {item.paymentStatus}
                         </span>
@@ -280,13 +303,12 @@ const RentLadgerTable = () => {
                       <td className="p-3">{item.year}</td>
                       {/* <td className="p-3">{item.stayType}</td> */}
                       <td
-                        className={`p-3 font-semibold ${
-                          item.currentDue > 0
+                        className={`p-3 font-semibold ${item.currentDue > 0
                             ? "text-red-600"
                             : item.currentDue < 0
                               ? "text-green-600"
                               : "text-gray-700"
-                        }`}
+                          }`}
                       >
                         ₹{item.currentDue}
                       </td>
@@ -395,7 +417,7 @@ const RentLadgerTable = () => {
                                   {(() => {
                                     const latestComment =
                                       item.paymentComments[
-                                        item.paymentComments.length - 1
+                                      item.paymentComments.length - 1
                                       ];
 
                                     const date = latestComment?.date
@@ -405,19 +427,19 @@ const RentLadgerTable = () => {
                                     const formattedDate =
                                       date && !isNaN(date.getTime())
                                         ? date.toLocaleDateString("en-GB", {
-                                            day: "2-digit",
-                                            month: "short",
-                                            year: "numeric",
-                                          })
+                                          day: "2-digit",
+                                          month: "short",
+                                          year: "numeric",
+                                        })
                                         : "";
 
                                     const formattedTime =
                                       date && !isNaN(date.getTime())
                                         ? date.toLocaleTimeString("en-US", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            hour12: true,
-                                          })
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                          hour12: true,
+                                        })
                                         : "";
 
                                     const text = latestComment?.comment || "";
@@ -448,19 +470,19 @@ const RentLadgerTable = () => {
                                         const formattedDate =
                                           date && !isNaN(date.getTime())
                                             ? date.toLocaleDateString("en-GB", {
-                                                day: "2-digit",
-                                                month: "short",
-                                                year: "numeric",
-                                              })
+                                              day: "2-digit",
+                                              month: "short",
+                                              year: "numeric",
+                                            })
                                             : "";
 
                                         const formattedTime =
                                           date && !isNaN(date.getTime())
                                             ? date.toLocaleTimeString("en-US", {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                                hour12: true,
-                                              })
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                              hour12: true,
+                                            })
                                             : "";
 
                                         return (
@@ -492,16 +514,15 @@ const RentLadgerTable = () => {
                       {/* Sticky Actions Column */}
                       {showActions && (
                         <td
-                          className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${
-                            item.monthName === currentMonth &&
-                            Number(item.year) === currentYear &&
-                            item.paymentStatus !== "Shifted"
+                          className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${item.monthName === currentMonth &&
+                              Number(item.year) === currentYear &&
+                              item.paymentStatus !== "Shifted"
                               ? "bg-green-100"
                               : "bg-white"
-                          }`}
+                            }`}
                         >
                           <div className="flex justify-center gap-2">
-                            {canViewRentLedger && (
+                            {canViewRentLedger && item.paymentStatus !== "Shifted" && (
                               <Link to={`/rent-ledger/view/${item._id}`}>
                                 <button
                                   disabled={
@@ -516,17 +537,34 @@ const RentLadgerTable = () => {
                                 </button>
                               </Link>
                             )}
-                            {/* EDIT */}
-                            {canEditRentLedger && (
-                              <Link to={`/rent-ledger/edit/${item._id}`}>
+                          <>
+                              <>
+                                {canEditRentLedger && item.paymentStatus !== "Shifted" && (
+                                  <Link to={`/rent-ledger/edit/${item._id}`}>
+                                    <button
+                                      // disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
+                                      className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
+                                    >
+                                      <Pencil size={16} />
+                                    </button>
+                                  </Link>
+                                )}
+                              </>{" "}
+                              {isAdmin &&  (
                                 <button
-                                  // disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
-                                  className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
+                                  type="button"
+                                  onClick={() => {
+                                    setDeleteId(item._id);
+                                    setShowDeleteModal(true);
+                                  }}
+                                  disabled={deleteRentMutation.isPending}
+                                  className="p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                                  title={`Delete ${item.monthName} ${item.year} rent`}
                                 >
-                                  <Pencil size={16} />
+                                  <Trash2 size={16} />
                                 </button>
-                              </Link>
-                            )}
+                              )}
+                            </>
                             {/* 
                           <button
                             onClick={() =>
@@ -583,6 +621,16 @@ const RentLadgerTable = () => {
         }}
         handleReset={handleReset}
         resetTrigger={resetTrigger}
+      />
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Rent History"
+        message="This rent history will be permanently deleted. This action cannot be undone."
+        onConfirm={handleDeleteRent}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setDeleteId(null);
+        }}
       />
     </>
   );

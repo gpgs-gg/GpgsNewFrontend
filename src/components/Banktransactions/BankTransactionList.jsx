@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import TableSkeleton from "../common/TableSkelton";
 import { useAuthorization } from "../../context/AuthorizationContext";
+import { useAuth } from "../../context/authContext";
 
 const BankTransactionList = () => {
   const DEFAULT_BANK_TRANSACTION_FILTERS = {
@@ -29,7 +30,11 @@ const BankTransactionList = () => {
     chqNo: "",
     narration: "",
     defaultFilter: "",
+    assignee: "",
+    expenseCategory: [],
   };
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toLowerCase() === "admin";
   // ============================================================
   // SEARCH - persist search across refresh/navigation
   // ============================================================
@@ -115,6 +120,12 @@ const BankTransactionList = () => {
         label: `Status : ${filters.status}`,
       });
     }
+    if (filters.expenseCategory?.length) {
+      labels.push({
+        key: "expenseCategory",
+        label: `Expense Category : ${filters.expenseCategory.join(", ")}`,
+      });
+    }
 
     if (filters.propertyId) {
       labels.push({
@@ -123,10 +134,10 @@ const BankTransactionList = () => {
       });
     }
 
-    if (filters.userId) {
+    if (filters.assignee) {
       labels.push({
-        key: "userId",
-        label: `Assignee : ${filters.userId}`,
+        key: "assignee",
+        label: `Assignee : ${filters.assignee}`,
       });
     }
 
@@ -172,7 +183,8 @@ const BankTransactionList = () => {
   });
 
   const apiData = apiResponse?.data || [];
-
+  const totalDeposit = apiResponse?.totalDeposit || 0;
+  const totalWithdrawal = apiResponse?.totalWithdrawal || 0;
   const totalPages = apiResponse?.totalPages || 1;
 
   const totalRecords = apiResponse?.totalRecords || 0;
@@ -207,7 +219,7 @@ const BankTransactionList = () => {
     localStorage.setItem("bank_transactions_page", "1");
 
     // Clear default filter state
-    setDefaultFilterData(null);
+    // setDefaultFilterData(null);
 
     // Tell filter drawer to reset react-hook-form
     setResetTrigger((prev) => prev + 1);
@@ -222,6 +234,7 @@ const BankTransactionList = () => {
     // Removing a filter should return to page 1
     setCurrentPage(1);
   };
+
   const handleTodayTransactions = () => {
     const today = formatDate(new Date()); // should return YYYY-MM-DD
 
@@ -264,11 +277,35 @@ const BankTransactionList = () => {
               <p className="text-sm text-gray-500">Manage All Transactions</p>
             </div>
 
-            <Link to="/bank-transactions/upload">
-              <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                + Uplaod Transactions
-              </button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3 items-center">
+              {/* Totals */}
+              <div className="flex items-center gap-2">
+                <div className="border border-green-300 bg-green-50 rounded-lg px-4 py-2 min-w-40">
+                  <div className="text-xs text-gray-500">Total Deposit</div>
+
+                  <div className="text-lg font-semibold text-green-600">
+                    ₹{Number(totalDeposit).toLocaleString("en-IN")}
+                  </div>
+                </div>
+
+                <div className="border border-red-300 bg-red-50 rounded-lg px-4 py-2 min-w-40">
+                  <div className="text-xs text-gray-500">Total Withdrawal</div>
+
+                  <div className="text-lg font-semibold text-red-600">
+                    ₹{Number(totalWithdrawal).toLocaleString("en-IN")}
+                  </div>
+                </div>
+              </div>
+              <div>
+                {isAdmin && (
+                  <Link to="/bank-transactions/upload">
+                    <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                      + Uplaod Transactions
+                    </button>
+                  </Link>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

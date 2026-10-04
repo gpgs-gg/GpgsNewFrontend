@@ -227,7 +227,7 @@ const TicketMobileCard = ({
           label="Created By"
           value={
             item.createdByName
-              ? `${item.createdByName} (${item.createdById || "-"})`
+              ? `${item.createdByName} (${formatDate(item.createdAt) || "-"})`
               : "-"
           }
         />
@@ -235,19 +235,19 @@ const TicketMobileCard = ({
         {/* ============================================================
             UPDATED BY
         ============================================================ */}
-        <MobileTicketField
+        {/* <MobileTicketField
           label="Updated By"
           value={
             item.updatedByName
               ? `${item.updatedByName} (${item.updatedById || "-"})`
               : "-"
           }
-        />
+        /> */}
 
         {/* ============================================================
             UPDATED DATE
         ============================================================ */}
-        <MobileTicketField label="Updated Date" value={item.updatedDateTime} />
+        {/* <MobileTicketField label="Updated Date" value={item.updatedDateTime} /> */}
 
         {/* ============================================================
             WORK LOGS

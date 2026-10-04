@@ -98,7 +98,17 @@ const ClientCreateEdit = () => {
             label: "P. Booked",
         },
     ];
+const clientDocsStatusOptions = [
+    { value: "Pending", label: "Pending" },
+    { value: "KYC Done", label: "KYC Done" },
+    { value: "AG Done", label: "AG Done" },
+    { value: "P NOC Done", label: "P NOC Done" },
+  ];
 
+  const parentDocsStatusOptions = [
+    { value: "Pending", label: "Pending" },
+    { value: "KYC Done", label: "KYC Done" },
+  ];
     useEffect(() => {
         const ClientData = singleClientData?.data;
         if (!ClientData) return;
@@ -133,6 +143,9 @@ const ClientCreateEdit = () => {
                 : null,
             comments: ClientData.comment,
             status: ClientData.status,
+            // Document Status
+      clientDocsStatus: ClientData.clientDocsStatus || "Pending",
+      parentDocsStatus: ClientData.parentDocsStatus || "Pending",
             // WorkLog
             newWorkLog: "",
         });
@@ -602,6 +615,7 @@ const ClientCreateEdit = () => {
                                     <label className="datepicker-label required-label">
                                         Notice Start Date
                                     </label>
+
                                     <DatePicker
                                         isClearable
                                         selected={field.value}
@@ -620,11 +634,21 @@ const ClientCreateEdit = () => {
                                                 return;
                                             }
 
-                                            // Notice Start Date user ne change kiya hai
-                                            // Isliye NLD + CVD auto calculate honge
                                             const noticeEndDate = new Date(date);
 
-                                            noticeEndDate.setDate(noticeEndDate.getDate() + 29);
+                                            // 30-day month rule:
+                                            // 31st ko count nahi karna hai
+                                            let days = 29;
+
+                                            while (days > 0) {
+                                                noticeEndDate.setDate(
+                                                    noticeEndDate.getDate() + 1
+                                                );
+
+                                                if (noticeEndDate.getDate() !== 31) {
+                                                    days--;
+                                                }
+                                            }
 
                                             setValue("noticeLastDate", noticeEndDate, {
                                                 shouldValidate: true,
@@ -636,6 +660,7 @@ const ClientCreateEdit = () => {
                                                 shouldDirty: true,
                                             });
                                         }}
+                                        filterDate={(date) => date.getDate() !== 31}
                                         dateFormat="dd MMM yyyy"
                                         className="custom-datepicker"
                                     />
@@ -901,8 +926,71 @@ const ClientCreateEdit = () => {
                                 onRemoveNew={(index) => removeFile("clientPoliceNOC", index)}
                             />
                         </div>
+                                  <Controller
+              name="clientDocsStatus"
+              control={control}
+              defaultValue="Pending"
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label required-label">
+                    Client Docs Status
+                  </label>
+
+                  <Select
+                    {...field}
+                    options={clientDocsStatusOptions}
+                    isClearable
+                    placeholder=""
+                    value={
+                      clientDocsStatusOptions.find(
+                        (option) => option.value === field.value,
+                      ) || null
+                    }
+                    onChange={(selectedOption) =>
+                      field.onChange(selectedOption?.value || "")
+                    }
+                    styles={selectStyles}
+                    isDisabled={isViewMode}
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name="parentDocsStatus"
+              control={control}
+              defaultValue="Pending"
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label required-label">
+                    Parent Docs Status
+                  </label>
+
+                  <Select
+                    {...field}
+                    options={parentDocsStatusOptions}
+                    isClearable
+                    placeholder=""
+                    value={
+                      parentDocsStatusOptions.find(
+                        (option) => option.value === field.value,
+                      ) || null
+                    }
+                    onChange={(selectedOption) =>
+                      field.onChange(selectedOption?.value || "")
+                    }
+                    styles={selectStyles}
+                    isDisabled={isViewMode}
+                  />
+                </div>
+              )}
+            />
                     </div>
                 </div>
+      
                 {/* ====================== WORK LOG ====================== */}
 
                 {clientId && (

@@ -57,3 +57,27 @@ export const useUpdateRentData = () => {
     },
   });
 };
+
+
+const deleteRentData = async (id) => {
+  const response = await apiClient.delete(`/rent-history/${id}`);
+  return response.data;
+};
+
+export const useDeleteRentData = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteRentData,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["rent-history-data"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["rent-history"],
+      });
+    },
+  });
+};

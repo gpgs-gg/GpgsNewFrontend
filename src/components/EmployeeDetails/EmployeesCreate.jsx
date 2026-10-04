@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import Select from "react-select";
 import { useForm, Controller } from "react-hook-form";
 import DatePicker from "react-datepicker";
@@ -138,6 +138,7 @@ const EmployeesCreateEdit = () => {
   const [existingAadhar, setExistingAadhar] = useState([]);
   const [existingPhoto, setExistingPhoto] = useState([]);
   const [existingBank, setExistingBank] = useState([]);
+  const submitLockRef = useRef(false);
   const { mutate: createEmployee, isPending: isCreateEmployee } =
     useCreateEmployee();
 
@@ -281,6 +282,8 @@ const EmployeesCreateEdit = () => {
   }, [employeeData]);
 
   const onSubmit = (data) => {
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
     const payload = {
       employeeName: data.Name,
       department: data.department,
@@ -321,8 +324,8 @@ const EmployeesCreateEdit = () => {
 
       ...(data.login?.password
         ? {
-            password: data.login.password,
-          }
+          password: data.login.password,
+        }
         : {}),
       // Logged-in user name for worklog
       updatedByName:
@@ -343,6 +346,7 @@ const EmployeesCreateEdit = () => {
         {
           onSuccess: () => {
             toast.dismiss();
+            submitLockRef.current = false;
             toast.success("Employee Updated");
             navigate("/employees");
           },
@@ -352,7 +356,7 @@ const EmployeesCreateEdit = () => {
               error?.response?.data?.message ||
               error?.message ||
               "Unable to update employee";
-
+            submitLockRef.current = false;
             toast.error(message);
           },
         },
@@ -364,6 +368,7 @@ const EmployeesCreateEdit = () => {
     // CREATE EMPLOYEE
     createEmployee(payload, {
       onSuccess: () => {
+        submitLockRef.current = false;
         toast.dismiss();
         toast.success("Employee Created");
         navigate("/employees");
@@ -374,7 +379,7 @@ const EmployeesCreateEdit = () => {
           error?.response?.data?.message ||
           error?.message ||
           "Unable to create employee";
-
+         submitLockRef.current = false;
         toast.error(message);
       },
     });
@@ -833,9 +838,8 @@ const EmployeesCreateEdit = () => {
               defaultValue={null}
               render={({ field }) => (
                 <div
-                  className={`datepicker-group ${
-                    field.value ? "has-value" : ""
-                  }`}
+                  className={`datepicker-group ${field.value ? "has-value" : ""
+                    }`}
                 >
                   <label className="datepicker-label">Date of Joining</label>
 
@@ -856,9 +860,8 @@ const EmployeesCreateEdit = () => {
               defaultValue={null}
               render={({ field }) => (
                 <div
-                  className={`datepicker-group ${
-                    field.value ? "has-value" : ""
-                  }`}
+                  className={`datepicker-group ${field.value ? "has-value" : ""
+                    }`}
                 >
                   <label className="datepicker-label">Date of Birth</label>
 
@@ -953,11 +956,10 @@ const EmployeesCreateEdit = () => {
               control={control}
               render={({ field }) => (
                 <div
-                  className={`select-group ${
-                    field.value !== undefined && field.value !== null
+                  className={`select-group ${field.value !== undefined && field.value !== null
                       ? "has-value"
                       : ""
-                  }`}
+                    }`}
                 >
                   <label className="select-label">Ticket Manager</label>
 
@@ -1235,13 +1237,13 @@ const EmployeesCreateEdit = () => {
 
                         const formattedDate = log.createdAt
                           ? new Date(log.createdAt).toLocaleString("en-GB", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            })
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })
                           : "";
 
                         return (

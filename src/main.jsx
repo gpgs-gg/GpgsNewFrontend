@@ -8,7 +8,11 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider } from "./context/authContext";
 import { AuthorizationProvider } from "./context/AuthorizationContext";
+import { registerSW } from "virtual:pwa-register";
 const queryClient = new QueryClient();
+registerSW({
+  immediate: true,
+});
 ReactDOM.createRoot(document.getElementById("root")).render(
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>

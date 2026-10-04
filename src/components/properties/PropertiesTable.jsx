@@ -6,7 +6,8 @@ import {
   Filter,
   Phone,
   MessageCircle,
-  Trash2,
+  Trash2,X,
+  Plus,
 } from "lucide-react";
 import { formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { Link } from "react-router-dom";
@@ -23,9 +24,10 @@ import TableSkeleton from "../common/TableSkelton";
 import useDebounce from "../hooks/useDebounce";
 import {
   useDeletePropertyData,
-  useDeleteMultiplePropertiesData,
+  useDeleteMultiplePropertiesData,useCreatePropertySequenceData,
 } from "./services/index";
-
+import PropertySequenceModal from "./PropertySequenceModal";
+import { useAuth } from "../../context/authContext";
 import ConfirmModal from "../common/ConfirmModal";
 import { toast } from "react-toastify";
 import { useAuthorization } from "../../context/AuthorizationContext";
@@ -36,6 +38,9 @@ const PropertiesTable = () => {
 
     return savedPage ? Number(savedPage) : 1;
   });
+  const { user } = useAuth();
+
+  const isAdmin = user?.role === "admin";
   useEffect(() => {
     localStorage.setItem("property_page", String(currentPage));
   }, [currentPage]);
@@ -98,13 +103,15 @@ const PropertiesTable = () => {
   const [selectedProperties, setSelectedProperties] = useState([]);
   const { mutate: deleteProperty, isPending: deleting } =
     useDeletePropertyData();
-
+const [sequenceModalOpen, setSequenceModalOpen] = useState(false);
+  const [propertyCodes, setPropertyCodes] = useState("");
   const { mutate: deleteMultipleProperties } =
     useDeleteMultiplePropertiesData();
   const isAllSelected =
     paginatedData.length > 0 &&
     paginatedData.every((item) => selectedProperties.includes(item._id));
-
+const { mutate: createPropertySequence, isPending: sequenceLoading } =
+    useCreatePropertySequenceData();
   // One State for Filter chips
   const filterLabels = useMemo(() => {
     const labels = [];
@@ -219,6 +226,36 @@ const PropertiesTable = () => {
       ]);
     }
   };
+
+  const handleCreatePropertySequence = () => {
+    if (!propertyCodes.trim()) {
+      toast.error("Please enter property codes");
+      return;
+    }
+
+    createPropertySequence(
+      {
+        propertyCodes: propertyCodes.trim(),
+      },
+      {
+        onSuccess: (data) => {
+          toast.success(
+            data?.message || "Property sequence created successfully",
+          );
+
+          setPropertyCodes("");
+          setSequenceModalOpen(false);
+        },
+
+        onError: (error) => {
+          toast.error(
+            error?.response?.data?.message ||
+              "Failed to create property sequence",
+          );
+        },
+      },
+    );
+  };
   return (
     <>
       <div className="space-y-5">
@@ -232,7 +269,14 @@ const PropertiesTable = () => {
               </h1>
               <p className="text-sm text-gray-500">Manage all PG properties</p>
             </div>
-
+<button
+              type="button"
+              onClick={() => setSequenceModalOpen(true)}
+              className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
+            >
+              <Plus size={17} />
+              Add Property Sequence
+            </button>
             {canAddProperty && (
               <Link to="/properties/create">
                 <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
@@ -316,7 +360,7 @@ const PropertiesTable = () => {
             </div>
           </div>
           {/* Show Delete Selected Button */}
-          {selectedProperties.length > 0 && (
+          {isAdmin &&selectedProperties.length > 0 && (
             <button
               onClick={() => {
                 setDeleteType("bulk");
@@ -617,6 +661,11 @@ const PropertiesTable = () => {
           setShowDeleteModal(false);
           setDeleteId(null);
         }}
+      />
+      {/* sequence model */}
+      <PropertySequenceModal
+        isOpen={sequenceModalOpen}
+        onClose={() => setSequenceModalOpen(false)}
       />
     </>
   );

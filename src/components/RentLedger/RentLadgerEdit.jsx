@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form';
 import { selectStyles } from '../../utils/selectStyles';
 import Select from "react-select";
@@ -10,18 +10,20 @@ import { convertStringFormatDate, formatDate } from '../../utils/dateFormatter';
 import { toast } from 'react-toastify';
 import { useSingleClientRentData, useUpdateRentData } from './services';
 import { useAuth } from "../../context/authContext";
+import { useAuthorization } from "../../context/AuthorizationContext";
 const RentLadgerEdit = () => {
     const navigate = useNavigate()
     const { clientId } = useParams();
     const { user } = useAuth();
     const userName =
         user?.Name || user?.name || user?.fullName || user?.username || "System";
-
+    const { canEdit } = useAuthorization();
+    const hasRentEditPermission = canEdit("rent_ledger");
     const { data: singleClientRentData, isPending: isSingleClientRentData } = useSingleClientRentData(clientId)
     const { mutate: updateClientRentData, isPending: isUpdateClientRentData } = useUpdateRentData(clientId)
-
+    const submitLockRef = useRef(false);
     const client = singleClientRentData?.data?.clientId ?? {};
-    console.log(client?._id)
+
     const property = singleClientRentData?.data?.propertyId ?? {};
     const bed = singleClientRentData?.data?.bedId ?? {};
     const totalReceivedHistory = singleClientRentData?.data?.totalReceivedHistory ?? {};
@@ -73,6 +75,7 @@ const RentLadgerEdit = () => {
 
 
     const onSubmit = (data) => {
+    
         data.updatedByName = userName;  // for worklog ...
 
         if (!isDirty) {
@@ -81,13 +84,18 @@ const RentLadgerEdit = () => {
             return;
             // 👉 EDIT MODE
         }
+
+  if (submitLockRef.current) return;
+        submitLockRef.current = true;
+
+
         if (!dirtyFields.totalReceived) {
             data.totalReceived = 0;
         }
-     // Adjustment change nahi kiya to 0 bhejo
-if (!dirtyFields.adjAmt) {
-    data.adjAmt = 0;
-}
+        // Adjustment change nahi kiya to 0 bhejo
+        if (!dirtyFields.adjAmt) {
+            data.adjAmt = 0;
+        }
         if (clientId) {
             updateClientRentData(
                 { id: clientId, data: data },
@@ -95,13 +103,16 @@ if (!dirtyFields.adjAmt) {
                     onSuccess: (response) => {
                         toast.dismiss()
                         toast.success(response?.message || "Updated successfully");
+                        submitLockRef.current = false;
                         navigate(`/rent-ledger/client/${client?._id}`);
+
                     },
                     onError: (error) => {
                         const errorMessage =
                             error?.response?.data?.message ||
                             error?.message ||
                             "Something went wrong";
+                        submitLockRef.current = false;
                         toast.dismiss()
                         toast.error(errorMessage);
                     },
@@ -156,21 +167,21 @@ if (!dirtyFields.adjAmt) {
                             >
                                 Cancel
                             </button>
-
-                            <button
-                                type="submit"
-                                disabled={isUpdateClientRentData}
-                                className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-                            >
-                                {isUpdateClientRentData ? (
-                                    <div className='flex justify-center items-center gap-2'>
-                                        <Loader />
-                                        Processing...
-                                    </div>
-                                ) : (
-                                    clientId ? "Update Rent" : ""
-                                )}
-                            </button>
+                            {hasRentEditPermission && (
+                                <button
+                                    type="submit"
+                                    disabled={isUpdateClientRentData}
+                                    className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                                >
+                                    {isUpdateClientRentData ? (
+                                        <div className='flex justify-center items-center gap-2'>
+                                            <Loader />
+                                            Processing...
+                                        </div>
+                                    ) : (
+                                        clientId ? "Update Rent" : ""
+                                    )}
+                                </button>)}
                         </div>
                     </div>
                 </div>
@@ -492,21 +503,21 @@ if (!dirtyFields.adjAmt) {
                             >
                                 Cancel
                             </button>
-
-                            <button
-                                type="submit"
-                                disabled={isUpdateClientRentData}
-                                className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-                            >
-                                {isUpdateClientRentData ? (
-                                    <div className='flex justify-center items-center gap-2'>
-                                        <Loader />
-                                        Processing...
-                                    </div>
-                                ) : (
-                                    clientId ? "Update Rent" : ""
-                                )}
-                            </button>
+                            {hasRentEditPermission && (
+                                <button
+                                    type="submit"
+                                    disabled={isUpdateClientRentData}
+                                    className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                                >
+                                    {isUpdateClientRentData ? (
+                                        <div className='flex justify-center items-center gap-2'>
+                                            <Loader />
+                                            Processing...
+                                        </div>
+                                    ) : (
+                                        clientId ? "Update Rent" : ""
+                                    )}
+                                </button>)}
                         </div>
                     </div>
                 </div>

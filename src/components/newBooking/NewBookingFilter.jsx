@@ -518,7 +518,7 @@ const NewBookingFilter = ({
               )}
             />
             {/* Payment Status */}
-            <Controller
+            {/* <Controller
               name="paymentStatus"
               control={control}
               render={({ field }) => (
@@ -544,7 +544,7 @@ const NewBookingFilter = ({
                   />
                 </div>
               )}
-            />
+            /> */}
             {/* Sharing Type */}
             {/* <Controller
               name="sharingType"
