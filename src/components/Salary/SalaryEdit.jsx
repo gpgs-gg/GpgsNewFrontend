@@ -510,7 +510,8 @@ const SalaryEdit = () => {
                 min="0"
                 step="0.01"
                 placeholder=" "
-                className="form-input"
+                readOnly
+                className="form-input cursor-not-allowed"
               />
 
               <label className="form-label">Fixed Salary</label>

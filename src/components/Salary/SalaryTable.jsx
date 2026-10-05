@@ -313,7 +313,7 @@ const SalaryTable = ({ params = {}, onView }) => {
           TABLE CARD
       ===================================================== */}
 
-      <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh] mt-2">
+      <div className="bg-white border shadow-sm overflow-hidden flex flex-col h-[75vh] mt-2">
         {/* ===================================================
             TABLE CONTENT
         =================================================== */}
@@ -329,18 +329,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                 {/* =========================
         SR NO
     ========================= */}
-                <th
-                  className="
-        sticky top-0 left-0 z-50
-        w-[44px] min-w-[44px] max-w-[44px]
-        bg-[#111827]
-        border-r border-gray-600
-        px-1 py-2
-        text-center
-         font-bold
-        whitespace-nowrap
-      "
-                >
+                <th className="sticky top-0 left-0 z-50 w-[44px] min-w-[44px] max-w-[44px] bg-[#111827]border-r border-gray-600 px-1 py-2 text-center  font-bold  whitespace-nowrap">
                   Sr
                 </th>
 
@@ -515,17 +504,13 @@ const SalaryTable = ({ params = {}, onView }) => {
                           SR NO
                       ================================================= */}
 
-                          <td
-                            className="sticky left-0 z-20 bg-white group-hover:bg-gray-50 border-r border-gray-300 px-2 py-1.5 text-center whitespace-nowrap"
-                          >
+                          <td className="sticky left-0 z-20 bg-white group-hover:bg-gray-50 border-r border-gray-300 px-2 py-1.5 text-center whitespace-nowrap">
                             {(currentPage - 1) * ROWS_PER_PAGE + idx + 1}
                           </td>
                           {/* =================================================
                           EMPLOYEE ID
                       ================================================= */}
-                          <td
-                            className="sticky left-[42px] z-20 bg-white group-hover:bg-gray-50 border-r border-gray-300 px-2 py-1.5 font-semibold whitespace-nowrap"
-                          >
+                          <td className="sticky left-[42px] z-20 bg-white group-hover:bg-gray-50 border-r border-gray-300 px-2 py-1.5 font-semibold whitespace-nowrap">
                             {salary.employeeId || "-"}
                           </td>
 
@@ -533,9 +518,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                           EMPLOYEE NAME
                       ================================================= */}
 
-                          <td
-                            className="sticky left-[130px] z-20 bg-white group-hover:bg-gray-50 border-r border-gray-300 px-3 py-1.5 whitespace-nowrap"
-                          >
+                          <td className="sticky left-[130px] z-20 bg-white group-hover:bg-gray-50 border-r border-gray-300 px-3 py-1.5 whitespace-nowrap">
                             <div className="flex flex-col leading-tight">
                               <span className="text-md font-semibold text-gray-800">
                                 {salary.employeeName || "-"}
@@ -566,26 +549,23 @@ const SalaryTable = ({ params = {}, onView }) => {
                               <td
                                 key={day}
                                 className={`
-        w-[36px]
-        min-w-[36px]
-        max-w-[36px]
-        h-[34px]
-        p-0
-        text-center
-        border-r border-gray-300
-       
-        font-semibold
-        whitespace-nowrap
-        ${
-          thursday && status === 1
-            ? "bg-blue-50"
-            : status === 1
-              ? "bg-white"
-              : status === 0.5
-                ? "bg-yellow-100 text-yellow-700"
-                : "bg-red-100 text-red-600"
-        }
-      `}
+    w-[36px]
+    min-w-[36px]
+    max-w-[36px]
+    h-[34px]
+    p-0
+    text-center
+    border-r border-gray-300
+    font-semibold
+    whitespace-nowrap
+    ${
+      status === 1
+        ? ""
+        : status === 0
+          ? "text-red-600 bg-red-100"
+          : "text-orange-500"
+    }
+  `}
                                 title={
                                   status === 1
                                     ? `Day ${day}: Present`
@@ -602,8 +582,8 @@ const SalaryTable = ({ params = {}, onView }) => {
                           MONTHLY SALARY
                       ================================================= */}
 
-                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
-                            {formatCurrency(salary.monthlySalary)}
+                          <td className="px-3 py-1.5  text-center whitespace-nowrap text-gray-700">
+                            {formatCurrency(salary?.employee?.salary)}
                           </td>
 
                           {/* =================================================
@@ -613,23 +593,21 @@ const SalaryTable = ({ params = {}, onView }) => {
                           PER DAY
                       ================================================= */}
 
-                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                          <td className="px-3 py-1.5  text-center whitespace-nowrap text-gray-70 bg-gray-100">
                             {formatCurrency(salary.perDaySalary)}
                           </td>
                           {/* =================================================
                           TOTAL PRESENT DAYS
                       ================================================= */}
 
-                          <td
-                            className="px-3 py-1.5 text-center font-bold text-gray-800 whitespace-nowrap border-r border-gray-300 bg-gray-50 group-hover:bg-gray-100"
-                          >
+                          <td className="px-3 py-1.5 text-center font-bold text-gray-800 whitespace-nowrap border-r border-gray-300 bg-gray-100 group-hover:bg-gray-100">
                             {totalPresentDays}
                           </td>
 
-                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                          <td className="px-3 py-1.5  text-center whitespace-nowrap text-gray-700">
                             {salary.paidLeaveDays ?? 0}
                           </td>
-                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                          <td className="px-3 py-1.5  text-center whitespace-nowrap text-gray-700">
                             {salary.publicHolidayDays ?? 0}
                           </td>
 
@@ -639,8 +617,8 @@ const SalaryTable = ({ params = {}, onView }) => {
     Present Days + Paid Leaves + Public Holidays
 ============================================================ */}
 
-                          <td className="px-3 py-1.5 whitespace-nowrap font-bold text-gray-800">
-                            {salary.payableDays ?? 0}
+                          <td className="px-3 py-1.5 whitespace-nowrap  text-center font-bold text-gray-800 bg-gray-100">
+                            {salary.totalPayableDays ?? 0}
                           </td>
                           {/* =================================================
                           ADJUSTMENT
@@ -664,7 +642,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                           PAYABLE
                       ================================================= */}
 
-                          <td className="px-3 py-1.5 whitespace-nowrap font-bold text-gray-800">
+                          <td className="px-3 py-1.5 whitespace-nowrap  text-center font-bold text-gray-800">
                             {formatCurrency(salary.payableSalary)}
                           </td>
                           {/* =================================================
@@ -709,9 +687,7 @@ const SalaryTable = ({ params = {}, onView }) => {
 
                           {showActions && (
                             <td
-                              className="
-      sticky right-0 z-20
-      w-[80px] min-w-[80px] max-w-[80px]
+                              className="sticky right-0 z-20 w-[80px] min-w-[80px] max-w-[80px]
       bg-white
       group-hover:bg-gray-50
       border-l border-gray-300

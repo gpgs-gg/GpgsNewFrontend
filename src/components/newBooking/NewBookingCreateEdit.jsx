@@ -317,6 +317,7 @@ const NewBookingCreateEdit = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  
   const [formPreviewData, setFormPreviewData] = useState(null);
   const [activeTab, setActiveTab] = useState("Permanent");
   const { data: bedAvailableData, isPending: isBedAvailableData } =
@@ -342,6 +343,31 @@ const NewBookingCreateEdit = () => {
   const watchTempClientLastDate = watch("temporaryClientLastDate");
   const watchTempMonthlyRent = watch("temporaryMonthlyRent");
   const watchAskFor = watch("askFor");
+const handleFillBookingForm = (item) => {
+  if (!item) return;
+
+  setValue("fullName", item.fullName || "");
+  setValue("whatsappNo", item.whatsappNumber || "");
+  setValue("callingNo", item.callingNumber || "");
+  setValue("emailId", item.email || "");
+
+  setValue("emergencyContact1FullName", item.fatherName || "");
+  setValue("emergencyContact1No", item.fatherContact || "");
+
+  setValue("emergencyContact2FullName", item.motherName || "");
+  setValue("emergencyContact2No", item.motherContact || "");
+
+  if (item.askFor) {
+    setValue("askFor", item.askFor);
+  }
+
+  if (item.joiningDate) {
+    setValue("clientDoj", new Date(item.joiningDate));
+  }
+
+  setShowEnquiries(false);
+};
+
 
   const loadPropertyOptions = async (search, loadedOptions, { page }) => {
     const res = await getPropertyDropdown({ page, limit: 10, search });
@@ -2260,10 +2286,11 @@ const NewBookingCreateEdit = () => {
         setApplyPermBedRent={setApplyPermBedRent}
         applyPermBedRent={applyPermBedRent}
       />
-      <BookingEnquiryList
-        isOpen={showEnquiries}
-        onClose={() => setShowEnquiries(false)}
-      />
+  <BookingEnquiryList
+    isOpen={showEnquiries}
+    onClose={() => setShowEnquiries(false)}
+    onFillBookingForm={handleFillBookingForm}
+/>
       {showDojWarningModal && (
         <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 px-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">

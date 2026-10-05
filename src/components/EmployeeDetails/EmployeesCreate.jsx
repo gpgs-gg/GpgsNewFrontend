@@ -104,6 +104,7 @@ const EmployeesCreateEdit = () => {
       Role: "Employee",
       workingHours: "9",
       halfDayHours: "5",
+      salary: "",
       emergencyContacts: [
         {
           fullName: "",
@@ -229,6 +230,7 @@ const EmployeesCreateEdit = () => {
       ticketManager: employee.ticketManager ?? false,
       workingHours: String(employee.workingHours ?? 9),
       halfDayHours: String(employee.halfDayHours ?? 5),
+      salary: String(employee.salary ?? 0),
 
       DOJ: employee.dateOfJoining ? new Date(employee.dateOfJoining) : null,
 
@@ -295,6 +297,7 @@ const EmployeesCreateEdit = () => {
       ticketManager: data.ticketManager ?? false,
       workingHours: data.workingHours || "9",
       halfDayHours: data.halfDayHours || "5",
+      salary: data.salary || "0",
       dateOfJoining: data.DOJ || null,
       dateOfBirth: data.DOB || null,
       status: isEdit ? data.status : "active",
@@ -324,8 +327,8 @@ const EmployeesCreateEdit = () => {
 
       ...(data.login?.password
         ? {
-          password: data.login.password,
-        }
+            password: data.login.password,
+          }
         : {}),
       // Logged-in user name for worklog
       updatedByName:
@@ -838,8 +841,9 @@ const EmployeesCreateEdit = () => {
               defaultValue={null}
               render={({ field }) => (
                 <div
-                  className={`datepicker-group ${field.value ? "has-value" : ""
-                    }`}
+                  className={`datepicker-group ${
+                    field.value ? "has-value" : ""
+                  }`}
                 >
                   <label className="datepicker-label">Date of Joining</label>
 
@@ -860,8 +864,9 @@ const EmployeesCreateEdit = () => {
               defaultValue={null}
               render={({ field }) => (
                 <div
-                  className={`datepicker-group ${field.value ? "has-value" : ""
-                    }`}
+                  className={`datepicker-group ${
+                    field.value ? "has-value" : ""
+                  }`}
                 >
                   <label className="datepicker-label">Date of Birth</label>
 
@@ -875,6 +880,23 @@ const EmployeesCreateEdit = () => {
                 </div>
               )}
             />
+            {/* Salary */}
+            <div className="form-group">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                {...register("salary")}
+                placeholder=" "
+                className="form-input"
+              />
+              <label className="form-label">Salary</label>
+              {errors.salary && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.salary.message}
+                </p>
+              )}
+            </div>
             {/* Working Hours */}
             <Controller
               name="workingHours"
@@ -956,10 +978,11 @@ const EmployeesCreateEdit = () => {
               control={control}
               render={({ field }) => (
                 <div
-                  className={`select-group ${field.value !== undefined && field.value !== null
+                  className={`select-group ${
+                    field.value !== undefined && field.value !== null
                       ? "has-value"
                       : ""
-                    }`}
+                  }`}
                 >
                   <label className="select-label">Ticket Manager</label>
 
@@ -1237,13 +1260,13 @@ const EmployeesCreateEdit = () => {
 
                         const formattedDate = log.createdAt
                           ? new Date(log.createdAt).toLocaleString("en-GB", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                          })
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true,
+                            })
                           : "";
 
                         return (

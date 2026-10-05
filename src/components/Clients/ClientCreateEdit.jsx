@@ -61,6 +61,8 @@ const ClientCreateEdit = () => {
     const { control, register, handleSubmit, reset, setValue, watch } = useForm({
         defaultValues: {
             newWorkLog: "",
+            clientDocsStatus: ["Pending"],
+      parentDocsStatus: "Pending",
         },
     });
 
@@ -143,8 +145,12 @@ const clientDocsStatusOptions = [
                 : null,
             comments: ClientData.comment,
             status: ClientData.status,
-            // Document Status
-      clientDocsStatus: ClientData.clientDocsStatus || "Pending",
+      // Document Status
+      clientDocsStatus:
+        Array.isArray(ClientData.clientDocsStatus) &&
+        ClientData.clientDocsStatus.length > 0
+          ? ClientData.clientDocsStatus
+          : ["Pending"],
       parentDocsStatus: ClientData.parentDocsStatus || "Pending",
             // WorkLog
             newWorkLog: "",
@@ -926,36 +932,47 @@ const clientDocsStatusOptions = [
                                 onRemoveNew={(index) => removeFile("clientPoliceNOC", index)}
                             />
                         </div>
-                                  <Controller
+             <Controller
               name="clientDocsStatus"
               control={control}
-              defaultValue="Pending"
-              render={({ field }) => (
-                <div
-                  className={`select-group ${field.value ? "has-value" : ""}`}
-                >
-                  <label className="select-label required-label">
-                    Client Docs Status
-                  </label>
+              defaultValue={["Pending"]}
+              render={({ field }) => {
+                const selectedValues = Array.isArray(field.value)
+                  ? field.value
+                  : [];
 
-                  <Select
-                    {...field}
-                    options={clientDocsStatusOptions}
-                    isClearable
-                    placeholder=""
-                    value={
-                      clientDocsStatusOptions.find(
-                        (option) => option.value === field.value,
-                      ) || null
-                    }
-                    onChange={(selectedOption) =>
-                      field.onChange(selectedOption?.value || "")
-                    }
-                    styles={selectStyles}
-                    isDisabled={isViewMode}
-                  />
-                </div>
-              )}
+                const selectedOptions = clientDocsStatusOptions.filter(
+                  (option) => selectedValues.includes(option.value),
+                );
+
+                return (
+                  <div
+                    className={`select-group ${
+                      selectedValues.length ? "has-value" : ""
+                    }`}
+                  >
+                    <label className="select-label required-label">
+                      Client Docs Status
+                    </label>
+
+                    <Select
+                      options={clientDocsStatusOptions}
+                      isMulti
+                      placeholder=""
+                      value={selectedOptions}
+                      onChange={(selectedOptions) => {
+                        const values =
+                          selectedOptions?.map((option) => option.value) || [];
+
+                        field.onChange(values);
+                      }}
+                      styles={selectStyles}
+                      isDisabled={isViewMode}
+                      closeMenuOnSelect={false}
+                    />
+                  </div>
+                );
+              }}
             />
             <Controller
               name="parentDocsStatus"
