@@ -473,9 +473,6 @@ const RentLadgerEdit = () => {
                                 </div>
                             </div>
                         </div>
-
-
-
                         <div className="form-group">
                             <textarea
                                 {...register("paymentComments")}

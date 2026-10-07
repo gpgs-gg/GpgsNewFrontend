@@ -9,11 +9,14 @@ import {
   FaUserClock,
   FaCalendarAlt,
   FaClock,
+  FaDownload,
 } from "react-icons/fa";
+import jsPDF from "jspdf";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { TableFilePreview } from "../../components/common/FilePreview";
 import { toast } from "react-toastify";
+import { useEmployeeExistingSalaries } from "../Salary/services/index";
 
 import {
   useTodayAttendance,
@@ -35,7 +38,7 @@ const CheckinOut = () => {
   const [cameraMode, setCameraMode] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [selectedSelfie, setSelectedSelfie] = useState(null);
-
+  const [showAllSalaries, setShowAllSalaries] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -46,6 +49,14 @@ const CheckinOut = () => {
 
   const { data: todayResponse, isLoading: isTodayLoading } =
     useTodayAttendance();
+
+  const todayAttendance = todayResponse?.data || null;
+
+  const { data: existingSalaryResponse, isLoading: isExistingSalaryLoading } =
+    useEmployeeExistingSalaries(todayAttendance?.employeeId?.employeeId);
+
+  const existingSalaries = existingSalaryResponse?.data?.salaries || [];
+
   const rowsPerPage = PAGINATION.EMPLOYEES_PER_PAGE || 5;
   const { data: historyResponse, isLoading: isHistoryLoading } =
     useMyAttendance({
@@ -64,8 +75,6 @@ const CheckinOut = () => {
   // ======================================================
   // DATA
   // ======================================================
-
-  const todayAttendance = todayResponse?.data || null;
 
   const attendanceList = historyResponse?.data || [];
   const pagination = historyResponse?.pagination || {};
@@ -492,7 +501,346 @@ const CheckinOut = () => {
       className: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20",
     };
   };
+  // ======================================================
+  // DOWNLOAD SALARY SLIP
+  // ======================================================
 
+  // ======================================================
+  // DOWNLOAD SALARY SLIP
+  // ======================================================
+
+  const downloadSalarySlip = (salary) => {
+    try {
+      const doc = new jsPDF();
+
+      const employeeName =
+        existingSalaryResponse?.data?.employeeName ||
+        todayAttendance?.employeeId?.employeeName ||
+        "--";
+
+      const employeeId =
+        existingSalaryResponse?.data?.employeeId ||
+        todayAttendance?.employeeId?.employeeId ||
+        "--";
+
+      const designation = todayAttendance?.employeeId?.designation || "--";
+
+      const department = todayAttendance?.employeeId?.department || "--";
+
+      const monthName = new Date(
+        salary.year,
+        salary.month - 1,
+      ).toLocaleDateString("en-IN", {
+        month: "long",
+        year: "numeric",
+      });
+
+      const monthlySalary = Number(salary.monthlySalary || 0);
+      const payableSalary = Number(salary.payableSalary || 0);
+      const paidAmount = Number(salary.paidAmount || 0);
+
+      // Salary difference treated as salary adjustment/deduction
+      const salaryAdjustment = Math.max(monthlySalary - payableSalary, 0);
+
+      const totalDeductions = salaryAdjustment;
+
+      const formatAmount = (amount) =>
+        `Rs. ${Number(amount || 0).toLocaleString("en-IN")}`;
+
+      // ==================================================
+      // PAGE
+      // ==================================================
+
+      doc.setDrawColor(210, 210, 210);
+      doc.setLineWidth(0.4);
+
+      doc.roundedRect(15, 12, 180, 270, 2, 2);
+
+      // ==================================================
+      // COMPANY HEADER
+      // ==================================================
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.setTextColor(25, 50, 85);
+
+      doc.text("GPGS Technology", 21, 25);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(80, 80, 80);
+
+      doc.text("Gopal's Paying Guest Services", 21, 32);
+
+      doc.setDrawColor(200, 200, 200);
+      doc.line(21, 38, 189, 38);
+
+      // ==================================================
+      // SALARY SLIP TITLE
+      // ==================================================
+
+      doc.setFillColor(225, 242, 250);
+      doc.roundedRect(20, 43, 170, 12, 2, 2, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(15);
+      doc.setTextColor(25, 50, 85);
+
+      doc.text(`Salary Slip - ${monthName}`, 105, 51, {
+        align: "center",
+      });
+
+      // ==================================================
+      // A. EMPLOYEE DETAILS
+      // ==================================================
+
+      doc.setFillColor(225, 242, 250);
+      doc.roundedRect(20, 61, 170, 8, 1, 1, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(25, 50, 85);
+
+      doc.text("A. Employee Details", 23, 66.5);
+
+      doc.setDrawColor(215, 215, 215);
+      doc.roundedRect(20, 69, 170, 47, 1, 1);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(50, 50, 50);
+
+      const employeeDetails = [
+        ["Employee Name", employeeName],
+        ["Employee ID", employeeId],
+        ["Designation", designation],
+        ["Department", department],
+        ["Pay Period", monthName],
+        ["Payable Days", String(Number(salary.totalPayableDays || 0))],
+        ["Paid Leave Days", String(Number(salary.paidLeaveDays || 0))],
+        ["Public Holiday Days", String(Number(salary.publicHolidayDays || 0))],
+      ];
+
+      let detailY = 76;
+
+      employeeDetails.forEach(([label, value]) => {
+        doc.text(label, 23, detailY);
+        doc.text(":", 68, detailY);
+        doc.text(String(value), 73, detailY);
+
+        detailY += 5;
+      });
+
+      // ==================================================
+      // B. EARNINGS
+      // ==================================================
+
+      doc.setFillColor(220, 240, 225);
+      doc.roundedRect(20, 121, 83, 8, 1, 1, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(30, 70, 45);
+
+      doc.text("B. Earnings", 23, 126.5);
+
+      doc.setDrawColor(215, 215, 215);
+      doc.roundedRect(20, 129, 83, 48, 1, 1);
+
+      // Table header
+      doc.setFillColor(242, 246, 250);
+      doc.rect(20, 129, 83, 8, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(45, 55, 65);
+
+      doc.text("Component", 23, 134.5);
+      doc.text("Amount", 78, 134.5);
+
+      doc.line(68, 129, 68, 177);
+
+      // Basic Salary
+      doc.setFont("helvetica", "normal");
+      doc.text("Basic Salary", 23, 143);
+      doc.text(formatAmount(monthlySalary), 78, 143);
+
+      doc.line(20, 146, 103, 146);
+
+      // Paid Salary
+      doc.text("Payable Salary", 23, 152);
+      doc.text(formatAmount(payableSalary), 78, 152);
+
+      doc.line(20, 155, 103, 155);
+
+      // Paid Amount
+      doc.text("Paid Amount", 23, 161);
+      doc.text(formatAmount(paidAmount), 78, 161);
+
+      doc.line(20, 164, 103, 164);
+
+      // Gross Salary
+      doc.setFillColor(225, 242, 225);
+      doc.rect(20, 164, 83, 13, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Gross Salary", 23, 172);
+      doc.text(formatAmount(monthlySalary), 78, 172);
+
+      // ==================================================
+      // C. DEDUCTIONS
+      // ==================================================
+
+      doc.setFillColor(250, 225, 232);
+      doc.roundedRect(107, 121, 83, 8, 1, 1, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(100, 45, 60);
+
+      doc.text("C. Deductions", 110, 126.5);
+
+      doc.setDrawColor(215, 215, 215);
+      doc.roundedRect(107, 129, 83, 48, 1, 1);
+
+      // Table header
+      doc.setFillColor(242, 246, 250);
+      doc.rect(107, 129, 83, 8, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(45, 55, 65);
+
+      doc.text("Component", 110, 134.5);
+      doc.text("Amount", 165, 134.5);
+
+      doc.line(155, 129, 155, 177);
+
+      // Salary Adjustment
+      doc.setFont("helvetica", "normal");
+
+      doc.text("Salary Adjustment", 110, 143);
+      doc.text(formatAmount(salaryAdjustment), 165, 143);
+
+      doc.line(107, 146, 190, 146);
+
+      // Unpaid Days
+      doc.text("Unpaid Days", 110, 152);
+      doc.text(
+        String(
+          Math.max(
+            0,
+            Number(salary.totalPayableDays || 0) -
+              Number(salary.paidLeaveDays || 0) -
+              Number(salary.publicHolidayDays || 0),
+          ),
+        ),
+        165,
+        152,
+      );
+
+      doc.line(107, 155, 190, 155);
+
+      // Other deductions
+      doc.text("Other Deductions", 110, 161);
+      doc.text("Rs. 0", 165, 161);
+
+      doc.line(107, 164, 190, 164);
+
+      // Total deductions
+      doc.setFillColor(250, 225, 232);
+      doc.rect(107, 164, 83, 13, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Total Deductions", 110, 172);
+      doc.text(formatAmount(totalDeductions), 165, 172);
+
+      // ==================================================
+      // D. PAYMENT SUMMARY
+      // ==================================================
+
+      doc.setFillColor(232, 235, 250);
+      doc.roundedRect(20, 183, 170, 8, 1, 1, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(45, 55, 100);
+
+      doc.text("D. Payment Summary", 23, 188.5);
+
+      doc.setDrawColor(215, 215, 215);
+      doc.roundedRect(20, 191, 170, 38, 1, 1);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(50, 50, 50);
+
+      doc.text("Monthly Salary", 23, 200);
+      doc.text(formatAmount(monthlySalary), 150, 200);
+
+      doc.text("Total Deductions", 23, 208);
+      doc.text(formatAmount(totalDeductions), 150, 208);
+
+      doc.text("Payable Salary", 23, 216);
+      doc.text(formatAmount(payableSalary), 150, 216);
+
+      // ==================================================
+      // NET SALARY
+      // ==================================================
+
+      doc.setFillColor(225, 242, 250);
+      doc.roundedRect(20, 235, 170, 14, 2, 2, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(25, 50, 85);
+
+      doc.text("Net Salary / Take-Home Pay", 24, 244);
+
+      doc.text(formatAmount(payableSalary), 185, 244, {
+        align: "right",
+      });
+
+      // ==================================================
+      // PAID AMOUNT
+      // ==================================================
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(70, 70, 70);
+
+      doc.text(`Paid Amount: ${formatAmount(paidAmount)}`, 105, 258, {
+        align: "center",
+      });
+
+      // ==================================================
+      // FOOTER
+      // ==================================================
+
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+
+      doc.text("This is a system generated salary slip.", 105, 270, {
+        align: "center",
+      });
+
+      // ==================================================
+      // DOWNLOAD
+      // ==================================================
+
+      const safeEmployeeId = employeeId.replace(/[^a-zA-Z0-9-_]/g, "_");
+
+      const safeMonth = monthName.replace(/\s+/g, "-");
+
+      doc.save(`Salary-Slip-${safeEmployeeId}-${safeMonth}.pdf`);
+
+      toast.success("Salary slip downloaded successfully.");
+    } catch (error) {
+      console.error("Salary Slip Download Error:", error);
+
+      toast.error("Unable to download salary slip.");
+    }
+  };
   return (
     <div className="p-4 md:p-6">
       {/* ==================================================
@@ -687,7 +1035,129 @@ const CheckinOut = () => {
               </button>
             </div>
           </div>
+          {/* EMPLOYEE SALARY */}
+          {/* EMPLOYEE SALARY */}
+          <div className="mt-3 rounded-xl border border-green-100 bg-green-50 p-3">
+            <button
+              type="button"
+              onClick={() => setShowAllSalaries((prev) => !prev)}
+              className="w-full rounded-lg border border-green-200 bg-white px-3 py-2 text-xs font-semibold text-green-700 transition hover:bg-green-100"
+            >
+              {showAllSalaries ? "Hide Previous Salaries" : "Show All Salaries"}
+            </button>
 
+            {showAllSalaries && (
+              <div className="mt-3 border-t border-green-200 pt-3">
+                {isExistingSalaryLoading ? (
+                  <p className="py-3 text-center text-xs text-gray-500">
+                    Loading salaries...
+                  </p>
+                ) : existingSalaries.length === 0 ? (
+                  <p className="py-3 text-center text-xs text-gray-500">
+                    No previous salary records found.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {existingSalaries.map((salary) => (
+                      <div
+                        key={salary._id}
+                        className="rounded-lg border border-green-100 bg-white p-3"
+                      >
+                        {/* MONTH + PAYABLE SALARY */}
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-semibold text-gray-800">
+                            {new Date(
+                              salary.year,
+                              salary.month - 1,
+                            ).toLocaleDateString("en-IN", {
+                              month: "long",
+                              year: "numeric",
+                            })}
+                          </p>
+
+                          <p className="text-sm font-bold text-green-700">
+                            ₹{" "}
+                            {Number(salary.payableSalary || 0).toLocaleString(
+                              "en-IN",
+                            )}
+                          </p>
+                        </div>
+
+                        {/* SALARY DETAILS */}
+                        <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+                          {/* MONTHLY SALARY */}
+                          <div>
+                            <p className="text-gray-400">Monthly Salary</p>
+                            <p className="font-medium text-gray-700">
+                              ₹{" "}
+                              {Number(salary.monthlySalary || 0).toLocaleString(
+                                "en-IN",
+                              )}
+                            </p>
+                          </div>
+
+                          {/* PAYABLE SALARY */}
+                          <div>
+                            <p className="text-gray-400">Payable Salary</p>
+                            <p className="font-medium text-gray-700">
+                              ₹{" "}
+                              {Number(salary.payableSalary || 0).toLocaleString(
+                                "en-IN",
+                              )}
+                            </p>
+                          </div>
+
+                          {/* TOTAL PAYABLE DAYS */}
+                          <div>
+                            <p className="text-gray-400">Payable Days</p>
+                            <p className="font-medium text-gray-700">
+                              {Number(salary.totalPayableDays || 0)}
+                            </p>
+                          </div>
+
+                          {/* PAID LEAVE DAYS */}
+                          <div>
+                            <p className="text-gray-400">Paid Leave Days</p>
+                            <p className="font-medium text-gray-700">
+                              {Number(salary.paidLeaveDays || 0)}
+                            </p>
+                          </div>
+
+                          {/* PUBLIC HOLIDAY DAYS */}
+                          <div>
+                            <p className="text-gray-400">Public Holiday Days</p>
+                            <p className="font-medium text-gray-700">
+                              {Number(salary.publicHolidayDays || 0)}
+                            </p>
+                          </div>
+
+                          {/* PAID AMOUNT */}
+                          <div>
+                            <p className="text-gray-400">Paid Amount</p>
+                            <p className="font-medium text-gray-700">
+                              ₹{" "}
+                              {Number(salary.paidAmount || 0).toLocaleString(
+                                "en-IN",
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        {/* DOWNLOAD SALARY SLIP */}
+                        <button
+                          type="button"
+                          onClick={() => downloadSalarySlip(salary)}
+                          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-700"
+                        >
+                          <FaDownload />
+                          Download Salary Slip
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           {/* CHECK-IN MESSAGE */}
 
           {!hasCheckedIn && !canCheckIn && (

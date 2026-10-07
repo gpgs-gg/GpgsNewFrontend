@@ -443,11 +443,10 @@ const ClientsTable = () => {
 
                   setCurrentPage(1);
                 }}
-                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${
-                  fnfClosedFilter
-                    ? "bg-green-50 border-green-300 text-green-700"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${fnfClosedFilter
+                  ? "bg-green-50 border-green-300 text-green-700"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
               >
                 F&F Closed
               </button>
@@ -465,11 +464,10 @@ const ClientsTable = () => {
 
                   setCurrentPage(1);
                 }}
-                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${
-                  fnfCancelledFilter
-                    ? "bg-red-50 border-red-300 text-red-700"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${fnfCancelledFilter
+                  ? "bg-red-50 border-red-300 text-red-700"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  }`}
               >
                 Cancelled
               </button>
@@ -530,6 +528,9 @@ const ClientsTable = () => {
 
                     <th className="p-3 text-center whitespace-nowrap">
                       Deposit
+                    </th>
+                    <th className="p-3 text-center whitespace-nowrap">
+                      Current Due
                     </th>
 
                     <th className="p-3 text-center whitespace-nowrap">
@@ -669,24 +670,24 @@ const ClientsTable = () => {
 
                             <td className="p-3 text-center">
                               <span
-                                className={`px-2.5 py-1 rounded-full text-md font-semibold ${
-                                  item.bookingType === "Daily"
-                                    ? " text-indigo-700"
-                                    : item.stayType === "P. Booked"
-                                      ? " text-emerald-700"
-                                      : item.stayType === "T. Booked"
-                                        ? " text-amber-700"
-                                        : " text-gray-700"
-                                }`}
+                                className={`px-2.5 py-1 rounded-full text-md font-semibold ${item.bookingType === "Daily"
+                                  ? " text-indigo-700"
+                                  : item.stayType === "P. Booked"
+                                    ? " text-emerald-700"
+                                    : item.stayType === "T. Booked"
+                                      ? " text-amber-700"
+                                      : " text-gray-700"
+                                  }`}
                               >
                                 {item.bookingType === "Daily"
                                   ? "Daily"
                                   : item.stayType || "-"}
                               </span>
                             </td>
+
                             <td className="p-3">
                               {item.stayType === "T. Booked" &&
-                              item.permanentBooking ? (
+                                item.permanentBooking ? (
                                 <div className="relative group inline-block">
                                   <Info
                                     size={18}
@@ -803,6 +804,7 @@ const ClientsTable = () => {
                                 "-"
                               )}
                             </td>
+                            
                             {/* Client Name */}
                             <td className="p-3 font-bold">
                               {item.fullName || "-"}
@@ -857,6 +859,17 @@ const ClientsTable = () => {
                               {(item?.bedId?.depositAmount || 0).toLocaleString(
                                 "en-IN",
                               )}
+                            </td>
+                            <td
+                              className={`p-3 ${Number(item?.latestRentHistory?.currentDue || 0) < 0
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                                }`}
+                            >
+                              ₹
+                              {Number(
+                                item?.latestRentHistory?.currentDue || 0,
+                              ).toLocaleString("en-IN")}
                             </td>
 
                             {/* Parking Charges */}
@@ -955,54 +968,54 @@ const ClientsTable = () => {
                                                 {/* Vacation 1 */}
                                                 {(vacation.vacationStartDate1 ||
                                                   vacation.vacationLastDate1) && (
-                                                  <div className="flex items-center gap-5">
-                                                    <span className="font-medium text-gray-700">
-                                                      Vacation 1
-                                                    </span>
+                                                    <div className="flex items-center gap-5">
+                                                      <span className="font-medium text-gray-700">
+                                                        Vacation 1
+                                                      </span>
 
-                                                    <span className="text-gray-600">
-                                                      {vacation.vacationStartDate1
-                                                        ? formatDate(
+                                                      <span className="text-gray-600">
+                                                        {vacation.vacationStartDate1
+                                                          ? formatDate(
                                                             vacation.vacationStartDate1,
                                                           )
-                                                        : "-"}{" "}
-                                                      <span className="text-gray-400">
-                                                        →
-                                                      </span>{" "}
-                                                      {vacation.vacationLastDate1
-                                                        ? formatDate(
+                                                          : "-"}{" "}
+                                                        <span className="text-gray-400">
+                                                          →
+                                                        </span>{" "}
+                                                        {vacation.vacationLastDate1
+                                                          ? formatDate(
                                                             vacation.vacationLastDate1,
                                                           )
-                                                        : "-"}
-                                                    </span>
-                                                  </div>
-                                                )}
+                                                          : "-"}
+                                                      </span>
+                                                    </div>
+                                                  )}
 
                                                 {/* Vacation 2 */}
                                                 {(vacation.vacationStartDate2 ||
                                                   vacation.vacationLastDate2) && (
-                                                  <div className="flex items-center gap-5">
-                                                    <span className="font-medium text-gray-700">
-                                                      Vacation 2
-                                                    </span>
+                                                    <div className="flex items-center gap-5">
+                                                      <span className="font-medium text-gray-700">
+                                                        Vacation 2
+                                                      </span>
 
-                                                    <span className="text-gray-600">
-                                                      {vacation.vacationStartDate2
-                                                        ? formatDate(
+                                                      <span className="text-gray-600">
+                                                        {vacation.vacationStartDate2
+                                                          ? formatDate(
                                                             vacation.vacationStartDate2,
                                                           )
-                                                        : "-"}{" "}
-                                                      <span className="text-gray-400">
-                                                        →
-                                                      </span>{" "}
-                                                      {vacation.vacationLastDate2
-                                                        ? formatDate(
+                                                          : "-"}{" "}
+                                                        <span className="text-gray-400">
+                                                          →
+                                                        </span>{" "}
+                                                        {vacation.vacationLastDate2
+                                                          ? formatDate(
                                                             vacation.vacationLastDate2,
                                                           )
-                                                        : "-"}
-                                                    </span>
-                                                  </div>
-                                                )}
+                                                          : "-"}
+                                                      </span>
+                                                    </div>
+                                                  )}
                                               </div>
                                               {/* Vacation Comments */}
                                               <div className="max-h-40 text-[5px] overflow-y-auto space-y-2 pr-1 p-5 border border-gray-200 rounded">
@@ -1022,20 +1035,20 @@ const ClientsTable = () => {
                                                           [
                                                           {comment.createdAt
                                                             ? new Date(
-                                                                comment.createdAt,
-                                                              ).toLocaleString(
-                                                                "en-IN",
-                                                                {
-                                                                  day: "2-digit",
-                                                                  month:
-                                                                    "short",
-                                                                  year: "numeric",
-                                                                  hour: "2-digit",
-                                                                  minute:
-                                                                    "2-digit",
-                                                                  hour12: true,
-                                                                },
-                                                              )
+                                                              comment.createdAt,
+                                                            ).toLocaleString(
+                                                              "en-IN",
+                                                              {
+                                                                day: "2-digit",
+                                                                month:
+                                                                  "short",
+                                                                year: "numeric",
+                                                                hour: "2-digit",
+                                                                minute:
+                                                                  "2-digit",
+                                                                hour12: true,
+                                                              },
+                                                            )
                                                             : "-"}
                                                           ]
                                                         </span>{" "}
@@ -1061,11 +1074,10 @@ const ClientsTable = () => {
                               </div>
                             </td>
                             <td
-                              className={`p-3 font-semibold ${
-                                item.loginEnabled
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                              }`}
+                              className={`p-3 font-semibold ${item.loginEnabled
+                                ? "text-green-600"
+                                : "text-red-600"
+                                }`}
                             >
                               {item.loginEnabled ? "Enabled" : "Disabled"}
                             </td>
@@ -1094,9 +1106,8 @@ const ClientsTable = () => {
                           </td> */}
 
                             <td
-                              className={`p-3 sticky right-0 bg-white ${
-                                openMenuId === item._id ? "z-[9999]" : ""
-                              } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
+                              className={`p-3 sticky right-0 bg-white ${openMenuId === item._id ? "z-[9999]" : ""
+                                } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
                             >
                               <div className="flex justify-center gap-2">
                                 {canViewClient && (
@@ -1134,11 +1145,10 @@ const ClientsTable = () => {
                                           : item._id,
                                       );
                                     }}
-                                    className={`p-2 rounded-md transition-colors ${
-                                      openMenuId === item._id
-                                        ? "bg-blue-100 text-blue-600"
-                                        : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                    }`}
+                                    className={`p-2 rounded-md transition-colors ${openMenuId === item._id
+                                      ? "bg-blue-100 text-blue-600"
+                                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                      }`}
                                   >
                                     <FaEllipsisV />
                                   </button>

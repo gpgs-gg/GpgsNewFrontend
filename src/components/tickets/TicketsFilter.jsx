@@ -110,27 +110,14 @@ const TicketsFilter = ({
   const onSubmit = (data) => {
     const filters = {};
 
-    if (data.propertyCode) filters.propertyCode = data.propertyCode.value;
+    Object.entries(data).forEach(([key, value]) => {
+      const filterValue =
+        value && typeof value === "object" ? value.value : value;
 
-    if (data.propertyLocation) filters.propertyLocation = data.propertyLocation;
-
-    if (data.status) filters.status = data.status;
-
-    if (data.priority) filters.priority = data.priority;
-
-    if (data.department) filters.department = data.department;
-
-    if (data.category) filters.category = data.category;
-
-    if (data.assignee) filters.assignee = data.assignee;
-
-    if (data.manager) filters.manager = data.manager;
-
-    if (data.customerImpacted) filters.customerImpacted = data.customerImpacted;
-
-    if (data.escalated) filters.escalated = data.escalated;
-
-    if (data.lateStatus) filters.lateStatus = data.lateStatus;
+      if (filterValue) {
+        filters[key] = filterValue;
+      }
+    });
 
     onApply(filters);
     onClose();
@@ -145,67 +132,21 @@ const TicketsFilter = ({
         }
       : null;
 
-    const selectedLocation =
-      locationOptions.find(
-        (option) => option.value === initialFilters.propertyLocation,
-      ) || null;
-
-    const selectedStatus =
-      statusOptions.find((option) => option.value === initialFilters.status) ||
-      null;
-
-    const selectedPriority =
-      priorityOptions.find(
-        (option) => option.value === initialFilters.priority,
-      ) || null;
-
-    const selectedDepartment =
-      departmentOptions.find(
-        (option) => option.value === initialFilters.department,
-      ) || null;
-
-    const selectedCategory =
-      categoryOptions.find(
-        (option) => option.value === initialFilters.category,
-      ) || null;
-
-    const selectedAssignee =
-      assigneeOptions.find(
-        (option) => option.value === initialFilters.assignee,
-      ) || null;
-
-    const selectedManager =
-      managerOptions.find(
-        (option) => option.value === initialFilters.manager,
-      ) || null;
-
-    const selectedCustomerImpacted =
-      YesNoOptions.find(
-        (option) => option.value === initialFilters.customerImpacted,
-      ) || null;
-
-    const selectedEscalated =
-      YesNoOptions.find(
-        (option) => option.value === initialFilters.escalated,
-      ) || null;
-
-    const selectedLateStatus =
-      lateStatusOptions.find(
-        (option) => option.value === initialFilters.lateStatus,
-      ) || null;
-
     reset({
+      // AsyncPaginate expects an object
       propertyCode: selectedProperty,
-      propertyLocation: selectedLocation,
-      status: selectedStatus,
-      priority: selectedPriority,
-      department: selectedDepartment,
-      category: selectedCategory,
-      assignee: selectedAssignee,
-      manager: selectedManager,
-      customerImpacted: selectedCustomerImpacted,
-      escalated: selectedEscalated,
-      lateStatus: selectedLateStatus,
+
+      // Normal Select fields should store primitive values
+      propertyLocation: initialFilters.propertyLocation || "",
+      status: initialFilters.status || "",
+      priority: initialFilters.priority || "",
+      department: initialFilters.department || "",
+      category: initialFilters.category || "",
+      assignee: initialFilters.assignee || "",
+      manager: initialFilters.manager || "",
+      customerImpacted: initialFilters.customerImpacted || "",
+      escalated: initialFilters.escalated || "",
+      lateStatus: initialFilters.lateStatus || "",
     });
   }, [
     isOpen,
@@ -220,12 +161,7 @@ const TicketsFilter = ({
     initialFilters.customerImpacted,
     initialFilters.escalated,
     initialFilters.lateStatus,
-    locationOptions,
-    statusOptions,
-    priorityOptions,
-    departmentOptions,
-    categoryOptions,
-    YesNoOptions,
+    resetTrigger,
     reset,
   ]);
 
@@ -302,7 +238,34 @@ const TicketsFilter = ({
                 </div>
               )}
             />
+            {/* Status */}
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Status</label>
 
+                  <Select
+                    {...field}
+                    options={statusOptions}
+                    isClearable
+                    placeholder=""
+                    value={
+                      statusOptions.find(
+                        (option) => option.value === field.value,
+                      ) || null
+                    }
+                    onChange={(selectedOption) =>
+                      field.onChange(selectedOption?.value || "")
+                    }
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
             {/* Priority */}
             <Controller
               name="priority"
@@ -483,34 +446,6 @@ const TicketsFilter = ({
               )}
             />
 
-            {/* Status */}
-            <Controller
-              name="status"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`select-group ${field.value ? "has-value" : ""}`}
-                >
-                  <label className="select-label">Status</label>
-
-                  <Select
-                    {...field}
-                    options={statusOptions}
-                    isClearable
-                    placeholder=""
-                    value={
-                      statusOptions.find(
-                        (option) => option.value === field.value,
-                      ) || null
-                    }
-                    onChange={(selectedOption) =>
-                      field.onChange(selectedOption?.value || "")
-                    }
-                    styles={selectStyles}
-                  />
-                </div>
-              )}
-            />
             {/* Late Status */}
             <Controller
               name="lateStatus"

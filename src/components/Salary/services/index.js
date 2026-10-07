@@ -143,3 +143,23 @@ export const useSalaryEmployees = (params = {}) => {
     staleTime: 0,
   });
 };
+
+
+export const getEmployeeExistingSalaries = async (employeeId) => {
+  const response = await apiClient.get("/salaries/employee/existing-salaries", {
+    params: {
+      employeeId,
+    },
+  });
+
+  return response.data;
+};
+
+export const useEmployeeExistingSalaries = (employeeId) => {
+  return useQuery({
+    queryKey: ["EmployeeExistingSalaries", employeeId],
+    queryFn: () => getEmployeeExistingSalaries(employeeId),
+    enabled: Boolean(employeeId),
+    staleTime: 0,
+  });
+};

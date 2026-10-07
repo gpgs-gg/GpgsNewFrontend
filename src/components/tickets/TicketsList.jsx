@@ -334,6 +334,32 @@ const TicketsList = () => {
       currentPage: 1,
     });
   };
+
+
+  const convertStringToDateTime = (dateString) => {
+    if (!dateString) return null;
+
+    if (dateString instanceof Date) {
+      return dateString;
+    }
+
+    const [datePart, timePart, ampm] = dateString.split(" ");
+
+    const [year, month, day] = datePart.split("-").map(Number);
+
+    let [hours, minutes] = timePart.split(":").map(Number);
+
+    if (ampm === "PM" && hours !== 12) {
+      hours += 12;
+    }
+
+    if (ampm === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    return new Date(year, month - 1, day, hours, minutes);
+  };
+
   return (
     <>
       <div className="space-y-5">
@@ -343,17 +369,37 @@ const TicketsList = () => {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold">Tickets List</h1>
+
               <p className="text-sm text-gray-500">
-                {`Total Tickets: ${totalRecords}`}
+                Total Tickets: {totalRecords}
               </p>
             </div>
-            {canAddTicket && (
-              <Link to="/tickets/create">
-                <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                  + Add Ticket
-                </button>
-              </Link>
-            )}
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                <span className="text-gray-600">Late Resolved</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                <span className="text-gray-600">Resolved</span>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+                <span className="text-gray-600">SLA Warning</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              {/* Add Ticket */}
+              {canAddTicket && (
+                <Link to="/tickets/create">
+                  <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                    + Add Ticket
+                  </button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 
@@ -491,6 +537,7 @@ const TicketsList = () => {
                     <th className="p-3 text-left">Property Code</th>
                     <th className="p-3 text-left">Title</th>
                     <th className="p-3 text-center">Status</th>
+                    <th className="p-3 text-left">Department</th>
                     <th className="p-3 text-left">Priority</th>
                     <th className="p-3 text-center ">Attachment</th>
                     <th className="p-3 text-center">Customer Impacted</th>
@@ -500,7 +547,7 @@ const TicketsList = () => {
                     <th className="p-3 text-left">Manager</th>
                     <th className="p-3 text-left">Ticket Manager</th>
                     <th className="p-3 text-left">Assignee</th>
-                    <th className="p-3 text-left">Department</th>
+
                     <th className="p-3 text-left">Bed No</th>
                     <th className="p-3 text-left">Room No</th>
                     <th className="p-3 text-left">Created By</th>
@@ -545,7 +592,58 @@ const TicketsList = () => {
                               className="h-4 w-4 accent-gray-500 border-gray-300 rounded "
                             />
                           </td>
-                          <td className="sticky  left-0 z-20  bg-white p-3 font-semibold shadow-md">
+                          <td
+                            className={`sticky left-0 z-20 p-3 font-semibold bg-white shadow-md ${(() => {
+                              // Resolved late
+                              if (item.lateResolved === "Yes") {
+                                return "text-red-500";
+                              }
+
+                              // Resolved on time
+                              if (item.status === "Resolved") {
+                                return "text-green-500";
+                              }
+
+                              let slaHours = 0;
+
+                              switch (item.priority?.toLowerCase()) {
+                                case "low":
+                                  slaHours = 72;
+                                  break;
+
+                                case "medium":
+                                  slaHours = 48;
+                                  break;
+
+                                case "high":
+                                  slaHours = 24;
+                                  break;
+
+                                case "critical":
+                                  slaHours = 8;
+                                  break;
+
+                                default:
+                                  return "text-black";
+                              }
+
+                              const createdDate = convertStringToDateTime(item.dateCreated);
+
+                              if (!createdDate) return "text-black";
+
+                              const now = new Date();
+
+                              const diffHours =
+                                (now - new Date(createdDate)) / (1000 * 60 * 60);
+
+                              const seventyFivePercentHours = slaHours * 0.75;
+
+                              // 75% SLA crossed
+                              return diffHours >= seventyFivePercentHours
+                                ? "text-yellow-500"
+                                : "text-black";
+                            })()}`}
+                          >
                             {item.ticketId}
                           </td>
 
@@ -557,29 +655,29 @@ const TicketsList = () => {
                             {item?.propertyId?.propertyCode}
                           </td>
 
-                       
-<td className="p-3">
-  <div className="relative group max-w-75">
-    {/* Normal Display */}
-    <div className="font-medium truncate">
-      {item.title
-        ? item.title.length > 25
-          ? `${item.title.substring(0, 25)}...`
-          : item.title
-        : "N/A"}
-    </div>
 
-    <div className="text-xs text-gray-500 truncate">
-      {item.description
-        ? item.description.length > 60
-          ? `${item.description.substring(0, 60)}...`
-          : item.description
-        : "No Description"}
-    </div>
+                          <td className="p-3">
+                            <div className="relative group max-w-75">
+                              {/* Normal Display */}
+                              <div className="font-medium truncate">
+                                {item.title
+                                  ? item.title.length > 25
+                                    ? `${item.title.substring(0, 25)}...`
+                                    : item.title
+                                  : "N/A"}
+                              </div>
 
-    {/* Hover Popup */}
-    <div
-      className="
+                              <div className="text-xs text-gray-500 truncate">
+                                {item.description
+                                  ? item.description.length > 60
+                                    ? `${item.description.substring(0, 60)}...`
+                                    : item.description
+                                  : "No Description"}
+                              </div>
+
+                              {/* Hover Popup */}
+                              <div
+                                className="
         absolute left-0 top-full mt-2 z-50
         hidden group-hover:block
         w-96 max-w-[90vw]
@@ -587,38 +685,37 @@ const TicketsList = () => {
         bg-white shadow-xl
         p-4
       "
-    >
-      {/* Full Title */}
-      <div className="text-sm font-semibold text-gray-900 mb-2 break-words">
-        {item.title || "N/A"}
-      </div>
+                              >
+                                {/* Full Title */}
+                                <div className="text-sm font-semibold text-gray-900 mb-2 break-words">
+                                  {item.title || "N/A"}
+                                </div>
 
-      {/* Full Description */}
-      <div className="text-sm text-gray-600 whitespace-pre-wrap break-words leading-5">
-        {item.description || "No Description"}
-      </div>
-    </div>
-  </div>
-</td>
+                                {/* Full Description */}
+                                <div className="text-sm text-gray-600 whitespace-pre-wrap break-words leading-5">
+                                  {item.description || "No Description"}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
 
 
 
                           <td className="p-3 text-center">
                             <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                statusColors[item.status] ||
+                              className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[item.status] ||
                                 "bg-gray-100 text-gray-700"
-                              }`}
+                                }`}
                             >
                               {item.status}
                             </span>
                           </td>
+                          <td className="p-3">{item.department}</td>
                           <td className="p-3">
                             <span
-                              className={`px-2 py-1  text-xs font-semibold ${
-                                priorityColors[item.priority] ||
+                              className={`px-2 py-1  text-xs font-semibold ${priorityColors[item.priority] ||
                                 "bg-gray-100 text-gray-700"
-                              }`}
+                                }`}
                             >
                               {item.priority}
                             </span>
@@ -638,7 +735,7 @@ const TicketsList = () => {
                           <td className="p-3">{item.manager}</td>
                           <td className="p-3">{item.ticketManager}</td>
                           <td className="p-3">{item.assignee}</td>
-                          <td className="p-3">{item.department}</td>
+
                           <td className="p-3">{item.bedNo}</td>
                           <td className="p-3">{item.roomNo}</td>
                           <td className="p-3">
@@ -772,7 +869,7 @@ const TicketsList = () => {
             <div className="block md:hidden p-3">
               {isTicketData ? (
                 <div className="space-y-3">
-                  <TableSkeleton rows={5} columns={1} mobile/>
+                  <TableSkeleton rows={5} columns={1} mobile />
                 </div>
               ) : apiData.length > 0 ? (
                 <div className="space-y-3">

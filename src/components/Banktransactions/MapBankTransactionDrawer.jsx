@@ -126,7 +126,7 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
     }
 
     if (submitLockRef.current) return;
-    submitLockRef.current = true;
+        submitLockRef.current = true;
 
     const payload = {
       transactionId: transaction._id,
@@ -152,7 +152,7 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
         );
         // Optional
         reset();
-         submitLockRef.current = false;
+        submitLockRef.current = false;
         // navigate("/bank-transactions");
       },
       onError: (error) => {
@@ -160,8 +160,8 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
         toast.dismiss();
         toast.error(
           error?.response?.data?.message ||
-            error?.message ||
-            "Something went wrong.",
+          error?.message ||
+          "Something went wrong.",
         );
       },
     });
@@ -174,9 +174,8 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-[430px] bg-white z-50 shadow-xl overflow-auto transition-transform duration-300 ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-[430px] bg-white z-50 shadow-xl overflow-auto transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* Header */}
         <div className="flex justify-between items-center p-5 bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 text-white">
@@ -340,11 +339,10 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
             <div className="flex justify-between">
               <span className="text-gray-500">Current Due</span>
               <span
-                className={`font-semibold ${
-                  Number(selectedClient?.currentDue) > 0
+                className={`font-semibold ${Number(selectedClient?.currentDue) > 0
                     ? "text-red-500"
                     : "text-green-600"
-                }`}
+                  }`}
               >
                 ₹{selectedClient?.currentDue ?? 0}
               </span>

@@ -295,7 +295,7 @@ function TicketCreateEdit() {
     <div className="max-w-12xl mx-auto px-6">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-4 py-2">
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-2 gap-2 justify-between  items-center">
             <div>
               <h1 className="text-2xl font-bold">
                 {id ? "Update Ticket" : "Create Ticket"}
@@ -307,8 +307,7 @@ function TicketCreateEdit() {
                   : "Create and manage PG Ticket Details"}
               </p>
             </div>
-
-            <div className="flex justify-end  gap-5">
+            <div className="flex justify-end  border-red-200  gap-5">
               <Link to="/tickets">
                 <button
                   type="button"
@@ -334,6 +333,7 @@ function TicketCreateEdit() {
                 )}
               </button>
             </div>
+
 
           </div>
         </div>

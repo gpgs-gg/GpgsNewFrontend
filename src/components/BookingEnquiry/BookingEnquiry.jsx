@@ -23,7 +23,7 @@ const BookingEnquiry = () => {
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
-    const { mutate : bookingEnquiry , isPending } = useCreateBookingEnquiry()
+    const { mutate: bookingEnquiry, isPending } = useCreateBookingEnquiry();
     // ==========================================
     // HANDLE INPUT
     // ==========================================
@@ -47,9 +47,7 @@ const BookingEnquiry = () => {
     // ==========================================
 
     const capitalizeName = (value) => {
-        return value
-            .toLowerCase()
-            .replace(/\b\w/g, (char) => char.toUpperCase());
+        return value.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
     };
 
     // ==========================================
@@ -70,22 +68,18 @@ const BookingEnquiry = () => {
         // WHATSAPP NUMBER
         // ==============================
         if (!formData.whatsappNumber.trim()) {
-            newErrors.whatsappNumber =
-                "WhatsApp Contact No. is required";
+            newErrors.whatsappNumber = "WhatsApp Contact No. is required";
         } else if (!/^[0-9]{10}$/.test(formData.whatsappNumber)) {
-            newErrors.whatsappNumber =
-                "Enter valid 10 digit WhatsApp number";
+            newErrors.whatsappNumber = "Enter valid 10 digit WhatsApp number";
         }
 
         // ==============================
         // CALLING NUMBER
         // ==============================
         if (!formData.callingNumber.trim()) {
-            newErrors.callingNumber =
-                "Calling Contact No. is required";
+            newErrors.callingNumber = "Calling Contact No. is required";
         } else if (!/^[0-9]{10}$/.test(formData.callingNumber)) {
-            newErrors.callingNumber =
-                "Enter valid 10 digit calling number";
+            newErrors.callingNumber = "Enter valid 10 digit calling number";
         }
 
         // ==============================
@@ -93,9 +87,7 @@ const BookingEnquiry = () => {
         // ==============================
         if (!formData.email.trim()) {
             newErrors.email = "Email ID is required";
-        } else if (
-            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
-        ) {
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             newErrors.email = "Enter valid email address";
         }
 
@@ -103,62 +95,53 @@ const BookingEnquiry = () => {
         // COMPANY / COLLEGE
         // ==============================
         if (!formData.companyCollegeName.trim()) {
-            newErrors.companyCollegeName =
-                "Company / College Name is required";
+            newErrors.companyCollegeName = "Company / College Name is required";
         }
 
         // ==============================
         // PROFILE / OCCUPATION
         // ==============================
         if (!formData.profile.trim()) {
-            newErrors.profile =
-                "Profile / Occupation is required";
+            newErrors.profile = "Profile / Occupation is required";
         }
 
         // ==============================
         // JOINING DATE
         // ==============================
         if (!formData.joiningDate) {
-            newErrors.joiningDate =
-                "Date of Joining at PG is required";
+            newErrors.joiningDate = "Date of Joining at PG is required";
         }
 
         // ==============================
         // FATHER NAME
         // ==============================
         if (!formData.fatherName.trim()) {
-            newErrors.fatherName =
-                "Father Name is required";
+            newErrors.fatherName = "Father Name is required";
         }
 
         // ==============================
         // FATHER CONTACT
         // ==============================
         if (!formData.fatherContact.trim()) {
-            newErrors.fatherContact =
-                "Father Contact No. is required";
+            newErrors.fatherContact = "Father Contact No. is required";
         } else if (!/^[0-9]{10}$/.test(formData.fatherContact)) {
-            newErrors.fatherContact =
-                "Enter valid 10 digit father contact number";
+            newErrors.fatherContact = "Enter valid 10 digit father contact number";
         }
 
         // ==============================
         // MOTHER NAME
         // ==============================
         if (!formData.motherName.trim()) {
-            newErrors.motherName =
-                "Mother Name is required";
+            newErrors.motherName = "Mother Name is required";
         }
 
         // ==============================
         // MOTHER CONTACT
         // ==============================
         if (!formData.motherContact.trim()) {
-            newErrors.motherContact =
-                "Mother Contact No. is required";
+            newErrors.motherContact = "Mother Contact No. is required";
         } else if (!/^[0-9]{10}$/.test(formData.motherContact)) {
-            newErrors.motherContact =
-                "Enter valid 10 digit mother contact number";
+            newErrors.motherContact = "Enter valid 10 digit mother contact number";
         }
 
         setErrors(newErrors);
@@ -170,49 +153,49 @@ const BookingEnquiry = () => {
     // SUBMIT
     // ==========================================
 
-   const handleSubmit = async (e) => {
-    e.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-    if (!validate()) {
-        return;
-    }
-
-    bookingEnquiry(
-        {
-            ...formData,
-            joiningDate: convertStringFormatDate(formData.joiningDate),
-        },
-        {
-            onSuccess: (response) => {
-                if (response?.success) {
-                    setSubmitted(true);
-
-                    setFormData({
-                        fullName: "",
-                        whatsappNumber: "",
-                        callingNumber: "",
-                        email: "",
-                        companyCollegeName: "",
-                        profile: "",
-                        joiningDate: null,
-                        fatherName: "",
-                        fatherContact: "",
-                        motherName: "",
-                        motherContact: "",
-                    });
-                }
-            },
-            onError: (error) => {
-                console.error("Booking enquiry error:", error);
-
-                alert(
-                    error?.response?.data?.message ||
-                    "Something went wrong. Please try again."
-                );
-            },
+        if (!validate()) {
+            return;
         }
-    );
-};
+
+        bookingEnquiry(
+            {
+                ...formData,
+                joiningDate: convertStringFormatDate(formData.joiningDate),
+            },
+            {
+                onSuccess: (response) => {
+                    if (response?.success) {
+                        setSubmitted(true);
+
+                        setFormData({
+                            fullName: "",
+                            whatsappNumber: "",
+                            callingNumber: "",
+                            email: "",
+                            companyCollegeName: "",
+                            profile: "",
+                            joiningDate: null,
+                            fatherName: "",
+                            fatherContact: "",
+                            motherName: "",
+                            motherContact: "",
+                        });
+                    }
+                },
+                onError: (error) => {
+                    console.error("Booking enquiry error:", error);
+
+                    alert(
+                        error?.response?.data?.message ||
+                        "Something went wrong. Please try again.",
+                    );
+                },
+            },
+        );
+    };
     // ==========================================
     // SUCCESS SCREEN
     // ==========================================
@@ -228,9 +211,8 @@ const BookingEnquiry = () => {
                     </h2>
 
                     <p className="text-gray-600 mb-6">
-                        Thank you for providing your details.
-                        Our GPGS team will contact you shortly
-                        regarding your PG booking.
+                        Thank you for providing your details. Our GPGS team will contact you
+                        shortly regarding your PG booking.
                     </p>
 
                     <button
@@ -252,7 +234,6 @@ const BookingEnquiry = () => {
     return (
         <div className="min-h-screen bg-gray-50 py-10 px-4">
             <div className="max-w-3xl mx-auto">
-
                 {/* HEADER */}
 
                 <div className="text-center mb-8">
@@ -261,17 +242,14 @@ const BookingEnquiry = () => {
                     </h1>
 
                     <p className="text-gray-500 mt-2">
-                        Please provide your details to proceed
-                        with your PG booking.
+                        Please provide your details to proceed with your PG booking.
                     </p>
                 </div>
 
                 {/* FORM CARD */}
 
                 <div className="bg-white rounded-2xl shadow-md p-6 md:p-8">
-
                     <form onSubmit={handleSubmit}>
-
                         {/* ================= CLIENT DETAILS ================= */}
 
                         <h2 className="text-lg font-semibold text-gray-800 mb-5">
@@ -279,7 +257,6 @@ const BookingEnquiry = () => {
                         </h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
                             {/* FULL NAME */}
 
                             <div>
@@ -305,16 +282,12 @@ const BookingEnquiry = () => {
                                         }));
                                     }}
                                     placeholder="Enter full name"
-                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.fullName
-                                            ? "border-red-500"
-                                            : "border-gray-300"
+                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.fullName ? "border-red-500" : "border-gray-300"
                                         }`}
                                 />
 
                                 {errors.fullName && (
-                                    <p className="text-red-500 text-xs mt-1">
-                                        {errors.fullName}
-                                    </p>
+                                    <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
                                 )}
                             </div>
 
@@ -322,8 +295,7 @@ const BookingEnquiry = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    WhatsApp Contact No.{" "}
-                                    <span className="text-red-500">*</span>
+                                    WhatsApp Contact No. <span className="text-red-500">*</span>
                                 </label>
 
                                 <input
@@ -332,10 +304,7 @@ const BookingEnquiry = () => {
                                     maxLength={10}
                                     value={formData.whatsappNumber}
                                     onChange={(e) => {
-                                        const value = e.target.value.replace(
-                                            /\D/g,
-                                            ""
-                                        );
+                                        const value = e.target.value.replace(/\D/g, "");
 
                                         setFormData((prev) => ({
                                             ...prev,
@@ -348,9 +317,7 @@ const BookingEnquiry = () => {
                                         }));
                                     }}
                                     placeholder="10 digit mobile number"
-                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.whatsappNumber
-                                            ? "border-red-500"
-                                            : "border-gray-300"
+                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.whatsappNumber ? "border-red-500" : "border-gray-300"
                                         }`}
                                 />
 
@@ -374,10 +341,7 @@ const BookingEnquiry = () => {
                                     maxLength={10}
                                     value={formData.callingNumber}
                                     onChange={(e) => {
-                                        const value = e.target.value.replace(
-                                            /\D/g,
-                                            ""
-                                        );
+                                        const value = e.target.value.replace(/\D/g, "");
 
                                         setFormData((prev) => ({
                                             ...prev,
@@ -390,7 +354,8 @@ const BookingEnquiry = () => {
                                         }));
                                     }}
                                     placeholder="10 digit mobile number"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none"
+                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.callingNumber ? "border-red-500" : "border-gray-300"
+                                        }`}
                                 />
 
                                 {errors.callingNumber && (
@@ -413,16 +378,12 @@ const BookingEnquiry = () => {
                                     value={formData.email}
                                     onChange={handleChange}
                                     placeholder="Enter email address"
-                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.email
-                                            ? "border-red-500"
-                                            : "border-gray-300"
+                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.email ? "border-red-500" : "border-gray-300"
                                         }`}
                                 />
 
                                 {errors.email && (
-                                    <p className="text-red-500 text-xs mt-1">
-                                        {errors.email}
-                                    </p>
+                                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
                                 )}
                             </div>
 
@@ -465,12 +426,11 @@ const BookingEnquiry = () => {
                                     value={formData.profile}
                                     onChange={handleChange}
                                     placeholder="e.g. Software Engineer / Student"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none"
+                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.profile ? "border-red-500" : "border-gray-300"
+                                        }`}
                                 />
                                 {errors.profile && (
-                                    <p className="text-red-500 text-xs mt-1">
-                                        {errors.profile}
-                                    </p>
+                                    <p className="text-red-500 text-xs mt-1">{errors.profile}</p>
                                 )}
                             </div>
 
@@ -478,8 +438,7 @@ const BookingEnquiry = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Date of Joining at PG{" "}
-                                    <span className="text-red-500">*</span>
+                                    Date of Joining at PG <span className="text-red-500">*</span>
                                 </label>
 
                                 <DatePicker
@@ -498,9 +457,7 @@ const BookingEnquiry = () => {
                                     minDate={new Date()}
                                     dateFormat="dd MMM yyyy"
                                     placeholderText="Select joining date"
-                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.joiningDate
-                                            ? "border-red-500"
-                                            : "border-gray-300"
+                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.joiningDate ? "border-red-500" : "border-gray-300"
                                         }`}
                                 />
 
@@ -519,7 +476,6 @@ const BookingEnquiry = () => {
                         </h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
                             {/* FATHER NAME */}
 
                             <div>
@@ -540,13 +496,14 @@ const BookingEnquiry = () => {
                                         }));
                                     }}
                                     placeholder="Father name"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none"
+                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.fatherName ? "border-red-500" : "border-gray-300"
+                                        }`}
                                 />
                                 {errors.fatherName && (
-  <p className="text-red-500 text-xs mt-1">
-    {errors.fatherName}
-  </p>
-)}
+                                    <p className="text-red-500 text-xs mt-1">
+                                        {errors.fatherName}
+                                    </p>
+                                )}
                             </div>
 
                             {/* FATHER CONTACT */}
@@ -562,10 +519,7 @@ const BookingEnquiry = () => {
                                     maxLength={10}
                                     value={formData.fatherContact}
                                     onChange={(e) => {
-                                        const value = e.target.value.replace(
-                                            /\D/g,
-                                            ""
-                                        );
+                                        const value = e.target.value.replace(/\D/g, "");
 
                                         setFormData((prev) => ({
                                             ...prev,
@@ -578,7 +532,10 @@ const BookingEnquiry = () => {
                                         }));
                                     }}
                                     placeholder="10 digit mobile number"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none"
+                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.fatherContact
+                                            ? "border-red-500"
+                                            : "border-gray-300"
+                                        }`}
                                 />
 
                                 {errors.fatherContact && (
@@ -608,13 +565,16 @@ const BookingEnquiry = () => {
                                         }));
                                     }}
                                     placeholder="Mother name"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none"
+                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.motherName
+                                        ? "border-red-500"
+                                        : "border-gray-300"
+                                        }`}
                                 />
                                 {errors.motherName && (
-  <p className="text-red-500 text-xs mt-1">
-    {errors.motherName}
-  </p>
-)}
+                                    <p className="text-red-500 text-xs mt-1">
+                                        {errors.motherName}
+                                    </p>
+                                )}
                             </div>
 
                             {/* MOTHER CONTACT */}
@@ -630,10 +590,7 @@ const BookingEnquiry = () => {
                                     maxLength={10}
                                     value={formData.motherContact}
                                     onChange={(e) => {
-                                        const value = e.target.value.replace(
-                                            /\D/g,
-                                            ""
-                                        );
+                                        const value = e.target.value.replace(/\D/g, "");
 
                                         setFormData((prev) => ({
                                             ...prev,
@@ -646,7 +603,10 @@ const BookingEnquiry = () => {
                                         }));
                                     }}
                                     placeholder="10 digit mobile number"
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none"
+                                    className={`w-full border rounded-lg px-3 py-2.5 outline-none ${errors.motherContact
+                                        ? "border-red-500"
+                                        : "border-gray-300"
+                                        }`}
                                 />
 
                                 {errors.motherContact && (
@@ -665,12 +625,9 @@ const BookingEnquiry = () => {
                                 disabled={isSubmitting}
                                 className="theme-btn"
                             >
-                                {isSubmitting
-                                    ? "Submitting..."
-                                    : "Submit Booking Request"}
+                                {isSubmitting ? "Submitting..." : "Submit Booking Request"}
                             </button>
                         </div>
-
                     </form>
                 </div>
             </div>

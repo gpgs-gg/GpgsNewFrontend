@@ -122,14 +122,14 @@ const Login = () => {
         </div>
 
         {/* Login Form - Right Side */}
-        <div className="flex justify-center items-center p-6 sm:p-8">
+        <div className="flex justify-center items-center p-3 sm:p-4">
           <div className="w-full max-w-md">
             <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900">
+                <h2 className="md:text-3xl text-2xl font-bold text-gray-900">
                   Log in to your account
                 </h2>
-                <p className="text-gray-500 mt-2">
+                <p className="text-gray-500 mt-2 text-xs">
                   Enter your credentials to access the dashboard
                 </p>
               </div>
@@ -153,7 +153,7 @@ const Login = () => {
                         message: "Please enter a valid email address",
                       },
                     })}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.email
+                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors ${errors.email
                       ? "border-red-500 ring-red-500"
                       : "border-gray-300"
                       }`}
@@ -187,7 +187,7 @@ const Login = () => {
                           message: "Password must be at least 6 characters",
                         },
                       })}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors pr-12 ${errors.password
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 outline-none focus:ring-gray-500 focus:border-transparent transition-colors pr-12 ${errors.password
                         ? "border-red-500 ring-red-500"
                         : "border-gray-300"
                         }`}
@@ -251,7 +251,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() => setIsSetPasswordOpen(true)}
-                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                    className="text-sm text-slate-600 hover:text-slate-800 hover:underline focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 rounded"
                   >
                     Forgot or need to set password?
                   </button>
@@ -262,7 +262,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting || isPending}
-                  className="w-full bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="w-full bg-linear-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {isSubmitting || isPending ? (
                     <span className="flex items-center justify-center gap-2">

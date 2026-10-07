@@ -313,7 +313,7 @@ const SalaryTable = ({ params = {}, onView }) => {
           TABLE CARD
       ===================================================== */}
 
-      <div className="bg-white border shadow-sm overflow-hidden flex flex-col h-[75vh] mt-2">
+      <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh] mt-2">
         {/* ===================================================
             TABLE CONTENT
         =================================================== */}
@@ -329,24 +329,17 @@ const SalaryTable = ({ params = {}, onView }) => {
                 {/* =========================
         SR NO
     ========================= */}
-                <th className="sticky top-0 left-0 z-50 w-[44px] min-w-[44px] max-w-[44px] bg-[#111827]border-r border-gray-600 px-1 py-2 text-center  font-bold  whitespace-nowrap">
-                  Sr
+                <th className="sticky top-0 left-0 z-50 w-[44px] min-w-[44px] max-w-[44px]  bg-[#111827]  border-r border-gray-600 px-1 py-2 text-center font-bold whitespace-nowrap">
+                  {" "}
+                  Sr{" "}
                 </th>
 
                 {/* =========================
         EMPLOYEE ID
     ========================= */}
                 <th
-                  className="
-        sticky top-0 left-[44px] z-50
-        w-[90px] min-w-[90px] max-w-[90px]
-        bg-[#111827]
-        border-r border-gray-600
-        px-2 py-2
-        text-left
-         font-bold
-        whitespace-nowrap
-      "
+                  className="sticky top-0 left-[44px] z-50 w-[90px] min-w-[90px] max-w-[90px]
+        bg-[#111827] border-r border-gray-600 px-2 py-2 text-left font-bold whitespace-nowrap"
                 >
                   Employee ID
                 </th>
@@ -354,18 +347,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                 {/* =========================
         EMPLOYEE NAME
     ========================= */}
-                <th
-                  className="
-        sticky top-0 left-[134px] z-50
-      
-        bg-[#111827]
-        border-r border-gray-600
-        px-3 py-2
-        text-left
-         font-bold
-        whitespace-nowrap
-      "
-                >
+                <th className="sticky top-0 left-[134px] z-50 bg-[#111827] border-r border-gray-600 px-3 py-2 text-left font-bold whitespace-nowrap">
                   Employee Name
                 </th>
 
@@ -378,21 +360,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                   return (
                     <th
                       key={day}
-                      className={`
-            sticky top-0 z-30
-            w-[36px]
-            min-w-[36px]
-            max-w-[36px]
-            h-[34px]
-            px-1
-            py-2
-            text-center
-            
-            font-bold
-            border-r border-gray-600
-            whitespace-nowrap
-            ${thursday ? "bg-[#111827] text-white" : "bg-[#111827] text-white"}
-          `}
+                      className={`sticky top-0 z-30 w-[36px] min-w-[36px] max-w-[36px] h-[34px] px-1 py-2 text-center font-bold border-r border-gray-600 whitespace-nowrap ${thursday ? "bg-[#111827] text-white" : "bg-[#111827] text-white"}`}
                     >
                       {day}
                     </th>
@@ -408,17 +376,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                 {/* =========================
         TOTAL DAYS
     ========================= */}
-                <th
-                  className="
-        sticky top-0 z-30
-        bg-[#111827]
-        border-l border-gray-600
-        px-3 py-2
-        text-center
-         font-bold
-        whitespace-nowrap
-      "
-                >
+                <th className="sticky top-0 z-30 bg-[#111827] border-l border-gray-600 px-3 py-2 text-center font-bold whitespace-nowrap">
                   Actual Present Days
                 </th>
                 <th className="sticky top-0 z-30 bg-[#111827] px-3 py-2 text-left  font-bold whitespace-nowrap">
@@ -453,18 +411,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                 </th>
 
                 {showActions && (
-                  <th
-                    className="
-      sticky top-0 right-0 z-50
-      w-[80px] min-w-[80px] max-w-[80px]
-      bg-[#111827]
-      border-l border-gray-600
-      px-3 py-2
-      text-center
-      font-bold
-      whitespace-nowrap
-    "
-                  >
+                  <th className="sticky top-0 right-0 z-50 w-[80px] min-w-[80px] max-w-[80px] bg-[#111827] border-l border-gray-600 px-3 py-2 text-center font-bold whitespace-nowrap">
                     Actions
                   </th>
                 )}
@@ -493,12 +440,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                       return (
                         <tr
                           key={salary?._id || salary?.employeeId || idx}
-                          className="
-                                  group
-    border-b border-gray-300
-    bg-white
-    hover:bg-gray-50 text-md
-  "
+                          className="group border-b border-gray-300 bg-white hover:bg-gray-50 text-md"
                         >
                           {/* =================================================
                           SR NO
@@ -548,24 +490,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                             return (
                               <td
                                 key={day}
-                                className={`
-    w-[36px]
-    min-w-[36px]
-    max-w-[36px]
-    h-[34px]
-    p-0
-    text-center
-    border-r border-gray-300
-    font-semibold
-    whitespace-nowrap
-    ${
-      status === 1
-        ? ""
-        : status === 0
-          ? "text-red-600 bg-red-100"
-          : "text-orange-500"
-    }
-  `}
+                                className={`w-[36px] min-w-[36px] max-w-[36px] h-[34px] p-0 text-center border-r border-gray-300 font-semibold whitespace-nowrap ${thursday && status === 1 ? "bg-blue-50" : status === 1 ? "bg-white" : status === 0.5 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-600"}`}
                                 title={
                                   status === 1
                                     ? `Day ${day}: Present`
@@ -686,28 +611,13 @@ const SalaryTable = ({ params = {}, onView }) => {
                       ================================================= */}
 
                           {showActions && (
-                            <td
-                              className="sticky right-0 z-20 w-[80px] min-w-[80px] max-w-[80px]
-      bg-white
-      group-hover:bg-gray-50
-      border-l border-gray-300
-      px-3 py-1.5
-      whitespace-nowrap
-    "
-                            >
+                            <td className="sticky right-0 z-20 w-[80px] min-w-[80px] max-w-[80px] bg-white group-hover:bg-gray-50 border-l border-gray-300 px-3 py-1.5 whitespace-nowrap">
                               <div className="flex justify-center gap-1.5">
                                 {onView && canViewSalary && (
                                   <button
                                     type="button"
                                     onClick={() => onView(salary)}
-                                    className="
-            p-1.5
-            bg-blue-50
-            text-blue-600
-            rounded-md
-            hover:bg-blue-100
-            transition
-          "
+                                    className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition"
                                     title="View Salary"
                                   >
                                     <Eye size={15} />
@@ -717,14 +627,7 @@ const SalaryTable = ({ params = {}, onView }) => {
                                 {canEditSalary && (
                                   <Link
                                     to={`/salary/edit/${salary.employeeId}?month=${selectedMonth}&year=${selectedYear}`}
-                                    className="
-            p-1.5
-            bg-yellow-50
-            text-yellow-600
-            rounded-md
-            hover:bg-yellow-100
-            transition
-          "
+                                    className="p-1.5 bg-yellow-50 text-yellow-600 rounded-md hover:bg-yellow-100 transition"
                                     title="Edit Salary"
                                   >
                                     <Pencil size={15} />

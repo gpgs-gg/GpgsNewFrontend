@@ -460,6 +460,29 @@ const SalaryEdit = () => {
                 {month}/{year}
               </span>
             </div>
+
+            {/* update salary button  */}
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  navigate(`/salary/all?month=${month}&year=${year}`)
+                }
+                disabled={isPending}
+                className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium transition"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                disabled={isPending}
+                className="theme-btn text-white px-6 py-2 rounded-lg hover:bg-gray-700"
+              >
+                {isPending ? "Updating..." : "Update Salary"}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -477,7 +500,7 @@ const SalaryEdit = () => {
 
             <div className="form-group">
               <input
-                 type="text"
+                type="text"
                 {...register("paidLeaveDays")}
                 min="0"
                 step="0.5"
@@ -491,7 +514,7 @@ const SalaryEdit = () => {
 
             <div className="form-group">
               <input
-                 type="text"
+                type="text"
                 {...register("publicHolidayDays")}
                 min="0"
                 step="0.5"
@@ -505,13 +528,12 @@ const SalaryEdit = () => {
 
             <div className="form-group">
               <input
-                 type="text"
+                type="text"
                 {...register("monthlySalary")}
                 min="0"
                 step="0.01"
                 placeholder=" "
-                readOnly
-                className="form-input cursor-not-allowed"
+                className="form-input"
               />
 
               <label className="form-label">Fixed Salary</label>
@@ -652,7 +674,7 @@ const SalaryEdit = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-group">
                   <input
-                     type="text"
+                    type="text"
                     {...register("adjustmentDetails.newSpecialPerk.amount")}
                     min="0"
                     step="0.01"
@@ -716,7 +738,7 @@ const SalaryEdit = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-group">
                   <input
-                     type="text"
+                    type="text"
                     {...register("adjustmentDetails.newDeduction.amount")}
                     min="0"
                     step="0.01"
@@ -822,7 +844,7 @@ const SalaryEdit = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-group">
                   <input
-                     type="text"
+                    type="text"
                     {...register("paidAmountDetails.newAdvanceAmount.amount")}
                     min="0"
                     step="0.01"
@@ -882,7 +904,7 @@ const SalaryEdit = () => {
 
                 <div className="form-group">
                   <input
-                     type="text"
+                    type="text"
                     {...register("paidAmountDetails.deductedAmount.amount")}
                     min="0"
                     step="0.01"
@@ -921,7 +943,7 @@ const SalaryEdit = () => {
 
             <div className="form-group">
               <input
-                 type="text"
+                type="text"
                 {...register("previousDue")}
                 step="0.01"
                 placeholder=" "

@@ -23,7 +23,7 @@ const ProgressSteps = ({ currentStep, totalSteps = 3 }) => {
         {/* Progress Bar Background */}
         <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200">
           <div
-            className="h-full bg-gradient-to-r from-indigo-600 to-blue-600 transition-all duration-500 ease-in-out"
+            className="h-full bg-gradient-to-r from-slate-600 to-slate-600 transition-all duration-500 ease-in-out"
             style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
           />
         </div>
@@ -38,9 +38,9 @@ const ProgressSteps = ({ currentStep, totalSteps = 3 }) => {
             <div key={step.number} className="flex flex-col items-center relative z-10">
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${isCompleted
-                    ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/30"
+                    ? "bg-gradient-to-r from-slate-600 to-slate-600 text-white shadow-lg shadow-indigo-500/30"
                     : isActive
-                      ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/30 ring-4 ring-indigo-200"
+                      ? "bg-gradient-to-r from-slate-600 to-slate-600 text-white shadow-lg shadow-indigo-500/30 ring-4 ring-indigo-200"
                       : "bg-gray-200 text-gray-500"
                   }`}
               >
@@ -51,7 +51,7 @@ const ProgressSteps = ({ currentStep, totalSteps = 3 }) => {
                 )}
               </div>
               <span
-                className={`text-xs font-medium mt-2 ${isActive ? "text-indigo-600" : "text-gray-500"
+                className={`text-xs font-medium mt-2 ${isActive ? "text-slate-600" : "text-gray-500"
                   }`}
               >
                 {step.label}
@@ -444,7 +444,7 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
         <div className="sticky top-0 bg-white z-10 px-6 pt-6 pb-4 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+              <div className="w-10 h-10 bg-gradient-to-r from-slate-600 to-slate-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
                 <Key size={20} className="text-white" />
               </div>
               <div>
@@ -500,7 +500,7 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
                       },
                     })}
                     placeholder="you@company.com"
-                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${errors.email
+                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all duration-200 ${errors.email
                         ? "border-red-300 bg-red-50 focus:ring-red-500"
                         : "border-gray-300 hover:border-gray-400"
                       }`}
@@ -519,7 +519,7 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
               <button
                 type="submit"
                 disabled={isGettingOtp}
-                className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-slate-600 to-slate-600 hover:from-slate-700 hover:to-slate-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isGettingOtp ? (
                   <>
@@ -570,7 +570,7 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
                   type="button"
                   onClick={handleResendOtp}
                   disabled={isGettingOtp || resendCooldown > 0}
-                  className="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-sm text-slate-600 hover:text-slate-800 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isGettingOtp
                     ? "Sending..."
@@ -583,7 +583,7 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
               <button
                 type="submit"
                 disabled={isVerifyingOtp || !otpValue || otpValue.length < 6}
-                className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-slate-600 to-slate-600 hover:from-slate-700 hover:to-slate-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isVerifyingOtp ? (
                   <>
@@ -636,7 +636,7 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
                       },
                     })}
                     placeholder="Create a strong password"
-                    className="w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 border-gray-300 hover:border-gray-400"
+                    className="w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all duration-200 border-gray-300 hover:border-gray-400"
                     aria-invalid={errors.password ? "true" : "false"}
                     disabled={isChange}
                   />
@@ -677,7 +677,7 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
                         value === password || "Passwords do not match",
                     })}
                     placeholder="Re-enter your password"
-                    className="w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 border-gray-300 hover:border-gray-400"
+                    className="w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all duration-200 border-gray-300 hover:border-gray-400"
                     aria-invalid={errors.confirmPassword ? "true" : "false"}
                     disabled={isChange}
                   />
@@ -734,7 +734,7 @@ const SetPassword = ({ isOpen, setIsOpen, userData, clientData }) => {
               <button
                 type="submit"
                 disabled={isChange || !password || password !== watch("confirmPassword")}
-                className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-slate-600 to-slate-600 hover:from-slate-700 hover:to-slate-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isChange ? (
                   <>

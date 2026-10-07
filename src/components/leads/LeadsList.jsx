@@ -28,6 +28,7 @@ import { selectStyles } from "../../utils/selectStyles";
 import ConfirmModal from "../common/ConfirmModal";
 import { useAuthorization } from "../../context/AuthorizationContext";
 import { useAuth } from "../../context/authContext";
+import { useEmployeeDetailsData } from "../EmployeeDetails/Services";
 
 const statusColors = {
   New: "bg-blue-100 text-blue-700",
@@ -52,6 +53,11 @@ const LeadsList = () => {
     default: false,
     defaultFilter: false,
   };
+
+  const { data: employeeData } = useEmployeeDetailsData({
+    page: 1,
+    limit: 1000,
+  });
 
   const { filters, setFilters, removeFilter, resetFilters } =
     usePersistedFilters("leads_filters", DEFAULT_LEAD_FILTERS);
@@ -115,11 +121,14 @@ const LeadsList = () => {
     setCurrentPage(1);
     setResetTrigger((prev) => prev + 1);
   };
-  const assigneeOptions = [
-    { value: "Akash", label: "Akash" },
-    { value: "Rahul", label: "Rahul" },
-    { value: "Priya", label: "Priya" }
-  ];
+ 
+  const AssigneeOptions =
+    employeeData?.data
+      ?.filter((employee) => employee.loginEnabled === true)
+      ?.map((employee) => ({
+        value: employee.employeeName,
+        label: employee.employeeName,
+      })) || [];
   const handleDefaultFilter = () => {
     const today = convertStringFormatDate(new Date());
 
@@ -861,7 +870,7 @@ const LeadsList = () => {
                 <Select
                   value={selectedAssignee}
                   onChange={setSelectedAssignee}
-                  options={assigneeOptions}
+                  options={AssigneeOptions}
                   placeholder=""
                   isClearable
                   styles={selectStyles}

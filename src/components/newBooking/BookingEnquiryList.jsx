@@ -10,40 +10,31 @@ import useDebounce from "../hooks/useDebounce";
 const BookingEnquiryList = ({ isOpen, onClose, onFillBookingForm, }) => {
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-            const debouncedSearch = useDebounce(search);
-
+    const debouncedSearch = useDebounce(search);
     const rowsPerPage = 10;
-
     const { data, isLoading } = useBookingEnquiry({
         page: currentPage,
         limit: rowsPerPage,
-        search : debouncedSearch,
+        search: debouncedSearch,
     });
-
     useEffect(() => {
         if (isOpen) {
             setCurrentPage(1);
             setSearch("");
         }
     }, [isOpen]);
-
     if (!isOpen) return null;
-
     const enquiryData = Array.isArray(data?.data) ? data.data : [];
     const totalPages = data?.totalPages || 1;
     const totalRecords = data?.totalRecords || 0;
-
-
     const handleSearch = (e) => {
         setSearch(e.target.value);
         setCurrentPage(1);
     };
-
     const clearSearch = () => {
         setSearch("");
         setCurrentPage(1);
     };
-
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4">
             <div className="flex h-[90vh] w-full max-w-7xl flex-col overflow-hidden rounded-xl border border-gray-300 bg-white shadow-xl">
