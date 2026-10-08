@@ -476,7 +476,7 @@ const BankTransactionList = () => {
                               </div>
 
                               {/* Full narration on hover */}
-                              <div className="absolute left-0 left-full mt-1 z-50 hidden group-hover:block w-max max-w-lg bg-gray-200 border border-gray-200 text-md rounded-md px-3 py-2 shadow-lg whitespace-normal break-words">
+                              <div className="absolute left-50  mt-[-15] z-50 hidden group-hover:block w-max max-w-lg bg-gray-200 border border-gray-200 text-md rounded-md px-3 py-2 shadow-lg whitespace-normal break-words">
                                 {item.narration}
                               </div>
                             </div>

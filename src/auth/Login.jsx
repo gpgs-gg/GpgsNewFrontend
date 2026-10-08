@@ -30,54 +30,103 @@ const Login = () => {
   });
 
 
+  // const onSubmit = async (data) => {
+  //   sendLoginDetails(data, {
+  //     onSuccess: async (response) => {
+  //       if (!response?.success) {
+  //         toast.dismiss()
+  //         toast.error(
+  //           response?.message || "Login failed. Please try again."
+  //         );
+  //         return;
+  //       }
+
+  //       // Current user data refresh
+  //       await queryClient.invalidateQueries({
+  //         queryKey: ["currentUser"],
+  //       });
+  //       toast.dismiss()
+  //       toast.success(
+  //         "Welcome back! You have been logged in successfully."
+  //       );
+
+  //       reset();
+
+  //       // Get role directly from login response
+  //       const role = response?.user?.role?.toLowerCase();
+
+  //       // Role based redirect
+  //       if (role === "client") {
+  //         navigate("/renthistory", {
+  //           replace: true,
+  //         });
+  //       } else {
+  //         navigate("/dashboard", {
+  //           replace: true,
+  //         });
+  //       }
+  //     },
+
+  //     onError: (error) => {
+  //       const errorMessage =
+  //         error?.response?.data?.message ||
+  //         error?.message ||
+  //         "Invalid email or password. Please check your credentials.";
+  //       toast.dismiss()
+  //       toast.error(errorMessage);
+  //     },
+  //   });
+  // };
+
+
   const onSubmit = async (data) => {
-    sendLoginDetails(data, {
-      onSuccess: async (response) => {
-        if (!response?.success) {
-          toast.dismiss()
-          toast.error(
-            response?.message || "Login failed. Please try again."
-          );
-          return;
-        }
-
-        // Current user data refresh
-        await queryClient.invalidateQueries({
-          queryKey: ["currentUser"],
-        });
-        toast.dismiss()
-        toast.success(
-          "Welcome back! You have been logged in successfully."
+  sendLoginDetails(data, {
+    onSuccess: async (response) => {
+      if (!response?.success) {
+        toast.dismiss();
+        toast.error(
+          response?.message || "Login failed. Please try again."
         );
+        return;
+      }
 
-        reset();
+      const role = response?.user?.role?.toLowerCase();
 
-        // Get role directly from login response
-        const role = response?.user?.role?.toLowerCase();
+      toast.dismiss();
+      toast.success(
+        "Welcome back! You have been logged in successfully."
+      );
 
-        // Role based redirect
-        if (role === "client") {
-          navigate("/renthistory", {
-            replace: true,
-          });
-        } else {
-          navigate("/dashboard", {
-            replace: true,
-          });
-        }
-      },
+      reset();
 
-      onError: (error) => {
-        const errorMessage =
-          error?.response?.data?.message ||
-          error?.message ||
-          "Invalid email or password. Please check your credentials.";
-        toast.dismiss()
-        toast.error(errorMessage);
-      },
-    });
-  };
+      // Navigate immediately after successful login
+      if (role === "client") {
+        navigate("/renthistory", {
+          replace: true,
+        });
+      } else {
+        navigate("/dashboard", {
+          replace: true,
+        });
+      }
 
+      // Refresh current user in background
+      queryClient.invalidateQueries({
+        queryKey: ["currentUser"],
+      });
+    },
+
+    onError: (error) => {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Invalid email or password. Please check your credentials.";
+
+      toast.dismiss();
+      toast.error(errorMessage);
+    },
+  });
+};
   const togglePasswordVisibility = () => {
     setShowPassword((prevState) => !prevState);
   };
