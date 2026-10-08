@@ -335,7 +335,6 @@ const TicketsList = () => {
     });
   };
 
-
   const convertStringToDateTime = (dateString) => {
     if (!dateString) return null;
 
@@ -376,17 +375,17 @@ const TicketsList = () => {
             </div>
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-red-200"></span>
                 <span className="text-gray-600">Late Resolved</span>
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-green-200"></span>
                 <span className="text-gray-600">Resolved</span>
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-yellow-200"></span>
                 <span className="text-gray-600">SLA Warning</span>
               </div>
             </div>
@@ -592,16 +591,17 @@ const TicketsList = () => {
                               className="h-4 w-4 accent-gray-500 border-gray-300 rounded "
                             />
                           </td>
+
                           <td
-                            className={`sticky left-0 z-20 p-3 font-semibold bg-white shadow-md ${(() => {
+                            className={`sticky left-0 z-20 p-3 font-semibold shadow-md ${(() => {
                               // Resolved late
                               if (item.lateResolved === "Yes") {
-                                return "text-red-500";
+                                return "bg-red-200";
                               }
 
                               // Resolved on time
                               if (item.status === "Resolved") {
-                                return "text-green-500";
+                                return "bg-green-200";
                               }
 
                               let slaHours = 0;
@@ -620,28 +620,42 @@ const TicketsList = () => {
                                   break;
 
                                 case "critical":
-                                  slaHours = 8;
+                                  slaHours = 4;
                                   break;
 
                                 default:
                                   return "text-black";
                               }
 
-                              const createdDate = convertStringToDateTime(item.dateCreated);
+                              const createdDate = convertStringToDateTime(
+                                item.dateCreated,
+                              );
 
-                              if (!createdDate) return "text-black";
+                              if (!createdDate) {
+                                return "text-black";
+                              }
 
                               const now = new Date();
 
                               const diffHours =
-                                (now - new Date(createdDate)) / (1000 * 60 * 60);
+                                (now - new Date(createdDate)) /
+                                (1000 * 60 * 60);
 
+                              // 75% of SLA
                               const seventyFivePercentHours = slaHours * 0.75;
 
-                              // 75% SLA crossed
-                              return diffHours >= seventyFivePercentHours
-                                ? "text-yellow-500"
-                                : "text-black";
+                              // 100% SLA crossed → RED
+                              if (diffHours >= slaHours) {
+                                return "bg-red-200";
+                              }
+
+                              // 75% SLA crossed → ORANGE
+                              if (diffHours >= seventyFivePercentHours) {
+                                return "bg-orange-200";
+                              }
+
+                              // Less than 75% SLA → BLACK
+                              return "text-black bg-white";
                             })()}`}
                           >
                             {item.ticketId}
@@ -654,7 +668,6 @@ const TicketsList = () => {
                           <td className="p-3">
                             {item?.propertyId?.propertyCode}
                           </td>
-
 
                           <td className="p-3">
                             <div className="relative group max-w-75">
@@ -699,11 +712,9 @@ const TicketsList = () => {
                             </div>
                           </td>
 
-
-
                           <td className="p-3 text-center">
                             <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[item.status] ||
+                              className={`px-3 py-1 rounded-full text-sm font-semibold  ||
                                 "bg-gray-100 text-gray-700"
                                 }`}
                             >
@@ -713,7 +724,7 @@ const TicketsList = () => {
                           <td className="p-3">{item.department}</td>
                           <td className="p-3">
                             <span
-                              className={`px-2 py-1  text-xs font-semibold ${priorityColors[item.priority] ||
+                              className={`px-2 py-1  text-sm font-semibold  ||
                                 "bg-gray-100 text-gray-700"
                                 }`}
                             >
