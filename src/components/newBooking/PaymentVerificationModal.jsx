@@ -15,7 +15,7 @@ const PaymentVerificationModal = ({
     isCreateClientLoading
 }) => {
     const narration = watch("narration");
-    const debouncedNarration = useDebounce(narration, 700);
+    const debouncedNarration = useDebounce(narration, 500);
 
     const { data: transactionData, isFetching } =
         useBankTransactionData(debouncedNarration);

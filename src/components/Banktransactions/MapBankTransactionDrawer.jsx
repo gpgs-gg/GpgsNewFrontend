@@ -12,6 +12,7 @@ import {
 } from "./services";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/authContext";
+import { FiCopy } from "react-icons/fi";
 
 // ===========================
 // Property Options
@@ -126,7 +127,7 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
     }
 
     if (submitLockRef.current) return;
-        submitLockRef.current = true;
+    submitLockRef.current = true;
 
     const payload = {
       transactionId: transaction._id,
@@ -195,11 +196,54 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
                 {transaction?.deposit}
               </p>
             </div>
+      
+<div>
+  <p className="text-xs text-gray-500 mb-1">Narration</p>
 
-            <div>
-              <p className="text-xs text-gray-500">Narration</p>
-              <p className="font-medium">{transaction?.narration}</p>
-            </div>
+  <div className="flex items-start gap-2">
+    <div className="flex-1 min-w-0">
+      <p className="font-medium text-sm break-all">
+        {transaction?.narration || "-"}
+      </p>
+
+      <p className="text-xs text-gray-500 mt-1">
+        Reference Number: {transaction?.chqNo || "-"}
+      </p>
+    </div>
+
+    {/* Single Copy Button */}
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          const narration = String(
+            transaction?.narration ?? ""
+          ).trim();
+
+          const chqNo = String(
+            transaction?.chqNo ?? ""
+          ).trim();
+
+          const textToCopy = `${narration}|||REF|||${chqNo}`;
+
+          await navigator.clipboard.writeText(textToCopy);
+
+          toast.dismiss();
+          toast.success(`Copied successfully!\n${textToCopy}`, {
+            duration: 5000,
+          });
+        } catch (error) {
+          toast.error("Failed to copy transaction details");
+        }
+      }}
+      className="text-gray-500 hover:text-blue-600 transition-colors shrink-0"
+      title="Copy narration and reference number"
+    >
+      <FiCopy size={16} />
+    </button>
+  </div>
+</div>
+
 
             <div>
               <p className="text-xs text-gray-500">Date</p>
@@ -340,8 +384,8 @@ const MapBankTransactionDrawer = ({ isOpen, onClose, transaction }) => {
               <span className="text-gray-500">Current Due</span>
               <span
                 className={`font-semibold ${Number(selectedClient?.currentDue) > 0
-                    ? "text-red-500"
-                    : "text-green-600"
+                  ? "text-red-500"
+                  : "text-green-600"
                   }`}
               >
                 ₹{selectedClient?.currentDue ?? 0}

@@ -253,15 +253,36 @@ const BankTransactionList = () => {
   };
   const today = convertToApiDate(new Date());
 
-  const handleCopy = async (text) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.dismiss();
-      toast.success(`${text} copied!`);
-    } catch (error) {
-      toast.error("Failed to copy.");
+
+const handleCopy = async (narration, chqNo) => {
+  try {
+    const narrationText = String(narration ?? "").trim();
+    const referenceNumber = String(chqNo ?? "").trim();
+
+    const textToCopy = [
+      narrationText,
+      referenceNumber ? `|||REF|||${referenceNumber}` : "",
+    ].join("");
+
+    if (!textToCopy) {
+      toast.error("Nothing to copy.");
+      return;
     }
-  };
+
+    await navigator.clipboard.writeText(textToCopy);
+
+    toast.dismiss();
+    toast.success(
+      `Copied successfully!\n${textToCopy}`,
+      {
+        duration: 5000,
+      }
+    );
+  } catch (error) {
+    toast.error("Failed to copy.");
+  }
+};
+
 
   return (
     <>
@@ -483,7 +504,7 @@ const BankTransactionList = () => {
 
                             <button
                               type="button"
-                              onClick={() => handleCopy(item.narration)}
+                              onClick={() => handleCopy(item.narration , item.chqNo)}
                               className="text-gray-500 hover:text-blue-600 transition-colors shrink-0"
                               title="Copy narration"
                             >
