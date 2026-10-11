@@ -245,7 +245,7 @@ const { data: employeeData } = useEmployeeDetailsData({
             // BULK CREATE
             if (mode === "bulk") {
                 const numbers = data.BulkCallingNo
-                    .split("\n")
+                    .split(/[\s,;]+/)
                     .map(x => x.trim())
                     .filter(Boolean);
                 if (!numbers.length) {

@@ -81,7 +81,10 @@ function TicketCreateEdit() {
     }
   }, [id, singleTicket, reset]);
 
-  const DepartmentOptions = options.department || [];
+  const DepartmentOptions = (options.department || []).filter(
+    (option) => option.value !== "IT",
+  );
+
   const CategoryOptions = options.categories || [];
   const StatusOptions = options.ticketstatus || [];
 
@@ -500,33 +503,60 @@ function TicketCreateEdit() {
                 rules={{
                   required: "Status is required",
                 }}
-                render={({ field }) => (
-                  <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                    <label className="select-label form-label required-label">Status</label>
-                    <Select
-                      {...field}
-                      options={
-                        isClient
-                          ? StatusOptions.filter(
-                            (option) => option.value === "ReOpen"
-                          )
-                          : StatusOptions
-                      }
-                      placeholder=""
-                      isClearable
-                      value={StatusOptions.find(
-                        (x) => x.value === field.value
+                render={({ field }) => {
+                  // ✅ Client can edit status only when current status is "Resolved"
+                  const canClientEdit = field.value === "Resolved";
+
+                  // ✅ Read-only / editable logic
+                  const isEditable = isClient ? canClientEdit : true;
+
+                  // Build options
+                  const availableOptions = isClient
+                    ? canClientEdit
+                      ? StatusOptions.filter((option) => option.value === "ReOpen")
+                      : StatusOptions.filter((option) => option.value !== "ReOpen")
+                    : StatusOptions;
+
+                  return (
+                    <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                      <label className="select-label form-label required-label">
+                        Status
+                      </label>
+
+                      <Select
+                        {...field}
+                        options={isEditable ? availableOptions : [StatusOptions.find((x) => x.value === field.value)]}
+                        placeholder=""
+                        isClearable={isEditable}
+                        isSearchable={isEditable}
+                        value={StatusOptions.find((x) => x.value === field.value)}
+                        onChange={(e) => isEditable && field.onChange(e?.value)}
+                        styles={selectStyles}
+                        // ✅ Disable select when client can't edit
+                        isDisabled={!isEditable}
+                      />
+
+                      {/* Info message for clients */}
+                      {isClient && !canClientEdit && (
+                        <p className="text-gray-500 text-sm mt-1">
+                          Status can be changed only when current status is <b>"Resolved"</b>.
+                        </p>
                       )}
-                      onChange={(e) => field.onChange(e?.value)}
-                      styles={selectStyles}
-                    />
-                    {errors.status && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.status.message}
-                      </p>
-                    )}
-                  </div>
-                )}
+
+                      {isClient && canClientEdit && (
+                        <p className="text-blue-600 text-sm mt-1">
+                          You can only <b>Reopen</b> the ticket now.
+                        </p>
+                      )}
+
+                      {errors.status && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.status.message}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }}
               />
             )}
             {id && (
@@ -590,63 +620,78 @@ function TicketCreateEdit() {
 
         {/* Utility Details */}
         {/* {singleTicket?.data?.workLogs?.length > 0 && ( */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        {id && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
 
-          <h2 className="text-xl font-semibold mb-4">
-            WorkLog
-          </h2>
+            <h2 className="text-xl font-semibold mb-4">
+              WorkLog
+            </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {/* Add WorkLog */}
-            {id && (
-              <div className="form-group">
-                <textarea
-                  rows={5}
-                  {...register("newWorkLog")}
-                  className="form-input"
-                />
+              {/* Add WorkLog */}
+              {id && (
+                <div className="form-group">
+                  <textarea
+                    rows={5}
+                    {...register("newWorkLog")}
+                    className="form-input"
+                  />
 
-                <label className="form-label">
-                  Add WorkLog
-                </label>
-              </div>
-            )}
-
-            {/* Work Log History */}
-            {id && (
-              <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col md:col-span-1">
-
-                <h3 className="font-semibold text-lg mb-1">
-                  Work Log History
-                </h3>
-
-                <div className="flex-1 overflow-y-auto">
-                  {singleTicket?.data?.workLogs
-                    .slice()
-                    .reverse()
-                    .map((log) => (
-                      <div
-                        key={log._id}
-                        className="border-b py-3 last:border-b-0"
-                      >
-                        <small className="text-gray-500">
-                          {log.createdBy || "System"} •{" "}
-                          {formatDateAndTime(log.createdAt)}
-                        </small>
-
-                        <p className="whitespace-pre-line text-sm">
-                          {log.message}
-                        </p>
-                      </div>
-                    ))}
+                  <label className="form-label">
+                    Add WorkLog
+                  </label>
                 </div>
+              )}
 
-              </div>
-            )}
+              {/* Work Log History */}
+              {id && (
+                <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col md:col-span-1">
 
+                  <h3 className="font-semibold text-lg mb-1">
+                    Work Log History
+                  </h3>
+
+                  <div className="flex-1 overflow-y-auto">
+                    {singleTicket?.data?.workLogs
+                      .slice()
+                      .reverse()
+                      .map((log) => {
+                        const isClient = log.role === "Client";
+
+                        return (
+                          <div
+                            key={log._id}
+                            className={`flex w-full py-3 ${isClient ? "justify-end" : "justify-start"
+                              }`}
+                          >
+                            <div
+                              className={`max-w-[80%] rounded-lg px-3 py-2 ${isClient
+                                ? "bg-blue-50 border border-blue-200"
+                                : "bg-gray-50 border border-gray-200"
+                                }`}
+                            >
+                              <small className="block text-gray-500">
+                                {log.role === "Admin"
+                                  ? "GPGS"
+                                  : log.createdBy || "System"}{" "}
+                                • {formatDateAndTime(log.createdAt)}
+                              </small>
+
+                              <p className="whitespace-pre-line text-sm break-words">
+                                {log.message}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+            </div>
           </div>
-        </div>
+        )}
         {/* )} */}
 
         {/* Owner Details */}

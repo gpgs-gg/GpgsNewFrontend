@@ -28,6 +28,7 @@ import { useManagerEmployees } from "../EmployeeDetails/Services/index";
 import { useEmployeeDetailsData } from "../EmployeeDetails/Services/index";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "../../context/authContext";
+import { compressAttachment } from "../../utils/compressFile";
 function TicketCreateEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -67,9 +68,18 @@ function TicketCreateEdit() {
   const [attachmentFiles, setAttachmentFiles] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
+  const [compressionFileName, setCompressionFileName] = useState("");
+  const [pendingFiles, setPendingFiles] = useState([]);
   const submitLockRef = useRef(false);
   const assignee = watch("assignee");
-  const userName = user?.Name || user?.name || user?.fullName || user?.username || "System";
+  const manager = watch("manager");
+  const ticketManager = watch("ticketManager");
+
+  const userName =
+    user?.Name || user?.name || user?.fullName || user?.username || "System";
+
   useEffect(() => {
     if (id && singleTicket?.data) {
       const ticket = singleTicket.data;
@@ -77,10 +87,10 @@ function TicketCreateEdit() {
       setSelectedProperty(
         ticket.propertyId
           ? {
-            value: ticket.propertyId._id,
-            label: ticket.propertyId.propertyCode,
-            propLocation: ticket.propertyId.propertyLocation,
-          }
+              value: ticket.propertyId._id,
+              label: ticket.propertyId.propertyCode,
+              propLocation: ticket.propertyId.propertyLocation,
+            }
           : null,
       );
 
@@ -172,7 +182,10 @@ function TicketCreateEdit() {
 
   const TicketManagerOptions =
     employeeData?.data
-      ?.filter((employee) => employee.ticketManager === true && employee.loginEnabled === true)
+      ?.filter(
+        (employee) =>
+          employee.ticketManager === true && employee.loginEnabled === true,
+      )
       ?.map((employee) => ({
         value: employee.employeeName,
         label: employee.employeeName,
@@ -187,12 +200,10 @@ function TicketCreateEdit() {
       })) || [];
 
   const onSubmit = (data) => {
-  
-
     const hasAttachmentChanges =
       attachmentFiles.length > 0 ||
       existingAttachments.length !==
-      (singleTicket?.data?.attachment?.length || 0);
+        (singleTicket?.data?.attachment?.length || 0);
 
     if (!isDirty && !hasAttachmentChanges) {
       toast.dismiss();
@@ -200,7 +211,7 @@ function TicketCreateEdit() {
       return;
     }
 
-      if (submitLockRef.current) return;
+    if (submitLockRef.current) return;
     submitLockRef.current = true;
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
@@ -233,6 +244,7 @@ function TicketCreateEdit() {
       formData.append("createdByName", currentUser?.user?.name || "");
     }
     formData.append("updatedByName", currentUser?.user?.name || "");
+    formData.append("role", currentUser?.user?.role || "");
     // formData.append("dateCreated", convertStringFormatDateTime(new Date()));
     // formData.append("propertyLocation", )
     formData.append("auditorLog", data.auditorLog || "");
@@ -289,8 +301,6 @@ function TicketCreateEdit() {
     }
   };
 
-
-
   return (
     <div className="max-w-12xl mx-auto px-6">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -319,7 +329,7 @@ function TicketCreateEdit() {
 
               <button
                 type="submit"
-                disabled={isCreateTicket || isUpdateTicket}
+                disabled={isCreateTicket || isUpdateTicket || isCompressing}
                 className="theme-btn text-white px-5 py-2 rounded-lg"
               >
                 {isCreateTicket || isUpdateTicket ? (
@@ -329,12 +339,10 @@ function TicketCreateEdit() {
                 ) : id ? (
                   "Update Ticket"
                 ) : (
-                  "Create Ticket"
+                  "Create eere Ticket"
                 )}
               </button>
             </div>
-
-
           </div>
         </div>
         {/* Property Details */}
@@ -487,26 +495,38 @@ function TicketCreateEdit() {
               name="priority"
               control={control}
               rules={{
-                required: assignee ? "Priority is required" : false,
+                required:
+                  assignee || manager || ticketManager
+                    ? "Priority is required"
+                    : false,
               }}
               render={({ field }) => (
                 <div
                   className={`select-group ${field.value ? "has-value" : ""}`}
                 >
                   <label
-                    className={`select-label form-label ${assignee ? "required-label" : ""}`}
+                    className={`select-label form-label ${
+                      assignee || manager || ticketManager
+                        ? "required-label"
+                        : ""
+                    }`}
                   >
                     Priority
                   </label>
+
                   <Select
                     {...field}
                     options={PriorityOptions}
                     placeholder=""
                     isClearable
-                    value={PriorityOptions.find((x) => x.value === field.value)}
-                    onChange={(e) => field.onChange(e?.value)}
+                    value={
+                      PriorityOptions.find((x) => x.value === field.value) ||
+                      null
+                    }
+                    onChange={(e) => field.onChange(e?.value ?? "")}
                     styles={selectStyles}
                   />
+
                   {errors.priority && (
                     <p className="text-red-500 text-sm mt-1">
                       {errors.priority.message}
@@ -745,14 +765,16 @@ function TicketCreateEdit() {
                   type="text"
                   value={
                     id
-                      ? `${singleTicket?.data?.createdByName || ""} ${singleTicket?.data?.createdByRole
-                        ? `(${singleTicket.data.createdByRole})`
-                        : ""
-                      }`
-                      : `${currentUser?.user?.name || ""} ${currentUser?.user?.role
-                        ? `(${currentUser.user.role})`
-                        : ""
-                      }`
+                      ? `${singleTicket?.data?.createdByName || ""} ${
+                          singleTicket?.data?.createdByRole
+                            ? `(${singleTicket.data.createdByRole})`
+                            : ""
+                        }`
+                      : `${currentUser?.user?.name || ""} ${
+                          currentUser?.user?.role
+                            ? `(${currentUser.user.role})`
+                            : ""
+                        }`
                   }
                   readOnly
                   className="form-input bg-gray-100 cursor-not-allowed"
@@ -760,9 +782,6 @@ function TicketCreateEdit() {
                 />
 
                 <label className="form-label">Created By</label>
-
-
-
               </div>
             )}
           </div>
@@ -797,24 +816,119 @@ function TicketCreateEdit() {
                 type="file"
                 multiple
                 className="form-input"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files);
+                onChange={async (e) => {
+                  const files = Array.from(e.target.files || []);
 
-                  setAttachmentFiles((prev) => {
-                    const updated = [...prev, ...files];
+                  if (!files.length) return;
 
-                    setValue("attachment", updated);
+                  // Show original files immediately while compression runs
+                  setPendingFiles(files);
+                  setIsCompressing(true);
+                  setCompressionProgress(0);
 
-                    return updated;
-                  });
+                  try {
+                    const compressedFiles = [];
 
-                  e.target.value = "";
+                    for (const file of files) {
+                      setCompressionFileName(file.name);
+                      setCompressionProgress(0);
+
+                      const originalSize = file.size;
+
+                      const compressedFile = await compressAttachment(
+                        file,
+                        (progress) => {
+                          setCompressionProgress(progress);
+                        },
+                      );
+
+                      const compressedSize = compressedFile.size;
+
+                      const reducedBy =
+                        originalSize > 0
+                          ? ((originalSize - compressedSize) / originalSize) *
+                            100
+                          : 0;
+
+                      console.log(`File: ${file.name}`);
+                      console.log(
+                        `Original Size: ${(originalSize / 1024 / 1024).toFixed(2)} MB`,
+                      );
+                      console.log(
+                        `Compressed Size: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`,
+                      );
+                      console.log(`Reduced By: ${reducedBy.toFixed(2)}%`);
+
+                      compressedFiles.push(compressedFile);
+                    }
+
+                    setAttachmentFiles((prev) => {
+                      const updated = [...prev, ...compressedFiles];
+
+                      setValue("attachment", updated, {
+                        shouldDirty: true,
+                      });
+
+                      return updated;
+                    });
+
+                    setCompressionProgress(100);
+                  } catch (error) {
+                    console.error("Attachment compression failed:", error);
+
+                    toast.dismiss();
+                    toast.error(
+                      error?.message || "Failed to compress attachment.",
+                    );
+                  } finally {
+                    setPendingFiles([]);
+                    setIsCompressing(false);
+                    setCompressionProgress(0);
+                    setCompressionFileName("");
+                    e.target.value = "";
+                  }
                 }}
+                // onChange={(e) => {
+                //   const files = Array.from(e.target.files);
+
+                //   setAttachmentFiles((prev) => {
+                //     const updated = [...prev, ...files];
+
+                //     setValue("attachment", updated);
+
+                //     return updated;
+                //   });
+
+                //   e.target.value = "";
+                // }}
               />
 
               <label className="form-label">Attachment</label>
-
               <FilePreview
+                files={attachmentFiles}
+                pendingFiles={pendingFiles}
+                existingFiles={existingAttachments}
+                isCompressing={isCompressing}
+                compressionProgress={compressionProgress}
+                compressionFileName={compressionFileName}
+                onRemoveExisting={(index) =>
+                  setExistingAttachments((prev) =>
+                    prev.filter((_, i) => i !== index),
+                  )
+                }
+                onRemoveNew={(index) =>
+                  setAttachmentFiles((prev) => {
+                    const updated = prev.filter((_, i) => i !== index);
+
+                    setValue("attachment", updated, {
+                      shouldDirty: true,
+                    });
+
+                    return updated;
+                  })
+                }
+              />
+              {/* <FilePreview
                 files={attachmentFiles}
                 existingFiles={existingAttachments}
                 onRemoveExisting={(index) =>
@@ -827,7 +941,7 @@ function TicketCreateEdit() {
                     prev.filter((_, i) => i !== index),
                   )
                 }
-              />
+              /> */}
             </div>
 
             {id && (
@@ -846,29 +960,38 @@ function TicketCreateEdit() {
                 <h3 className="font-semibold text-lg mb-1">Work Log History</h3>
 
                 <div className="flex-1 overflow-y-auto">
-                  {singleTicket?.data?.workLogs?.length > 0 ? (
-                    singleTicket.data.workLogs
-                      .slice()
-                      .reverse()
-                      .map((log) => (
+                  {singleTicket?.data?.workLogs
+                    .slice()
+                    .reverse()
+                    .map((log) => {
+                      const isClient = log.role === "Client";
+
+                      return (
                         <div
                           key={log._id}
-                          className="border-b py-3 last:border-b-0"
+                          className={`flex w-full py-3 ${
+                            isClient ? "justify-start" : "justify-end"
+                          }`}
                         >
-                          <small className="text-gray-500">
-                            {log.createdBy || "System"} •{" "}
-                            {formatDateAndTime(log.createdAt)}
-                          </small>
-                          <p className="whitespace-pre-line text-sm">
-                            {log.message}
-                          </p>
+                          <div
+                            className={`max-w-[80%] rounded-lg px-3 py-2 ${
+                              isClient
+                                ? "bg-blue-50 border border-blue-200"
+                                : "bg-gray-50 border border-gray-200"
+                            }`}
+                          >
+                            <small className="block text-gray-500">
+                              {log.createdBy || "System"} •{" "}
+                              {formatDateAndTime(log.createdAt)}
+                            </small>
+
+                            <p className="whitespace-pre-line text-sm break-words">
+                              {log.message}
+                            </p>
+                          </div>
                         </div>
-                      ))
-                  ) : (
-                    <p className="text-gray-400 text-center mt-10">
-                      No Work Logs Available
-                    </p>
-                  )}
+                      );
+                    })}
                 </div>
               </div>
             )}
@@ -940,7 +1063,7 @@ function TicketCreateEdit() {
 
           <button
             type="submit"
-            disabled={isCreateTicket || isUpdateTicket}
+            disabled={isCreateTicket || isUpdateTicket || isCompressing}
             className="theme-btn text-white px-5 py-2 rounded-lg"
           >
             {isCreateTicket || isUpdateTicket ? (

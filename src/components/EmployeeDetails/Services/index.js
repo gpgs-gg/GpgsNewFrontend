@@ -87,7 +87,6 @@ export const useEmployeeDetailsData = ({
       filters.teamCodeId,
       filters.statusId,
     ],
-
     queryFn: () =>
       getEmployeeDetails({
         page,

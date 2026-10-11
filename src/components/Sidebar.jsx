@@ -193,6 +193,8 @@ const expanded = mobileOpen || !collapsed || hovered;
     "clients",
     "rent_history",
     "rent_not_received",
+    "New RNR",
+    "New Rnr",
     "full_final_settlement",
     "tickets",
     "pg_leads",

@@ -380,7 +380,7 @@ const BedsTable = () => {
               </button>
             </div>
           </div>
-          {canDeleteBed && selectedBeds.length > 0 && (
+          {/* {canDeleteBed && selectedBeds.length > 0 && (
             <button
               onClick={() => {
                 setDeleteType("bulk");
@@ -396,7 +396,7 @@ const BedsTable = () => {
                 {selectedBeds.length}
               </span>
             </button>
-          )}
+          )} */}
           {/* TABLE CONTENT */}
           <div className="flex-1 overflow-auto ">
             <table className="w-full">

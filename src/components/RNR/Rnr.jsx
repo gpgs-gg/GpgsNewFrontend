@@ -477,18 +477,18 @@ function Rnr() {
                           <td className="p-3">
                             <span
                               className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${item.stayType === "T. Booked"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : item.stayType === "P. Booked"
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-gray-100 text-gray-600"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : item.stayType === "P. Booked"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-gray-100 text-gray-600"
                                 }`}
                             >
                               {item.stayType || "-"}
                             </span>
                           </td>
-   <td className="p-3 text-center">
+                          <td className="p-3 text-center">
                             {(() => {
-                              const fnfStatus = item?.fnf?.status;
+                              const fnfStatus = item?.status;
 
                               if (fnfStatus && fnfStatus.trim() !== "") {
                                 return (

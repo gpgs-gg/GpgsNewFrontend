@@ -31,9 +31,9 @@ const RentHistory = () => {
     return 0;
   });
 
-  const permanentRent =
-    apiData.find((item) => item.stayType === "P. Booked") || null;
+  const permanentRent = apiData.find((item) => item.stayType === "P. Booked") || null;
 
+  const FnfPermanentRent = apiData || [];
   // Latest Temporary record
   const temporaryRents = apiData.filter(
     (item) => item.stayType === "T. Booked",
@@ -42,16 +42,16 @@ const RentHistory = () => {
   const latestTemporaryRent =
     temporaryRents.length > 0
       ? [...temporaryRents].sort((a, b) => {
-          const dateA = new Date(
-            a.updatedAt || a.createdAt || a.endDate || a.startDate || 0,
-          ).getTime();
+        const dateA = new Date(
+          a.updatedAt || a.createdAt || a.endDate || a.startDate || 0,
+        ).getTime();
 
-          const dateB = new Date(
-            b.updatedAt || b.createdAt || b.endDate || b.startDate || 0,
-          ).getTime();
+        const dateB = new Date(
+          b.updatedAt || b.createdAt || b.endDate || b.startDate || 0,
+        ).getTime();
 
-          return dateB - dateA;
-        })[0]
+        return dateB - dateA;
+      })[0]
       : null;
 
   const currentRent = permanentRent || latestTemporaryRent || {};
@@ -64,7 +64,8 @@ const RentHistory = () => {
   const permanentCurrentDue = Number(permanentRent?.currentDue || 0);
   const temporaryCurrentDue = Number(latestTemporaryRent?.currentDue || 0);
   const totalCurrentDue = permanentCurrentDue + temporaryCurrentDue;
-  const fnfAmount = Number(permanentRent?.clientId?.fnf?.fnfAmount || 0);
+  const fnfAmount = Number(FnfPermanentRent[0]?.clientId?.fnf?.fnfAmount || 0);
+
 
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,7 +76,6 @@ const RentHistory = () => {
   // ✅ filter & search logic
   const filteredData = useMemo(() => {
     return apiData?.filter((item) => {
-      console.log(item);
       const matchesSearch =
         !search ||
         Object.values(item).some((value) =>
@@ -119,7 +119,7 @@ const RentHistory = () => {
       <div className="space-y-5">
         {/* HEADER */}
 
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3">
+        <div className="bg-white rounded-xl  border-gray-200  p-3">
           <div className="flex items-center justify-between mb-2  ">
             <div className="flex w-full justify-between items-center"></div>
           </div>
@@ -127,7 +127,7 @@ const RentHistory = () => {
           {bookingId && client && (
             <div className="space-y-5">
               {/* ================= TOP TOTAL DUE ================= */}
-              <div className="rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 to-white px-5 p-2 shadow-sm">
+              {/* <div className="rounded-2xl border border-red-200 to-white px-5 p-2 shadow-sm">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-md font-semibold  tracking-widest text-red-600">
@@ -135,51 +135,90 @@ const RentHistory = () => {
                     </p>
 
                     <p
-                      className={`mt-1 text-2xl font-bold tracking-tight ${
-                        totalCurrentDue > 0
-                          ? "text-red-600"
+                      className={`mt-1 text-2xl font-bold tracking-tight ${totalCurrentDue > 0
+                          ? ""
                           : totalCurrentDue < 0
                             ? "text-green-600"
                             : "text-gray-800"
-                      }`}
+                        }`}
                     >
                       ₹ {totalCurrentDue.toLocaleString("en-IN")}
                     </p>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
-              {fnfAmount > 0 && (
-                <div
-                  className={`rounded-2xl border px-5 p-2 shadow-sm ${
-                    fnfAmount < 0
-                      ? "border-red-200 bg-linear-to-r from-red-50 to-white"
-                      : "border-green-200 bg-linear-to-r from-green-50 to-white"
-                  }`}
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p
-                        className={`text-md font-semibold tracking-widest ${
-                          fnfAmount < 0 ? "text-red-600" : "text-green-600"
-                        }`}
-                      >
-                        {fnfAmount < 0
-                          ? "FNF Payable Amount"
-                          : "Refundable Amount"}
-                      </p>
+           {fnfAmount !== 0 && (
+  <div
+    className={`rounded-xl border p-4 shadow-sm ${
+      fnfAmount < 0
+        ? "border-red-200 bg-red-50"
+        : "border-emerald-200 bg-emerald-50"
+    }`}
+  >
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-3">
+        <div
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+            fnfAmount < 0
+              ? "bg-red-100 text-red-600"
+              : "bg-emerald-100 text-emerald-600"
+          }`}
+        >
+          <span className="text-xl font-bold">
+            {fnfAmount < 0 ? "↑" : "↓"}
+          </span>
+        </div>
 
-                      <p
-                        className={`mt-1 text-2xl font-bold tracking-tight ${
-                          fnfAmount < 0 ? "text-red-600" : "text-green-600"
-                        }`}
-                      >
-                        ₹ {fnfAmount.toLocaleString("en-IN")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+        <div>
+          <p className="text-sm font-semibold text-gray-500">
+            Full & Final Settlement (F&F)
+          </p>
+
+          <p
+            className={`mt-1 text-sm font-semibold ${
+              fnfAmount < 0 ? "text-red-700" : "text-emerald-700"
+            }`}
+          >
+            {fnfAmount < 0
+              ? `Amount Receivable from ${FnfPermanentRent[0]?.clientId?.fullName}`
+              : `Amount Payable to ${FnfPermanentRent[0]?.clientId?.fullName}`}
+          </p>
+
+          <p className="mt-1 text-xs text-gray-500">
+            {fnfAmount < 0
+              ? "Client needs to pay Gopal's Paying Guest Services"
+              : "Gopal's Paying Guest Services needs to pay the client"}
+          </p>
+        </div>
+      </div>
+
+      <div className="sm:text-right">
+        <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+          Settlement Amount
+        </p>
+
+        <p
+          className={`mt-1 text-2xl font-bold tracking-tight ${
+            fnfAmount < 0 ? "text-red-700" : "text-emerald-700"
+          }`}
+        >
+          ₹ {Math.abs(fnfAmount).toLocaleString("en-IN")}
+        </p>
+
+        <span
+          className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+            fnfAmount < 0
+              ? "bg-red-100 text-red-700"
+              : "bg-emerald-100 text-emerald-700"
+          }`}
+        >
+          {fnfAmount < 0 ? "Receivable" : "Payable"}
+        </span>
+      </div>
+    </div>
+  </div>
+)}
 
               {/* ================= MAIN CONTENT ================= */}
               <div className="grid grid-cols-1 gap-5 lg:grid-cols-1">
@@ -190,13 +229,22 @@ const RentHistory = () => {
                   <div className="mb-2 border-b flex gap-10  items-center border-gray-100 pb-3">
                     <div>
                       <h3 className="text-base font-semibold text-gray-900">
-                        Payment Summary
+                        Current Month  Payment Summary
                       </h3>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     {/* Rent */}
+                    <div className="rounded-xl bg-gray-50 p-4">
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        Total Amount Due
+                      </p>
+                      <p className="mt-1 text-lg text-red-500 font-bold text-gray-900">
+                        ₹
+                        {totalCurrentDue.toLocaleString("en-IN")}
+                      </p>
+                    </div>
                     <div className="rounded-xl bg-gray-50 p-4">
                       <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
                         Rent Amount
@@ -232,20 +280,6 @@ const RentHistory = () => {
                         )}
                       </p>
                     </div>
-
-                    {/* Processing */}
-                    <div className="rounded-xl bg-gray-50 p-4">
-                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                        Processing Fee
-                      </p>
-                      <p className="mt-1 text-lg font-bold text-gray-900">
-                        ₹
-                        {Number(currentRent.processingFees || 0).toLocaleString(
-                          "en-IN",
-                        )}
-                      </p>
-                    </div>
-
                     {/* Previous Due */}
                     <div className="rounded-xl bg-yellow-50 p-4">
                       <p className="text-xs font-medium uppercase tracking-wide text-yellow-700">
@@ -294,6 +328,18 @@ const RentHistory = () => {
                         {currentRent.daysCount || 0}
                       </p>
                     </div>
+                    {/* Processing */}
+                    <div className="rounded-xl bg-gray-50 p-4">
+                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        Processing Fee
+                      </p>
+                      <p className="mt-1 text-lg font-bold text-gray-900">
+                        ₹
+                        {Number(currentRent.processingFees || 0).toLocaleString(
+                          "en-IN",
+                        )}
+                      </p>
+                    </div>
                     {/* Deposit */}
                     <div className="rounded-xl bg-gray-50 p-4">
                       <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
@@ -303,6 +349,8 @@ const RentHistory = () => {
                         {currentRent.depositAmount || 0}
                       </p>
                     </div>
+
+
                   </div>
                 </div>
               </div>
@@ -362,11 +410,10 @@ const RentHistory = () => {
                     return (
                       <div
                         key={item._id}
-                        className={`rounded-lg border p-3 shadow-sm ${
-                          isCurrent
+                        className={`rounded-lg border p-3 shadow-sm ${isCurrent
                             ? "bg-green-50 border-green-200"
                             : "bg-white border-gray-200"
-                        }`}
+                          }`}
                       >
                         {/* Header: Property + Pay Status */}
                         <div className="flex items-center justify-between gap-2 mb-2">
@@ -375,15 +422,14 @@ const RentHistory = () => {
                           </span>
                           <span
                             className={`px-2 py-1 text-xs rounded-full font-semibold
-                      ${
-                        item.paymentStatus === "Paid"
-                          ? "bg-green-100 text-green-700"
-                          : item.paymentStatus === "Partial"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : item.paymentStatus === "Shifted"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-red-100 text-red-700"
-                      }`}
+                      ${item.paymentStatus === "Paid"
+                                ? "bg-green-100 text-green-700"
+                                : item.paymentStatus === "Partial"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : item.paymentStatus === "Shifted"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-red-100 text-red-700"
+                              }`}
                           >
                             {item.paymentStatus}
                           </span>
@@ -392,13 +438,12 @@ const RentHistory = () => {
                         {/* Stay + Month/Year */}
                         <div className="flex flex-wrap items-center gap-2 mb-3">
                           <span
-                            className={`px-2 py-1 text-xs rounded-full font-semibold ${
-                              item.stayType === "T. Booked"
+                            className={`px-2 py-1 text-xs rounded-full font-semibold ${item.stayType === "T. Booked"
                                 ? "bg-orange-100 text-orange-700"
                                 : item.stayType === "P. Booked"
                                   ? "bg-blue-100 text-blue-700"
                                   : "bg-gray-100 text-gray-700"
-                            }`}
+                              }`}
                           >
                             {item.stayType === "T. Booked"
                               ? "Temporary"
@@ -418,13 +463,12 @@ const RentHistory = () => {
                               Current Due
                             </div>
                             <div
-                              className={`text-sm font-bold ${
-                                item.currentDue > 0
+                              className={`text-sm font-bold ${item.currentDue > 0
                                   ? "text-red-600"
                                   : item.currentDue < 0
                                     ? "text-green-600"
                                     : "text-gray-700"
-                              }`}
+                                }`}
                             >
                               ₹{item.currentDue}
                             </div>
@@ -563,18 +607,18 @@ const RentHistory = () => {
                                     const formattedDate =
                                       date && !isNaN(date.getTime())
                                         ? date.toLocaleDateString("en-GB", {
-                                            day: "2-digit",
-                                            month: "short",
-                                            year: "numeric",
-                                          })
+                                          day: "2-digit",
+                                          month: "short",
+                                          year: "numeric",
+                                        })
                                         : "";
                                     const formattedTime =
                                       date && !isNaN(date.getTime())
                                         ? date.toLocaleTimeString("en-US", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            hour12: true,
-                                          })
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                          hour12: true,
+                                        })
                                         : "";
 
                                     return (
@@ -649,26 +693,24 @@ const RentHistory = () => {
                         <tr
                           key={item._id}
                           className={`border-t border-gray-200 whitespace-nowrap text-center
-                    ${
-                      item.monthName === currentMonth &&
-                      item.year === currentYear &&
-                      item.paymentStatus !== "Shifted"
-                        ? "bg-green-100 hover:bg-green-100"
-                        : "hover:bg-gray-50"
-                    }`}
+                    ${item.monthName === currentMonth &&
+                              item.year === currentYear &&
+                              item.paymentStatus !== "Shifted"
+                              ? "bg-green-100 hover:bg-green-100"
+                              : "hover:bg-gray-50"
+                            }`}
                         >
                           <td className="p-3 font-bold">
                             {item.propertyId?.propertyCode}
                           </td>
                           <td className="p-3">
                             <span
-                              className={`px-3 py-1 text-xs rounded-full font-semibold ${
-                                item.stayType === "T. Booked"
+                              className={`px-3 py-1 text-xs rounded-full font-semibold ${item.stayType === "T. Booked"
                                   ? "bg-orange-100 text-orange-700"
                                   : item.stayType === "P. Booked"
                                     ? "bg-blue-100 text-blue-700"
                                     : "bg-gray-100 text-gray-700"
-                              }`}
+                                }`}
                             >
                               {item.stayType === "T. Booked"
                                 ? "Temporary"
@@ -680,15 +722,14 @@ const RentHistory = () => {
                           <td className="p-3">
                             <span
                               className={`px-3 py-1 text-sm rounded-full font-semibold
-                        ${
-                          item.paymentStatus === "Paid"
-                            ? "bg-green-100 text-green-700"
-                            : item.paymentStatus === "Partial"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : item.paymentStatus === "Shifted"
-                                ? "bg-blue-100 text-blue-700"
-                                : "bg-red-100 text-red-700"
-                        }`}
+                        ${item.paymentStatus === "Paid"
+                                  ? "bg-green-100 text-green-700"
+                                  : item.paymentStatus === "Partial"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : item.paymentStatus === "Shifted"
+                                      ? "bg-blue-100 text-blue-700"
+                                      : "bg-red-100 text-red-700"
+                                }`}
                             >
                               {item.paymentStatus}
                             </span>
@@ -696,13 +737,12 @@ const RentHistory = () => {
                           <td className="p-3 font-bold">{item.monthName}</td>
                           <td className="p-3">{item.year}</td>
                           <td
-                            className={`p-3 font-semibold ${
-                              item.currentDue > 0
+                            className={`p-3 font-semibold ${item.currentDue > 0
                                 ? "text-red-600"
                                 : item.currentDue < 0
                                   ? "text-green-600"
                                   : "text-gray-700"
-                            }`}
+                              }`}
                           >
                             ₹{item.currentDue}
                           </td>
@@ -765,7 +805,7 @@ const RentHistory = () => {
                                       {(() => {
                                         const latestComment =
                                           item.paymentComments[
-                                            item.paymentComments.length - 1
+                                          item.paymentComments.length - 1
                                           ];
                                         const date = latestComment?.date
                                           ? new Date(latestComment.date)
@@ -773,18 +813,18 @@ const RentHistory = () => {
                                         const formattedDate =
                                           date && !isNaN(date.getTime())
                                             ? date.toLocaleDateString("en-GB", {
-                                                day: "2-digit",
-                                                month: "short",
-                                                year: "numeric",
-                                              })
+                                              day: "2-digit",
+                                              month: "short",
+                                              year: "numeric",
+                                            })
                                             : "";
                                         const formattedTime =
                                           date && !isNaN(date.getTime())
                                             ? date.toLocaleTimeString("en-US", {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                                hour12: true,
-                                              })
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                              hour12: true,
+                                            })
                                             : "";
                                         const text =
                                           latestComment?.comment || "";
@@ -811,24 +851,24 @@ const RentHistory = () => {
                                             const formattedDate =
                                               date && !isNaN(date.getTime())
                                                 ? date.toLocaleDateString(
-                                                    "en-GB",
-                                                    {
-                                                      day: "2-digit",
-                                                      month: "short",
-                                                      year: "numeric",
-                                                    },
-                                                  )
+                                                  "en-GB",
+                                                  {
+                                                    day: "2-digit",
+                                                    month: "short",
+                                                    year: "numeric",
+                                                  },
+                                                )
                                                 : "";
                                             const formattedTime =
                                               date && !isNaN(date.getTime())
                                                 ? date.toLocaleTimeString(
-                                                    "en-US",
-                                                    {
-                                                      hour: "2-digit",
-                                                      minute: "2-digit",
-                                                      hour12: true,
-                                                    },
-                                                  )
+                                                  "en-US",
+                                                  {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                    hour12: true,
+                                                  },
+                                                )
                                                 : "";
                                             return (
                                               <div

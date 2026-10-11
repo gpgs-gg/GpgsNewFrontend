@@ -4,8 +4,6 @@ import {
   Eye,
   Pencil,
   Filter,
-  Phone,
-  MessageCircle,
   Trash2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -13,18 +11,13 @@ import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import {
   exportTicketsData,
-  getTicketsData,
   useDeleteTicketData,
   useTicketsData,
 } from "./services";
 import {
-  convertStringFormatDateTime,
   formatDate,
   formatDateAndTime,
 } from "../../utils/dateFormatter";
-import { useForm } from "react-hook-form";
-import { IoIosCall } from "react-icons/io";
-import { FaWhatsapp } from "react-icons/fa";
 import TicketsFilter from "./TicketsFilter";
 import { IoClose } from "react-icons/io5";
 import { TableFilePreview } from "../common/FilePreview";
@@ -35,24 +28,6 @@ import ConfirmModal from "../common/ConfirmModal";
 import { toast } from "react-toastify";
 import { useAuthorization } from "../../context/AuthorizationContext";
 import TicketMobileCard from "../common/TicketMobileCard";
-const priorityColors = {
-  Critical: "text-red-700",
-  High: "text-red-500",
-  Medium: " text-yellow-500",
-  Low: " text-green-700",
-};
-
-const statusColors = {
-  Open: "bg-red-100 text-red-700",
-  Acknowledged: "bg-blue-100 text-blue-700",
-  "In Progress": "bg-yellow-100 text-yellow-700",
-  "On Hold": "bg-orange-100 text-orange-700",
-  Resolved: "bg-green-100 text-green-700",
-  Closed: "bg-gray-200 text-gray-700",
-  Cancelled: "bg-pink-100 text-pink-700",
-  ReOpen: "bg-purple-100 text-purple-700",
-};
-
 const TicketsList = () => {
   // const { data: apiResponse } = useTicketsData();
 
@@ -594,6 +569,10 @@ const TicketsList = () => {
 
                           <td
                             className={`sticky left-0 z-20 p-3 font-semibold shadow-md ${(() => {
+                              // Cancelled → White background
+                              if (item.status === "Cancelled") {
+                                return "bg-white text-black";
+                              }
                               // Resolved late
                               if (item.lateResolved === "Yes") {
                                 return "bg-red-200";
@@ -714,7 +693,7 @@ const TicketsList = () => {
 
                           <td className="p-3 text-center">
                             <span
-                              className={`px-3 py-1 rounded-full text-sm font-semibold  ||
+                              className={`px-3 py-1 rounded-full text-sm ||
                                 "bg-gray-100 text-gray-700"
                                 }`}
                             >
@@ -724,7 +703,7 @@ const TicketsList = () => {
                           <td className="p-3">{item.department}</td>
                           <td className="p-3">
                             <span
-                              className={`px-2 py-1  text-sm font-semibold  ||
+                              className={`px-2 py-1  text-sm  ||
                                 "bg-gray-100 text-gray-700"
                                 }`}
                             >
@@ -785,30 +764,44 @@ const TicketsList = () => {
                                 </div>
 
                                 {/* Hover Popup */}
-                                <div className="absolute right-0 top-4 hidden group-hover:block bg-white border shadow-xl rounded-lg p-3 w-80 max-h-62.5 overflow-y-auto whitespace-pre-line text-xs z-50">
+                                <div className="absolute right-0 top-4 hidden group-hover:block bg-white  shadow-xl rounded-lg p-3 w-80 max-h-62.5 overflow-y-auto text-xs z-50">
                                   {[...item.workLogs]
                                     .sort(
                                       (a, b) =>
-                                        new Date(b.createdAt) -
-                                        new Date(a.createdAt),
+                                        new Date(b.createdAt) - new Date(a.createdAt),
                                     )
-                                    .map((log, index) => (
-                                      <div
-                                        key={log._id || index}
-                                        className="mb-3"
-                                      >
-                                        <div className="text-gray-700">
-                                          {log.createdBy}
-                                          <span className="mx-1">•</span>
-                                          {formatDateAndTime(log.createdAt)}
-                                        </div>
+                                    .map((log, index) => {
+                                      const isClient = log.role === "Client";
 
-                                        <div className="mt-1 font-medium">
-                                          {log.message}
+                                      return (
+                                        <div
+                                          key={log._id || index}
+                                          className={`flex mb-3 ${isClient ? "justify-start" : "justify-end"
+                                            }`}
+                                        >
+                                          <div
+                                            className={`max-w-[90%] rounded-lg px-2.5 py-2 ${isClient
+                                              ? "bg-blue-50 border border-blue-200"
+                                              : "bg-gray-50 border border-gray-200"
+                                              }`}
+                                          >
+                                            <div className="text-gray-700 font-medium">
+                                              {log.createdBy || "System"}
+
+                                              <span className="mx-1">•</span>
+
+                                              {formatDateAndTime(log.createdAt)}
+                                            </div>
+
+                                            <div className="mt-1 whitespace-pre-line break-words">
+                                              {log.message}
+                                            </div>
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                 </div>
+
                               </div>
                             ) : (
                               <div className="text-xs text-gray-500">-</div>

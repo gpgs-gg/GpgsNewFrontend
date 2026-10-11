@@ -367,6 +367,7 @@ const TicketsList = () => {
                     <th className="p-3 text-left">Property Code</th>
                     <th className="p-3 text-left">Title</th>
                     <th className="p-3 text-center">Status</th>
+                    <th className="p-3 text-center">Priority</th>
                     <th className="p-3 text-center ">Attachment</th>
                     <th className="p-3 text-center ">Department</th>
                     <th className="p-3 text-left">Category</th>
@@ -438,12 +439,19 @@ const TicketsList = () => {
 
                           <td className="p-3 text-center">
                             <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                statusColors[item.status] ||
-                                "bg-gray-100 text-gray-700"
-                              }`}
+                              className={`px-3 py-1 rounded-full text-sm 
+                                }`}
                             >
                               {item.status}
+                            </span>
+                          </td>
+                          <td className="p-3 text-center">
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[item.status] ||
+                                "bg-gray-100 text-gray-700"
+                                }`}
+                            >
+                              {item.priority}
                             </span>
                           </td>
                           <td className="p-3">
@@ -468,30 +476,48 @@ const TicketsList = () => {
                                 </div>
 
                                 {/* Hover Popup */}
-                                <div className="absolute right-0 top-4 hidden group-hover:block bg-white border shadow-xl rounded-lg p-3 w-80 max-h-62.5 overflow-y-auto whitespace-pre-line text-xs z-50">
+
+
+                                <div className="absolute right-0 top-4 hidden group-hover:block bg-white border shadow-xl rounded-lg p-3 w-80 max-h-62.5 overflow-y-auto text-xs z-50">
                                   {[...item.workLogs]
                                     .sort(
                                       (a, b) =>
-                                        new Date(b.createdAt) -
-                                        new Date(a.createdAt),
+                                        new Date(b.createdAt) - new Date(a.createdAt),
                                     )
-                                    .map((log, index) => (
-                                      <div
-                                        key={log._id || index}
-                                        className="mb-3"
-                                      >
-                                        <div className="text-gray-700">
-                                          {log.createdBy}
-                                          <span className="mx-1">•</span>
-                                          {formatDateAndTime(log.createdAt)}
-                                        </div>
+                                    .map((log, index) => {
+                                      const isClient = log.role === "Client";
 
-                                        <div className="mt-1 font-medium">
-                                          {log.message}
+                                      return (
+                                        <div
+                                          key={log._id || index}
+                                          className={`flex mb-3 ${isClient ? "justify-end" : "justify-start"
+                                            }`}
+                                        >
+                                          <div
+                                            className={`max-w-[90%] rounded-lg px-2.5 py-2 ${isClient
+                                              ? "bg-blue-50 border border-blue-200"
+                                              : "bg-gray-50 border border-gray-200"
+                                              }`}
+                                          >
+                                            <div className="text-gray-700 font-medium">
+                                              {log.role === "Admin"
+                                                ? "GPGS"
+                                                : log.createdBy || "System"}
+
+                                              <span className="mx-1">•</span>
+
+                                              {formatDateAndTime(log.createdAt)}
+                                            </div>
+
+                                            <div className="mt-1 whitespace-pre-line break-words">
+                                              {log.message}
+                                            </div>
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                 </div>
+
                               </div>
                             ) : (
                               <div className="text-xs text-gray-500">-</div>
@@ -528,7 +554,7 @@ const TicketsList = () => {
                         </tr>
                       ))
                     ) : (
-                      <tr>
+                      <tr className="border border-red-500">
                         <td colSpan={10}>
                           <NoDataFound
                             title="No Tickets Found"
@@ -596,12 +622,16 @@ const TicketsList = () => {
                     search={debouncedSearch}
                   />
                 ))
+
               ) : (
-                <NoDataFound
-                  title="No Tickets Found"
-                  description="Try searching different keywords"
-                />
+                <div className="flex min-h-[400px] w-full items-center justify-center">
+                  <NoDataFound
+                    title="No Tickets Found"
+                    description="Try searching different keywords"
+                  />
+                </div>
               )}
+
             </div>
           </div>
 

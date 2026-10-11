@@ -67,7 +67,7 @@ import Agreement from "../clientComponents/AgreementDetails/Agreement";
 import AgreementPopup from "../clientComponents/PropAndPersDetails/AgreementPopup ";
 import { useAuth } from "../context/authContext";
 import BookingEnquiry from "../pages/BookingEnquiry";
-
+import RNRTable from "../components/New_RNR/RNRTable";
 const AppRoutes = () => {
 
   const { user } = useAuth();
@@ -146,6 +146,7 @@ const AppRoutes = () => {
           <Route path="/attendance/all" element={<Attendance />} />
           <Route path="/full-&-final-settlement" element={<FandFsettlement />} />
           <Route path="/rent-not-received" element={<Rnr />} />
+          <Route path="/new-rent-not-received" element={<RNRTable />} />
           <Route path="/salary/all" element={<Salary />} />
           <Route path="/salary/edit/:employeeId" element={<SalaryEdit />} />
           <Route path="/aceb-area" element={<ACEBCalculation />} />

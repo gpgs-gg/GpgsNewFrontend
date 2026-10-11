@@ -80,7 +80,6 @@ function FullandFinalSettlement() {
   });
 
   const data = apiResponse?.data || [];
-
   const totalPages = apiResponse?.totalPages || 1;
   const totalRecords = apiResponse?.totalCount || 0;
 

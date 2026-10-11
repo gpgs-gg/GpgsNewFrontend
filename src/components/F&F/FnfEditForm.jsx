@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import FilePreview from "../common/FilePreview";
 import { useBatchOptions } from "../Options/services";
 import Loader from "../common/Loader";
+import { compressAttachment } from "../../utils/compressFile";
 // ============================================================
 // STATUS OPTIONS
 // ============================================================
@@ -70,6 +71,12 @@ function FnfEditForm({ client, onClose }) {
 
   const [handoverAttachments, setHandoverAttachments] = useState([]);
   const [handoverAttachmentsError, setHandoverAttachmentsError] = useState();
+  const [showFnfCloseConfirmation, setShowFnfCloseConfirmation] = useState(false);
+  const [pendingFnfData, setPendingFnfData] = useState(null);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
+  const [compressionFileName, setCompressionFileName] = useState("");
+  const [pendingFiles, setPendingFiles] = useState([]);
   // ============================================================
   // WATCH VALUES
   // ============================================================
@@ -120,75 +127,109 @@ function FnfEditForm({ client, onClose }) {
   // SUBMIT
   // ============================================================
 
-  const submitForm = (formData) => {
-    // ========================================= // HD ATTACHMENT VALIDATION // =========================================
-    if (
-      formData.status === "HD" &&
-      existingHandoverAttachments.length === 0 &&
-      handoverAttachments.length === 0
-    ) {
-      toast.dismiss();
-      setHandoverAttachmentsError("Handover attachment is required when status is HD")
-      return;
-    }
 
-
-    const data = new FormData();
-
-    data.append(
-      "fnf",
-      JSON.stringify({
-        currentDue: Number(formData.currentDue || 0),
-        totalPaidDeposit: Number(formData.totalPaidDeposit || 0),
-        adjustmentAmount: Number(formData.adjustmentAmount || 0),
-        adjustmentEB: Number(formData.adjustmentEB || 0),
-        fnfAmount: Number(fnfAmount || 0),
-        bankDetailReceived: formData.bankDetailReceived || "",
-        remarks: formData.remarks || "",
-        status: formData.status || "",
-      }),
+const submitForm = (formData) => {
+  // HD ATTACHMENT VALIDATION
+  if (
+    formData.status === "HD" &&
+    existingHandoverAttachments.length === 0 &&
+    handoverAttachments.length === 0
+  ) {
+    toast.dismiss();
+    setHandoverAttachmentsError(
+      "Handover attachment is required when status is HD"
     );
+    return;
+  }
 
-    // =========================================
-    // EXISTING ATTACHMENTS
-    // =========================================
+  // F&F CLOSED CONFIRMATION
+  if (formData.status === "F&F Closed") {
+    setPendingFnfData(formData);
+    setShowFnfCloseConfirmation(true);
+    return;
+  }
 
-    existingHandoverAttachments.forEach((url) => {
-      data.append("handoverAttachmentExisting", url);
-    });
+  saveFnfData(formData);
+};
 
-    // =========================================
-    // NEW ATTACHMENTS
-    // =========================================
+const saveFnfData = (formData) => {
+  const data = new FormData();
 
-    // if (formData.status === "HD") {
-      handoverAttachments.forEach((file) => {
-        data.append("handoverAttachment", file);
-      });
-    // }
-
-    updateClientData(
-      {
-        clientId: client._id,
-        data,
-      },
-      {
-        onSuccess: (response) => {
-          toast.success(response?.message || "F&F updated successfully");
-
-          onClose();
-        },
-
-        onError: (error) => {
-          toast.error(
-            error?.response?.data?.message ||
-            error?.message ||
-            "Something went wrong",
-          );
-        },
-      },
-    );
+  const fnfData = {
+    currentDue: Number(formData.currentDue || 0),
+    totalPaidDeposit: Number(formData.totalPaidDeposit || 0),
+    adjustmentAmount: Number(formData.adjustmentAmount || 0),
+    adjustmentEB: Number(formData.adjustmentEB || 0),
+    remarks: formData.remarks || "",
+    status: formData.status || "",
   };
+
+  // HD status par F&F Amount aur bank details nahi bhejni
+  if (formData.status !== "HD") {
+    fnfData.fnfAmount = Number(fnfAmount || 0);
+    fnfData.bankDetailReceived =
+      formData.bankDetailReceived || "";
+  }
+
+  // BDR status par bank details nahi bhejni
+  if (formData.status !== "BDR") {
+    fnfData.bankDetailReceived =
+      formData.bankDetailReceived || "";
+  }
+
+  data.append("fnf", JSON.stringify(fnfData));
+
+  // EXISTING ATTACHMENTS
+  existingHandoverAttachments.forEach((url) => {
+    data.append("handoverAttachmentExisting", url);
+  });
+
+  // NEW ATTACHMENTS
+  handoverAttachments.forEach((file) => {
+    data.append("handoverAttachment", file);
+  });
+
+  updateClientData(
+    {
+      clientId: client._id,
+      data,
+    },
+    {
+      onSuccess: (response) => {
+        toast.dismiss()
+        toast.success(
+          response?.message || "F&F updated successfully"
+        );
+        onClose();
+      },
+
+      onError: (error) => {
+        toast.dismiss()
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong"
+        );
+      },
+    }
+  );
+};
+
+const confirmFnfClosure = () => {
+  if (!pendingFnfData) return;
+
+  setShowFnfCloseConfirmation(false);
+
+  saveFnfData(pendingFnfData);
+
+  setPendingFnfData(null);
+};
+
+const cancelFnfClosure = () => {
+  setShowFnfCloseConfirmation(false);
+  setPendingFnfData(null);
+};
+
   // ============================================================
   // UI
   // ============================================================
@@ -266,8 +307,8 @@ function FnfEditForm({ client, onClose }) {
                   readOnly
                   disabled
                   className={`form-input cursor-not-allowed font-bold ${fnfAmount < 0
-                      ? "text-red-600"
-                      : "text-green-600"
+                    ? "text-red-600"
+                    : "text-green-600"
                     }`}
                 />
 
@@ -315,62 +356,107 @@ function FnfEditForm({ client, onClose }) {
                 <label className="form-label"> Bank / UPI Details</label>
               </div>
 
-          <Controller
-  name="status"
-  control={control}
-  defaultValue={null}
-  render={({ field }) => (
-    <div
-      className={`select-group ${field.value ? "has-value" : ""}`}
-    >
-      <label className="select-label">Status</label>
+              <Controller
+                name="status"
+                control={control}
+                defaultValue={null}
+                render={({ field }) => (
+                  <div
+                    className={`select-group ${field.value ? "has-value" : ""}`}
+                  >
+                    <label className="select-label">Status</label>
 
-      <Select
-        {...field}
-        options={fnfStatusOptions}
-        isClearable
-        placeholder=""
-        value={fnfStatusOptions.find(
-          (option) => option.value === field.value
-        )}
-        onChange={(selectedOption) =>
-          field.onChange(selectedOption?.value)
-        }
-        styles={{
-          ...selectStyles,
+                    <Select
+                      {...field}
+                      options={fnfStatusOptions}
+                      isClearable
+                      placeholder=""
+                      value={fnfStatusOptions.find(
+                        (option) => option.value === field.value
+                      )}
+                      onChange={(selectedOption) =>
+                        field.onChange(selectedOption?.value)
+                      }
+                      styles={{
+                        ...selectStyles,
 
-          menuList: (provided) => ({
-            ...provided,
-            maxHeight: "150px",
-            overflowY: "auto",
-          }),
-        }}
-      />
-    </div>
-  )}
-/>
+                        menuList: (provided) => ({
+                          ...provided,
+                          maxHeight: "150px",
+                          overflowY: "auto",
+                        }),
+                      }}
+                    />
+                  </div>
+                )}
+              />
 
               <div className="form-group">
                 {/* ================================
         ADD NEW HANDOVER ATTACHMENTS
     ================================= */}
 
-                <input
+       <input
                   type="file"
                   multiple
                   accept=".pdf,.jpg,.jpeg,.png"
                   className="form-input"
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files);
-                    if (files.length > 0) {
-                      setHandoverAttachmentsError("");
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+
+                    if (!files.length) return;
+
+                    setHandoverAttachmentsError("");
+                    setPendingFiles(files);
+                    setIsCompressing(true);
+                    setCompressionProgress(0);
+                    try {
+                      const processedFiles = [];
+                      for (const file of files) {
+                        setCompressionFileName(file.name);
+                        setCompressionProgress(0);
+                        const originalSize = file.size;
+                        const compressedFile = await compressAttachment(
+                          file,
+                          (progress) => {
+                            setCompressionProgress(progress);
+                          },
+                        );
+                        const compressedSize = compressedFile.size;
+                        const reducedBy =
+                          originalSize > 0
+                            ? ((originalSize - compressedSize) / originalSize) *
+                              100
+                            : 0;
+                        // console.log(`File: ${file.name}`);
+                        // console.log(
+                        //   `Original Size: ${(originalSize / 1024 / 1024).toFixed(2)} MB`,
+                        // );
+                        // console.log(
+                        //   `Compressed Size: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`,
+                        // );
+                        // console.log(`Reduced By: ${reducedBy.toFixed(2)}%`);
+                        processedFiles.push(compressedFile);
+                      }
+                      setHandoverAttachments((prev) => [
+                        ...prev,
+                        ...processedFiles,
+                      ]);
+                    } catch (error) {
+                      console.error("Attachment compression failed:", error);
+                      toast.error(
+                        error?.message || "Failed to compress attachment.",
+                      );
+                    } finally {
+                      setPendingFiles([]);
+                      setIsCompressing(false);
+                      setCompressionProgress(0);
+                      setCompressionFileName("");
+                      e.target.value = "";
                     }
-                    setHandoverAttachments((prev) => [...prev, ...files]);
-
-                    e.target.value = "";
                   }}
+               
                 />
-
                 <label className="form-label">Handover Attachment</label>
                 {handoverAttachmentsError && (
                   <p className="text-red-500 text-xs mt-1">
@@ -381,9 +467,13 @@ function FnfEditForm({ client, onClose }) {
         EXISTING + NEW FILE PREVIEW
     ================================= */}
 
-                <FilePreview
+               <FilePreview
                   files={handoverAttachments}
+                  pendingFiles={pendingFiles}
                   existingFiles={existingHandoverAttachments}
+                  isCompressing={isCompressing}
+                  compressionProgress={compressionProgress}
+                  compressionFileName={compressionFileName}
                   onRemoveExisting={(index) => {
                     setExistingHandoverAttachments((prev) =>
                       prev.filter((_, i) => i !== index),
@@ -452,6 +542,42 @@ function FnfEditForm({ client, onClose }) {
           </div>
         </form>
       </div>
+      
+{showFnfCloseConfirmation && (
+  <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4">
+    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+      <h3 className="text-lg font-bold text-gray-800">
+        Close F&F Settlement?
+      </h3>
+
+      <p className="mt-3 text-sm leading-6 text-gray-600">
+        Are you sure you want to close this client's
+        Full & Final Settlement? The client's account
+        will be marked inactive.
+      </p>
+
+      <div className="mt-6 flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={cancelFnfClosure}
+          className="rounded-lg border px-4 py-2 font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          onClick={confirmFnfClosure}
+          disabled={isUpdateClientData}
+          className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+        >
+          {isUpdateClientData ? "Closing..." : "Yes, Close F&F"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

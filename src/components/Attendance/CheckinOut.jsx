@@ -547,6 +547,16 @@ const CheckinOut = () => {
       const formatAmount = (amount) =>
         `Rs. ${Number(amount || 0).toLocaleString("en-IN")}`;
 
+      const companyTitle =
+        department?.trim().toLowerCase() === "it"
+          ? "Gopal's Innovative Technologies "
+          : "Gopal's Paying Guest Services";
+
+      const companySubtitle =
+        department?.trim().toLowerCase() === "it"
+          ? "Gits Technologies Pvt. Ltd."
+          : "GPMS";
+
       // ==================================================
       // PAGE
       // ==================================================
@@ -564,13 +574,13 @@ const CheckinOut = () => {
       doc.setFontSize(18);
       doc.setTextColor(25, 50, 85);
 
-      doc.text("GPGS Technology", 21, 25);
+      doc.text(companyTitle, 21, 25);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(80, 80, 80);
 
-      doc.text("Gopal's Paying Guest Services", 21, 32);
+      doc.text(companySubtitle, 21, 32);
 
       doc.setDrawColor(200, 200, 200);
       doc.line(21, 38, 189, 38);
