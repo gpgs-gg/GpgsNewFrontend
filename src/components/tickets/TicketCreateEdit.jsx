@@ -302,9 +302,9 @@ function TicketCreateEdit() {
   };
 
   return (
-    <div className="max-w-12xl mx-auto px-6">
+    <div className="max-w-12xl mx-auto px-2">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-4 py-2">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-4 py-2 hidden md:block">
           <div className="grid grid-cols-2 gap-2 justify-between  items-center">
             <div>
               <h1 className="text-2xl font-bold">
@@ -339,7 +339,7 @@ function TicketCreateEdit() {
                 ) : id ? (
                   "Update Ticket"
                 ) : (
-                  "Create eere Ticket"
+                  "Create Ticket"
                 )}
               </button>
             </div>
@@ -347,43 +347,52 @@ function TicketCreateEdit() {
         </div>
         {/* Property Details */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex justify-between items-center  mb-4">
-            <h2 className="text-xl font-semibold mb-4">Ticket Details</h2>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-5">
+            <h2 className="text-lg sm:text-xl font-semibold mb-0 flex justify-between">
+              Ticket Details{" "}
+              <Link to="/tickets" className="md:hidden">
+                <button type="button" className="text-black text-sm">
+                  ❌
+                </button>
+              </Link>
+            </h2>
+
             {id && (
-              <div className="flex justify-end gap-5">
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end sm:gap-3 w-full sm:w-auto">
                 <button
                   type="button"
                   disabled={!navigation.previousId}
-                  className="border border-gray-600 theme-btn px-6 py-2 rounded-lg font-medium"
+                  className="border border-gray-300 theme-btn w-full sm:w-auto px-3 sm:px-5 py-2 rounded-lg font-medium text-sm sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
                   onClick={() =>
                     navigate(`/tickets/edit/${navigation.previousId}`, {
                       state: location.state,
                     })
                   }
                 >
-                  <div className="flex">
-                    <ChevronLeft size={20} /> Previous
+                  <div className="flex items-center justify-center gap-1">
+                    <ChevronLeft size={18} />
+                    Previous
                   </div>
                 </button>
 
                 <button
                   type="button"
                   disabled={!navigation.nextId}
-                  className="border border-gray-600 theme-btn px-6 py-2 rounded-lg font-medium"
+                  className="border border-gray-300 theme-btn w-full sm:w-auto px-3 sm:px-5 py-2 rounded-lg font-medium text-sm sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
                   onClick={() =>
                     navigate(`/tickets/edit/${navigation.nextId}`, {
                       state: location.state,
                     })
                   }
                 >
-                  <div className="flex">
-                    Next <ChevronRight size={20} />
+                  <div className="flex items-center justify-center gap-1">
+                    Next
+                    <ChevronRight size={18} />
                   </div>
                 </button>
               </div>
             )}
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Property */}
             <Controller
@@ -815,7 +824,7 @@ function TicketCreateEdit() {
               <input
                 type="file"
                 multiple
-                className="form-input"
+               className="form-input !border !border-red-500 md:!border-gray-400"
                 onChange={async (e) => {
                   const files = Array.from(e.target.files || []);
 
@@ -903,7 +912,7 @@ function TicketCreateEdit() {
                 // }}
               />
 
-              <label className="form-label">Attachment</label>
+              <label className="form-label !text-red-500 md:!text-black">Attachment</label>
               <FilePreview
                 files={attachmentFiles}
                 pendingFiles={pendingFiles}

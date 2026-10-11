@@ -1,11 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import usePersistedFilters from "../hooks/usePersistedFilters";
-import {
-  Eye,
-  Pencil,
-  Filter,
-  Trash2,
-} from "lucide-react";
+import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
@@ -14,10 +9,7 @@ import {
   useDeleteTicketData,
   useTicketsData,
 } from "./services";
-import {
-  formatDate,
-  formatDateAndTime,
-} from "../../utils/dateFormatter";
+import { formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import TicketsFilter from "./TicketsFilter";
 import { IoClose } from "react-icons/io5";
 import { TableFilePreview } from "../common/FilePreview";
@@ -338,53 +330,68 @@ const TicketsList = () => {
     <>
       <div className="space-y-5">
         {/* HEADER */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-3 sm:px-4">
+          <div className="flex flex-col gap-3">
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">Tickets List</h1>
+            {/* Header */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold">
+                  Tickets List
+                </h1>
 
-              <p className="text-sm text-gray-500">
-                Total Tickets: {totalRecords}
-              </p>
-            </div>
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-200"></span>
+                <p className="text-xs sm:text-sm text-gray-500">
+                  Total Tickets: {totalRecords}
+                </p>
+              </div>
+  <div className="hidden md:flex gap-5 ">
+
+              <div className="flex items-center gap-1.5 whitespace-nowrap">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-200 shrink-0"></span>
                 <span className="text-gray-600">Late Resolved</span>
               </div>
 
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-green-200"></span>
+              <div className="flex items-center gap-1.5 whitespace-nowrap">
+                <span className="w-2.5 h-2.5 rounded-full bg-green-200 shrink-0"></span>
                 <span className="text-gray-600">Resolved</span>
               </div>
 
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-200"></span>
+              <div className="flex items-center gap-1.5 whitespace-nowrap">
+                <span className="w-2.5 h-2.5 rounded-full bg-yellow-200 shrink-0"></span>
                 <span className="text-gray-600">SLA Warning</span>
               </div>
+
             </div>
-            <div className="flex items-center gap-4">
+         
               {/* Add Ticket */}
               {canAddTicket && (
-                <Link to="/tickets/create">
-                  <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                <Link
+                  to="/tickets/create"
+                  className="shrink-0"
+                >
+                  <button
+                    type="button"
+                    className="theme-btn text-white px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-lg hover:bg-gray-700 whitespace-nowrap"
+                  >
                     + Add Ticket
                   </button>
                 </Link>
               )}
+              
             </div>
+
+            {/* SLA Legend */}
+             
           </div>
         </div>
-
         {/* TABLE */}
-        <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
+        <div className="bg-white rounded-xl border border-gray-500 shadow-sm overflow-hidden flex flex-col h-[75vh]">
           <div className="px-3 py-2 border-b border-gray-400 overflow-x-auto lg:overflow-visible">
             <div className="flex justify-between gap-3 min-w-max lg:min-w-0">
               {/* SEARCH */}
-              <div className="relative w-80 shrink-0">
+              <div className="relative w-fit  shrink-0">
                 <input
-                  className="border px-3 py-2 pr-10 rounded-lg w-full"
+                  className="border border-gray-200 px-3 py-2  rounded-lg md:w-full"
                   placeholder="Search Tickets..."
                   value={search}
                   onChange={(e) => {
@@ -443,7 +450,7 @@ const TicketsList = () => {
 
               {/* ACTIONS */}
               <div className="flex gap-2 shrink-0">
-                <div className="flex flex-wrap gap-2 items-center">
+                <div className=" hidden md:flex flex-wrap gap-2 items-center">
                   <button
                     onClick={handleSelectedColoum}
                     className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"
@@ -768,7 +775,8 @@ const TicketsList = () => {
                                   {[...item.workLogs]
                                     .sort(
                                       (a, b) =>
-                                        new Date(b.createdAt) - new Date(a.createdAt),
+                                        new Date(b.createdAt) -
+                                        new Date(a.createdAt),
                                     )
                                     .map((log, index) => {
                                       const isClient = log.role === "Client";
@@ -776,13 +784,15 @@ const TicketsList = () => {
                                       return (
                                         <div
                                           key={log._id || index}
-                                          className={`flex mb-3 ${isClient ? "justify-start" : "justify-end"
+                                          className={`flex mb-3 ${isClient
+                                              ? "justify-start"
+                                              : "justify-end"
                                             }`}
                                         >
                                           <div
                                             className={`max-w-[90%] rounded-lg px-2.5 py-2 ${isClient
-                                              ? "bg-blue-50 border border-blue-200"
-                                              : "bg-gray-50 border border-gray-200"
+                                                ? "bg-blue-50 border border-blue-200"
+                                                : "bg-gray-50 border border-gray-200"
                                               }`}
                                           >
                                             <div className="text-gray-700 font-medium">
@@ -801,7 +811,6 @@ const TicketsList = () => {
                                       );
                                     })}
                                 </div>
-
                               </div>
                             ) : (
                               <div className="text-xs text-gray-500">-</div>
@@ -934,6 +943,7 @@ const TicketsList = () => {
             </div>
           </div>
         </div>
+        
       </div>
       <TicketsFilter
         isOpen={filterOpen}

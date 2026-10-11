@@ -69,117 +69,171 @@ import { useAuth } from "../context/authContext";
 import BookingEnquiry from "../pages/BookingEnquiry";
 import RNRTable from "../components/New_RNR/RNRTable";
 const AppRoutes = () => {
-
   const { user } = useAuth();
   const role = user?.role?.trim().toLowerCase();
   const isClient = role === "client";
-
 
   return (
     <>
       {/* AgreementPopup will only show for clients */}
       {isClient && <AgreementPopup />}
-      
-    <Routes>
 
-      <Route path="/" element={<HomePage/>} />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
 
-      <Route
-        path="/login"
-        element={
-          <Login />
-        }
-      />
-      <Route
-        path="/register"
-        element={
-            <SignupPage />
-        }
-      />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<SignupPage />} />
 
-      <Route element={<ProtectedRoute />}>
-        <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/properties" element={<Properties />} />
-          <Route path="/properties/create" element={<PropertyCreateEdit />} />
-          <Route path="/properties/edit/:id" element={<PropertyCreateEdit />} />
-          <Route path="/beds" element={<BedsTable />} />
-          <Route path="/bed/create" element={<BedCreateEdit />} />
-          <Route path="/bed/edit/:id" element={<BedCreateEdit />} />
-          <Route path="/bed/view/:id" element={<BedCreateEdit />} />
-          <Route path="/new-bookings" element={<NewBookingTable />} />
-          <Route path="/new-bookings/create" element={<NewBookingCreateEdit />} />
-          <Route path="/new-bookings/edit/:id" element={<NewBookingCreateEdit />} />
-          <Route path="/new-bookings/view/:id" element={<NewBookingCreateEdit />} />
-          <Route path="/rent-ledger" element={<RentLedger />} />
-          <Route path="/rent-ledger/edit/:clientId" element={<RentLadgerEdit />} />
-          <Route path="/rent-ledger/view/:clientId" element={<RentLadgerEdit />} />
-          <Route path="/rent-ledger/client/:clientId" element={<RentLedger />} />
-          <Route path="/available-beds" element={<AvailableBeds />} />
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/clients/create" element={<ClientCreateEdit />} />
-          <Route path="/clients/edit/:clientId" element={<ClientCreateEdit />} />
-          <Route path="/clients/view/:clientId" element={<ClientCreateEdit />} />
-          <Route path="/tickets/create" element={<TicketCreateEdit />} />
-          <Route path="/tickets/edit/:id" element={<TicketCreateEdit />} />
-          <Route path="/tickets/view/:id" element={<TicketView />} />
-          <Route path="/tickets" element={<Tickets />} />
-          <Route path="/bank-transactions" element={<BankTransaction />} />
-          <Route path="/bank-transactions/upload" element={<BankStatementUpload />} />
-          <Route path="/bank/edit/:account/:id" element={<BankTransactionEdit />} />
-          <Route path="/options" element={<Options />} />
-          <Route path="/options/create" element={<OptionsCreateEdit />} />
-          <Route path="/options/edit/:id" element={<OptionsCreateEdit />} />
-          <Route path="/users" element={<User />} />
-          <Route path="/Users/edit/:id" element={<UserEdit />} />
-          <Route path="/leads" element={<LeadsList />} />
-          <Route path="/leads/edit/:id" element={<LeadsCreateEdit />} />
-          <Route path="/leads/create" element={<LeadsCreateEdit />} />
-          <Route path="/renthistory" element={<ClientRentHistory />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/house-keeping" element={<HousekeepingPage />} />
-          <Route path="/maintenance" element={<Maintenance />} />
-          <Route path="/employees" element={<Employees />} />
-          <Route path="/employees/create" element={<EmployeesCreate />} />
-          <Route path="/employees/edit/:id" element={<EmployeesCreate />} />
-          <Route path="/check-in-out" element={<CheckinOut />} />
-          <Route path="/attendance/all" element={<Attendance />} />
-          <Route path="/full-&-final-settlement" element={<FandFsettlement />} />
-          <Route path="/rent-not-received" element={<Rnr />} />
-          <Route path="/new-rent-not-received" element={<RNRTable />} />
-          <Route path="/salary/all" element={<Salary />} />
-          <Route path="/salary/edit/:employeeId" element={<SalaryEdit />} />
-          <Route path="/aceb-area" element={<ACEBCalculation />} />
-          <Route path="/aceb-area/create" element={<AreaCreatEdit />} />
-          <Route path="/aceb-area/edit/:id" element={<AreaCreatEdit />} />
-          <Route path="/aceb-area/reading/:roomId" element={<ACEBReadingList />} />
-          <Route path="/aceb-area/:roomId/reading/create" element={<ACEBReadingCreateEdit />} />
-          <Route path="/aceb-area/:roomId/reading/edit/:id" element={<ACEBReadingCreateEdit />} />
-          <Route path="/eb-info" element={<EBInfoList />} />
-          <Route path="/eb-info/create" element={<EBInfoCreateEdit />} />
-          <Route path="/eb-info/edit/:id" element={<EBInfoCreateEdit />} />
-          <Route path="/client-tickets/create" element={<ClientTicketCreateEdit />} />
-          <Route path="/client-tickets/edit/:id" element={<ClientTicketCreateEdit />} />
-          <Route path="/client-tickets" element={<ClientTickets />} />
-          <Route path="/module" element={<Sidebar />} />
-          <Route path="/modules/create" element={<ModuleCreateEdit />} />
-          <Route path="/modules/edit/:id" element={<ModuleCreateEdit />} />
-          <Route path="/permissions" element={<Permission />} />
-          <Route path="/permissions/create" element={<RolePermissionCreateEdit />} />
-          <Route path="/permissions/employee/:id/edit" element={<RolePermissionCreateEdit />} />
-          <Route path="/permissions/employee/:id" element={<RolePermissionCreateEdit mode="view" />} />
-          <Route path="/eb-calculator" element={<EBCalculation />} />
-          <Route path="/eb-calcul-data-details" element={<EBCalculationDataPage />} />
-          <Route path="/eb-details-for-clients" element={<EBCalculationData />} />
-          <Route path="/prop-perso-details" element={<PropAndPersDetails />} />
-          <Route path="/agreement-details" element={<Agreement />} />
-         
-
+        <Route element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/properties" element={<Properties />} />
+            <Route path="/properties/create" element={<PropertyCreateEdit />} />
+            <Route
+              path="/properties/edit/:id"
+              element={<PropertyCreateEdit />}
+            />
+            <Route path="/beds" element={<BedsTable />} />
+            <Route path="/bed/create" element={<BedCreateEdit />} />
+            <Route path="/bed/edit/:id" element={<BedCreateEdit />} />
+            <Route path="/bed/view/:id" element={<BedCreateEdit />} />
+            <Route path="/new-bookings" element={<NewBookingTable />} />
+            <Route
+              path="/new-bookings/create"
+              element={<NewBookingCreateEdit />}
+            />
+            <Route
+              path="/new-bookings/edit/:id"
+              element={<NewBookingCreateEdit />}
+            />
+            <Route
+              path="/new-bookings/view/:id"
+              element={<NewBookingCreateEdit />}
+            />
+            <Route path="/rent-ledger" element={<RentLedger />} />
+            <Route
+              path="/rent-ledger/edit/:clientId"
+              element={<RentLadgerEdit />}
+            />
+            <Route
+              path="/rent-ledger/view/:clientId"
+              element={<RentLadgerEdit />}
+            />
+            <Route
+              path="/rent-ledger/client/:clientId"
+              element={<RentLedger />}
+            />
+            <Route path="/available-beds" element={<AvailableBeds />} />
+            <Route path="/clients" element={<Clients />} />
+            <Route path="/clients/create" element={<ClientCreateEdit />} />
+            <Route
+              path="/clients/edit/:clientId"
+              element={<ClientCreateEdit />}
+            />
+            <Route
+              path="/clients/view/:clientId"
+              element={<ClientCreateEdit />}
+            />
+            <Route path="/tickets/create" element={<TicketCreateEdit />} />
+            <Route path="/tickets/edit/:id" element={<TicketCreateEdit />} />
+            <Route path="/tickets/view/:id" element={<TicketView />} />
+            <Route path="/tickets" element={<Tickets />} />
+            <Route path="/bank-transactions" element={<BankTransaction />} />
+            <Route
+              path="/bank-transactions/upload"
+              element={<BankStatementUpload />}
+            />
+            <Route
+              path="/bank/edit/:account/:id"
+              element={<BankTransactionEdit />}
+            />
+            <Route path="/options" element={<Options />} />
+            <Route path="/options/create" element={<OptionsCreateEdit />} />
+            <Route path="/options/edit/:id" element={<OptionsCreateEdit />} />
+            <Route path="/users" element={<User />} />
+            <Route path="/Users/edit/:id" element={<UserEdit />} />
+            <Route path="/leads" element={<LeadsList />} />
+            <Route path="/leads/edit/:id" element={<LeadsCreateEdit />} />
+            <Route path="/leads/create" element={<LeadsCreateEdit />} />
+            <Route path="/renthistory" element={<ClientRentHistory />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/house-keeping" element={<HousekeepingPage />} />
+            <Route path="/maintenance" element={<Maintenance />} />
+            <Route path="/employees" element={<Employees />} />
+            <Route path="/employees/create" element={<EmployeesCreate />} />
+            <Route path="/employees/edit/:id" element={<EmployeesCreate />} />
+            <Route path="/check-in-out" element={<CheckinOut />} />
+            <Route path="/attendance/all" element={<Attendance />} />
+            <Route
+              path="/full-&-final-settlement"
+              element={<FandFsettlement />}
+            />
+            <Route path="/rent-not-received" element={<Rnr />} />
+            <Route path="/new-rent-not-received" element={<RNRTable />} />
+            <Route path="/salary/all" element={<Salary />} />
+            <Route path="/salary/edit/:employeeId" element={<SalaryEdit />} />
+            <Route path="/aceb-area" element={<ACEBCalculation />} />
+            <Route path="/aceb-area/create" element={<AreaCreatEdit />} />
+            <Route path="/aceb-area/edit/:id" element={<AreaCreatEdit />} />
+            <Route
+              path="/aceb-area/reading/:roomId"
+              element={<ACEBReadingList />}
+            />
+            <Route
+              path="/aceb-area/:roomId/reading/create"
+              element={<ACEBReadingCreateEdit />}
+            />
+            <Route
+              path="/aceb-area/:roomId/reading/edit/:id"
+              element={<ACEBReadingCreateEdit />}
+            />
+            <Route path="/eb-info" element={<EBInfoList />} />
+            <Route path="/eb-info/create" element={<EBInfoCreateEdit />} />
+            <Route path="/eb-info/edit/:id" element={<EBInfoCreateEdit />} />
+            <Route
+              path="/client-tickets/create"
+              element={<ClientTicketCreateEdit />}
+            />
+            <Route
+              path="/client-tickets/edit/:id"
+              element={<ClientTicketCreateEdit />}
+            />
+            <Route path="/client-tickets" element={<ClientTickets />} />
+            <Route path="/module" element={<Sidebar />} />
+            <Route path="/modules/create" element={<ModuleCreateEdit />} />
+            <Route path="/modules/edit/:id" element={<ModuleCreateEdit />} />
+            <Route path="/permissions" element={<Permission />} />
+            <Route
+              path="/permissions/create"
+              element={<RolePermissionCreateEdit />}
+            />
+            <Route
+              path="/permissions/employee/:id/edit"
+              element={<RolePermissionCreateEdit />}
+            />
+            <Route
+              path="/permissions/employee/:id"
+              element={<RolePermissionCreateEdit mode="view" />}
+            />
+            <Route path="/eb-calculator" element={<EBCalculation />} />
+            <Route
+              path="/eb-calcul-data-details"
+              element={<EBCalculationDataPage />}
+            />
+            <Route
+              path="/eb-details-for-clients"
+              element={<EBCalculationData />}
+            />
+            <Route
+              path="/prop-perso-details"
+              element={<PropAndPersDetails />}
+            />
+            <Route path="/agreement-details" element={<Agreement />} />
+          </Route>
         </Route>
-      </Route>
- <Route path="/booking" element={<BookingEnquiry />}/>
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
+        <Route path="/booking" element={<BookingEnquiry />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
     </>
   );
 };

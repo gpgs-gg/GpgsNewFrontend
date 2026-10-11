@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import RnrFilter from "./RnrFilter";
 import TableSkeleton from "../common/TableSkelton";
+import { useAuth } from "../../context/authContext";
 
 function Rnr() {
   // ======================================================
@@ -24,11 +25,10 @@ function Rnr() {
     propertyId: "",
     propertyCode: "",
   };
-
+  const {user} = useAuth()
   // ======================================================
   // PERSISTED FILTERS
   // ======================================================
-
   const { filters, setFilters, removeFilter, resetFilters } =
     usePersistedFilters("rnr_filters", DEFAULT_RNR_FILTERS);
 
@@ -69,7 +69,7 @@ function Rnr() {
     search: debouncedSearch,
     propertyId: filters.propertyId,
   });
-  console.log(1111111111, isLoading)
+ 
   //  API response ko array me normalize kar rahe hain
   const data = Array.isArray(apiResponse)
     ? apiResponse
@@ -91,6 +91,7 @@ function Rnr() {
       {
         clientId: commentClient?._id,
         comment: commentText.trim(),
+        user : user?.name
       },
       {
         onSuccess: (response) => {
@@ -664,8 +665,8 @@ function Rnr() {
                                               >
                                                 <span className="font-semibold text-gray-800">
                                                   [{formattedDate} {formattedTime}
-                                                  {comment?.user?.name
-                                                    ? ` - ${comment.user.name}`
+                                                  {comment?.addedBy
+                                                    ? ` - ${comment?.addedBy}`
                                                     : ""}
                                                   ]
                                                 </span>{" "}

@@ -554,7 +554,7 @@ const TicketsList = () => {
                         </tr>
                       ))
                     ) : (
-                      <tr className="border border-red-500">
+                      <tr className="">
                         <td colSpan={10}>
                           <NoDataFound
                             title="No Tickets Found"
@@ -654,14 +654,14 @@ const TicketsList = () => {
           </div>
         </div>
       </div>
-      <TicketsFilter
+      {/* <TicketsFilter
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}
         apiData={apiData}
         onApply={(data) => setFilters(data)}
         handleReset={handleReset}
         resetTrigger={resetTrigger}
-      />
+      /> */}
       <ConfirmModal
         isOpen={showDeleteModal}
         title="Delete Ticket"

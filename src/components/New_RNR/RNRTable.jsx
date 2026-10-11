@@ -42,6 +42,7 @@ const RNRTable = () => {
       {
         clientId: commentClient?._id,
         comment: commentText.trim(),
+        user : user?.name || null
       },
       {
         onSuccess: (response) => {
@@ -913,12 +914,11 @@ const cleanSearch = debouncedSearch
                                                   className="text-sm text-gray-700 leading-relaxed whitespace-normal break-words"
                                                 >
                                                   <span className="font-semibold text-gray-800">
-                                                    [{formattedDate}{" "}
-                                                    {formattedTime}
-                                                    {comment?.user?.name
-                                                      ? ` - ${comment.user.name}`
-                                                      : ""}
-                                                    ]
+                                                    [{formattedDate} {formattedTime}
+                                                  {comment?.addedBy
+                                                    ? ` - ${comment?.addedBy}`
+                                                    : ""}
+                                                  ]
                                                   </span>{" "}
                                                   {comment?.comment}
                                                 </div>
