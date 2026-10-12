@@ -25,7 +25,7 @@ function Rnr() {
     propertyId: "",
     propertyCode: "",
   };
-  const {user} = useAuth()
+  const { user } = useAuth();
   // ======================================================
   // PERSISTED FILTERS
   // ======================================================
@@ -69,7 +69,7 @@ function Rnr() {
     search: debouncedSearch,
     propertyId: filters.propertyId,
   });
- 
+
   //  API response ko array me normalize kar rahe hain
   const data = Array.isArray(apiResponse)
     ? apiResponse
@@ -91,7 +91,7 @@ function Rnr() {
       {
         clientId: commentClient?._id,
         comment: commentText.trim(),
-        user : user?.name
+        user: user?.name,
       },
       {
         onSuccess: (response) => {
@@ -244,7 +244,6 @@ function Rnr() {
 
     setResetTrigger((prev) => prev + 1);
   };
-
 
   const statusFullForm = {
     RFH: "Ready for Handover",
@@ -407,7 +406,6 @@ function Rnr() {
               {isFetching ? (
                 <TableSkeleton rows={20} columns={20} showStatus showActions />
               ) : (
-
                 <tbody>
                   {data.length > 0 ? (
                     data.map((item) => {
@@ -477,12 +475,13 @@ function Rnr() {
                                          </td> */}
                           <td className="p-3">
                             <span
-                              className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${item.stayType === "T. Booked"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : item.stayType === "P. Booked"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-gray-100 text-gray-600"
-                                }`}
+                              className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                item.stayType === "T. Booked"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : item.stayType === "P. Booked"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-gray-100 text-gray-600"
+                              }`}
                             >
                               {item.stayType || "-"}
                             </span>
@@ -571,16 +570,17 @@ function Rnr() {
                             <div className="flex items-center gap-2">
                               {/* Comments */}
                               <div className="relative group flex-1 min-w-0">
-                                {item?.rentNotReceivedComment?.comments?.length >
-                                  0 ? (
+                                {item?.rentNotReceivedComment?.comments
+                                  ?.length > 0 ? (
                                   <>
                                     {/* Latest comment */}
                                     <div className="text-sm text-gray-700 cursor-pointer">
                                       {(() => {
                                         const latestComment =
-                                          item.rentNotReceivedComment?.comments?.[
-                                          item.rentNotReceivedComment.comments
-                                            .length - 1
+                                          item.rentNotReceivedComment
+                                            ?.comments?.[
+                                            item.rentNotReceivedComment.comments
+                                              .length - 1
                                           ];
 
                                         const date = latestComment?.date
@@ -590,22 +590,23 @@ function Rnr() {
                                         const formattedDate =
                                           date && !isNaN(date.getTime())
                                             ? date.toLocaleDateString("en-GB", {
-                                              day: "2-digit",
-                                              month: "short",
-                                              year: "numeric",
-                                            })
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                              })
                                             : "";
 
                                         const formattedTime =
                                           date && !isNaN(date.getTime())
                                             ? date.toLocaleTimeString("en-US", {
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                              hour12: true,
-                                            })
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                                hour12: true,
+                                              })
                                             : "";
 
-                                        const text = latestComment?.comment || "";
+                                        const text =
+                                          latestComment?.comment || "";
                                         const words = text.trim().split(/\s+/);
 
                                         return (
@@ -627,7 +628,10 @@ function Rnr() {
                                       </div>
 
                                       <div className="space-y-3">
-                                        {[...item.rentNotReceivedComment.comments]
+                                        {[
+                                          ...item.rentNotReceivedComment
+                                            .comments,
+                                        ]
                                           .reverse()
                                           .map((comment, index) => {
                                             const date = comment?.date
@@ -637,25 +641,25 @@ function Rnr() {
                                             const formattedDate =
                                               date && !isNaN(date.getTime())
                                                 ? date.toLocaleDateString(
-                                                  "en-GB",
-                                                  {
-                                                    day: "2-digit",
-                                                    month: "short",
-                                                    year: "numeric",
-                                                  },
-                                                )
+                                                    "en-GB",
+                                                    {
+                                                      day: "2-digit",
+                                                      month: "short",
+                                                      year: "numeric",
+                                                    },
+                                                  )
                                                 : "";
 
                                             const formattedTime =
                                               date && !isNaN(date.getTime())
                                                 ? date.toLocaleTimeString(
-                                                  "en-US",
-                                                  {
-                                                    hour: "2-digit",
-                                                    minute: "2-digit",
-                                                    hour12: true,
-                                                  },
-                                                )
+                                                    "en-US",
+                                                    {
+                                                      hour: "2-digit",
+                                                      minute: "2-digit",
+                                                      hour12: true,
+                                                    },
+                                                  )
                                                 : "";
 
                                             return (
@@ -664,7 +668,8 @@ function Rnr() {
                                                 className="text-sm text-gray-700 leading-relaxed whitespace-normal break-words"
                                               >
                                                 <span className="font-semibold text-gray-800">
-                                                  [{formattedDate} {formattedTime}
+                                                  [{formattedDate}{" "}
+                                                  {formattedTime}
                                                   {comment?.addedBy
                                                     ? ` - ${comment?.addedBy}`
                                                     : ""}
@@ -703,7 +708,10 @@ function Rnr() {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={18} className="p-5 text-center text-gray-500">
+                      <td
+                        colSpan={18}
+                        className="p-5 text-center text-gray-500"
+                      >
                         No Notice Clients Found
                       </td>
                     </tr>

@@ -317,6 +317,7 @@ const expanded = mobileOpen || !collapsed || hovered;
         {/* ==============================
           CLIENT HEADER
       ============================== */}
+      
         <header className="fixed top-0 left-0 right-0 z-[40] bg-slate-800 text-white shadow-lg">
           <div
             className="
@@ -412,6 +413,7 @@ const expanded = mobileOpen || !collapsed || hovered;
         
           </div>
         </header>
+
 
         {/* ==============================
           CLIENT TABS

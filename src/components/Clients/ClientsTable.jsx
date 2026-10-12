@@ -196,19 +196,33 @@ const ClientsTable = () => {
     isError: isRentGenerationLogsError,
   } = useRentGenerationLogs();
 
-  const handleGenerateMonthlyRent = (clientId) => {
-    generateMonthlyRent(clientId, {
-      onSuccess: (data) => {
-        toast.dismiss();
-        toast.success(data?.message);
-      },
 
-      onError: (error) => {
-        toast.dismiss();
-        toast.error(error?.response?.data?.message);
-      },
-    });
-  };
+const handleGenerateMonthlyRent = (clientId) => {
+  generateMonthlyRent(clientId, {
+    onSuccess: (response) => {
+      toast.dismiss();
+
+      const message =
+        response?.message ||
+        response?.data?.message ||
+        response?.data?.data?.message ||
+        "Monthly rent generated successfully";
+
+      toast.success(message);
+    },
+
+    onError: (error) => {
+      toast.dismiss();
+
+      toast.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to generate monthly rent"
+      );
+    },
+  });
+};
+
 
   const handleGenerateMonthlyRentForAllClients = () => {
     generateMonthlyRentForAllClient(undefined, {

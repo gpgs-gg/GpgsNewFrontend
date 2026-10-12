@@ -1,29 +1,23 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Pencil, Filter, MessageSquarePlus } from "lucide-react";
+import { Pencil, Filter, MessageSquarePlus, Phone, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
 import useDebounce from "../hooks/useDebounce";
-import {
-  useClients,
-  useRentGenerationLogs,
-} from "./services";
+import { useClients } from "./services";
 import { useCreateRentNotReceivedComment } from "../RNR/services/index";
 import usePersistedFilters from "../hooks/usePersistedFilters";
-import { AsyncPaginate } from "react-select-async-paginate";
 import { formatDate } from "../../utils/dateFormatter";
 import { toast } from "react-toastify";
-import { FaEllipsisV } from "react-icons/fa";
 
 import { useAuthorization } from "../../context/AuthorizationContext";
 import TableSkeleton from "../common/TableSkelton";
 import { useAuth } from "../../context/authContext";
 import RnrFilter from "./RnrFilter";
-import Loader from "../common/Loader";
+import { FaWhatsapp } from "react-icons/fa";
 const RNRTable = () => {
-  const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
+  const { canEdit, canDelete, canSingleView } = useAuthorization();
   const { user } = useAuth();
-  const canAddClient = canAdd("clients");
   const canEditClient = canEdit("clients");
   const canDeleteClient = canDelete("clients");
   const canViewClient = canSingleView("clients");
@@ -42,7 +36,7 @@ const RNRTable = () => {
       {
         clientId: commentClient?._id,
         comment: commentText.trim(),
-        user : user?.name || null
+        user: user?.name || null,
       },
       {
         onSuccess: (response) => {
@@ -106,11 +100,6 @@ const RNRTable = () => {
     removeFilter: removePersistedFilter,
     resetFilters,
   } = usePersistedFilters("clients_filters", DEFAULT_CLIENT_FILTERS);
-
-  const [openMenuId, setOpenMenuId] = useState(null);
-
-  const [selectedRentLog, setSelectedRentLog] = useState(null);
-  const [selectedClient, setSelectedClient] = useState();
   const debouncedSearch = useDebounce(search, 500);
   const filterLabels = useMemo(() => {
     const labels = [];
@@ -203,11 +192,10 @@ const RNRTable = () => {
     };
   }, [filters, fnfClosedFilter, fnfCancelledFilter]);
 
-const cleanSearch = debouncedSearch
-  .replace(/₹/g, "")
-  .replace(/,/g, "")
-  .trim();
-
+  const cleanSearch = debouncedSearch
+    .replace(/₹/g, "")
+    .replace(/,/g, "")
+    .trim();
 
   const { data: clients, isPending: isClients } = useClients({
     page: currentPage,
@@ -215,72 +203,6 @@ const cleanSearch = debouncedSearch
     search: cleanSearch,
     filters: apiFilters,
   });
-
-
- 
-  const {
-    data: rentGenerationLogsResponse,
-    isLoading: isRentGenerationLogsLoading,
-    isError: isRentGenerationLogsError,
-  } = useRentGenerationLogs();
-
-  const handleGenerateMonthlyRent = (clientId) => {
-    generateMonthlyRent(clientId, {
-      onSuccess: (data) => {
-        toast.dismiss();
-        toast.success(data?.message);
-      },
-
-      onError: (error) => {
-        toast.dismiss();
-        toast.error(error?.response?.data?.message);
-      },
-    });
-  };
-
-  const handleGenerateMonthlyRentForAllClients = () => {
-    generateMonthlyRentForAllClient(undefined, {
-      onSuccess: (data) => {
-        toast.dismiss();
-
-        toast.success(
-          <div className="text-left space-y-1">
-            <div>
-              <strong>Success:</strong> {String(data?.success)}
-            </div>
-
-            <div>
-              <strong>Inserted Count:</strong> {data?.insertedCount ?? 0}
-            </div>
-
-            <div>
-              <strong>Failed Count:</strong> {data?.failedCount ?? 0}
-            </div>
-
-            <div>
-              <strong>Total:</strong> {data?.total ?? 0}
-            </div>
-
-            <div>
-              <strong>Message:</strong>{" "}
-              {data?.message || "Monthly rent generation completed"}
-            </div>
-          </div>,
-          {
-            duration: 5000,
-          },
-        );
-      },
-
-      onError: (error) => {
-        toast.dismiss();
-
-        toast.error(
-          error?.response?.data?.message || "Failed to generate monthly rent",
-        );
-      },
-    });
-  };
 
   // Safely get bookings data
   const bookings = clients?.data || [];
@@ -290,6 +212,7 @@ const cleanSearch = debouncedSearch
   const totalRecords = clients?.totalRecords || 0;
 
   const paginatedData = bookings;
+  console.log(paginatedData);
 
   // Reset to page 1 when filters or search changes
   const isInitialFilterLoad = useRef(true);
@@ -355,85 +278,86 @@ const cleanSearch = debouncedSearch
     "F&F DS": "F&F Details Sent",
     HD: "Handover Done",
   };
-  const numberToWords = (num) => {
-    if (num === 0) return "Zero Rupees";
 
-    const ones = [
-      "",
-      "One",
-      "Two",
-      "Three",
-      "Four",
-      "Five",
-      "Six",
-      "Seven",
-      "Eight",
-      "Nine",
-      "Ten",
-      "Eleven",
-      "Twelve",
-      "Thirteen",
-      "Fourteen",
-      "Fifteen",
-      "Sixteen",
-      "Seventeen",
-      "Eighteen",
-      "Nineteen",
-    ];
+  // const numberToWords = (num) => {
+  //   if (num === 0) return "Zero Rupees";
 
-    const tens = [
-      "",
-      "",
-      "Twenty",
-      "Thirty",
-      "Forty",
-      "Fifty",
-      "Sixty",
-      "Seventy",
-      "Eighty",
-      "Ninety",
-    ];
+  //   const ones = [
+  //     "",
+  //     "One",
+  //     "Two",
+  //     "Three",
+  //     "Four",
+  //     "Five",
+  //     "Six",
+  //     "Seven",
+  //     "Eight",
+  //     "Nine",
+  //     "Ten",
+  //     "Eleven",
+  //     "Twelve",
+  //     "Thirteen",
+  //     "Fourteen",
+  //     "Fifteen",
+  //     "Sixteen",
+  //     "Seventeen",
+  //     "Eighteen",
+  //     "Nineteen",
+  //   ];
 
-    const convert = (n) => {
-      if (n < 20) return ones[n];
+  //   const tens = [
+  //     "",
+  //     "",
+  //     "Twenty",
+  //     "Thirty",
+  //     "Forty",
+  //     "Fifty",
+  //     "Sixty",
+  //     "Seventy",
+  //     "Eighty",
+  //     "Ninety",
+  //   ];
 
-      if (n < 100) {
-        return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
-      }
+  //   const convert = (n) => {
+  //     if (n < 20) return ones[n];
 
-      if (n < 1000) {
-        return (
-          ones[Math.floor(n / 100)] +
-          " Hundred" +
-          (n % 100 ? " " + convert(n % 100) : "")
-        );
-      }
+  //     if (n < 100) {
+  //       return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
+  //     }
 
-      if (n < 100000) {
-        return (
-          convert(Math.floor(n / 1000)) +
-          " Thousand" +
-          (n % 1000 ? " " + convert(n % 1000) : "")
-        );
-      }
+  //     if (n < 1000) {
+  //       return (
+  //         ones[Math.floor(n / 100)] +
+  //         " Hundred" +
+  //         (n % 100 ? " " + convert(n % 100) : "")
+  //       );
+  //     }
 
-      if (n < 10000000) {
-        return (
-          convert(Math.floor(n / 100000)) +
-          " Lakh" +
-          (n % 100000 ? " " + convert(n % 100000) : "")
-        );
-      }
+  //     if (n < 100000) {
+  //       return (
+  //         convert(Math.floor(n / 1000)) +
+  //         " Thousand" +
+  //         (n % 1000 ? " " + convert(n % 1000) : "")
+  //       );
+  //     }
 
-      return (
-        convert(Math.floor(n / 10000000)) +
-        " Crore" +
-        (n % 10000000 ? " " + convert(n % 10000000) : "")
-      );
-    };
+  //     if (n < 10000000) {
+  //       return (
+  //         convert(Math.floor(n / 100000)) +
+  //         " Lakh" +
+  //         (n % 100000 ? " " + convert(n % 100000) : "")
+  //       );
+  //     }
 
-    return convert(num) + " Rupees";
-  };
+  //     return (
+  //       convert(Math.floor(n / 10000000)) +
+  //       " Crore" +
+  //       (n % 10000000 ? " " + convert(n % 10000000) : "")
+  //     );
+  //   };
+
+  //   return convert(num) + " Rupees";
+  // };
 
   return (
     <>
@@ -449,13 +373,13 @@ const cleanSearch = debouncedSearch
             </div>
             <div className="px-4 py-2 text-lg font-bold">
               Total Due Amt :{" "}
-              <span className="text-green-500">
+              <span className="text-red-500">
                 ₹{" "}
                 {Number(clients?.totalCurrentDue || 0).toLocaleString("en-IN")}
               </span>
-              <div className="text-sm font-medium text-gray-400 mt-1">
+              {/* <div className="text-sm font-medium text-gray-400 mt-1">
                 {numberToWords(Number(clients?.totalCurrentDue || 0))}
-              </div>
+              </div> */}
             </div>
             <Link to="/tickets/create">
               {/* <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
@@ -605,18 +529,6 @@ const cleanSearch = debouncedSearch
                   <tbody>
                     {paginatedData?.length > 0 ? (
                       paginatedData.map((item, index) => {
-                        const totalAmount =
-                          (item?.bedId?.monthlyRent || 0) +
-                          (item?.bedId?.depositAmount || 0) +
-                          (item?.processingFees || 0) +
-                          (item?.parkingCharges || 0);
-
-                        // const bookingAmount =
-                        //   item?.advanceAmount || 0;
-
-                        // const balanceAmount =
-                        //   totalAmount - bookingAmount;
-
                         const getClientStatus = (item) => {
                           const today = new Date();
 
@@ -658,7 +570,7 @@ const cleanSearch = debouncedSearch
                               "bg-emerald-50 text-emerald-700 border border-emerald-200",
                           };
                         };
-                        
+
                         return (
                           <tr
                             key={item._id}
@@ -689,40 +601,50 @@ const cleanSearch = debouncedSearch
                               {item.fullName || "-"}
                             </td>
                             {/* Contact No */}
-                            <td className="p-3 whitespace-nowrap">
-                              {item.callingNo === item.whatsappNo ? (
-                                item.callingNo || "-"
-                              ) : (
-                                <>
-                                  {item.callingNo}
-                                  <br />
-                                  {/* {item.whatsappNo} */}
-                                </>
-                              )}
-                            </td>
-                            <td className="p-3 whitespace-nowrap">
-                              {item.callingNo === item.whatsappNo ? (
-                                item.callingNo || "-"
-                              ) : (
-                                <>
-                                  {item.callingNo}
-                                  <br />
-                                  {/* {item.whatsappNo} */}
-                                </>
-                              )}
-                            </td>
+                          
+<td className="p-3 whitespace-nowrap">
+  {item?.callingNo ? (
+    <a
+      href={`tel:${String(item.callingNo).replace(/[^\d+]/g, "")}`}
+      className="inline-flex items-center gap-2 "
+      title={`Call ${item.callingNo}`}
+    >
+      <span>{item.callingNo}</span>
+      <Phone size={16} className="text-blue-500"/>
+    </a>
+  ) : (
+    "-"
+  )}
+</td>
+
+<td className="p-3 whitespace-nowrap">
+  {item?.whatsappNo ? (
+    <a
+      href={`https://wa.me/${String(item.whatsappNo).replace(/\D/g, "")}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-2 "
+      title={`WhatsApp ${item.whatsappNo}`}
+    >
+      <span>{item.whatsappNo}</span>
+      <FaWhatsapp size={16} className="text-green-500" />
+    </a>
+  ) : (
+    "-"
+  )}
+</td>
+
                             {/* stay type */}
                             <td className="p-3 text-center">
                               <span
-                                className={`px-2.5 py-1 rounded-full text-md font-semibold ${
-                                  item.bookingType === "Daily"
+                                className={`px-2.5 py-1 rounded-full text-md font-semibold ${item.bookingType === "Daily"
                                     ? " text-indigo-700"
                                     : item.stayType === "P. Booked"
                                       ? " text-emerald-700"
                                       : item.stayType === "T. Booked"
                                         ? " text-amber-700"
                                         : " text-gray-700"
-                                }`}
+                                  }`}
                               >
                                 {item.bookingType === "Daily"
                                   ? "Daily"
@@ -766,10 +688,10 @@ const cleanSearch = debouncedSearch
                             {/* month/year */}
                             <td className="p-3 text-center">
                               {new Date(
-                                item.latestRentHistory.year,
-                                item.latestRentHistory.month - 1,
+                                item.latestRentHistory?.year,
+                                item.latestRentHistory?.month - 1,
                               ).toLocaleString("en-US", { month: "long" })}{" "}
-                              {item.latestRentHistory.year}
+                              {item.latestRentHistory?.year}
                             </td>
                             {/*  Rent Date */}
                             <td className="p-3 text-center">Rent Date</td>
@@ -791,147 +713,116 @@ const cleanSearch = debouncedSearch
                             </td>
 
                             <td
-                              className={`p-3 ${
-                                Number(
-                                  item?.latestRentHistory?.currentDue || 0,
-                                ) < 0
+                              className={`p-3 ${Number(
+                                item?.latestRentHistory?.currentDue || 0,
+                              ) < 0
                                   ? "text-green-600"
                                   : "text-red-600"
-                              }`}
+                                }`}
                             >
                               ₹
                               {Number(
                                 item?.latestRentHistory?.currentDue || 0,
                               ).toLocaleString("en-IN")}
                             </td>
-                            <td className="p-3 ">
-                              <div className="flex items-  gap-2">
+
+                            <td className="p-3">
+                              <div className="flex items-center gap-2">
                                 {/* Comments */}
                                 <div className="relative group flex-1 min-w-0">
-                                  {item?.rentNotReceivedComment?.comments
-                                    ?.length > 0 ? (
-                                    <>
-                                      {/* Latest comment */}
-                                      <div className="text-sm text-gray-700 cursor-pointer">
-                                        {(() => {
-                                          const latestComment =
-                                            item.rentNotReceivedComment
-                                              ?.comments?.[
-                                              item.rentNotReceivedComment
-                                                .comments.length - 1
-                                            ];
+                                  {(() => {
+                                    // API response mein rentNotReceivedComment array hai
+                                    const comments =
+                                      item?.rentNotReceivedComment?.[0]
+                                        ?.comments || [];
 
-                                          const date = latestComment?.date
-                                            ? new Date(latestComment.date)
-                                            : null;
+                                    if (!comments.length) {
+                                      return (
+                                        <span className="text-gray-400 text-sm">
+                                          No comment
+                                        </span>
+                                      );
+                                    }
 
-                                          const formattedDate =
-                                            date && !isNaN(date.getTime())
-                                              ? date.toLocaleDateString(
-                                                  "en-GB",
-                                                  {
-                                                    day: "2-digit",
-                                                    month: "short",
-                                                    year: "numeric",
-                                                  },
-                                                )
-                                              : "";
+                                    const latestComment =
+                                      comments[comments.length - 1];
 
-                                          const formattedTime =
-                                            date && !isNaN(date.getTime())
-                                              ? date.toLocaleTimeString(
-                                                  "en-US",
-                                                  {
-                                                    hour: "2-digit",
-                                                    minute: "2-digit",
-                                                    hour12: true,
-                                                  },
-                                                )
-                                              : "";
+                                    const formatDateTime = (value) => {
+                                      if (!value) return "";
 
-                                          const text =
-                                            latestComment?.comment || "";
-                                          const words = text
-                                            .trim()
-                                            .split(/\s+/);
+                                      const date = new Date(value);
 
-                                          return (
-                                            <>
-                                              <span className="font-semibold text-gray-700">
-                                                {formattedDate} {formattedTime}
-                                              </span>{" "}
-                                              {words.slice(0, 2).join(" ")}
-                                              {words.length > 2 ? "..." : ""}
-                                            </>
-                                          );
-                                        })()}
-                                      </div>
+                                      if (isNaN(date.getTime())) return "";
 
-                                      {/* Hover Worklog */}
-                                      <div className="hidden group-hover:block absolute right-full top-full w-[520px] max-h-[300px]  overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-3">
-                                        <div className="font-semibold text-gray-800 text-sm mb-3 border-b border-gray-400 pb-2">
-                                          Worklog
+                                      const formattedDate =
+                                        date.toLocaleDateString("en-GB", {
+                                          day: "2-digit",
+                                          month: "short",
+                                          year: "numeric",
+                                          timeZone: "Asia/Kolkata",
+                                        });
+
+                                      const formattedTime =
+                                        date.toLocaleTimeString("en-US", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                          hour12: true,
+                                          timeZone: "Asia/Kolkata",
+                                        });
+
+                                      return `${formattedDate} ${formattedTime}`;
+                                    };
+
+                                    const words = (latestComment?.comment || "")
+                                      .trim()
+                                      .split(/\s+/)
+                                      .filter(Boolean);
+
+                                    return (
+                                      <>
+                                        {/* Latest comment */}
+                                        <div className="text-sm text-gray-700 cursor-pointer truncate">
+                                          <span className="font-semibold text-gray-700">
+                                            {formatDateTime(
+                                              latestComment?.date,
+                                            )}
+                                          </span>{" "}
+                                          {words.slice(0, 2).join(" ")}
+                                          {words.length > 2 ? "..." : ""}
                                         </div>
 
-                                        <div className="space-y-3">
-                                          {[
-                                            ...item.rentNotReceivedComment
-                                              .comments,
-                                          ]
-                                            .reverse()
-                                            .map((comment, index) => {
-                                              const date = comment?.date
-                                                ? new Date(comment.date)
-                                                : null;
+                                        {/* Hover Worklog */}
+                                        <div className="hidden group-hover:block absolute right-full top-0 mr-2 w-[520px] max-w-[80vw] max-h-[300px] overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-3">
+                                          <div className="font-semibold text-gray-800 text-sm mb-3 border-b border-gray-300 pb-2">
+                                            RNR Comments
+                                          </div>
 
-                                              const formattedDate =
-                                                date && !isNaN(date.getTime())
-                                                  ? date.toLocaleDateString(
-                                                      "en-GB",
-                                                      {
-                                                        day: "2-digit",
-                                                        month: "short",
-                                                        year: "numeric",
-                                                      },
-                                                    )
-                                                  : "";
-
-                                              const formattedTime =
-                                                date && !isNaN(date.getTime())
-                                                  ? date.toLocaleTimeString(
-                                                      "en-US",
-                                                      {
-                                                        hour: "2-digit",
-                                                        minute: "2-digit",
-                                                        hour12: true,
-                                                      },
-                                                    )
-                                                  : "";
-
-                                              return (
+                                          <div className="">
+                                            {[...comments]
+                                              .reverse()
+                                              .map((comment, index) => (
                                                 <div
                                                   key={comment?._id || index}
-                                                  className="text-sm text-gray-700 leading-relaxed whitespace-normal break-words"
+                                                  className="text-sm text-start text-gray-700 leading-relaxed whitespace-normal break-words"
                                                 >
                                                   <span className="font-semibold text-gray-800">
-                                                    [{formattedDate} {formattedTime}
-                                                  {comment?.addedBy
-                                                    ? ` - ${comment?.addedBy}`
-                                                    : ""}
-                                                  ]
+                                                    [
+                                                    {formatDateTime(
+                                                      comment?.date,
+                                                    )}
+                                                    {comment?.addedBy
+                                                      ? ` - ${comment.addedBy}`
+                                                      : ""}
+                                                    ]
                                                   </span>{" "}
-                                                  {comment?.comment}
+                                                  {comment?.comment || ""}
                                                 </div>
-                                              );
-                                            })}
+                                              ))}
+                                          </div>
                                         </div>
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <span className="text-gray-400 text-sm">
-                                      No comment
-                                    </span>
-                                  )}
+                                      </>
+                                    );
+                                  })()}
                                 </div>
 
                                 {/* Add Comment */}
@@ -942,7 +833,7 @@ const cleanSearch = debouncedSearch
                                     setCommentClient(item);
                                     setCommentText("");
                                   }}
-                                  className="shrink-0 p-2 text-gray-600 hover:bg-blue-50 rounded-md transition"
+                                  className="shrink-0 p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition"
                                 >
                                   <MessageSquarePlus size={17} />
                                 </button>

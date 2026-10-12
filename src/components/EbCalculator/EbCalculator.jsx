@@ -3348,11 +3348,9 @@ const EBCalculation = () => {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
 
-    const formattedStartDate = convertStringFormatDate(startDate);
-    const formattedEndDate = convertStringFormatDate(endDate);
+    // const formattedStartDate = convertStringFormatDate(startDate);
+    // const formattedEndDate = convertStringFormatDate(endDate);
 
-    console.log("RAW DATE:", startDate, endDate);
-    console.log("FORMATTED DATE:", formattedStartDate, formattedEndDate);
 
     const {
         data: clientData,
@@ -4018,10 +4016,7 @@ const EBCalculation = () => {
                 };
             });
 
-        console.log(
-            "Submitting EB Calculation Data:",
-            bulkData
-        );
+     
 
         // ==========================================
         // UPDATE EB IN RENT HISTORY
@@ -4033,11 +4028,7 @@ const EBCalculation = () => {
 
         updateEBRentHistory(bulkData, {
             onSuccess: (response) => {
-                console.log(
-                    "EB Rent History Updated:",
-                    response
-                );
-
+              
                 // ==========================================
                 // CREATE EB CALCULATION
                 // ==========================================
@@ -4060,11 +4051,7 @@ const EBCalculation = () => {
                     },
                     {
                         onSuccess: (createResponse) => {
-                            console.log(
-                                "EB Calculation Created:",
-                                createResponse
-                            );
-
+                          
                             toast.success(
                                 `Rent History: ${response?.message}
 Total: ${response?.totalClients}, Updated: ${response?.updatedCount}, Failed: ${response?.failedCount}
@@ -4234,8 +4221,8 @@ EB Calculation: ${createError?.response?.data?.message ||
                         />
                     </div>
 
-                    <div className="flex-shrink-0 min-w-[150px]">
-                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">
+                    <div className="flex-shrink-0 min-w-[150px] ">
+                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1 required-label">
                             Total Free EB
                         </label>
                         <input
@@ -4247,7 +4234,7 @@ EB Calculation: ${createError?.response?.data?.message ||
                     </div>
 
                     <div className="flex-shrink-0 min-w-[150px]">
-                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">
+                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1 required-label">
                             EB To Be Recovered
                         </label>
                         <input
@@ -4262,11 +4249,11 @@ EB Calculation: ${createError?.response?.data?.message ||
                     {isACProperty && sheetData && (
                         <>
                             <div className="flex-shrink-0 min-w-[120px]">
-                                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Flat Total EB</label>
+                                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1 ">Flat Total EB</label>
                                 <input type="number" value={sheetData?.FlatTotalEB ?? 0} className={`${inputClass} bg-gray-50 cursor-not-allowed`} disabled />
                             </div>
                             <div className="flex-shrink-0 min-w-[120px]">
-                                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Flat Total Units</label>
+                                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1 ">Flat Total Units</label>
                                 <input type="number" value={sheetData?.FlatTotalUnits ?? 0} className={`${inputClass} bg-gray-50 cursor-not-allowed`} disabled />
                             </div>
                             <div className="flex-shrink-0 min-w-[120px]">
@@ -4292,7 +4279,7 @@ EB Calculation: ${createError?.response?.data?.message ||
                     {!isACProperty && (
                         <>
                             <div className="flex-shrink-0 min-w-[150px]">
-                                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">
+                                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1 required-label">
                                     Flat Total EB
                                 </label>
                                 <input
@@ -4304,7 +4291,7 @@ EB Calculation: ${createError?.response?.data?.message ||
                                 />
                             </div>
                             <div className="flex-shrink-0 min-w-[150px]">
-                                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">
+                                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1 required-label">
                                     Flat Total Units
                                 </label>
                                 <input
