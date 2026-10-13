@@ -799,7 +799,7 @@ const ACEBReadingCreateEdit = () => {
                                     placeholder=" "
                                 />
                                 <label className="form-label">
-                                    Actual Total Units
+                                    AC Total Units
                                 </label>
                             </div>
                             {/* ACTUAL EB */}
@@ -815,7 +815,7 @@ const ACEBReadingCreateEdit = () => {
                                     placeholder=" "
                                 />
                                 <label className="form-label">
-                                    Actual Total EB
+                                    AC Total EB
                                 </label>
                             </div>
                             {/* COMMON EB */}
