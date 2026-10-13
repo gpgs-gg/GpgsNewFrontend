@@ -80,10 +80,6 @@ const AttendanceRegularizationModal = ({
     mode: "onSubmit",
   });
 
-  const attendanceDate = watch("attendanceDate");
-  const status = watch("status");
-  const remarks = watch("remarks") || "";
-  const employeeId = watch("employeeId");
 
   // ============================================================
   // RESET FORM
@@ -130,24 +126,6 @@ const AttendanceRegularizationModal = ({
     if (!year || !month || !day) return "";
 
     return `${year}-${month}-${day}`;
-  };
-
-  // ============================================================
-  // DISPLAY DATE
-  // ============================================================
-
-  const formatDisplayDate = (dateValue) => {
-    if (!dateValue) return "--";
-
-    const date = new Date(`${dateValue}T00:00:00`);
-
-    if (isNaN(date.getTime())) return "--";
-
-    return date.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
   };
 
   // ============================================================

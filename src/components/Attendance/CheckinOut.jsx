@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { ClipboardCheck, X } from "lucide-react";
 import Pagination from "../common/Pagination";
 import { PAGINATION } from "../../constants/appConfig";
 import {
@@ -17,19 +17,24 @@ import "react-datepicker/dist/react-datepicker.css";
 import { TableFilePreview } from "../../components/common/FilePreview";
 import { toast } from "react-toastify";
 import { useEmployeeExistingSalaries } from "../Salary/services/index";
-
+import AttendanceHistoryCards from "./AttendanceMobileCards";
 import {
   useTodayAttendance,
   useMyAttendance,
   useCheckInAttendance,
   useCheckOutAttendance,
 } from "./services/index";
+import { useCreateAttendanceRequest } from "./services/index";
+import EmployeeAttendanceRequestModal from "./AttendanceRequestForm";
+import { useAuth } from "../../context/authContext";
+import AllAttendanceRequestsModal from "./AllAttendanceRequestsList";
 
 const CheckinOut = () => {
   // ======================================================
   // STATE
   // ======================================================
-
+  const { user } = useAuth();
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [month, setMonth] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -39,6 +44,42 @@ const CheckinOut = () => {
   const [capturedImage, setCapturedImage] = useState(null);
   const [selectedSelfie, setSelectedSelfie] = useState(null);
   const [showAllSalaries, setShowAllSalaries] = useState(false);
+  const [isOpeningCamera, setIsOpeningCamera] = useState(false);
+  const [selectedAttendance, setSelectedAttendance] = useState(null);
+  const createRequestMutation = useCreateAttendanceRequest();
+
+  // Preserve the date portion without timezone shifts
+  const getAttendanceDateForInput = (value) => {
+    if (!value) return "";
+
+    // If the backend already returns YYYY-MM-DD, preserve it.
+    const dateOnlyMatch = String(value).match(/^(\d{4}-\d{2}-\d{2})$/);
+
+    if (dateOnlyMatch) {
+      return dateOnlyMatch[1];
+    }
+
+    // Convert timestamp to the correct Indian calendar date.
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "";
+
+    const parts = new Intl.DateTimeFormat("en-IN", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(date);
+
+    const getPart = (type) => parts.find((part) => part.type === type)?.value;
+
+    return `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
+  };
+
+  const handleAttendanceRequestSubmit = async (formData) => {
+    await createRequestMutation.mutateAsync(formData);
+    setSelectedAttendance(null);
+  };
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -271,41 +312,59 @@ const CheckinOut = () => {
   // ======================================================
 
   const openCamera = async (mode) => {
-    // --------------------------------------------------
-    // CHECK-IN TIME RESTRICTION
-    // --------------------------------------------------
     if (mode === "check-in" && !canCheckIn) {
       toast.warning("Check-in is available only after 10:00 AM.");
       return;
     }
 
+    if (isOpeningCamera || isAttendanceProcessing) return;
+
     try {
+      setIsOpeningCamera(true);
       setCameraMode(mode);
       setCapturedImage(null);
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "user",
-        },
+        video: { facingMode: "user" },
         audio: false,
       });
 
       streamRef.current = stream;
-
       setCameraOpen(true);
-
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      }, 100);
     } catch (error) {
       console.error("Camera Error:", error);
 
+      setCameraMode(null);
       toast.error("Unable to access camera. Please allow camera permission.");
+    } finally {
+      setIsOpeningCamera(false);
     }
   };
 
+  useEffect(() => {
+    if (!cameraOpen || !videoRef.current || !streamRef.current) return;
+
+    const video = videoRef.current;
+    video.srcObject = streamRef.current;
+
+    const startVideo = async () => {
+      try {
+        await video.play();
+      } catch (error) {
+        console.error("Unable to start camera preview:", error);
+      }
+    };
+
+    if (video.readyState >= 1) {
+      startVideo();
+    } else {
+      video.onloadedmetadata = startVideo;
+    }
+
+    return () => {
+      video.onloadedmetadata = null;
+    };
+  }, [cameraOpen]);
   // ======================================================
   // STOP CAMERA
   // ======================================================
@@ -466,10 +525,36 @@ const CheckinOut = () => {
   useEffect(() => {
     if (!cameraOpen) return;
 
-    // Give the camera time to initialize before capturing
-    const timer = setTimeout(() => {
-      captureSelfie();
-    }, 1500);
+    let timer;
+    let attempts = 0;
+
+    const waitForCamera = () => {
+      const video = videoRef.current;
+
+      if (
+        video &&
+        video.readyState >= 2 &&
+        video.videoWidth > 0 &&
+        video.videoHeight > 0
+      ) {
+        // Camera is ready; capture the selfie.
+        captureSelfie();
+        return;
+      }
+
+      attempts += 1;
+
+      if (attempts >= 40) {
+        toast.error("Camera is taking too long to start. Please try again.");
+        stopCamera();
+        setCameraMode(null);
+        return;
+      }
+
+      timer = setTimeout(waitForCamera, 250);
+    };
+
+    timer = setTimeout(waitForCamera, 100);
 
     return () => clearTimeout(timer);
   }, [cameraOpen]);
@@ -851,6 +936,34 @@ const CheckinOut = () => {
       toast.error("Unable to download salary slip.");
     }
   };
+  const handleSubmitRegularization = async (formData) => {
+    console.log("Dummy regularization request:");
+
+    for (const [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
+    // Test only — this does not save anything to the backend.
+    toast.success("Dummy regularization request submitted successfully.");
+  };
+  // DUMMY MANAGERS — for testing the regularization modal
+  const managers = [
+    {
+      _id: "dummy-manager-1",
+      employeeName: "Rahul Sharma",
+      employeeId: "GG-24-EMP-01",
+    },
+    {
+      _id: "dummy-manager-2",
+      employeeName: "Priya Patel",
+      employeeId: "GG-24-EMP-02",
+    },
+    {
+      _id: "dummy-manager-3",
+      employeeName: "Amit Verma",
+      employeeId: "GG-24-EMP-03",
+    },
+  ];
   return (
     <div className="p-4 md:p-6">
       {/* ==================================================
@@ -903,7 +1016,7 @@ const CheckinOut = () => {
           ================================================== */}
 
           <div className="relative mb-3 flex h-[260px] items-center justify-center overflow-hidden rounded-2xl bg-gray-950 ring-1 ring-gray-200">
-            {isAttendanceProcessing ? (
+            {isOpeningCamera || isAttendanceProcessing ? (
               <div className="flex flex-col items-center justify-center text-white">
                 <div className="relative flex h-16 w-16 items-center justify-center">
                   <div className="absolute h-16 w-16 animate-spin rounded-full border-4 border-gray-600 border-t-green-500" />
@@ -911,7 +1024,11 @@ const CheckinOut = () => {
                 </div>
 
                 <p className="mt-4 text-sm font-semibold">
-                  {isCheckingIn ? "Checking in..." : "Checking out..."}
+                  {isOpeningCamera
+                    ? "Starting camera..."
+                    : isCheckingIn
+                      ? "Checking in..."
+                      : "Checking out..."}
                 </p>
 
                 <p className="mt-1 text-xs text-gray-400">
@@ -1198,6 +1315,33 @@ const CheckinOut = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              {user?.designation?.toLowerCase() === "manager" && (
+                <button
+                  type="button"
+                  onClick={() => setIsRequestModalOpen(true)}
+                  className="border whitespace-nowrap border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
+                >
+                  <ClipboardCheck
+                    size={17}
+                    className="shrink-0 text-amber-700"
+                  />
+
+                  <span className="hidden sm:inline">Attendance Requests</span>
+                  <span className="sm:hidden">Requests</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() =>
+                  setSelectedAttendance({
+                    employeeId: todayAttendance?.employeeId || null,
+                    attendanceDate: "",
+                  })
+                }
+                className="border whitespace-nowrap border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
+              >
+                <FaCalendarAlt /> Raise Request
+              </button>
               <DatePicker
                 selected={month ? new Date(`${month}-01`) : null}
                 onChange={(date) => {
@@ -1226,7 +1370,7 @@ const CheckinOut = () => {
 
           {/* TABLE */}
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto hidden md:block justify-between">
             <table className="w-full min-w-275">
               <thead className="sticky top-0 bg-gray-100 z-30">
                 <tr>
@@ -1272,6 +1416,9 @@ const CheckinOut = () => {
 
                   <th className="whitespace-nowrap px-5 py-3.5 text-left text-md font-semibold  tracking-wide ">
                     Status
+                  </th>
+                  <th className="whitespace-nowrap px-5 py-3.5 text-left text-md font-semibold tracking-wide">
+                    Action
                   </th>
                 </tr>
               </thead>
@@ -1378,12 +1525,22 @@ const CheckinOut = () => {
 
                           return (
                             <span
-                              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${status.className}`}
+                              className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${status.className}`}
                             >
                               {status.label}
                             </span>
                           );
                         })()}
+                      </td>
+                      {/* ACTION — REQUEST REGULARIZATION */}
+                      <td className="px-5 py-4">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedAttendance(attendance)}
+                          className="whitespace-nowrap rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 transition hover:border-green-300 hover:bg-green-100"
+                        >
+                          Request Regularization
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -1392,9 +1549,23 @@ const CheckinOut = () => {
             </table>
           </div>
 
+          {/* MOBILE ATTENDANCE HISTORY CARDS */}
+          <div className="md:hidden">
+            <AttendanceHistoryCards
+              attendanceList={attendanceList}
+              isLoading={isHistoryLoading}
+              formatDate={formatDate}
+              formatTime={formatTime}
+              formatMinutes={formatMinutes}
+              getAttendanceStatus={getAttendanceStatus}
+              managers={managers}
+              onSubmitRegularization={handleSubmitRegularization}
+            />
+          </div>
+
           {/* ==================================================
-              PAGINATION
-          ================================================== */}
+    PAGINATION
+================================================== */}
 
           {/* ==================================================
     PAGINATION
@@ -1416,6 +1587,27 @@ const CheckinOut = () => {
           </div>
         </div>
       </div>
+
+      {isRequestModalOpen && (
+        <AllAttendanceRequestsModal
+          isOpen={isRequestModalOpen}
+          onClose={() => setIsRequestModalOpen(false)}
+        />
+      )}
+      {/* ATTENDANCE REGULARIZATION MODAL */}
+      {selectedAttendance && (
+        <EmployeeAttendanceRequestModal
+          attendance={{
+            ...selectedAttendance,
+            attendanceDate: getAttendanceDateForInput(
+              selectedAttendance.attendanceDate,
+            ),
+          }}
+          managers={managers}
+          onClose={() => setSelectedAttendance(null)}
+          onSubmit={handleAttendanceRequestSubmit}
+        />
+      )}
     </div>
   );
 };

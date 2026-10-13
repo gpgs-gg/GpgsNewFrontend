@@ -31,7 +31,12 @@ const AreaCreateEdit = () => {
             propertyId: "",
             location: "",
             areas: [],
-            areaTypes: [],
+            areaTypes: [
+                {
+                    type: "ROOM",
+                    isActive: true,
+                },
+            ],
         },
     });
 
@@ -49,14 +54,10 @@ const AreaCreateEdit = () => {
     });
     const { data: propertyData, isLoading: propertyLoading } =
         useSinglePropertyData(id);
-    const {
-        mutate: createProperty,
-        isPending: createLoading,
-    } = useCreatePropertyData();
-    const {
-        mutate: updateProperty,
-        isPending: updateLoading,
-    } = useUpdatePropertyData();
+    const { mutate: createProperty, isPending: createLoading } =
+        useCreatePropertyData();
+    const { mutate: updateProperty, isPending: updateLoading } =
+        useUpdatePropertyData();
     const loading = createLoading || updateLoading;
     const [selectedProperty, setSelectedProperty] = useState(null);
 
@@ -70,11 +71,7 @@ const AreaCreateEdit = () => {
         { value: false, label: "Inactive" },
     ];
 
-    const loadPropertyOptions = async (
-        search,
-        loadedOptions,
-        { page }
-    ) => {
+    const loadPropertyOptions = async (search, loadedOptions, { page }) => {
         const res = await getPropertyDropdown({
             page,
             limit: 10,
@@ -89,7 +86,7 @@ const AreaCreateEdit = () => {
                         label: item.propertyCode,
                         propLocation: item.propertyLocation, // <-- Add this
                     },
-                ])
+                ]),
             ).values(),
         ];
 
@@ -101,7 +98,6 @@ const AreaCreateEdit = () => {
             },
         };
     };
-
 
     useEffect(() => {
         if (isEdit && propertyData?.data) {
@@ -124,10 +120,7 @@ const AreaCreateEdit = () => {
                     areaId: area.areaId || "",
                     name: area.name || "",
                     type: area.type || "",
-                    isActive:
-                        area.isActive !== undefined
-                            ? area.isActive
-                            : true,
+                    isActive: area.isActive !== undefined ? area.isActive : true,
                 })),
             });
         }
@@ -186,34 +179,28 @@ const AreaCreateEdit = () => {
                 {
                     onSuccess: (res) => {
                         toast.dismiss();
-                        toast.success(
-                            res.message || "Property updated successfully"
-                        );
+                        toast.success(res.message || "Property updated successfully");
                         navigate("/aceb-area");
                     },
                     onError: (err) => {
                         toast.dismiss();
                         toast.error(
-                            err?.response?.data?.message ||
-                            "Property update failed"
+                            err?.response?.data?.message || "Property update failed",
                         );
                     },
-                }
+                },
             );
         } else {
             createProperty(payload, {
                 onSuccess: (res) => {
                     toast.dismiss();
-                    toast.success(
-                        res.message || "Property created successfully"
-                    );
+                    toast.success(res.message || "Property created successfully");
                     navigate("/aceb-area");
                 },
                 onError: (err) => {
                     toast.dismiss();
                     toast.error(
-                        err?.response?.data?.message ||
-                        "Property creation failed"
+                        err?.response?.data?.message || "Property creation failed",
                     );
                 },
             });
@@ -229,7 +216,6 @@ const AreaCreateEdit = () => {
     return (
         <div className="space-y-3 h-screen">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-
                 {/* ================= Header ================= */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
                     <div className="flex justify-between items-center">
@@ -275,9 +261,7 @@ const AreaCreateEdit = () => {
                 {/* ================= Property Details ================= */}
                 <div className="bg-white rounded-xl shadow-sm">
                     <div className="px-4 py-3">
-                        <h2 className="text-lg font-semibold">
-                            Property Details
-                        </h2>
+                        <h2 className="text-lg font-semibold">Property Details</h2>
                     </div>
 
                     <div className="px-4 pb-4 grid md:grid-cols-4 gap-3">
@@ -290,8 +274,7 @@ const AreaCreateEdit = () => {
                                 }}
                                 render={({ field }) => (
                                     <div
-                                        className={`select-group ${field.value ? "has-value" : ""
-                                            }`}
+                                        className={`select-group ${field.value ? "has-value" : ""}`}
                                     >
                                         <label className="select-label form-label required-label">
                                             Property Code
@@ -308,9 +291,7 @@ const AreaCreateEdit = () => {
                                             value={selectedProperty}
                                             onChange={(selected) => {
                                                 setSelectedProperty(selected);
-                                                field.onChange(
-                                                    selected?.value || ""
-                                                );
+                                                field.onChange(selected?.value || "");
                                             }}
                                         />
 
@@ -328,13 +309,10 @@ const AreaCreateEdit = () => {
 
                 {/* ================= Property Areas ================= */}
                 <div className="bg-white rounded-xl shadow-sm">
-
                     {/* Areas Header */}
                     <div className="px-4 py-3 flex justify-between items-center">
                         <div>
-                            <h2 className="text-lg font-semibold">
-                                Property Areas
-                            </h2>
+                            <h2 className="text-lg font-semibold">Property Areas</h2>
 
                             <p className="text-sm text-gray-500">
                                 {isEdit
@@ -354,23 +332,15 @@ const AreaCreateEdit = () => {
                     </div>
 
                     <div className="px-4 pb-4 space-y-3">
-
                         {/* ================= EXISTING AREAS ================= */}
                         {isEdit && fields.length > 0 && (
                             <>
-                                <h3 className="font-semibold text-gray-700">
-                                    Existing Areas
-                                </h3>
+                                <h3 className="font-semibold text-gray-700">Existing Areas</h3>
 
                                 {fields.map((field, index) => (
-                                    <div
-                                        key={field.id}
-                                        className="border rounded-xl p-3"
-                                    >
+                                    <div key={field.id} className="border rounded-xl p-3">
                                         <div className="flex justify-between items-center mb-3">
-                                            <h3 className="font-semibold">
-                                                Area {index + 1}
-                                            </h3>
+                                            <h3 className="font-semibold">Area {index + 1}</h3>
 
                                             <button
                                                 type="button"
@@ -382,17 +352,12 @@ const AreaCreateEdit = () => {
                                         </div>
 
                                         <div className="grid md:grid-cols-4 gap-3">
-
                                             {/* Area Name */}
                                             <div className="form-group">
                                                 <input
-                                                    {...register(
-                                                        `areas.${index}.name`,
-                                                        {
-                                                            required:
-                                                                "Area name is required",
-                                                        }
-                                                    )}
+                                                    {...register(`areas.${index}.name`, {
+                                                        required: "Area name is required",
+                                                    })}
                                                     className="form-input"
                                                     placeholder=" "
                                                 />
@@ -403,10 +368,7 @@ const AreaCreateEdit = () => {
 
                                                 {errors.areas?.[index]?.name && (
                                                     <p className="text-red-500 text-sm mt-1">
-                                                        {
-                                                            errors.areas[index]
-                                                                .name.message
-                                                        }
+                                                        {errors.areas[index].name.message}
                                                     </p>
                                                 )}
                                             </div>
@@ -416,14 +378,11 @@ const AreaCreateEdit = () => {
                                                 name={`areas.${index}.type`}
                                                 control={control}
                                                 rules={{
-                                                    required:
-                                                        "Area type is required",
+                                                    required: "Area type is required",
                                                 }}
                                                 render={({ field }) => (
                                                     <div
-                                                        className={`select-group ${field.value
-                                                            ? "has-value"
-                                                            : ""
+                                                        className={`select-group ${field.value ? "has-value" : ""
                                                             }`}
                                                     >
                                                         <label className="select-label form-label required-label">
@@ -436,30 +395,20 @@ const AreaCreateEdit = () => {
                                                             isClearable
                                                             value={
                                                                 TypeOptions.find(
-                                                                    (x) =>
-                                                                        x.value ===
-                                                                        field.value
+                                                                    (x) => x.value === field.value,
                                                                 ) || null
                                                             }
                                                             onChange={(selected) =>
-                                                                field.onChange(
-                                                                    selected?.value ||
-                                                                    ""
-                                                                )
+                                                                field.onChange(selected?.value || "")
                                                             }
                                                             styles={selectStyles}
                                                         />
 
-                                                        {errors.areas?.[index]
-                                                            ?.type && (
-                                                                <p className="text-red-500 text-sm mt-1">
-                                                                    {
-                                                                        errors.areas[
-                                                                            index
-                                                                        ].type.message
-                                                                    }
-                                                                </p>
-                                                            )}
+                                                        {errors.areas?.[index]?.type && (
+                                                            <p className="text-red-500 text-sm mt-1">
+                                                                {errors.areas[index].type.message}
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 )}
                                             />
@@ -470,11 +419,9 @@ const AreaCreateEdit = () => {
                                                 control={control}
                                                 render={({ field }) => (
                                                     <div
-                                                        className={`select-group ${field.value !==
-                                                            undefined &&
-                                                            field.value !== null
-                                                            ? "has-value"
-                                                            : ""
+                                                        className={`select-group ${field.value !== undefined && field.value !== null
+                                                                ? "has-value"
+                                                                : ""
                                                             }`}
                                                     >
                                                         <label className="select-label form-label">
@@ -486,16 +433,11 @@ const AreaCreateEdit = () => {
                                                             placeholder=""
                                                             value={
                                                                 StatusOptions.find(
-                                                                    (x) =>
-                                                                        x.value ===
-                                                                        field.value
+                                                                    (x) => x.value === field.value,
                                                                 ) || null
                                                             }
                                                             onChange={(selected) =>
-                                                                field.onChange(
-                                                                    selected?.value ??
-                                                                    true
-                                                                )
+                                                                field.onChange(selected?.value ?? true)
                                                             }
                                                             styles={selectStyles}
                                                         />
@@ -516,20 +458,13 @@ const AreaCreateEdit = () => {
                                 </h3>
 
                                 {areaTypeFields.map((field, index) => (
-                                    <div
-                                        key={field.id}
-                                        className="border rounded-xl p-3"
-                                    >
+                                    <div key={field.id} className="border rounded-xl p-3">
                                         <div className="flex justify-between items-center mb-3">
-                                            <h3 className="font-semibold">
-                                                Area Type {index + 1}
-                                            </h3>
+                                            <h3 className="font-semibold">Area Type {index + 1}</h3>
 
                                             <button
                                                 type="button"
-                                                onClick={() =>
-                                                    removeAreaType(index)
-                                                }
+                                                onClick={() => removeAreaType(index)}
                                                 className="text-red-500 hover:text-red-700"
                                             >
                                                 <Trash2 size={18} />
@@ -537,14 +472,12 @@ const AreaCreateEdit = () => {
                                         </div>
 
                                         <div className="grid md:grid-cols-4 gap-3">
-
                                             {/* ================= NUMBER ================= */}
                                             <Controller
                                                 name={`areaTypes.${index}.count`}
                                                 control={control}
                                                 rules={{
-                                                    required:
-                                                        "Number is required",
+                                                    required: "Number is required",
                                                 }}
                                                 render={({ field }) => {
                                                     const numberOptions = [
@@ -556,20 +489,15 @@ const AreaCreateEdit = () => {
                                                             value: "KITCHEN",
                                                             label: "Kitchen",
                                                         },
-                                                        ...Array.from(
-                                                            { length: 100 },
-                                                            (_, i) => ({
-                                                                value: i + 1,
-                                                                label: String(i + 1),
-                                                            })
-                                                        ),
+                                                        ...Array.from({ length: 100 }, (_, i) => ({
+                                                            value: i + 1,
+                                                            label: String(i + 1),
+                                                        })),
                                                     ];
 
                                                     return (
                                                         <div
-                                                            className={`select-group ${field.value
-                                                                ? "has-value"
-                                                                : ""
+                                                            className={`select-group ${field.value ? "has-value" : ""
                                                                 }`}
                                                         >
                                                             <label className="select-label form-label required-label">
@@ -577,44 +505,25 @@ const AreaCreateEdit = () => {
                                                             </label>
 
                                                             <Select
-                                                                options={
-                                                                    numberOptions
-                                                                }
+                                                                options={numberOptions}
                                                                 placeholder=""
                                                                 isClearable
                                                                 value={
                                                                     numberOptions.find(
-                                                                        (x) =>
-                                                                            x.value ===
-                                                                            field.value
+                                                                        (x) => x.value === field.value,
                                                                     ) || null
                                                                 }
-                                                                onChange={(
-                                                                    selected
-                                                                ) =>
-                                                                    field.onChange(
-                                                                        selected?.value ||
-                                                                        ""
-                                                                    )
+                                                                onChange={(selected) =>
+                                                                    field.onChange(selected?.value || "")
                                                                 }
-                                                                styles={
-                                                                    selectStyles
-                                                                }
+                                                                styles={selectStyles}
                                                             />
 
-                                                            {errors.areaTypes?.[
-                                                                index
-                                                            ]?.count && (
-                                                                    <p className="text-red-500 text-sm mt-1">
-                                                                        {
-                                                                            errors
-                                                                                .areaTypes[
-                                                                                index
-                                                                            ].count
-                                                                                .message
-                                                                        }
-                                                                    </p>
-                                                                )}
+                                                            {errors.areaTypes?.[index]?.count && (
+                                                                <p className="text-red-500 text-sm mt-1">
+                                                                    {errors.areaTypes[index].count.message}
+                                                                </p>
+                                                            )}
                                                         </div>
                                                     );
                                                 }}
@@ -625,14 +534,11 @@ const AreaCreateEdit = () => {
                                                 name={`areaTypes.${index}.type`}
                                                 control={control}
                                                 rules={{
-                                                    required:
-                                                        "Area type is required",
+                                                    required: "Area type is required",
                                                 }}
                                                 render={({ field }) => (
                                                     <div
-                                                        className={`select-group ${field.value
-                                                            ? "has-value"
-                                                            : ""
+                                                        className={`select-group ${field.value ? "has-value" : ""
                                                             }`}
                                                     >
                                                         <label className="select-label form-label required-label">
@@ -645,30 +551,20 @@ const AreaCreateEdit = () => {
                                                             isClearable
                                                             value={
                                                                 TypeOptions.find(
-                                                                    (x) =>
-                                                                        x.value ===
-                                                                        field.value
+                                                                    (x) => x.value === field.value,
                                                                 ) || null
                                                             }
                                                             onChange={(selected) =>
-                                                                field.onChange(
-                                                                    selected?.value ||
-                                                                    ""
-                                                                )
+                                                                field.onChange(selected?.value || "")
                                                             }
                                                             styles={selectStyles}
                                                         />
 
-                                                        {errors.areaTypes?.[index]
-                                                            ?.type && (
-                                                                <p className="text-red-500 text-sm mt-1">
-                                                                    {
-                                                                        errors.areaTypes[
-                                                                            index
-                                                                        ].type.message
-                                                                    }
-                                                                </p>
-                                                            )}
+                                                        {errors.areaTypes?.[index]?.type && (
+                                                            <p className="text-red-500 text-sm mt-1">
+                                                                {errors.areaTypes[index].type.message}
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 )}
                                             />
@@ -679,11 +575,9 @@ const AreaCreateEdit = () => {
                                                 control={control}
                                                 render={({ field }) => (
                                                     <div
-                                                        className={`select-group ${field.value !==
-                                                            undefined &&
-                                                            field.value !== null
-                                                            ? "has-value"
-                                                            : ""
+                                                        className={`select-group ${field.value !== undefined && field.value !== null
+                                                                ? "has-value"
+                                                                : ""
                                                             }`}
                                                     >
                                                         <label className="select-label form-label">
@@ -695,16 +589,11 @@ const AreaCreateEdit = () => {
                                                             placeholder=""
                                                             value={
                                                                 StatusOptions.find(
-                                                                    (x) =>
-                                                                        x.value ===
-                                                                        field.value
+                                                                    (x) => x.value === field.value,
                                                                 ) || null
                                                             }
                                                             onChange={(selected) =>
-                                                                field.onChange(
-                                                                    selected?.value ??
-                                                                    true
-                                                                )
+                                                                field.onChange(selected?.value ?? true)
                                                             }
                                                             styles={selectStyles}
                                                         />
@@ -718,21 +607,18 @@ const AreaCreateEdit = () => {
                         )}
 
                         {/* ================= NO EXISTING AREAS ================= */}
-                        {isEdit &&
-                            fields.length === 0 &&
-                            areaTypeFields.length === 0 && (
-                                <div className="text-center py-6 text-gray-500 border border-dashed rounded-lg">
-                                    No areas added. Click "Add Area" to add one.
-                                </div>
-                            )}
+                        {isEdit && fields.length === 0 && areaTypeFields.length === 0 && (
+                            <div className="text-center py-6 text-gray-500 border border-dashed rounded-lg">
+                                No areas added. Click "Add Area" to add one.
+                            </div>
+                        )}
 
                         {/* ================= CREATE MODE ================= */}
-                        {!isEdit &&
-                            areaTypeFields.length === 0 && (
-                                <div className="text-center py-6 text-gray-500 border border-dashed rounded-lg">
-                                    Click "Add Area" to add an area type.
-                                </div>
-                            )}
+                        {!isEdit && areaTypeFields.length === 0 && (
+                            <div className="text-center py-6 text-gray-500 border border-dashed rounded-lg">
+                                Click "Add Area" to add an area type.
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -764,7 +650,6 @@ const AreaCreateEdit = () => {
                         )}
                     </button>
                 </div>
-
             </form>
         </div>
     );
@@ -836,7 +721,7 @@ export default AreaCreateEdit;
 //         { value: true, label: "Active" },
 //         { value: false, label: "Inactive" },
 //     ];
-    
+
 //     const loadPropertyOptions = async (
 //         search,
 //         loadedOptions,
@@ -868,7 +753,6 @@ export default AreaCreateEdit;
 //             },
 //         };
 //     };
-
 
 //     useEffect(() => {
 //         if (isEdit && propertyData?.data) {

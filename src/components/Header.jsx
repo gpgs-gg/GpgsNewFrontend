@@ -2,13 +2,16 @@ import { Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { useLogout } from "../auth/services";
-import { CiLogout } from "react-icons/ci";
+import { ClipboardCheck } from "lucide-react";
 import { IoIosNotificationsOutline } from "react-icons/io";
 import { FaCalendarCheck, FaUserCircle } from "react-icons/fa";
+import { useState } from "react";
+import AllAttendanceRequestsModal from "./Attendance/AllAttendanceRequestsList";
 const Header = ({ collapsed, setCollapsed, setMobileOpen }) => {
   const { user, loading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { mutate: logoutUser, isPending } = useLogout();
+// const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
   const handleLogout = () => {
     logoutUser(undefined, {
@@ -56,7 +59,7 @@ const Header = ({ collapsed, setCollapsed, setMobileOpen }) => {
       {/* Right Side */}
       <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
         {/* TODAY'S ATTENDANCE */}
-        {["employee", "admin"].includes(user?.role?.toLowerCase()) && (
+        {["employee"].includes(user?.role?.toLowerCase()) && (
           <button
             type="button"
             onClick={handleAttendanceClick}
@@ -69,6 +72,18 @@ const Header = ({ collapsed, setCollapsed, setMobileOpen }) => {
             <span className="sm:hidden">Attendance</span>
           </button>
         )}
+        {/* {user?.designation?.toLowerCase() === "manager" && (
+          <button
+            type="button"
+            onClick={() => setIsRequestModalOpen(true)}
+            className="relative inline-flex items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-amber-800 shadow-sm transition-all hover:bg-amber-100 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+          >
+            <ClipboardCheck size={17} className="shrink-0 text-amber-700" />
+
+            <span className="hidden sm:inline">Attendance Requests</span>
+            <span className="sm:hidden">Requests</span>
+          </button>
+        )} */}
         <div className="relative cursor-pointer">
           {/* daily attendance check in check out */}
           <IoIosNotificationsOutline className="text-2xl" />
@@ -98,6 +113,12 @@ const Header = ({ collapsed, setCollapsed, setMobileOpen }) => {
             )}
           </div>
         </div>
+        {/* {isRequestModalOpen && (
+        <AllAttendanceRequestsModal
+          isOpen={isRequestModalOpen}
+          onClose={() => setIsRequestModalOpen(false)}
+        />
+        )} */}
       </div>
     </header>
   );
