@@ -81,3 +81,31 @@ export const useDeleteRentData = () => {
     },
   });
 };
+
+
+// Export client rent ledger records
+export const exportClientRentData = async ({
+  search = "",
+  filters = {},
+  clientId = "",
+  propertyId = "",
+  rentIds = [],
+  columns = [],
+}) => {
+  const response = await apiClient.post(
+    "/rent-history/export",
+    {
+      search,
+      filters,
+      clientId,
+      propertyId,
+      rentIds,
+      columns,
+    },
+    {
+      responseType: "blob",
+    },
+  );
+
+  return response.data;
+};

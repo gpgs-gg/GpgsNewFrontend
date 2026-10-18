@@ -484,7 +484,7 @@ function EBCalculationData() {
               COMMON / PROPERTY VALUES
           ================================================= */}
 
-                                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-3">
+                                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-8 gap-3">
 
                                     {/* FLAT TOTAL EB */}
                                     <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
@@ -599,7 +599,7 @@ function EBCalculationData() {
 
                                   <div className="overflow-x-auto">
 
-                                    <table className="w-full text-sm">
+                                    <table className="w-full text-sm overflow-x-auto">
 
                                       <thead className="bg-gray-100">
 

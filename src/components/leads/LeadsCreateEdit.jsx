@@ -329,7 +329,7 @@ const { data: employeeData } = useEmployeeDetailsData({
                             setValue("mode", "single");
                         }}
                         className={`px-10 py-2 whitespace-nowrap rounded text-xl ${mode === "single"
-                            ? "bg-black text-white"
+                            ? "border border-gray-200"
                             : "bg-gray-300"
                             }`}
                     >
@@ -613,7 +613,7 @@ const { data: employeeData } = useEmployeeDetailsData({
                         />
 
                         
-                            <Controller
+                            {/* <Controller
                                 name="TeamCode"
                                 control={control}
                                 render={({ field }) => (
@@ -630,12 +630,10 @@ const { data: employeeData } = useEmployeeDetailsData({
                                         />
                                     </div>
                                 )}
-                            />
-                        
-
-                        <div className="form-group md:col-span-1">
+                            /> */}
+                              <div className="form-group md:col-span-1">
                             <textarea
-                                rows={5}
+                                rows={2}
                                 {...register("Comments", {
                                     required: "Comments is required",
                                 })}
@@ -651,8 +649,11 @@ const { data: employeeData } = useEmployeeDetailsData({
                             </label>
                         </div>
 
+                  
+
                         {id && (
                             <div className="border border-gray-400 rounded-lg  py-2 px-4 h-44 flex flex-col md:col-span-3 relative">
+                                
                                 <h3 className="text-md mb-1 bg-white absolute -mt-5">
                                     Work Log History
                                 </h3>

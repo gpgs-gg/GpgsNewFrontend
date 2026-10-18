@@ -90,7 +90,10 @@ export default defineConfig({
 
     tailwindcss(),
   ],
-
+  // Source maps disabled in production build
+  build: {
+    sourcemap: false,
+  },
   server: {
     watch: {
       usePolling: true,

@@ -162,7 +162,7 @@ const RentLadgerEdit = () => {
                         <div className="flex justify-end gap-5">
                             <button
                                 type="button"
-                                onClick={() => window.history.back()}
+                                onClick={() => navigate("/clients")}
                                 className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium"
                             >
                                 Cancel

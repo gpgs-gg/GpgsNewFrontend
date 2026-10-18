@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ClipboardCheck, X } from "lucide-react";
+import { X } from "lucide-react";
 import Pagination from "../common/Pagination";
 import { PAGINATION } from "../../constants/appConfig";
 import {
@@ -10,6 +10,7 @@ import {
   FaCalendarAlt,
   FaClock,
   FaDownload,
+  FaTicketAlt,
 } from "react-icons/fa";
 import jsPDF from "jspdf";
 import DatePicker from "react-datepicker";
@@ -26,15 +27,12 @@ import {
 } from "./services/index";
 import { useCreateAttendanceRequest } from "./services/index";
 import EmployeeAttendanceRequestModal from "./AttendanceRequestForm";
-import { useAuth } from "../../context/authContext";
-import AllAttendanceRequestsModal from "./AllAttendanceRequestsList";
-
+import MyAttendanceRequestsModal from "./MyAttendanceRequestsModal";
 const CheckinOut = () => {
   // ======================================================
   // STATE
   // ======================================================
-  const { user } = useAuth();
-  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [month, setMonth] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -46,6 +44,8 @@ const CheckinOut = () => {
   const [showAllSalaries, setShowAllSalaries] = useState(false);
   const [isOpeningCamera, setIsOpeningCamera] = useState(false);
   const [selectedAttendance, setSelectedAttendance] = useState(null);
+  const [showMyRequests, setShowMyRequests] = useState(false);
+
   const createRequestMutation = useCreateAttendanceRequest();
 
   // Preserve the date portion without timezone shifts
@@ -890,7 +890,7 @@ const CheckinOut = () => {
       doc.setFontSize(12);
       doc.setTextColor(25, 50, 85);
 
-      doc.text("Net Salary / Take-Home Pay", 24, 244);
+      doc.text("Net Salary Paid", 24, 244);
 
       doc.text(formatAmount(payableSalary), 185, 244, {
         align: "right",
@@ -1168,7 +1168,7 @@ const CheckinOut = () => {
             <button
               type="button"
               onClick={() => setShowAllSalaries((prev) => !prev)}
-              className="w-full rounded-lg border border-green-200 bg-white px-3 py-2 text-xs font-semibold text-green-700 transition hover:bg-green-100"
+              className="w-full rounded-lg border border-green-200 bg-white px-3 py-2 text-xs font-semibold text-black-700 transition hover:bg-green-100"
             >
               {showAllSalaries ? "Hide Previous Salaries" : "Show All Salaries"}
             </button>
@@ -1315,21 +1315,6 @@ const CheckinOut = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              {user?.designation?.toLowerCase() === "manager" && (
-                <button
-                  type="button"
-                  onClick={() => setIsRequestModalOpen(true)}
-                  className="border whitespace-nowrap border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
-                >
-                  <ClipboardCheck
-                    size={17}
-                    className="shrink-0 text-amber-700"
-                  />
-
-                  <span className="hidden sm:inline">Attendance Requests</span>
-                  <span className="sm:hidden">Requests</span>
-                </button>
-              )}
               <button
                 type="button"
                 onClick={() =>
@@ -1340,8 +1325,19 @@ const CheckinOut = () => {
                 }
                 className="border whitespace-nowrap border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
               >
-                <FaCalendarAlt /> Raise Request
+                <FaTicketAlt />
+                <span>Raise Request</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setShowMyRequests(true)}
+                className="flex items-center gap-2 whitespace-nowrap rounded-lg  cursor-pointer px-4 py-2 text-sm font-medium border border-gray-300 transition hover:bg-gray-100"
+              >
+                {" "}
+                <FaCalendarAlt /> Show All Requests{" "}
+              </button>
+
               <DatePicker
                 selected={month ? new Date(`${month}-01`) : null}
                 onChange={(date) => {
@@ -1587,14 +1583,13 @@ const CheckinOut = () => {
           </div>
         </div>
       </div>
-
-      {isRequestModalOpen && (
-        <AllAttendanceRequestsModal
-          isOpen={isRequestModalOpen}
-          onClose={() => setIsRequestModalOpen(false)}
-        />
-      )}
       {/* ATTENDANCE REGULARIZATION MODAL */}
+      {/* MY SUBMITTED ATTENDANCE REQUESTS */}
+      {showMyRequests && (
+        <MyAttendanceRequestsModal onClose={() => setShowMyRequests(false)} />
+      )}
+
+      {/* EXISTING ATTENDANCE REQUEST MODAL */}
       {selectedAttendance && (
         <EmployeeAttendanceRequestModal
           attendance={{

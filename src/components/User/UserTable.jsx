@@ -26,6 +26,7 @@ function UserTable() {
   const DEFAULT_USER_FILTERS = {
     userId: "",
     role: "",
+    userName: "",
     isActive: "",
   };
 
@@ -77,7 +78,7 @@ function UserTable() {
     if (filters.userId) {
       labels.push({
         key: "userId",
-        label: `User : ${filters.userId}`,
+       label: `User : ${filters.userName || filters.userId}`,
       });
     }
 

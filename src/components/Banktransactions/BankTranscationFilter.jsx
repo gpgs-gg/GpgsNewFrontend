@@ -7,12 +7,10 @@ import { formatDate } from "../../utils/dateFormatter";
 import { AsyncPaginate } from "react-select-async-paginate";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import {
-  getPropertyDropdown,
-  usePropertyDropdown,
-} from "../../components/properties/services/index";
+import { getPropertyDropdown } from "../../components/properties/services/index";
 import { useBatchOptions } from "../Options/services";
 import { useEmployeeDetailsData } from "../EmployeeDetails/Services/index";
+
 const BankTransactionFilter = ({
   isOpen,
   onClose,
@@ -36,6 +34,7 @@ const BankTransactionFilter = ({
   const { data: options = {} } = useBatchOptions([
     "bankstatus",
     "expensecategory",
+    "expensecode",
   ]);
 
   const { control, handleSubmit, reset } = useForm({
@@ -46,23 +45,52 @@ const BankTransactionFilter = ({
       status: null,
       assignee: null,
       transactionType: null,
+
       propertyId: null,
       expenseCategory: [],
+      expenseCode: null,
     },
   });
-
-  const loadPropertyOptions = async (search, loadedOptions, { page }) => {
-    const res = await getPropertyDropdown({ page, limit: 10, search });
-    return {
-      options: res.data.map((item) => ({
-        value: item._id,
-        label: item.propertyCode,
-        location: item.propertyLocation,
-        bedCount: item.bedCount,
+  const expenseCodeOptions = useMemo(
+    () =>
+      (options.expensecode || []).map((item) => ({
+        // Send the MongoDB ID to the backend
+        value: item.id || item._id,
+        // Display the readable expense code
+        label: item.label || item.value || item.expenseCode || item.code,
       })),
-      hasMore: res.hasMore,
-      additional: { page: page + 1 },
-    };
+    [options.expensecode],
+  );
+  // PROPERTY CODE DROPDOWN
+  const loadPropertyOptions = async (search, loadedOptions, { page }) => {
+    try {
+      const res = await getPropertyDropdown({
+        page,
+        limit: 10,
+        search: search?.trim() || "",
+      });
+
+      return {
+        options: (res?.data || []).map((item) => ({
+          value: item._id,
+          label: item.propertyCode,
+        })),
+        hasMore: Boolean(res?.hasMore),
+        additional: {
+          page: page + 1,
+        },
+      };
+    } catch (error) {
+      console.error("Bank Transaction Property Dropdown Error:", error);
+
+      return {
+        options: [],
+        hasMore: false,
+        additional: {
+          page,
+        },
+      };
+    }
   };
 
   const statusOptions = options.bankstatus || [];
@@ -105,10 +133,23 @@ const BankTransactionFilter = ({
     if (data.toDate) {
       filters.toDate = formatDate(data.toDate);
     }
+
     if (data.bankAccount) filters.account = data.bankAccount.value;
 
-    if (data.propertyId) filters.propertyId = data.propertyId.value;
+    // Expense Code: send MongoDB _id
+    if (data.expenseCode) {
+      filters.expenseCode = data.expenseCode.value; // MongoDB ObjectId
+      filters.expenseCodeLabel = data.expenseCode.label; // Readable code for chip
+    }
 
+    // Property: send MongoDB _id
+    // Property: send MongoDB _id to the API
+    if (data.propertyId) {
+      filters.propertyId = data.propertyId.value;
+
+      // Keep the readable property code for displaying filter chips
+      filters.propertyCode = data.propertyId.label;
+    }
     if (data.status) filters.status = data.status.value;
 
     if (data.assignee) {
@@ -143,7 +184,10 @@ const BankTransactionFilter = ({
         key: "toDate",
         label: `To : ${formatDate(data.toDate)}`,
       },
-
+      data.expenseCode && {
+        key: "expenseCode",
+        label: `Expense Code : ${data.expenseCode.label}`,
+      },
       data.transactionType && {
         key: "transactionType",
         label: `Type : ${data.transactionType.label}`,
@@ -201,7 +245,12 @@ const BankTransactionFilter = ({
     reset({
       fromDate: filters.fromDate ? new Date(filters.fromDate) : null,
       toDate: filters.toDate ? new Date(filters.toDate) : null,
-
+      propertyId: filters.propertyId
+        ? {
+            value: filters.propertyId,
+            label: filters.propertyCode || filters.propertyId,
+          }
+        : null,
       bankAccount: filters.account
         ? bankAccountOptions.find((x) => x.value === filters.account)
         : null,
@@ -211,33 +260,36 @@ const BankTransactionFilter = ({
         : null,
       transactionType: filters.transactionType
         ? transactionTypeOptions.find(
-          (x) => x.value === filters.transactionType,
-        )
+            (x) => x.value === filters.transactionType,
+          )
         : null,
       expenseCategory: Array.isArray(filters?.expenseCategory)
         ? filters.expenseCategory.map((value) => {
-          const option = expenseCategoryOptions.find(
-            (x) => x.value === value,
-          );
+            const option = expenseCategoryOptions.find(
+              (x) => x.value === value,
+            );
 
-          return (
-            option || {
-              value,
-              label: value,
-            }
-          );
-        })
+            return (
+              option || {
+                value,
+                label: value,
+              }
+            );
+          })
         : [],
+      expenseCode: filters.expenseCode
+        ? expenseCodeOptions.find(
+            (option) => option.value === filters.expenseCode,
+          ) || null
+        : null,
 
       assignee: filters?.assignee
         ? {
-          value: filters.assignee,
-          label: filters.assignee,
-        }
+            value: filters.assignee,
+            label: filters.assignee,
+          }
         : null,
-
     });
-
   }, [filters, isOpen, reset, bankAccountOptions, expenseCategoryOptions]);
   return (
     <>
@@ -246,8 +298,9 @@ const BankTransactionFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         <div className="flex justify-between items-center p-5 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600">
           <h2 className="font-bold text-lg">Filters</h2>
@@ -259,7 +312,7 @@ const BankTransactionFilter = ({
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-5">
           {/* Property Code */}
-          {/* <Controller
+          <Controller
             name="propertyId"
             control={control}
             render={({ field }) => (
@@ -280,7 +333,7 @@ const BankTransactionFilter = ({
                 />
               </div>
             )}
-          /> */}
+          />
 
           <Controller
             name="assignee"
@@ -306,8 +359,9 @@ const BankTransactionFilter = ({
             control={control}
             render={({ field }) => (
               <div
-                className={`select-group ${field.value?.length ? "has-value" : ""
-                  }`}
+                className={`select-group ${
+                  field.value?.length ? "has-value" : ""
+                }`}
               >
                 <label className="select-label">Expense Category</label>
 
@@ -324,7 +378,25 @@ const BankTransactionFilter = ({
               </div>
             )}
           />
+          <Controller
+            name="expenseCode"
+            control={control}
+            render={({ field }) => (
+              <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <label className="select-label">Expense Code</label>
 
+                <Select
+                  options={expenseCodeOptions}
+                  value={field.value}
+                  onChange={field.onChange}
+                  styles={selectStyles}
+                  isClearable
+                  isSearchable
+                  placeholder="Expense Code"
+                />
+              </div>
+            )}
+          />
           {/* from date */}
           <Controller
             name="fromDate"

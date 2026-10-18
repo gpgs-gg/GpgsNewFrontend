@@ -200,6 +200,13 @@ function TicketCreateEdit() {
       })) || [];
 
   const onSubmit = (data) => {
+
+  console.log("Submit triggered");
+  console.log("isDirty:", isDirty);
+  console.log("submitLock:", submitLockRef.current);
+  console.log("isCompressing:", isCompressing);
+
+
     const hasAttachmentChanges =
       attachmentFiles.length > 0 ||
       existingAttachments.length !==
@@ -213,6 +220,7 @@ function TicketCreateEdit() {
 
     if (submitLockRef.current) return;
     submitLockRef.current = true;
+
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
       const value = data[key];
@@ -255,6 +263,28 @@ function TicketCreateEdit() {
       formData.append("attachment", file);
     });
 
+
+
+console.log("Before updateTicket API call", {
+  id,
+  isDirty,
+  submitLock: submitLockRef.current,
+  isCompressing,
+  formDataEntries: [...formData.entries()].map(
+    ([key, value]) => ({
+      key,
+      value:
+        value instanceof File
+          ? `${value.name} (${value.size} bytes)`
+          : value,
+    })
+  ),
+});
+
+
+
+
+
     if (id) {
       updateTicket(
         {
@@ -271,11 +301,19 @@ function TicketCreateEdit() {
             setAttachmentFiles([]);
             setExistingAttachments([]);
           },
-          onError: (err) => {
-            submitLockRef.current = false;
-            toast.dismiss();
-            toast.error(err?.response?.data?.message || "Update Failed");
-          },
+         onError: (err) => {
+  console.error("Ticket Update Error:", {
+    message: err?.message,
+    status: err?.response?.status,
+    response: err?.response?.data,
+  });
+
+  submitLockRef.current = false;
+  toast.dismiss();
+  toast.error(
+    err?.response?.data?.message || "Update Failed"
+  );
+},
         },
       );
     } else {

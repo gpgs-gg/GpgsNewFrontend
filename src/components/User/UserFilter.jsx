@@ -72,11 +72,11 @@ const UserFilter = ({
   ];
 
   const onSubmit = (data) => {
-    console.log("Filter", data);
     onApply({
       role: data.role?.value || "",
       userId: data.userId?.value || "",
-      isActive: data.isActive === null ? "" : data.isActive.value,
+      userName: data.userId?.label || "",
+      isActive: data.isActive?.value ?? "",
     });
 
     onClose();
@@ -93,7 +93,7 @@ const UserFilter = ({
     const selectedUser = initialFilters.userId
       ? {
           value: initialFilters.userId,
-          label: initialFilters.userId,
+          label: initialFilters.userName || initialFilters.userId,
         }
       : null;
 

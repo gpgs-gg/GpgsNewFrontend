@@ -829,7 +829,7 @@ function EBCalculationData() {
                 currentPage * rowsPerPage,
                 totalRecords
               )}
-
+  
               {" of "}
 
               {totalRecords}

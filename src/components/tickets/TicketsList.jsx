@@ -27,6 +27,7 @@ const TicketsList = () => {
   const { mutate: deleteTicket, isPending } = useDeleteTicketData();
   const [filterOpen, setFilterOpen] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(0);
+  const [selectedTicketTab, setSelectedTicketTab] = useState("all");
 
   const DEFAULT_TICKETS_STATE = {
     search: "",
@@ -66,6 +67,7 @@ const TicketsList = () => {
     limit: rowsPerPage,
     search: debouncedSearch,
     ...filters,
+    ...(selectedTicketTab !== "all" ? { createdBy: selectedTicketTab } : {}),
   });
   const apiData = apiResponse?.data || [];
   const totalPages = apiResponse?.totalPages || 1;
@@ -451,6 +453,35 @@ const TicketsList = () => {
               {/* ACTIONS */}
               <div className="flex gap-2 shrink-0">
                 <div className=" hidden md:flex flex-wrap gap-2 items-center">
+                  {/* Ticket Creator Tabs */}
+                  <div className="flex items-center gap-2">
+                    {[
+                      { label: "All", value: "all" },
+                      { label: "Clients ", value: "Clients" },
+                      { label: "Admin", value: "Admin" },
+                    ].map((tab) => (
+                      <button
+                        key={tab.value}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTicketTab(tab.value);
+                          updateTicketsState({ currentPage: 1 });
+                          setSelectedTickets(new Set());
+                        }}
+                        className={`flex cursor-pointer items-center font-bold gap-2 whitespace-nowrap rounded-lg border px-4 py-2 text-sm transition ${
+                          selectedTicketTab === tab.value
+                            ? tab.value === "Clients"
+                              ? "border-green-300 bg-green-50 text-green-700"
+                              : tab.value === "Admin"
+                                ? "border-green-300 bg-green-50 text-green-700"
+                                : "border-green-300 bg-green-50 text-green-700"
+                            : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
                   <button
                     onClick={handleSelectedColoum}
                     className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap"

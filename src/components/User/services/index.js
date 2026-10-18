@@ -3,12 +3,7 @@ import { apiClient } from "../../../api/ApiClient";
 
 // ======================= GET USERS =======================
 
-const getUsersData = async ({
-  page = 1,
-  limit = 10,
-  search,
-  filters = {},
-}) => {
+const getUsersData = async ({ page = 1, limit = 10, search, filters = {} }) => {
   const params = {
     page,
     limit,
@@ -18,12 +13,19 @@ const getUsersData = async ({
     params.search = search.trim();
   }
 
- if (filters.userId) {
+  // Filter by User ID
+  if (filters.userId) {
     params.userId = filters.userId;
   }
 
+  // Filter by Role
+  if (filters.role) {
+    params.role = filters.role;
+  }
+
+  // Filter by Active / Inactive status
   if (filters.isActive !== undefined && filters.isActive !== "") {
-    params.isActive = filters.isActive;
+    params.isActive = String(filters.isActive);
   }
 
   const response = await apiClient.get("/users", {
@@ -49,6 +51,7 @@ export const useUsersData = ({
       filters.role,
       filters.isActive,
       filters.userId,
+      filters.userName,
     ],
     queryFn: () =>
       getUsersData({
@@ -61,6 +64,7 @@ export const useUsersData = ({
     keepPreviousData: true,
   });
 };
+
 
 // // ======================= CREATE USER =======================
 

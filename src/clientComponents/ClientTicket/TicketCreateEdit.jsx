@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react'
+import React, { useMemo, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -6,17 +6,27 @@ import Select from "react-select";
 import { selectStyles } from "../../utils/selectStyles";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { useCreateTicketData, useSingleTicketData, useUpdateTicketData, useClientTicketDetails } from "./services";
+import {
+  useCreateTicketData,
+  useSingleTicketData,
+  useUpdateTicketData,
+  useClientTicketDetails,
+} from "./services";
 import { useEffect, useState } from "react";
-import { useCurrentUser } from '../../auth/services';
-import { convertStringFormatDate, convertStringFormatDateTime, formatDateAndTime } from '../../utils/dateFormatter';
-import { AsyncPaginate } from 'react-select-async-paginate';
+import { useCurrentUser } from "../../auth/services";
+import {
+  convertStringFormatDate,
+  convertStringFormatDateTime,
+  formatDateAndTime,
+} from "../../utils/dateFormatter";
+import { AsyncPaginate } from "react-select-async-paginate";
 import { Link } from "react-router-dom";
-import { usePropertiesDropdown } from '../../components/Clients/services';
-import { getPropertyDropdown } from '../../components/properties/services';
-import Loader from '../../components/common/Loader';
-import { useBatchOptions } from '../../components/Options/services';
-import FilePreview from '../../components/common/FilePreview';
+import { usePropertiesDropdown } from "../../components/Clients/services";
+import { getPropertyDropdown } from "../../components/properties/services";
+import Loader from "../../components/common/Loader";
+import { useBatchOptions } from "../../components/Options/services";
+import FilePreview from "../../components/common/FilePreview";
+import { compressAttachment } from "../../utils/compressFile";
 function TicketCreateEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -31,18 +41,23 @@ function TicketCreateEdit() {
   } = useForm();
 
   // Api Hooks
-  const { mutate: createTicket, isPending: isCreateTicket } = useCreateTicketData();
-  const { mutate: updateTicket, isPending: isUpdateTicket } = useUpdateTicketData();
+  const { mutate: createTicket, isPending: isCreateTicket } =
+    useCreateTicketData();
+  const { mutate: updateTicket, isPending: isUpdateTicket } =
+    useUpdateTicketData();
   const { data: singleTicket } = useSingleTicketData(id);
-  const { data: propertiesDropdown, isPending: ispropertiesDropdown } = usePropertiesDropdown()
+  const { data: propertiesDropdown, isPending: ispropertiesDropdown } =
+    usePropertiesDropdown();
 
   const { data: currentUser, isLoading } = useCurrentUser();
 
   const clientId = currentUser?.user?.clientId;
   const isClient = currentUser?.user?.role === "Client";
 
-  const { data: clientTicketDetails } =
-    useClientTicketDetails(clientId, isClient && !id);
+  const { data: clientTicketDetails } = useClientTicketDetails(
+    clientId,
+    isClient && !id,
+  );
 
   const { data: options = {} } = useBatchOptions([
     "department",
@@ -51,6 +66,10 @@ function TicketCreateEdit() {
   ]);
   const [attachmentFiles, setAttachmentFiles] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
+  const [compressionFileName, setCompressionFileName] = useState("");
+  const [pendingFiles, setPendingFiles] = useState([]);
 
   const assignee = watch("assignee");
 
@@ -69,9 +88,7 @@ function TicketCreateEdit() {
 
         // Property location bhi separately set karo
         propertyLocation:
-          ticket.propertyLocation ||
-          ticket.propertyId?.propertyLocation ||
-          "",
+          ticket.propertyLocation || ticket.propertyId?.propertyLocation || "",
 
         bedNo: ticket.bedNo || "",
         roomNo: ticket.roomNo || "",
@@ -88,7 +105,6 @@ function TicketCreateEdit() {
   const CategoryOptions = options.categories || [];
   const StatusOptions = options.ticketstatus || [];
 
-
   const propertiesOptions = useMemo(() => {
     return (
       propertiesDropdown?.data?.map((property) => ({
@@ -99,7 +115,6 @@ function TicketCreateEdit() {
     );
   }, [propertiesDropdown?.data]);
   const propertyInitialized = useRef(false);
-
 
   useEffect(() => {
     if (
@@ -116,8 +131,7 @@ function TicketCreateEdit() {
 
     const propertyId = clientDetails?.propertyId?._id || "";
     const propertyCode = clientDetails?.propertyId?.propertyCode || "";
-    const propertyLocation =
-      clientDetails?.propertyId?.propertyLocation || "";
+    const propertyLocation = clientDetails?.propertyId?.propertyLocation || "";
 
     const bedNo = clientDetails?.bedId?.bedNo || "";
     const roomNo = clientDetails?.bedId?.roomNo || "";
@@ -138,19 +152,9 @@ function TicketCreateEdit() {
     }
 
     propertyInitialized.current = true;
-  }, [
-    id,
-    isClient,
-    clientTicketDetails,
-    setValue,
-  ]);
+  }, [id, isClient, clientTicketDetails, setValue]);
 
-
-  const loadPropertyOptions = async (
-    search,
-    loadedOptions,
-    { page }
-  ) => {
+  const loadPropertyOptions = async (search, loadedOptions, { page }) => {
     const res = await getPropertyDropdown({
       page,
       limit: 10,
@@ -166,7 +170,7 @@ function TicketCreateEdit() {
             label: item.propertyCode,
             propLocation: item.propertyLocation, // <-- Add this
           },
-        ])
+        ]),
       ).values(),
     ];
 
@@ -188,11 +192,11 @@ function TicketCreateEdit() {
   //   { value: "Nerul ( W )", label: "Nerul ( W )" },
   // ];
 
-
   const onSubmit = (data) => {
     const hasAttachmentChanges =
       attachmentFiles.length > 0 ||
-      existingAttachments.length !== (singleTicket?.data?.attachment?.length || 0);
+      existingAttachments.length !==
+        (singleTicket?.data?.attachment?.length || 0);
 
     if (!isDirty && !hasAttachmentChanges) {
       toast.dismiss();
@@ -224,16 +228,12 @@ function TicketCreateEdit() {
     });
 
     for (const [key, value] of formData.entries()) {
-
     }
     formData.append("createdBy", currentUser?.user?.role || "");
     formData.append("createdByName", currentUser?.user?.name || "");
     formData.append("createdById", currentUser?.user?.clientId || "");
     // Existing attachments
-    formData.append(
-      "existingAttachments",
-      JSON.stringify(existingAttachments)
-    );
+    formData.append("existingAttachments", JSON.stringify(existingAttachments));
     // New Attachments
     attachmentFiles.forEach((file) => {
       formData.append("attachment", file);
@@ -247,7 +247,7 @@ function TicketCreateEdit() {
         },
         {
           onSuccess: (res) => {
-            toast.dismiss()
+            toast.dismiss();
             toast.success(res.message);
 
             navigate("/client-tickets");
@@ -259,17 +259,15 @@ function TicketCreateEdit() {
           },
 
           onError: (err) => {
-            toast.dismiss()
-            toast.error(
-              err?.response?.data?.message || "Update Failed"
-            );
+            toast.dismiss();
+            toast.error(err?.response?.data?.message || "Update Failed");
           },
-        }
+        },
       );
     } else {
       createTicket(formData, {
         onSuccess: (res) => {
-          toast.dismiss()
+          toast.dismiss();
           toast.success(res.message);
 
           navigate("/client-tickets");
@@ -281,25 +279,72 @@ function TicketCreateEdit() {
         },
 
         onError: (err) => {
-          toast.dismiss()
-          toast.error(
-            err?.response?.data?.message || "Create Failed"
-          );
+          toast.dismiss();
+          toast.error(err?.response?.data?.message || "Create Failed");
         },
       });
     }
   };
 
+  const handleAttachmentChange = async (event) => {
+    const files = Array.from(event.target.files || []);
 
+    if (!files.length) return;
+
+    setIsCompressing(true);
+    setPendingFiles(files);
+    setCompressionProgress(0);
+
+    try {
+      const compressedFiles = [];
+
+      for (const file of files) {
+        setCompressionFileName(file.name);
+        setCompressionProgress(0);
+
+        const compressedFile = await compressAttachment(file, (progress) => {
+          setCompressionProgress(progress);
+        });
+
+        compressedFiles.push(compressedFile);
+
+        // Log original and compressed sizes for verification.
+        // console.log("Attachment Compression:", {
+        //   fileName: file.name,
+        //   originalSize: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+        //   compressedSize: `${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`,
+        // });
+      }
+
+      setAttachmentFiles((prev) => {
+        const updated = [...prev, ...compressedFiles];
+
+        setValue("attachment", updated, {
+          shouldDirty: true,
+        });
+
+        return updated;
+      });
+    } catch (error) {
+      console.error("Attachment compression failed:", error);
+
+      toast.dismiss();
+      toast.error(error?.message || "Failed to process attachments.");
+    } finally {
+      setPendingFiles([]);
+      setIsCompressing(false);
+      setCompressionProgress(0);
+      setCompressionFileName("");
+
+      event.target.value = "";
+    }
+  };
 
   const input =
     "w-full border border-gray-300 rounded-lg px-3 py-2 hover  focus:ring-2 focus:ring-gray-500 outline-none";
   return (
     <div className="max-w-12xl mx-auto px-6">
-
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-4 py-2">
           <div className="flex justify-between items-center">
             <div>
@@ -336,7 +381,6 @@ function TicketCreateEdit() {
                     : "Create Ticket"}
               </button>
             </div> */}
-
           </div>
         </div>
         {/* Property Details */}
@@ -346,7 +390,6 @@ function TicketCreateEdit() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-
             {/* Property */}
             <Controller
               name="propertyId"
@@ -355,7 +398,9 @@ function TicketCreateEdit() {
                 required: "Property is required",
               }}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
                   <label className="select-label form-label required-label">
                     Property
                   </label>
@@ -368,31 +413,36 @@ function TicketCreateEdit() {
                     placeholder=""
                     loadOptions={loadPropertyOptions}
                     styles={selectStyles}
-
                     value={
                       id && singleTicket?.data?.propertyId
                         ? typeof singleTicket.data.propertyId === "object"
                           ? {
-                            value: singleTicket.data.propertyId._id,
-                            label: singleTicket.data.propertyId.propertyCode,
-                            propLocation:
-                              singleTicket.data.propertyId.propertyLocation || "",
-                          }
+                              value: singleTicket.data.propertyId._id,
+                              label: singleTicket.data.propertyId.propertyCode,
+                              propLocation:
+                                singleTicket.data.propertyId.propertyLocation ||
+                                "",
+                            }
                           : propertiesOptions.find(
-                            (property) =>
-                              property.value === singleTicket.data.propertyId
-                          ) || null
-                        : !id && isClient && clientTicketDetails?.data?.propertyId
+                              (property) =>
+                                property.value === singleTicket.data.propertyId,
+                            ) || null
+                        : !id &&
+                            isClient &&
+                            clientTicketDetails?.data?.propertyId
                           ? {
-                            value: clientTicketDetails.data.propertyId._id,
-                            label: clientTicketDetails.data.propertyId.propertyCode,
-                            propLocation:
-                              clientTicketDetails.data.propertyId.propertyLocation || "",
-                          }
+                              value: clientTicketDetails.data.propertyId._id,
+                              label:
+                                clientTicketDetails.data.propertyId
+                                  .propertyCode,
+                              propLocation:
+                                clientTicketDetails.data.propertyId
+                                  .propertyLocation || "",
+                            }
                           : field.value
                             ? propertiesOptions.find(
-                              (property) => property.value === field.value
-                            ) || null
+                                (property) => property.value === field.value,
+                              ) || null
                             : null
                     }
                   />
@@ -414,15 +464,19 @@ function TicketCreateEdit() {
                 required: "Department is required",
               }}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                  <label className="select-label form-label required-label">Department</label>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label form-label required-label">
+                    Department
+                  </label>
                   <Select
                     {...field}
                     options={DepartmentOptions}
                     placeholder=""
                     isClearable
                     value={DepartmentOptions.find(
-                      (x) => x.value === field.value
+                      (x) => x.value === field.value,
                     )}
                     onChange={(e) => field.onChange(e?.value)}
                     styles={selectStyles}
@@ -444,7 +498,9 @@ function TicketCreateEdit() {
                 required: "Category is required",
               }}
               render={({ field }) => (
-                <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
                   <label className="select-label form-label required-label">
                     Category
                   </label>
@@ -454,9 +510,7 @@ function TicketCreateEdit() {
                     options={CategoryOptions}
                     placeholder=""
                     isClearable
-                    value={CategoryOptions.find(
-                      (x) => x.value === field.value
-                    )}
+                    value={CategoryOptions.find((x) => x.value === field.value)}
                     onChange={(e) => {
                       const category = e?.value || "";
 
@@ -494,7 +548,9 @@ function TicketCreateEdit() {
                   {errors.title.message}
                 </p>
               )}
-              <label className="form-label form-label required-label">Title</label>
+              <label className="form-label form-label required-label">
+                Title
+              </label>
             </div>
             {id && (
               <Controller
@@ -513,23 +569,39 @@ function TicketCreateEdit() {
                   // Build options
                   const availableOptions = isClient
                     ? canClientEdit
-                      ? StatusOptions.filter((option) => option.value === "ReOpen")
-                      : StatusOptions.filter((option) => option.value !== "ReOpen")
+                      ? StatusOptions.filter(
+                          (option) => option.value === "ReOpen",
+                        )
+                      : StatusOptions.filter(
+                          (option) => option.value !== "ReOpen",
+                        )
                     : StatusOptions;
 
                   return (
-                    <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                    <div
+                      className={`select-group ${field.value ? "has-value" : ""}`}
+                    >
                       <label className="select-label form-label required-label">
                         Status
                       </label>
 
                       <Select
                         {...field}
-                        options={isEditable ? availableOptions : [StatusOptions.find((x) => x.value === field.value)]}
+                        options={
+                          isEditable
+                            ? availableOptions
+                            : [
+                                StatusOptions.find(
+                                  (x) => x.value === field.value,
+                                ),
+                              ]
+                        }
                         placeholder=""
                         isClearable={isEditable}
                         isSearchable={isEditable}
-                        value={StatusOptions.find((x) => x.value === field.value)}
+                        value={StatusOptions.find(
+                          (x) => x.value === field.value,
+                        )}
                         onChange={(e) => isEditable && field.onChange(e?.value)}
                         styles={selectStyles}
                         // ✅ Disable select when client can't edit
@@ -539,7 +611,8 @@ function TicketCreateEdit() {
                       {/* Info message for clients */}
                       {isClient && !canClientEdit && (
                         <p className="text-gray-500 text-sm mt-1">
-                          Status can be changed only when current status is <b>"Resolved"</b>.
+                          Status can be changed only when current status is{" "}
+                          <b>"Resolved"</b>.
                         </p>
                       )}
 
@@ -559,10 +632,7 @@ function TicketCreateEdit() {
                 }}
               />
             )}
-            {id && (
-              <div className=' md:col-span-2'></div>
-            )
-            }
+            {id && <div className=" md:col-span-2"></div>}
             <div className="form-group md:col-span-2">
               <textarea
                 disabled={id ? true : false}
@@ -585,36 +655,36 @@ function TicketCreateEdit() {
               <input
                 type="file"
                 multiple
+                disabled={isCompressing || isCreateTicket || isUpdateTicket}
                 className="form-input"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files);
-                  setAttachmentFiles((prev) => {
-                    const updated = [...prev, ...files];
-                    setValue("attachment", updated);
-                    return updated;
-                  });
-                  e.target.value = "";
-                }}
+                onChange={handleAttachmentChange}
               />
-              <label className="form-label">
-                Attachment
-              </label>
+              <label className="form-label">Attachment</label>
               <FilePreview
                 files={attachmentFiles}
+                pendingFiles={pendingFiles}
                 existingFiles={existingAttachments}
+                isCompressing={isCompressing}
+                compressionProgress={compressionProgress}
+                compressionFileName={compressionFileName}
                 onRemoveExisting={(index) =>
                   setExistingAttachments((prev) =>
-                    prev.filter((_, i) => i !== index)
+                    prev.filter((_, i) => i !== index),
                   )
                 }
-                onRemoveNew={(index) =>
-                  setAttachmentFiles((prev) =>
-                    prev.filter((_, i) => i !== index)
-                  )
-                }
+                onRemoveNew={(index) => {
+                  setAttachmentFiles((prev) => {
+                    const updated = prev.filter((_, i) => i !== index);
+
+                    setValue("attachment", updated, {
+                      shouldDirty: true,
+                    });
+
+                    return updated;
+                  });
+                }}
               />
             </div>
-
           </div>
         </div>
 
@@ -622,13 +692,9 @@ function TicketCreateEdit() {
         {/* {singleTicket?.data?.workLogs?.length > 0 && ( */}
         {id && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-
-            <h2 className="text-xl font-semibold mb-4">
-              WorkLog
-            </h2>
+            <h2 className="text-xl font-semibold mb-4">WorkLog</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
               {/* Add WorkLog */}
               {id && (
                 <div className="form-group">
@@ -638,16 +704,13 @@ function TicketCreateEdit() {
                     className="form-input"
                   />
 
-                  <label className="form-label">
-                    Add WorkLog
-                  </label>
+                  <label className="form-label">Add WorkLog</label>
                 </div>
               )}
 
               {/* Work Log History */}
               {id && (
                 <div className="border rounded-lg bg-gray-50 py-2 px-4 h-44 flex flex-col md:col-span-1">
-
                   <h3 className="font-semibold text-lg mb-1">
                     Work Log History
                   </h3>
@@ -662,14 +725,16 @@ function TicketCreateEdit() {
                         return (
                           <div
                             key={log._id}
-                            className={`flex w-full py-3 ${isClient ? "justify-end" : "justify-start"
-                              }`}
+                            className={`flex w-full py-3 ${
+                              isClient ? "justify-end" : "justify-start"
+                            }`}
                           >
                             <div
-                              className={`max-w-[80%] rounded-lg px-3 py-2 ${isClient
-                                ? "bg-blue-50 border border-blue-200"
-                                : "bg-gray-50 border border-gray-200"
-                                }`}
+                              className={`max-w-[80%] rounded-lg px-3 py-2 ${
+                                isClient
+                                  ? "bg-blue-50 border border-blue-200"
+                                  : "bg-gray-50 border border-gray-200"
+                              }`}
                             >
                               <small className="block text-gray-500">
                                 {log.role === "Admin"
@@ -688,7 +753,6 @@ function TicketCreateEdit() {
                   </div>
                 </div>
               )}
-
             </div>
           </div>
         )}
@@ -771,20 +835,23 @@ function TicketCreateEdit() {
 
           <button
             type="submit"
-            disabled={isCreateTicket || isUpdateTicket}
+            disabled={isCreateTicket || isUpdateTicket || isCompressing}
             className="theme-btn text-white px-5 py-2 rounded-lg"
           >
-            {isCreateTicket || isUpdateTicket
-              ? <div className='flex justify-center items-center gap-2'><Loader /> Processing...</div>
-              : id
-                ? "Update Ticket"
-                : "Create Ticket"}
+            {isCreateTicket || isUpdateTicket ? (
+              <div className="flex justify-center items-center gap-2">
+                <Loader /> Processing...
+              </div>
+            ) : id ? (
+              "Update Ticket"
+            ) : (
+              "Create Ticket"
+            )}
           </button>
         </div>
-
       </form>
     </div>
   );
 }
 
-export default TicketCreateEdit
+export default TicketCreateEdit;

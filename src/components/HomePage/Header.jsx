@@ -619,7 +619,7 @@ const Header = () => {
                       {/* ================= MY ACCOUNT ================= */}
 
                       <Link
-                        to="/account"
+                        to="/dashboard"
                         onClick={() => setAccountOpen(false)}
                         className="
               flex
@@ -711,32 +711,6 @@ const Header = () => {
                   >
                     Login
                   </Link>
-
-                  {/* ================= GET STARTED ================= */}
-
-                  <Link
-                    to="/register"
-                    className="
-          h-[50px]
-          px-6
-          rounded-full
-          flex
-          items-center
-          justify-center
-          bg-[#14223f]
-          text-white
-          text-sm
-          font-semibold
-          shadow-lg
-          transition-all
-          duration-300
-          hover:bg-[#1d3155]
-          hover:-translate-y-[1px]
-          hover:shadow-xl
-        "
-                  >
-                    Get Started
-                  </Link>
                 </>
               )}
             </div>
@@ -750,7 +724,7 @@ const Header = () => {
 
               {isAuthenticated && user && (
                 <Link
-                  to="/account"
+                  to="/dashboard"
                   className={`
                     w-10
                     h-10
@@ -835,7 +809,7 @@ const Header = () => {
               {isAuthenticated && user ? (
                 <div>
                   <Link
-                    to="/account"
+                    to="/dashboard"
                     onClick={() => setMenuOpen(false)}
                     className="
         flex

@@ -592,10 +592,10 @@ const LeadsList = () => {
                   <th className="p-3 text-center">Lead Status</th>
                   <th className="p-3 text-left">Reason</th>
                   <th className="p-3 text-left">Field Member</th>
-                  <th className="p-3 text-left">Team Code</th>
+                  {/* <th className="p-3 text-left">Team Code</th> */}
                   <th className="p-3 text-left">Lead Source</th>
                   <th className="p-3 text-left">workLogs</th>
-                  <th className="p-3 text-left">Transfer History</th>
+                  {/* <th className="p-3 text-left">Transfer History</th> */}
                   <th className="p-3 text-left">Assignee</th>
                   {showActions && (
                     <th className="sticky right-0 bg-gray-100 p-3 text-center">
@@ -669,7 +669,7 @@ const LeadsList = () => {
 
                         <td className="p-3">{item.FieldMember}</td>
 
-                        <td className="p-3">{item.TeamCode}</td>
+                        {/* <td className="p-3">{item.TeamCode}</td> */}
 
                         <td className="p-3">{item.LeadSource}</td>
 
@@ -710,26 +710,15 @@ const LeadsList = () => {
                           </div>
                         </td>
 
-                        <td className="px-2">
-                          <div className="group relative cursor-pointer">
-                            {/* Short Text */}
-                            <div className="truncate max-w-36 text-xs">
-                              {item.TransferHistory}
-                            </div>
-
-                            {/* Hover Popup */}
-                            <div className="absolute left-0 top-4.5 hidden group-hover:block bg-white border shadow-xl rounded-lg p-2 w-64 max-h-62.5 overflow-y-auto whitespace-pre-line text-xs z-50">
-                              {item.TransferHistory}
-                            </div>
-                          </div>
-                        </td>
+                      
+                        
                         <td className="p-3">{item.Assignee}</td>
 
                     {showActions && (
                           <td className="sticky right-0 z-20 bg-white p-3 shadow-md">
                             <div className="flex justify-center gap-2">
                               {canViewLead && (
-                                <Link to={`/leads/view/${item._id}`}>
+                                <Link to={`/leads/edit/${item._id}`}>
                                   <button className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200">
                                     <Eye size={16} />
                                   </button>

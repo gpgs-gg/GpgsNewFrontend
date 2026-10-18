@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Eye, Pencil, Filter, Phone, MessageCircle ,Trash2} from "lucide-react";
+import { Eye, Pencil, Filter, Phone, MessageCircle, Trash2, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
@@ -9,7 +9,7 @@ import { IoIosCall } from "react-icons/io";
 import { FaWhatsapp } from "react-icons/fa";
 import RentLadgerFiilter from "./RentLadgerFiilter";
 import { useParams } from "react-router-dom";
-import { useRentHistoryData } from "./services";
+import { exportClientRentData, useRentHistoryData } from "./services";
 import { IoIosArrowBack } from "react-icons/io";
 import useDebounce from "../../components/hooks/useDebounce";
 import { useAuthorization } from "../../context/AuthorizationContext";
@@ -17,14 +17,16 @@ import RentLedgerSkeleton from "./RentLedgerSkeleton";
 import { useDeleteRentData } from "./services/index";
 import { useAuth } from "../../context/authContext";
 import ConfirmModal from "../common/ConfirmModal";
+import ExportDrawer from "../tickets/ExportDrawer";
 import { toast } from "react-toastify";
 const RentLadgerTable = () => {
   const { clientId } = useParams();
   const { canEdit, canSingleView } = useAuthorization();
-
+  const [selectedColumns, setSelectedColumns] = useState(new Set());
+  const [showColumnSelector, setShowColumnSelector] = useState(false);
   const canEditRentLedger = canEdit("rent_ledger");
   const canViewRentLedger = canSingleView("rent_ledger");
-const deleteRentMutation = useDeleteRentData();
+  const deleteRentMutation = useDeleteRentData();
   const [deleteId, setDeleteId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const showActions = canViewRentLedger || canEditRentLedger;
@@ -47,6 +49,115 @@ const deleteRentMutation = useDeleteRentData();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
+
+  const [selectedRentRecords, setSelectedRentRecords] = useState(new Set());
+  const [isExporting, setIsExporting] = useState(false);
+  // Export columns for Rent Ledger
+  const rentExportHeaders = [
+    { label: "Property Code", key: "propertyCode" },
+    { label: "Pay Status", key: "paymentStatus" },
+    { label: "Month", key: "monthName" },
+    { label: "Year", key: "year" },
+    { label: "Current Due", key: "currentDue" },
+    { label: "Total Received", key: "totalReceived" },
+    { label: "Total Receivable", key: "totalReceivable" },
+    { label: "Rent Amount", key: "rentAmt" },
+    { label: "Days Count", key: "daysCount" },
+    { label: "EB Amount", key: "ebAmt" },
+    { label: "Adjusted EB", key: "adjEB" },
+    { label: "Previous Due", key: "previousDue" },
+    { label: "Parking Charges", key: "parkingCharges" },
+    { label: "Deposit", key: "depositAmount" },
+    { label: "Processing Fee", key: "processingFees" },
+    { label: "Adjusted Amount", key: "adjAmt" },
+    { label: "Flat EB", key: "flatEB" },
+    { label: "Monthly Rent", key: "monthlyRent" },
+    { label: "Rent Start Date", key: "startDate" },
+    { label: "Rent Last Date", key: "endDate" },
+    { label: "Remarks", key: "remarks" },
+  ];
+
+  // Select/unselect all records on the current page
+  const handleSelectAllRent = () => {
+    setSelectedRentRecords((prev) => {
+      const next = new Set(prev);
+
+      const currentPageIds = paginatedData.map((item) => item._id);
+      const allSelected =
+        currentPageIds.length > 0 && currentPageIds.every((id) => next.has(id));
+
+      if (allSelected) {
+        currentPageIds.forEach((id) => next.delete(id));
+      } else {
+        currentPageIds.forEach((id) => next.add(id));
+      }
+
+      return next;
+    });
+  };
+
+  // Export selected rent records or all filtered records
+
+  const handleExportRent = async () => {
+    try {
+      setIsExporting(true);
+
+      const columnsToExport = rentExportHeaders.filter((header) =>
+        selectedColumns.size > 0 ? selectedColumns.has(header.key) : true,
+      );
+
+      if (columnsToExport.length === 0) {
+        toast.error("No columns selected for export!");
+        return;
+      }
+
+      const rentIds = Array.from(selectedRentRecords);
+
+      const blob = await exportClientRentData({
+        search: debouncedSearch,
+        filters,
+        clientId: filters.clientId || clientId || "",
+        propertyId: filters.propertyId || "",
+        rentIds,
+        columns: columnsToExport.map((column) => column.key),
+      });
+
+      if (!blob || blob.size === 0) {
+        toast.error("No rent records available to export.");
+        return;
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = `rent-ledger-${new Date().toISOString().slice(0, 10)}.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success(
+        rentIds.length > 0
+          ? "Selected rent records exported successfully."
+          : "All rent records exported successfully.",
+      );
+
+      setShowColumnSelector(false);
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Failed to export rent records.",
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+
+
+
+
 
   const [resetTrigger, setResetTrigger] = useState(0);
   const rowsPerPage = 10;
@@ -210,6 +321,18 @@ const deleteRentMutation = useDeleteRentData();
                 </button>
               )}
             </div>
+            <button
+              type="button"
+              onClick={() => setShowColumnSelector(true)}
+              disabled={isExporting || apiData.length === 0}
+              className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 whitespace-nowrap disabled:opacity-50"
+            >
+              <Download size={16} />
+              {selectedRentRecords.size > 0
+                ? `Export (${selectedRentRecords.size} selected)`
+                : "Export All"}
+            </button>
+
             <div className="flex gap-2">
               {Object.keys(filters).length > 0 && (
                 <button
@@ -235,6 +358,20 @@ const deleteRentMutation = useDeleteRentData();
             <table className="w-full">
               <thead className="sticky top-0 bg-gray-100 whitespace-nowrap">
                 <tr>
+                  <th className="p-3 text-center">
+                    <input
+                      type="checkbox"
+                      checked={
+                        paginatedData.length > 0 &&
+                        paginatedData.every((item) =>
+                          selectedRentRecords.has(item._id),
+                        )
+                      }
+                      onChange={handleSelectAllRent}
+                      className="h-4 w-4 accent-gray-500"
+                      aria-label="Select all rent records on this page"
+                    />
+                  </th>
                   <th className="p-3 text-center">Property</th>
                   <th className="p-3 text-center">Pay Status</th>
                   <th className="p-3 text-center">Month</th>
@@ -280,6 +417,27 @@ const deleteRentMutation = useDeleteRentData();
                           : "hover:bg-gray-50"
                         }`}
                     >
+                      <td className="p-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedRentRecords.has(item._id)}
+                          onChange={() => {
+                            setSelectedRentRecords((prev) => {
+                              const next = new Set(prev);
+
+                              if (next.has(item._id)) {
+                                next.delete(item._id);
+                              } else {
+                                next.add(item._id);
+                              }
+
+                              return next;
+                            });
+                          }}
+                          className="h-4 w-4 accent-gray-500"
+                          aria-label={`Select rent record ${item.monthName} ${item.year}`}
+                        />
+                      </td>
                       <td className="p-3 font-bold">
                         {item.propertyId?.propertyCode}
                       </td>
@@ -304,13 +462,13 @@ const deleteRentMutation = useDeleteRentData();
                       {/* <td className="p-3">{item.stayType}</td> */}
                       <td
                         className={`p-3 font-semibold ${item.currentDue > 0
-                            ? "text-red-600"
-                            : item.currentDue < 0
-                              ? "text-green-600"
-                              : "text-gray-700"
+                          ? "text-red-600"
+                          : item.currentDue < 0
+                            ? "text-green-600"
+                            : "text-gray-700"
                           }`}
                       >
-                        ₹{item.currentDue}
+                      ₹{Number(item.currentDue || 0)}
                       </td>
                       <td className="p-3 text-green-600">
                         <div className="relative group inline-block">
@@ -515,29 +673,29 @@ const deleteRentMutation = useDeleteRentData();
                       {showActions && (
                         <td
                           className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${item.monthName === currentMonth &&
-                              Number(item.year) === currentYear &&
-                              item.paymentStatus !== "Shifted"
-                              ? "bg-green-100"
-                              : "bg-white"
+                            Number(item.year) === currentYear &&
+                            item.paymentStatus !== "Shifted"
+                            ? "bg-green-100"
+                            : "bg-white"
                             }`}
                         >
                           <div className="flex justify-center gap-2">
                             {canViewRentLedger && item.paymentStatus !== "Shifted" && (
-                              <Link to={`/rent-ledger/view/${item._id}`}>
+                              <Link to={`/rent-ledger/edit/${item._id}`}>
                                 <button
-                                  disabled={
-                                    !(
-                                      item.monthName === currentMonth &&
-                                      item.year === currentYear
-                                    )
-                                  }
+                                  // disabled={
+                                  //   !(
+                                  //     item.monthName === currentMonth &&
+                                  //     item.year === currentYear
+                                  //   )
+                                  // }
                                   className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200"
                                 >
                                   <Eye size={16} />
                                 </button>
                               </Link>
                             )}
-                          <>
+                            <>
                               <>
                                 {canEditRentLedger && item.paymentStatus !== "Shifted" && (
                                   <Link to={`/rent-ledger/edit/${item._id}`}>
@@ -550,7 +708,7 @@ const deleteRentMutation = useDeleteRentData();
                                   </Link>
                                 )}
                               </>{" "}
-                              {isAdmin &&  (
+                              {isAdmin && (
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -621,6 +779,17 @@ const deleteRentMutation = useDeleteRentData();
         }}
         handleReset={handleReset}
         resetTrigger={resetTrigger}
+      />
+      <ExportDrawer
+        isOpen={showColumnSelector}
+        onClose={() => setShowColumnSelector(false)}
+        fullHeaders={rentExportHeaders}
+        selectedColumns={selectedColumns}
+        setSelectedColumns={setSelectedColumns}
+        selectedTickets={selectedRentRecords}
+        totalTickets={apiData.length}
+        onExport={handleExportRent}
+        isExporting={isExporting}
       />
       <ConfirmModal
         isOpen={showDeleteModal}

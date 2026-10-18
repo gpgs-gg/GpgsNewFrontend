@@ -59,7 +59,7 @@ const Header = ({ collapsed, setCollapsed, setMobileOpen }) => {
       {/* Right Side */}
       <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
         {/* TODAY'S ATTENDANCE */}
-        {["employee"].includes(user?.role?.toLowerCase()) && (
+        {["employee", "admin"].includes(user?.role?.toLowerCase()) && (
           <button
             type="button"
             onClick={handleAttendanceClick}

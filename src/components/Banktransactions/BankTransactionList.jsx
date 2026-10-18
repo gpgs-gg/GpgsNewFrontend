@@ -32,6 +32,7 @@ const BankTransactionList = () => {
     defaultFilter: "",
     assignee: "",
     expenseCategory: [],
+    expenseCode: "",
   };
   const { user } = useAuth();
   const isAdmin = user?.role?.toLowerCase() === "admin";
@@ -99,6 +100,15 @@ const BankTransactionList = () => {
       });
     }
 
+    if (filters.expenseCode) {
+      labels.push({
+        key: "expenseCode",
+        label: `Expense Code : ${
+          filters.expenseCodeLabel || "Selected Expense Code"
+        }`,
+      });
+    }
+
     if (filters.account) {
       labels.push({
         key: "account",
@@ -109,8 +119,9 @@ const BankTransactionList = () => {
     if (filters.transactionType) {
       labels.push({
         key: "transactionType",
-        label: `Type : ${filters.transactionType === "deposit" ? "Deposit" : "Withdrawal"
-          }`,
+        label: `Type : ${
+          filters.transactionType === "deposit" ? "Deposit" : "Withdrawal"
+        }`,
       });
     }
 
@@ -130,10 +141,9 @@ const BankTransactionList = () => {
     if (filters.propertyId) {
       labels.push({
         key: "propertyId",
-        label: `Property : ${filters.propertyId}`,
+        label: `Property : ${filters.propertyCode || "Selected Property"}`,
       });
     }
-
     if (filters.assignee) {
       labels.push({
         key: "assignee",
@@ -253,36 +263,31 @@ const BankTransactionList = () => {
   };
   const today = convertToApiDate(new Date());
 
+  const handleCopy = async (narration, chqNo) => {
+    try {
+      const narrationText = String(narration ?? "").trim();
+      const referenceNumber = String(chqNo ?? "").trim();
 
-const handleCopy = async (narration, chqNo) => {
-  try {
-    const narrationText = String(narration ?? "").trim();
-    const referenceNumber = String(chqNo ?? "").trim();
+      const textToCopy = [
+        narrationText,
+        referenceNumber ? `|||REF|||${referenceNumber}` : "",
+      ].join("");
 
-    const textToCopy = [
-      narrationText,
-      referenceNumber ? `|||REF|||${referenceNumber}` : "",
-    ].join("");
-
-    if (!textToCopy) {
-      toast.error("Nothing to copy.");
-      return;
-    }
-
-    await navigator.clipboard.writeText(textToCopy);
-
-    toast.dismiss();
-    toast.success(
-      `Copied successfully!\n${textToCopy}`,
-      {
-        duration: 5000,
+      if (!textToCopy) {
+        toast.error("Nothing to copy.");
+        return;
       }
-    );
-  } catch (error) {
-    toast.error("Failed to copy.");
-  }
-};
 
+      await navigator.clipboard.writeText(textToCopy);
+
+      toast.dismiss();
+      toast.success(`Copied successfully!\n${textToCopy}`, {
+        duration: 5000,
+      });
+    } catch (error) {
+      toast.error("Failed to copy.");
+    }
+  };
 
   return (
     <>
@@ -392,10 +397,11 @@ const handleCopy = async (narration, chqNo) => {
               {canEditSalary && (
                 <button
                   onClick={() => applyTransactionType("salary")}
-                  className={`px-4 py-2 rounded-lg border ${filters.transactionType === "salary"
-                    ? "bg-green-600 text-white"
-                    : "bg-white"
-                    }`}
+                  className={`px-4 py-2 rounded-lg border ${
+                    filters.transactionType === "salary"
+                      ? "bg-green-600 text-white"
+                      : "bg-white"
+                  }`}
                 >
                   Salary
                 </button>
@@ -403,20 +409,22 @@ const handleCopy = async (narration, chqNo) => {
 
               <button
                 onClick={() => applyTransactionType("deposit")}
-                className={`px-4 py-2 rounded-lg border ${filters.transactionType === "deposit"
-                  ? "bg-green-600 text-white"
-                  : "bg-white"
-                  }`}
+                className={`px-4 py-2 rounded-lg border ${
+                  filters.transactionType === "deposit"
+                    ? "bg-green-600 text-white"
+                    : "bg-white"
+                }`}
               >
                 Deposit
               </button>
 
               <button
                 onClick={() => applyTransactionType("withdrawal")}
-                className={`px-4 py-2 rounded-lg border ${filters.transactionType === "withdrawal"
-                  ? "bg-red-600 text-white"
-                  : "bg-white"
-                  }`}
+                className={`px-4 py-2 rounded-lg border ${
+                  filters.transactionType === "withdrawal"
+                    ? "bg-red-600 text-white"
+                    : "bg-white"
+                }`}
               >
                 Withdrawal
               </button>
@@ -465,7 +473,7 @@ const handleCopy = async (narration, chqNo) => {
                   <th className="p-3 text-center">Value Date</th>
                   <th className="p-3 text-center">Source</th>
                   <th className="p-3 text-center">WorkLog</th>
-                  <th className="p-3 text-center">Uploaded By</th>
+                  {/* <th className="p-3 text-center">Uploaded By</th> */}
                   <th className="p-3 text-center">Created At</th>
                   <th className="p-3 text-center">Link Payment</th>
                   <th className="p-3 text-center">Actions</th>
@@ -484,10 +492,7 @@ const handleCopy = async (narration, chqNo) => {
                         <td className="p-3 text-center">
                           {formatDate(item.date)}
                         </td>
-                        <td className="p-3 text-center">
-                          {item.account}
-                        </td>
-
+                        <td className="p-3 text-center">{item.account}</td>
 
                         <td className="p-3 max-w-md">
                           <div className="flex items-center gap-2">
@@ -504,7 +509,9 @@ const handleCopy = async (narration, chqNo) => {
 
                             <button
                               type="button"
-                              onClick={() => handleCopy(item.narration , item.chqNo)}
+                              onClick={() =>
+                                handleCopy(item.narration, item.chqNo)
+                              }
                               className="text-gray-500 hover:text-blue-600 transition-colors shrink-0"
                               title="Copy narration"
                             >
@@ -512,8 +519,6 @@ const handleCopy = async (narration, chqNo) => {
                             </button>
                           </div>
                         </td>
-
-
 
                         <td className="p-3 text-center">{item.chqNo || "-"}</td>
 
@@ -539,7 +544,9 @@ const handleCopy = async (narration, chqNo) => {
                         <td className="p-3 text-center">
                           {item?.assignee || "-"}
                         </td>
-                        <td className="p-3 text-center">{item?.status || "-"}</td>
+                        <td className="p-3 text-center">
+                          {item?.status || "-"}
+                        </td>
                         <td className="p-3 text-center">
                           {item?.reviewer || "-"}
                         </td>
@@ -584,7 +591,10 @@ const handleCopy = async (narration, chqNo) => {
                                       new Date(a.createdAt),
                                   )
                                   .map((log, index) => (
-                                    <div key={log._id || index} className="mb-3">
+                                    <div
+                                      key={log._id || index}
+                                      className="mb-3"
+                                    >
                                       <div className="text-gray-700">
                                         {log.createdBy}
                                         <span className="mx-1">•</span>
@@ -619,10 +629,11 @@ const handleCopy = async (narration, chqNo) => {
                                 setSelectedTransaction(item);
                                 setDrawerOpen(true);
                               }}
-                              className={`px-3 py-1 rounded ${item?.isMapped
-                                ? "bg-gray-300 cursor-not-allowed"
-                                : "bg-green-600 hover:bg-green-700"
-                                } text-white text-sm`}
+                              className={`px-3 py-1 rounded ${
+                                item?.isMapped
+                                  ? "bg-gray-300 cursor-not-allowed"
+                                  : "bg-green-600 hover:bg-green-700"
+                              } text-white text-sm`}
                             >
                               Link Payment
                             </button>
@@ -684,14 +695,13 @@ const handleCopy = async (narration, chqNo) => {
         apiData={apiData}
         filters={filters}
         availableAccounts={apiResponse?.availableAccounts || []}
-        onApply={(data) => {
-          // Persist filters
+        onApply={(data, labels) => {
+          // Persist filter values, including the readable property code
           setFilters({
             ...DEFAULT_BANK_TRANSACTION_FILTERS,
             ...data,
           });
 
-          // New filter => first page
           setCurrentPage(1);
         }}
         handleReset={handleReset}

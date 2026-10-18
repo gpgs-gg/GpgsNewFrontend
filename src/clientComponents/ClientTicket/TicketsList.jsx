@@ -543,12 +543,12 @@ const TicketsList = () => {
                                   <Pencil size={16} />
                                 </button>
                               </Link>
-                              <button
+                              {/* <button
                                 onClick={() => handleDelete(item._id)}
                                 className="p-2 bg-red-100 rounded-lg hover:bg-red-200"
                               >
                                 <Trash2 size={16} />
-                              </button>
+                              </button> */}
                             </div>
                           </td>
                         </tr>

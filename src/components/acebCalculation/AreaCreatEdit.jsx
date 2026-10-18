@@ -134,13 +134,13 @@ const AreaCreateEdit = () => {
         });
     };
 
-    const addAreaType = () => {
-        appendAreaType({
-            type: "",
-            count: "",
-            isActive: true,
-        });
-    };
+   const addAreaType = () => {
+    appendAreaType({
+        type: "ROOM",
+        count: "",
+        isActive: true,
+    });
+};
 
     const onSubmit = (data) => {
         let payload;

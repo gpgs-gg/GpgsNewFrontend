@@ -475,6 +475,26 @@ export const useAttendanceRequestsAssignedToMe = (params) => {
   });
 };
 
+
+// GET MY ATTENDANCE REQUESTS
+const getMyAttendanceRequests = async ({
+  page = 1,
+  limit = 10,
+  status,
+} = {}) => {
+  const response = await apiClient.get("/attendance-requests/my-requests", {
+    params: { page, limit, ...(status ? { status } : {}) },
+  });
+
+  return response.data;
+};
+
+export const useMyAttendanceRequests = (params = {}) => {
+  return useQuery({
+    queryKey: ["my-attendance-requests", params],
+    queryFn: () => getMyAttendanceRequests(params),
+  });
+};
 // import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // import { apiClient } from "../../../api/ApiClient";

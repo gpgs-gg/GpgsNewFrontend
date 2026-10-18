@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Pencil, Filter, Info } from "lucide-react";
+import { Pencil, Filter, Info, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
@@ -196,33 +196,31 @@ const ClientsTable = () => {
     isError: isRentGenerationLogsError,
   } = useRentGenerationLogs();
 
+  const handleGenerateMonthlyRent = (clientId) => {
+    generateMonthlyRent(clientId, {
+      onSuccess: (response) => {
+        toast.dismiss();
 
-const handleGenerateMonthlyRent = (clientId) => {
-  generateMonthlyRent(clientId, {
-    onSuccess: (response) => {
-      toast.dismiss();
+        const message =
+          response?.message ||
+          response?.data?.message ||
+          response?.data?.data?.message ||
+          "Monthly rent generated successfully";
 
-      const message =
-        response?.message ||
-        response?.data?.message ||
-        response?.data?.data?.message ||
-        "Monthly rent generated successfully";
+        toast.success(message);
+      },
 
-      toast.success(message);
-    },
+      onError: (error) => {
+        toast.dismiss();
 
-    onError: (error) => {
-      toast.dismiss();
-
-      toast.error(
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to generate monthly rent"
-      );
-    },
-  });
-};
-
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Failed to generate monthly rent",
+        );
+      },
+    });
+  };
 
   const handleGenerateMonthlyRentForAllClients = () => {
     generateMonthlyRentForAllClient(undefined, {
@@ -457,10 +455,11 @@ const handleGenerateMonthlyRent = (clientId) => {
 
                   setCurrentPage(1);
                 }}
-                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${fnfClosedFilter
-                  ? "bg-green-50 border-green-300 text-green-700"
-                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
+                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${
+                  fnfClosedFilter
+                    ? "bg-green-50 border-green-300 text-green-700"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
               >
                 F&F Closed
               </button>
@@ -478,10 +477,11 @@ const handleGenerateMonthlyRent = (clientId) => {
 
                   setCurrentPage(1);
                 }}
-                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${fnfCancelledFilter
-                  ? "bg-red-50 border-red-300 text-red-700"
-                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
+                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${
+                  fnfCancelledFilter
+                    ? "bg-red-50 border-red-300 text-red-700"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
               >
                 Cancelled
               </button>
@@ -503,63 +503,58 @@ const handleGenerateMonthlyRent = (clientId) => {
                     {/* <th className="p-3 text-center whitespace-nowrap">
                       Sr No.
                     </th> */}
-                    <th className="p-3 text-center whitespace-nowrap">
+                    <th className="p-2 text-center whitespace-nowrap">
                       Status
                     </th>
-                    <th className="p-3 text-center whitespace-nowrap">
+                    <th className="p-2 text-center whitespace-nowrap">
                       Stay Type
                     </th>
-                    <th className="p-3 text-center whitespace-nowrap">
-                      P. Info
-                    </th>
-                    <th className="p-3 text-center whitespace-nowrap">
+                  
+                    <th className="p-2 text-center whitespace-nowrap">
                       Client Name
                     </th>
 
-                    <th className="p-3 text-center whitespace-nowrap">
+                    <th className="p-2 text-center whitespace-nowrap">
                       Contact No
                     </th>
 
-                    <th className="p-3 text-center whitespace-nowrap">
+                    <th className="p-2 text-center whitespace-nowrap">
                       Property
                     </th>
-                    <th className="p-3 text-center whitespace-nowrap">
-                      Room No
+                    <th className="p-2 text-center whitespace-nowrap">
+                      Room / <span className="font-end">Bed</span>
                     </th>
 
-                    <th className="p-3 text-center whitespace-nowrap">
-                      Bed No
-                    </th>
-
-                    <th className="p-3 text-center whitespace-nowrap">
+                    <th className="p-2 text-center whitespace-nowrap">
                       Rent DOJ
                     </th>
-                    <th className="p-3 text-center whitespace-nowrap">EBDOJ</th>
+                    <th className="p-2 text-center whitespace-nowrap">EBDOJ</th>
 
-                    <th className="p-3 text-center whitespace-nowrap">
+                    <th className="p-2 text-center whitespace-nowrap">
                       Monthly Rent
                     </th>
 
-                    <th className="p-3 text-center whitespace-nowrap">
+                    <th className="p-2 text-center whitespace-nowrap">
                       Deposit
                     </th>
-                    <th className="p-3 text-center whitespace-nowrap">
+                    <th className="p-2 text-center whitespace-nowrap">
                       Current Due
                     </th>
 
-                    <th className="p-3 text-center whitespace-nowrap">
+                    <th className="p-2 text-center whitespace-nowrap">
                       Parking Charges
                     </th>
-                    <th className="p-3 text-center whitespace-nowrap">NSD</th>
-                    <th className="p-3 text-center whitespace-nowrap">NLD</th>
-                    <th className="p-3 text-center whitespace-nowrap">CVD</th>
+                    <th className="p-2 text-center whitespace-nowrap">NSD</th>
+                    <th className="p-2 text-center whitespace-nowrap">NLD</th>
+                    <th className="p-2 text-center whitespace-nowrap">CVD</th>
 
-                    <th className="p-3 text-center whitespace-nowrap">
+                    <th className="p-2 text-center whitespace-nowrap">
                       Vacations
                     </th>
-                    <th className="p-3 text-center whitespace-nowrap">
+                    <th className="p-2 text-center whitespace-nowrap">
                       Login Enabled
                     </th>
+                    <th className="p-2 text-center whitespace-nowrap">Docs</th>
                     {/* <th className="p-3 text-center whitespace-nowrap">
                       Total Amount
                     </th>
@@ -574,7 +569,7 @@ const handleGenerateMonthlyRent = (clientId) => {
 
                     {/* Sticky Header */}
                     {showActions && (
-                      <th className="p-3 text-center sticky right-0 bg-gray-100 z-80 min-w-[120px] shadow-[-4px_0_6px_rgba(0,0,0,0.1)] whitespace-nowrap">
+                      <th className="p-2 text-center sticky right-0 bg-gray-100 z-80 min-w-[120px] shadow-[-4px_0_6px_rgba(0,0,0,0.1)] whitespace-nowrap">
                         Actions
                       </th>
                     )}
@@ -650,7 +645,7 @@ const handleGenerateMonthlyRent = (clientId) => {
                               index +
                               1}
                           </td> */}
-                            <td className="p-3 text-center">
+                            <td className="p-2 text-center">
                               {(() => {
                                 const fnfStatus = item?.fnf?.status;
 
@@ -684,14 +679,15 @@ const handleGenerateMonthlyRent = (clientId) => {
 
                             <td className="p-3 text-center">
                               <span
-                                className={`px-2.5 py-1 rounded-full text-md font-semibold ${item.bookingType === "Daily"
-                                  ? " text-indigo-700"
-                                  : item.stayType === "P. Booked"
-                                    ? " text-emerald-700"
-                                    : item.stayType === "T. Booked"
-                                      ? " text-amber-700"
-                                      : " text-gray-700"
-                                  }`}
+                                className={`px-2.5 py-1 rounded-full text-md font-semibold ${
+                                  item.bookingType === "Daily"
+                                    ? " text-indigo-700"
+                                    : item.stayType === "P. Booked"
+                                      ? " text-emerald-700"
+                                      : item.stayType === "T. Booked"
+                                        ? " text-amber-700"
+                                        : " text-gray-700"
+                                }`}
                               >
                                 {item.bookingType === "Daily"
                                   ? "Daily"
@@ -699,9 +695,12 @@ const handleGenerateMonthlyRent = (clientId) => {
                               </span>
                             </td>
 
-                            <td className="p-3">
+                       
+                            {/* Client Name */}
+                            <td className="p-3 font-bold flex justify-center items-center">
+                               <td className="p-2">
                               {item.stayType === "T. Booked" &&
-                                item.permanentBooking ? (
+                              item.permanentBooking ? (
                                 <div className="relative group inline-block">
                                   <Info
                                     size={18}
@@ -815,12 +814,9 @@ const handleGenerateMonthlyRent = (clientId) => {
                                   </div>
                                 </div>
                               ) : (
-                                "-"
+                                ""
                               )}
                             </td>
-                            
-                            {/* Client Name */}
-                            <td className="p-3 font-bold">
                               {item.fullName || "-"}
                             </td>
                             {/* Status */}
@@ -844,10 +840,13 @@ const handleGenerateMonthlyRent = (clientId) => {
                             </td>
 
                             {/* Room No */}
-                            <td className="p-3">{item.bedId?.roomNo || "-"}</td>
+                            <td className="p-3"><span className="">
+                              {item.bedId?.roomNo || "-"}
+                              </span> / <span className="font-bold">
+                                {item.bedId?.bedNo || "-"}</span></td>
 
                             {/* Bed No */}
-                            <td className="p-3">{item.bedId?.bedNo || "-"}</td>
+                            {/* <td className="p-3">{item.bedId?.bedNo || "-"}</td> */}
 
                             {/* Rent Start Date */}
                             <td className="p-3">
@@ -875,10 +874,13 @@ const handleGenerateMonthlyRent = (clientId) => {
                               )}
                             </td>
                             <td
-                              className={`p-3 ${Number(item?.latestRentHistory?.currentDue || 0) < 0
+                              className={`p-3 ${
+                                Number(
+                                  item?.latestRentHistory?.currentDue || 0,
+                                ) < 0
                                   ? "text-green-600"
                                   : "text-red-600"
-                                }`}
+                              }`}
                             >
                               ₹
                               {Number(
@@ -982,54 +984,54 @@ const handleGenerateMonthlyRent = (clientId) => {
                                                 {/* Vacation 1 */}
                                                 {(vacation.vacationStartDate1 ||
                                                   vacation.vacationLastDate1) && (
-                                                    <div className="flex items-center gap-5">
-                                                      <span className="font-medium text-gray-700">
-                                                        Vacation 1
-                                                      </span>
+                                                  <div className="flex items-center gap-5">
+                                                    <span className="font-medium text-gray-700">
+                                                      Vacation 1
+                                                    </span>
 
-                                                      <span className="text-gray-600">
-                                                        {vacation.vacationStartDate1
-                                                          ? formatDate(
+                                                    <span className="text-gray-600">
+                                                      {vacation.vacationStartDate1
+                                                        ? formatDate(
                                                             vacation.vacationStartDate1,
                                                           )
-                                                          : "-"}{" "}
-                                                        <span className="text-gray-400">
-                                                          →
-                                                        </span>{" "}
-                                                        {vacation.vacationLastDate1
-                                                          ? formatDate(
+                                                        : "-"}{" "}
+                                                      <span className="text-gray-400">
+                                                        →
+                                                      </span>{" "}
+                                                      {vacation.vacationLastDate1
+                                                        ? formatDate(
                                                             vacation.vacationLastDate1,
                                                           )
-                                                          : "-"}
-                                                      </span>
-                                                    </div>
-                                                  )}
+                                                        : "-"}
+                                                    </span>
+                                                  </div>
+                                                )}
 
                                                 {/* Vacation 2 */}
                                                 {(vacation.vacationStartDate2 ||
                                                   vacation.vacationLastDate2) && (
-                                                    <div className="flex items-center gap-5">
-                                                      <span className="font-medium text-gray-700">
-                                                        Vacation 2
-                                                      </span>
+                                                  <div className="flex items-center gap-5">
+                                                    <span className="font-medium text-gray-700">
+                                                      Vacation 2
+                                                    </span>
 
-                                                      <span className="text-gray-600">
-                                                        {vacation.vacationStartDate2
-                                                          ? formatDate(
+                                                    <span className="text-gray-600">
+                                                      {vacation.vacationStartDate2
+                                                        ? formatDate(
                                                             vacation.vacationStartDate2,
                                                           )
-                                                          : "-"}{" "}
-                                                        <span className="text-gray-400">
-                                                          →
-                                                        </span>{" "}
-                                                        {vacation.vacationLastDate2
-                                                          ? formatDate(
+                                                        : "-"}{" "}
+                                                      <span className="text-gray-400">
+                                                        →
+                                                      </span>{" "}
+                                                      {vacation.vacationLastDate2
+                                                        ? formatDate(
                                                             vacation.vacationLastDate2,
                                                           )
-                                                          : "-"}
-                                                      </span>
-                                                    </div>
-                                                  )}
+                                                        : "-"}
+                                                    </span>
+                                                  </div>
+                                                )}
                                               </div>
                                               {/* Vacation Comments */}
                                               <div className="max-h-40 text-[5px] overflow-y-auto space-y-2 pr-1 p-5 border border-gray-200 rounded">
@@ -1049,20 +1051,20 @@ const handleGenerateMonthlyRent = (clientId) => {
                                                           [
                                                           {comment.createdAt
                                                             ? new Date(
-                                                              comment.createdAt,
-                                                            ).toLocaleString(
-                                                              "en-IN",
-                                                              {
-                                                                day: "2-digit",
-                                                                month:
-                                                                  "short",
-                                                                year: "numeric",
-                                                                hour: "2-digit",
-                                                                minute:
-                                                                  "2-digit",
-                                                                hour12: true,
-                                                              },
-                                                            )
+                                                                comment.createdAt,
+                                                              ).toLocaleString(
+                                                                "en-IN",
+                                                                {
+                                                                  day: "2-digit",
+                                                                  month:
+                                                                    "short",
+                                                                  year: "numeric",
+                                                                  hour: "2-digit",
+                                                                  minute:
+                                                                    "2-digit",
+                                                                  hour12: true,
+                                                                },
+                                                              )
                                                             : "-"}
                                                           ]
                                                         </span>{" "}
@@ -1088,10 +1090,11 @@ const handleGenerateMonthlyRent = (clientId) => {
                               </div>
                             </td>
                             <td
-                              className={`p-3 font-semibold ${item.loginEnabled
-                                ? "text-green-600"
-                                : "text-red-600"
-                                }`}
+                              className={`p-3 font-semibold ${
+                                item.loginEnabled
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                              }`}
                             >
                               {item.loginEnabled ? "Enabled" : "Disabled"}
                             </td>
@@ -1118,10 +1121,90 @@ const handleGenerateMonthlyRent = (clientId) => {
                               "en-IN"
                             )}
                           </td> */}
+                            <td className="p-3">
+                              <div className="flex gap-2">
+                                {[
+                                  { label: "Photo", docs: item.photo },
+                                  { label: "Aadhaar", docs: item.aadhaarCard },
+                                  { label: "PAN", docs: item.pan },
+                                  {
+                                    label: "College ID",
+                                    docs: item.collegeIdentification,
+                                  },
+                                  {
+                                    label: "Company ID",
+                                    docs: item.companyIdentification,
+                                  },
+                                  {
+                                    label: "Rental Agreement",
+                                    docs: item.clientRentalAgreement,
+                                  },
+                                  {
+                                    label: "Police NOC",
+                                    docs: item.clientPoliceNOC,
+                                  },
+                                  {
+                                    label: "Attachments",
+                                    docs: item.attachments,
+                                  },
+                                ]
+                                  .filter(
+                                    ({ docs }) =>
+                                      Array.isArray(docs) && docs.length > 0,
+                                  )
+                                  .map(({ label, docs }) => (
+                                    <div key={label} className="">
+                                      {/* <p className="mb-2 text-xs font-semibold text-slate-600">
+                                        {label}
+                                      </p> */}
+
+                                      <div className="flex  gap-3">
+                                        {docs.map((url, index) => {
+                                          const isPdf = /\.pdf(?:$|[?#])/i.test(
+                                            url,
+                                          );
+
+                                          return (
+                                            <a
+                                              key={`${label}-${index}`}
+                                              href={url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              title={`Preview ${label}`}
+                                              className="block h-9 w-9 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 transition hover:border-blue-400"
+                                            >
+                                              {isPdf ? (
+                                                <div className="flex h-full flex-col items-center justify-center gap-2">
+                                                  <FileText className="h-10 w-10 text-red-500" />
+                                                  {/* <span className="text-xs font-medium text-slate-600">
+                                                    View PDF
+                                                  </span> */}
+                                                </div>
+                                              ) : (
+                                                <img
+                                                  src={url}
+                                                  alt={`${label} ${index + 1}`}
+                                                  loading="lazy"
+                                                  className="h-full w-full object-cover"
+                                                  onError={(e) => {
+                                                    e.currentTarget.style.display =
+                                                      "none";
+                                                  }}
+                                                />
+                                              )}
+                                            </a>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            </td>
 
                             <td
-                              className={`p-3 sticky right-0 bg-white ${openMenuId === item._id ? "z-[9999]" : ""
-                                } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
+                              className={`p-3 sticky right-0 bg-white ${
+                                openMenuId === item._id ? "z-[9999]" : ""
+                              } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
                             >
                               <div className="flex justify-center gap-2">
                                 {canViewClient && (
@@ -1159,10 +1242,11 @@ const handleGenerateMonthlyRent = (clientId) => {
                                           : item._id,
                                       );
                                     }}
-                                    className={`p-2 rounded-md transition-colors ${openMenuId === item._id
-                                      ? "bg-blue-100 text-blue-600"
-                                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                      }`}
+                                    className={`p-2 rounded-md transition-colors ${
+                                      openMenuId === item._id
+                                        ? "bg-blue-100 text-blue-600"
+                                        : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                    }`}
                                   >
                                     <FaEllipsisV />
                                   </button>
@@ -1199,7 +1283,10 @@ const handleGenerateMonthlyRent = (clientId) => {
                                             <span>Bed History</span>
                                           </button>
 
-                                          {/* Vacation */}
+                                       
+                                        </>
+                                      )}
+                                         {/* Vacation */}
                                           <button
                                             onClick={() => {
                                               setSelectedClient(item);
@@ -1211,9 +1298,17 @@ const handleGenerateMonthlyRent = (clientId) => {
                                             <span>🛏</span>
                                             <span>Vacation</span>
                                           </button>
-                                        </>
-                                      )}
-
+                                    <button
+                                      onClick={() => {
+                                        setSelectedClient(item);
+                                        setShowBedHistoryModal(true);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
+                                    >
+                                      <span>📜</span>
+                                      <span>Bed History</span>
+                                    </button>
                                     {/* <button className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left">
                                     <span>💰</span>
                                     <span>FNF</span>

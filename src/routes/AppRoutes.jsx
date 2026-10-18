@@ -68,6 +68,7 @@ import AgreementPopup from "../clientComponents/PropAndPersDetails/AgreementPopu
 import { useAuth } from "../context/authContext";
 import BookingEnquiry from "../pages/BookingEnquiry";
 import RNRTable from "../components/New_RNR/RNRTable";
+import PageNotFound from "../components/common/PageNotFound";
 const AppRoutes = () => {
   const { user } = useAuth();
   const role = user?.role?.trim().toLowerCase();
@@ -80,7 +81,7 @@ const AppRoutes = () => {
 
       <Routes>
         <Route path="/" element={<HomePage />} />
-
+        <Route path="*" element={<PageNotFound />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<SignupPage />} />
 
@@ -232,7 +233,6 @@ const AppRoutes = () => {
           </Route>
         </Route>
         <Route path="/booking" element={<BookingEnquiry />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </>
   );

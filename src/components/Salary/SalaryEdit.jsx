@@ -457,10 +457,13 @@ const SalaryEdit = () => {
             <div className="text-sm text-gray-500">
               Salary Period:{" "}
               <span className="font-medium text-gray-700">
-                {month}/{year}
+                {" "}
+                {new Date(year, month - 1).toLocaleString("en-US", {
+                  month: "long",
+                })}{" "}
+                - {year}
               </span>
             </div>
-
             {/* update salary button  */}
 
             <div className="flex gap-3">
@@ -530,22 +533,21 @@ const SalaryEdit = () => {
               <input
                 type="text"
                 {...register("monthlySalary")}
-                min="0"
-                step="0.01"
+                readOnly
                 placeholder=" "
-                className="form-input"
+                className="form-input !bg-gray-100  cursor-not-allowed"
               />
 
               <label className="form-label">Fixed Salary</label>
             </div>
             {/* TOTAL DAYS IN MONTH */}
-            <div className="form-group">
+            <div className="form-group ">
               <input
                 type="text"
                 value={salary?.totalDays ?? 0}
                 readOnly
                 placeholder=" "
-                className="form-input bg-gray-50 cursor-not-allowed"
+                className="form-input  !bg-gray-100  cursor-not-allowed"
               />
               <label className="form-label">Total Days in Month</label>
             </div>
@@ -557,7 +559,7 @@ const SalaryEdit = () => {
                 value={salary?.totalPresentDays ?? 0}
                 readOnly
                 placeholder=" "
-                className="form-input bg-gray-50 cursor-not-allowed"
+                className="form-input !bg-gray-100  cursor-not-allowed"
               />
               <label className="form-label">Total Present Days</label>
             </div>
@@ -569,7 +571,7 @@ const SalaryEdit = () => {
                 value={`₹ ${Number(salary?.perDaySalary ?? 0).toFixed(2)}`}
                 readOnly
                 placeholder=" "
-                className="form-input bg-gray-50 cursor-not-allowed"
+                className="form-input !bg-gray-100  cursor-not-allowed"
               />
               <label className="form-label">Per Day Salary</label>
             </div>
@@ -581,7 +583,7 @@ const SalaryEdit = () => {
                 value={salary?.totalPayableDays ?? 0}
                 readOnly
                 placeholder=" "
-                className="form-input bg-gray-50 cursor-not-allowed"
+                className="form-input !bg-gray-100  cursor-not-allowed"
               />
               <label className="form-label">Total Payable Days</label>
             </div>
@@ -593,7 +595,7 @@ const SalaryEdit = () => {
                 value={`₹ ${Number(salary?.payableSalary || 0).toFixed(2)}`}
                 readOnly
                 placeholder=" "
-                className="form-input bg-gray-50 cursor-not-allowed"
+                className="form-input !bg-gray-100  cursor-not-allowed"
               />
 
               <label className="form-label">Payable Salary</label>
@@ -890,8 +892,8 @@ const SalaryEdit = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="form-group">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* <div className="form-group">
                   <input
                     type="text"
                     {...register("paidAmountDetails.deductedAmount.label")}
@@ -900,7 +902,7 @@ const SalaryEdit = () => {
                   />
 
                   <label className="form-label">Label</label>
-                </div>
+                </div> */}
 
                 <div className="form-group">
                   <input
@@ -945,7 +947,6 @@ const SalaryEdit = () => {
               <input
                 type="text"
                 {...register("previousDue")}
-                step="0.01"
                 placeholder=" "
                 className="form-input"
               />
