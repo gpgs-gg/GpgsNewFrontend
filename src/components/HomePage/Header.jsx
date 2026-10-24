@@ -9,7 +9,6 @@ import { useAuth } from "../../context/authContext";
 import { useLogout } from "../../auth/services";
 import { useQueryClient } from "@tanstack/react-query";
 import gpgsLogo from "../../logo/GPGS-CircleLogo.png";
-import gpgsWhiteLogo from "../../logo/GPGS-WhiteLogo.png";
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -182,6 +181,13 @@ const Header = () => {
   // ============================================================
   // Navigation
   // ============================================================
+
+
+const normalizedRole = String(userRole).trim().toLowerCase();
+
+  const accountPath =
+    normalizedRole === "client" ? "/renthistory" : "/dashboard";
+
 
   const navigation = [
     {
@@ -619,7 +625,7 @@ const Header = () => {
                       {/* ================= MY ACCOUNT ================= */}
 
                       <Link
-                        to="/dashboard"
+                        to={accountPath}
                         onClick={() => setAccountOpen(false)}
                         className="
               flex
@@ -724,7 +730,7 @@ const Header = () => {
 
               {isAuthenticated && user && (
                 <Link
-                  to="/dashboard"
+                  to={accountPath}
                   className={`
                     w-10
                     h-10
@@ -809,7 +815,7 @@ const Header = () => {
               {isAuthenticated && user ? (
                 <div>
                   <Link
-                    to="/dashboard"
+                    to={accountPath}
                     onClick={() => setMenuOpen(false)}
                     className="
         flex

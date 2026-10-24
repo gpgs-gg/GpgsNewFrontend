@@ -166,7 +166,7 @@ const LeadsFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform flex flex-col ${
+        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -178,8 +178,11 @@ const LeadsFilter = ({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-5">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col flex-1 min-h-0 overflow-hidden"
+        >
+          <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5">
             {/* Created Date From */}
             <Controller
               name="DateFrom"
@@ -252,12 +255,14 @@ const LeadsFilter = ({
             {renderSelect("Gender", "Gender", genderOptions)}
 
             {renderSelect("Reason", "Reason", reasonOptions)}
-
-            <div className="flex gap-3 pt-4">
+          </div>
+          {/* Fixed footer - remains visible while fields scroll */}
+          <div className="shrink-0 bg-white border-t border-gray-200 p-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+            <div className="flex gap-3">
               <button
                 type="button"
                 onClick={handleReset}
-                className="w-full border py-2 rounded-lg"
+                className="w-full border border-gray-300 py-2 rounded-lg hover:bg-gray-100"
               >
                 Reset
               </button>
@@ -269,8 +274,8 @@ const LeadsFilter = ({
                 Apply Filters
               </button>
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </>
   );

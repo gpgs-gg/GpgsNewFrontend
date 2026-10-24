@@ -298,7 +298,7 @@ const BankTransactionFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 ${
+        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -310,178 +310,196 @@ const BankTransactionFilter = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-5">
-          {/* Property Code */}
-          <Controller
-            name="propertyId"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Property Code</label>
+        <form
+          id="bank-transaction-filter-form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex-1 min-h-0 flex flex-col"
+        >
+          {/* Scrollable filter fields */}
+          <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5">
+            {/* Property Code */}
+            <Controller
+              name="propertyId"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Property Code</label>
 
-                <AsyncPaginate
-                  additional={{
-                    page: 1,
-                  }}
-                  debounceTimeout={500}
-                  isClearable
-                  placeholder=""
-                  loadOptions={loadPropertyOptions}
-                  styles={selectStyles}
-                  value={field.value}
-                  onChange={(selectedOption) => field.onChange(selectedOption)}
-                />
-              </div>
-            )}
-          />
+                  <AsyncPaginate
+                    additional={{
+                      page: 1,
+                    }}
+                    debounceTimeout={500}
+                    isClearable
+                    placeholder=""
+                    loadOptions={loadPropertyOptions}
+                    styles={selectStyles}
+                    value={field.value}
+                    onChange={(selectedOption) =>
+                      field.onChange(selectedOption)
+                    }
+                  />
+                </div>
+              )}
+            />
 
-          <Controller
-            name="assignee"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Assignee</label>
+            <Controller
+              name="assignee"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Assignee</label>
 
-                <Select
-                  options={assigneeOptions}
-                  value={field.value}
-                  onChange={field.onChange}
-                  styles={selectStyles}
-                  isClearable
-                  isSearchable
-                  placeholder="Assignee"
-                />
-              </div>
-            )}
-          />
-          <Controller
-            name="expenseCategory"
-            control={control}
-            render={({ field }) => (
-              <div
-                className={`select-group ${
-                  field.value?.length ? "has-value" : ""
-                }`}
-              >
-                <label className="select-label">Expense Category</label>
+                  <Select
+                    options={assigneeOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    styles={selectStyles}
+                    isClearable
+                    isSearchable
+                    placeholder="Assignee"
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name="expenseCategory"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${
+                    field.value?.length ? "has-value" : ""
+                  }`}
+                >
+                  <label className="select-label">Expense Category</label>
 
-                <Select
-                  options={expenseCategoryOptions}
-                  value={field.value}
-                  onChange={field.onChange}
-                  styles={selectStyles}
-                  isClearable
-                  isMulti
-                  isSearchable
-                  placeholder="Expense Category"
-                />
-              </div>
-            )}
-          />
-          <Controller
-            name="expenseCode"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Expense Code</label>
+                  <Select
+                    options={expenseCategoryOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    styles={selectStyles}
+                    isClearable
+                    isMulti
+                    isSearchable
+                    placeholder="Expense Category"
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name="expenseCode"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Expense Code</label>
 
-                <Select
-                  options={expenseCodeOptions}
-                  value={field.value}
-                  onChange={field.onChange}
-                  styles={selectStyles}
-                  isClearable
-                  isSearchable
-                  placeholder="Expense Code"
-                />
-              </div>
-            )}
-          />
-          {/* from date */}
-          <Controller
-            name="fromDate"
-            control={control}
-            render={({ field }) => (
-              <div
-                className={`datepicker-group ${field.value ? "has-value" : ""}`}
-              >
-                <label className="datepicker-label">From Date</label>
+                  <Select
+                    options={expenseCodeOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    styles={selectStyles}
+                    isClearable
+                    isSearchable
+                    placeholder="Expense Code"
+                  />
+                </div>
+              )}
+            />
+            {/* from date */}
+            <Controller
+              name="fromDate"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`datepicker-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="datepicker-label">From Date</label>
 
-                <DatePicker
-                  selected={field.value}
-                  onChange={(date) => field.onChange(date)}
-                  isClearable
-                  placeholderText="From Date"
-                  dateFormat="dd MMM yyyy"
-                  className="custom-datepicker"
-                />
-              </div>
-            )}
-          />
+                  <DatePicker
+                    selected={field.value}
+                    onChange={(date) => field.onChange(date)}
+                    isClearable
+                    placeholderText="From Date"
+                    dateFormat="dd MMM yyyy"
+                    className="custom-datepicker"
+                  />
+                </div>
+              )}
+            />
 
-          {/* To Date */}
-          <Controller
-            name="toDate"
-            control={control}
-            render={({ field }) => (
-              <div
-                className={`datepicker-group ${field.value ? "has-value" : ""}`}
-              >
-                <label className="datepicker-label">To Date</label>
+            {/* To Date */}
+            <Controller
+              name="toDate"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`datepicker-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="datepicker-label">To Date</label>
 
-                <DatePicker
-                  selected={field.value}
-                  onChange={(date) => field.onChange(date)}
-                  isClearable
-                  placeholderText="To Date"
-                  dateFormat="dd MMM yyyy"
-                  className="custom-datepicker"
-                />
-              </div>
-            )}
-          />
+                  <DatePicker
+                    selected={field.value}
+                    onChange={(date) => field.onChange(date)}
+                    isClearable
+                    placeholderText="To Date"
+                    dateFormat="dd MMM yyyy"
+                    className="custom-datepicker"
+                  />
+                </div>
+              )}
+            />
 
-          {/* bank account */}
-          <Controller
-            name="bankAccount"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Bank Account</label>
+            {/* bank account */}
+            <Controller
+              name="bankAccount"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Bank Account</label>
 
-                <Select
-                  options={bankAccountOptions}
-                  value={field.value}
-                  onChange={field.onChange}
-                  styles={selectStyles}
-                  isClearable
-                  placeholder="Bank Account"
-                />
-              </div>
-            )}
-          />
-          {/* Status */}
-          <Controller
-            name="status"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Status</label>
+                  <Select
+                    options={bankAccountOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    styles={selectStyles}
+                    isClearable
+                    placeholder="Bank Account"
+                  />
+                </div>
+              )}
+            />
+            {/* Status */}
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Status</label>
 
-                <Select
-                  options={statusOptions}
-                  isSearchable
-                  isClearable
-                  placeholder="Status"
-                  value={field.value}
-                  onChange={(option) => field.onChange(option)}
-                  styles={selectStyles}
-                />
-              </div>
-            )}
-          />
-          {/* assignee */}
-          {/* <Controller
+                  <Select
+                    options={statusOptions}
+                    isSearchable
+                    isClearable
+                    placeholder="Status"
+                    value={field.value}
+                    onChange={(option) => field.onChange(option)}
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+            {/* assignee */}
+            {/* <Controller
             name="assignee"
             control={control}
             render={({ field }) => (
@@ -494,28 +512,31 @@ const BankTransactionFilter = ({
               />
             )}
           /> */}
-          {/* deposit and widthdrawal radio */}
-          <Controller
-            name="transactionType"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Transaction Type</label>
+            {/* deposit and widthdrawal radio */}
+            <Controller
+              name="transactionType"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Transaction Type</label>
 
-                <Select
-                  options={transactionTypeOptions}
-                  value={field.value}
-                  onChange={field.onChange}
-                  styles={selectStyles}
-                  isClearable
-                  placeholder="Transaction Type"
-                />
-              </div>
-            )}
-          />
+                  <Select
+                    options={transactionTypeOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    styles={selectStyles}
+                    isClearable
+                    placeholder="Transaction Type"
+                  />
+                </div>
+              )}
+            />
+          
 
-          {/* Status */}
-          {/* <Controller
+            {/* Status */}
+            {/* <Controller
             name="status"
             control={control}
             render={({ field }) => (
@@ -534,22 +555,25 @@ const BankTransactionFilter = ({
               </div>
             )}
           /> */}
+          </div>
+          <div className="shrink-0 bg-white border-t border-gray-200 p-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="w-full border border-gray-300 py-2 rounded-lg hover:bg-gray-100"
+              >
+                Reset
+              </button>
 
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="w-full border border-gray-300 py-2 rounded-lg"
-            >
-              Reset
-            </button>
-
-            <button
-              type="submit"
-              className="w-full bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600 text-white py-2 rounded-lg"
-            >
-              Apply Filters
-            </button>
+              <button
+                type="submit"
+                form="bank-transaction-filter-form"
+                className="w-full bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600 text-white py-2 rounded-lg"
+              >
+                Apply Filters
+              </button>
+            </div>
           </div>
         </form>
       </div>

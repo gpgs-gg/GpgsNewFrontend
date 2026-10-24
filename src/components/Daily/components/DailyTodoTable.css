@@ -1,0 +1,92 @@
+/* Keep the date picker independent of the table layout */
+.daily-todo-datepicker-popper {
+  z-index: 9999 !important;
+}
+
+.daily-todo-datepicker-wrapper {
+  display: block;
+  width: 100%;
+}
+
+.daily-todo-datepicker {
+  font-family: inherit;
+  font-size: 14px;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  padding: 8px;
+  box-shadow: 0 12px 30px rgb(0 0 0 / 12%);
+  background: #fff;
+}
+
+/* Calendar header */
+.daily-todo-datepicker .react-datepicker__header {
+  background: #f9fafb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  border-radius: 10px 10px 0 0;
+  padding-top: 12px;
+}
+
+.daily-todo-datepicker .react-datepicker__current-month {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 10px;
+}
+
+.daily-todo-datepicker .react-datepicker__day-names {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 4px;
+}
+
+.daily-todo-datepicker .react-datepicker__day-name {
+  color: #6b7280;
+  font-weight: 600;
+  width: 2rem;
+  line-height: 2rem;
+  margin: 2px;
+}
+
+.daily-todo-datepicker .react-datepicker__month {
+  margin: 8px;
+}
+
+.daily-todo-datepicker .react-datepicker__week {
+  display: flex;
+  justify-content: space-around;
+}
+
+.daily-todo-datepicker .react-datepicker__day {
+  width: 2rem;
+  line-height: 2rem;
+  margin: 2px;
+  border-radius: 6px;
+  color: #374151;
+}
+
+.daily-todo-datepicker .react-datepicker__day:hover {
+  background: #eff6ff !important;
+  border-radius: 6px;
+}
+
+.daily-todo-datepicker .react-datepicker__day--selected,
+.daily-todo-datepicker .react-datepicker__day--keyboard-selected {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+
+.daily-todo-datepicker .react-datepicker__day--disabled {
+  color: #d1d5db !important;
+}
+
+.daily-todo-datepicker .react-datepicker__day--outside-month {
+  color: #9ca3af;
+}
+
+.daily-todo-datepicker .react-datepicker__navigation {
+  top: 12px;
+}
+
+.daily-todo-datepicker .react-datepicker__navigation-icon::before {
+  border-color: #6b7280;
+}

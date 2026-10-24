@@ -132,11 +132,11 @@ const FnfFilter = ({
         </div>
 
         <form
-          className="flex flex-col h-[calc(100%-72px)]"
+          className="flex flex-col flex-1 min-h-0 overflow-hidden"
           id="fnf-filter-form"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5">
             {/* CVD- Client Vacating Date */}
             <Controller
               name="hasCvd"
@@ -257,7 +257,8 @@ const FnfFilter = ({
           {/* ===========================
               Buttons
           =========================== */}
-          <div className="">
+          {/* Buttons - same styling as AvailableBedsFilter */}
+          <div className="shrink-0 bg-white border-t border-gray-200 p-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
             <div className="flex gap-3 pt-4">
               <button
                 type="button"

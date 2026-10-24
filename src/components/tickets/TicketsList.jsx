@@ -4,6 +4,7 @@ import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
+
 import {
   exportTicketsData,
   useDeleteTicketData,
@@ -27,7 +28,15 @@ const TicketsList = () => {
   const { mutate: deleteTicket, isPending } = useDeleteTicketData();
   const [filterOpen, setFilterOpen] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(0);
-  const [selectedTicketTab, setSelectedTicketTab] = useState("all");
+  // Restore the selected ticket tab from localStorage
+  const [selectedTicketTab, setSelectedTicketTab] = useState(() => {
+    return localStorage.getItem("tickets_selected_tab") || "all";
+  });
+
+  // Persist the selected ticket tab
+  useEffect(() => {
+    localStorage.setItem("tickets_selected_tab", selectedTicketTab);
+  }, [selectedTicketTab]);
 
   const DEFAULT_TICKETS_STATE = {
     search: "",
@@ -72,60 +81,10 @@ const TicketsList = () => {
   const apiData = apiResponse?.data || [];
   const totalPages = apiResponse?.totalPages || 1;
   const totalRecords = apiResponse?.totalRecords || 0;
-  // ✅ filter & search logic
-  // const filteredData = useMemo(() => {
-  //     return apiData?.filter((item) => {
-  //         const matchesSearch =
-  //             !search ||
-  //             Object.values(item).some((value) =>
-  //                 String(value).toLowerCase().includes(search.toLowerCase())
-  //             );
-
-  //         return (
-  //             (!filters.propertyCode ||
-  //                 item.propertyCode === filters.propertyCode) &&
-  //             (!filters.Location ||
-  //                 item.propertyLocation === filters.Location) &&
-  //             (!filters.priority ||
-  //                 item.priority === filters.priority) &&
-  //             (!filters.status ||
-  //                 item.status === filters.status) &&
-  //             (!filters.department ||
-  //                 item.department === filters.department) &&
-  //             (!filters.category ||
-  //                 item.category === filters.category) &&
-  //             (!filters.assignee ||
-  //                 item.assignee === filters.assignee) &&
-  //             (!filters.manager ||
-  //                 item.manager === filters.manager) &&
-  //             (!filters.customerImpacted ||
-  //                 item.customerImpacted === filters.customerImpacted) &&
-  //             (!filters.escalated ||
-  //                 item.escalated === filters.escalated) &&
-  //             (
-  //                 !filters.lateStatus ||
-  //                 (filters.lateStatus === "LateAcknowledged" &&
-  //                     item.lateAcknowledged === "Yes") ||
-  //                 (filters.lateStatus === "LateResolved" &&
-  //                     item.lateResolved === "Yes")
-  //             ) &&
-  //             matchesSearch
-  //         );
-  //     });
-  // }, [apiData, filters, search]);
-
-  // const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-
-  // const paginatedData = useMemo(() => {
-  //     return filteredData.slice(
-  //         (currentPage - 1) * rowsPerPage,
-  //         currentPage * rowsPerPage
-  //     );
-  // }, [filteredData, currentPage]);
 
   const handleReset = () => {
     resetTicketsState();
-
+    setSelectedTicketTab("all");
     setResetTrigger((prev) => prev + 1);
   };
 
@@ -292,6 +251,8 @@ const TicketsList = () => {
     customerImpacted: "Customer Impacted",
     escalated: "Escalated",
     lateStatus: "Late Status",
+    dateFrom: "Created From",
+    dateTo: "Created To",
   };
 
   const removeFilter = (key) => {
@@ -346,25 +307,25 @@ const TicketsList = () => {
                   Total Tickets: {totalRecords}
                 </p>
               </div>
-  <div className="hidden md:flex gap-5 ">
+              <div className="hidden md:flex gap-5 ">
 
-              <div className="flex items-center gap-1.5 whitespace-nowrap">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-200 shrink-0"></span>
-                <span className="text-gray-600">Late Resolved</span>
+                <div className="flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-200 shrink-0"></span>
+                  <span className="text-gray-600">Late Resolved</span>
+                </div>
+
+                <div className="flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="w-2.5 h-2.5 rounded-full bg-green-200 shrink-0"></span>
+                  <span className="text-gray-600">Resolved</span>
+                </div>
+
+                <div className="flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="w-2.5 h-2.5 rounded-full bg-yellow-200 shrink-0"></span>
+                  <span className="text-gray-600">SLA Warning</span>
+                </div>
+
               </div>
 
-              <div className="flex items-center gap-1.5 whitespace-nowrap">
-                <span className="w-2.5 h-2.5 rounded-full bg-green-200 shrink-0"></span>
-                <span className="text-gray-600">Resolved</span>
-              </div>
-
-              <div className="flex items-center gap-1.5 whitespace-nowrap">
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-200 shrink-0"></span>
-                <span className="text-gray-600">SLA Warning</span>
-              </div>
-
-            </div>
-         
               {/* Add Ticket */}
               {canAddTicket && (
                 <Link
@@ -379,11 +340,11 @@ const TicketsList = () => {
                   </button>
                 </Link>
               )}
-              
+
             </div>
 
             {/* SLA Legend */}
-             
+
           </div>
         </div>
         {/* TABLE */}
@@ -435,7 +396,9 @@ const TicketsList = () => {
                           {filterLabels[key] || key}:
                         </span>
 
-                        <span>{value}</span>
+                        <span>
+                          {Array.isArray(value) ? value.join(", ") : value}
+                        </span>
 
                         <button
                           type="button"
@@ -456,9 +419,9 @@ const TicketsList = () => {
                   {/* Ticket Creator Tabs */}
                   <div className="flex items-center gap-2">
                     {[
-                      { label: "All", value: "all" },
-                      { label: "Clients ", value: "Clients" },
-                      { label: "Admin", value: "Admin" },
+                      { label: "ALL", value: "all" },
+                      { label: "CLIENTS TKT ", value: "Clients" },
+                      { label: "GPGS TKT", value: "Employee" },
                     ].map((tab) => (
                       <button
                         key={tab.value}
@@ -468,15 +431,14 @@ const TicketsList = () => {
                           updateTicketsState({ currentPage: 1 });
                           setSelectedTickets(new Set());
                         }}
-                        className={`flex cursor-pointer items-center font-bold gap-2 whitespace-nowrap rounded-lg border px-4 py-2 text-sm transition ${
-                          selectedTicketTab === tab.value
-                            ? tab.value === "Clients"
+                        className={`flex cursor-pointer items-center font-bold gap-2 whitespace-nowrap rounded-lg border px-4 py-2 text-sm transition ${selectedTicketTab === tab.value
+                          ? tab.value === "Clients"
+                            ? "border-green-300 bg-green-50 text-green-700"
+                            : tab.value === "Employee"
                               ? "border-green-300 bg-green-50 text-green-700"
-                              : tab.value === "Admin"
-                                ? "border-green-300 bg-green-50 text-green-700"
-                                : "border-green-300 bg-green-50 text-green-700"
-                            : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                        }`}
+                              : "border-green-300 bg-green-50 text-green-700"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                          }`}
                       >
                         {tab.label}
                       </button>
@@ -816,14 +778,14 @@ const TicketsList = () => {
                                         <div
                                           key={log._id || index}
                                           className={`flex mb-3 ${isClient
-                                              ? "justify-start"
-                                              : "justify-end"
+                                            ? "justify-start"
+                                            : "justify-end"
                                             }`}
                                         >
                                           <div
                                             className={`max-w-[90%] rounded-lg px-2.5 py-2 ${isClient
-                                                ? "bg-blue-50 border border-blue-200"
-                                                : "bg-gray-50 border border-gray-200"
+                                              ? "bg-blue-50 border border-blue-200"
+                                              : "bg-gray-50 border border-gray-200"
                                               }`}
                                           >
                                             <div className="text-gray-700 font-medium">
@@ -974,7 +936,7 @@ const TicketsList = () => {
             </div>
           </div>
         </div>
-        
+
       </div>
       <TicketsFilter
         isOpen={filterOpen}

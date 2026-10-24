@@ -39,9 +39,9 @@ const ClientsFilter = ({
     if (!isOpen) return;
     const selectedProperty = initialFilters.propertyId
       ? {
-        value: initialFilters.propertyId,
-        label: initialFilters.propertyCode || initialFilters.propertyId,
-      }
+          value: initialFilters.propertyId,
+          label: initialFilters.propertyCode || initialFilters.propertyId,
+        }
       : null;
     const selectedStayType =
       stayTypeOptions.find(
@@ -177,7 +177,6 @@ const ClientsFilter = ({
     { value: "Cancelled", label: "Cancelled" },
   ];
 
-
   const formatDateForFilter = (date) => {
     if (!date) return "";
 
@@ -188,8 +187,6 @@ const ClientsFilter = ({
     return `${year}-${month}-${day}`;
   };
   const onSubmit = (data) => {
-
-
     const filters = {
       propertyId: data.propertyId?.value || "",
       propertyCode: data.propertyId?.label || "",
@@ -248,10 +245,11 @@ const ClientsFilter = ({
       (data.clientDojFrom || data.clientDojTo) && {
         key: "clientDoj",
         title: "DOJ",
-        value: `${data.clientDojFrom ? data.clientDojFrom.toLocaleDateString("en-IN") : "Any"} - ${data.clientDojTo
+        value: `${data.clientDojFrom ? data.clientDojFrom.toLocaleDateString("en-IN") : "Any"} - ${
+          data.clientDojTo
             ? data.clientDojTo.toLocaleDateString("en-IN")
             : "Any"
-          }`,
+        }`,
       },
     ].filter(Boolean);
 
@@ -283,8 +281,9 @@ const ClientsFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         {/* Header */}
         <div className="flex justify-between items-center p-5 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900">
@@ -298,9 +297,9 @@ const ClientsFilter = ({
         {/* Body */}
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col h-[calc(100%-72px)]"
+          className="flex flex-col flex-1 min-h-0 overflow-hidden"
         >
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          <div className="flex-1 overflow-y-auto min-h-0 p-5 space-y-5">
             <Controller
               name="propertyId"
               control={control}
@@ -549,35 +548,39 @@ const ClientsFilter = ({
               )}
             />
           </div>
-          {/* ================= Sticky Footer ================= */}
 
-          <div className="sticky bottom-0 bg-white pt-4 border-t border-gray-200 flex gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                reset({
-                  propertyId: null,
-                  propertyLocation: "",
-                  roomNo: "",
-                  bedNo: "",
-                  stayType: "",
-                  loginEnabled: "",
-                  clientStatus: "",
-                });
+       {/* ================= Sticky Footer ================= */}
+          <div className="shrink-0 bg-white border-t border-gray-200 p-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  reset({
+                    propertyId: null,
+                    propertyLocation: "",
+                    roomNo: "",
+                    bedNo: "",
+                    stayType: "",
+                    loginEnabled: "",
+                    clientStatus: "",
+                    clientDojFrom: null,
+                    clientDojTo: null,
+                  });
 
-                handleReset();
-              }}
-              className="w-full border border-gray-300 py-2.5 rounded-lg font-medium hover:bg-gray-100 transition"
-            >
-              Reset
-            </button>
+                  handleReset();
+                }}
+                className="w-full border border-gray-300 py-2 rounded-lg"
+              >
+                Reset
+              </button>
 
-            <button
-              type="submit"
-              className="w-full bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 text-white py-2.5 rounded-lg font-medium hover:opacity-90 transition"
-            >
-              Apply Filters
-            </button>
+              <button
+                type="submit"
+                className="w-full bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600 text-white py-2 rounded-lg"
+              >
+                Apply Filters
+              </button>
+            </div>
           </div>
         </form>
       </div>

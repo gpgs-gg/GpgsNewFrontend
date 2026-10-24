@@ -600,6 +600,40 @@ const SalaryEdit = () => {
 
               <label className="form-label">Payable Salary</label>
             </div>
+            {/* CURRENT DUE - READ ONLY */}
+            <div className="form-group">
+              <input
+                type="text"
+                value={`₹ ${Number(salary?.currentDue ?? 0).toLocaleString(
+                  "en-IN",
+                  {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  },
+                )}`}
+                readOnly
+                placeholder=" "
+                className="form-input !bg-gray-100 cursor-not-allowed"
+              />
+              <label className="form-label">Current Due ₹</label>
+            </div>
+            {/* PREVIOUS DUE - READ ONLY */}
+            <div className="form-group">
+              <input
+                type="text"
+                value={`₹ ${Number(salary?.previousDue ?? 0).toLocaleString(
+                  "en-IN",
+                  {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  },
+                )}`}
+                readOnly
+                placeholder=" "
+                className="form-input !bg-gray-100 cursor-not-allowed"
+              />
+              <label className="form-label">Previous Due ₹</label>
+            </div>
           </div>
 
           <p className="text-xs text-gray-500 mt-3">
@@ -943,7 +977,7 @@ const SalaryEdit = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* PREVIOUS DUE */}
 
-            <div className="form-group">
+            {/* <div className="form-group">
               <input
                 type="text"
                 {...register("previousDue")}
@@ -952,7 +986,7 @@ const SalaryEdit = () => {
               />
 
               <label className="form-label">Previous Due ₹</label>
-            </div>
+            </div> */}
           </div>
 
           {/* COMMENTS */}

@@ -116,7 +116,7 @@ const RnrFilter = ({
 
       {/* DRAWER */}
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 ${
+        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -136,9 +136,9 @@ const RnrFilter = ({
         {/* FORM */}
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col h-[calc(100%-72px)]"
+          className="flex flex-col flex-1 min-h-0 overflow-hidden"
         >
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5">
             <Controller
               name="propertyId"
               control={control}
@@ -169,21 +169,24 @@ const RnrFilter = ({
           </div>
 
           {/* ACTION BUTTONS */}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="w-full border border-gray-300 py-2 rounded-lg transition hover:bg-gray-50"
-            >
-              Reset
-            </button>
+          {/* Buttons - same styling as AvailableBedsFilter */}
+          <div className="shrink-0 bg-white border-t border-gray-200 p-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="w-full border border-gray-300 py-2 rounded-lg hover:bg-gray-100"
+              >
+                Reset
+              </button>
 
-            <button
-              type="submit"
-              className="w-full bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600 text-white py-2 rounded-lg"
-            >
-              Apply Filters
-            </button>
+              <button
+                type="submit"
+                className="w-full bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 text-white py-2 rounded-lg"
+              >
+                Apply Filters
+              </button>
+            </div>
           </div>
         </form>
       </div>

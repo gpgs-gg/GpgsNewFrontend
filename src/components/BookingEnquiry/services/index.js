@@ -55,3 +55,25 @@ export const useCreateBookingEnquiry = () => {
     },
   });
 };
+
+// ==========================================
+// DELETE BOOKING ENQUIRY
+// ==========================================
+const deleteBookingEnquiry = async (id) => {
+  const response = await apiClient.delete(`/booking-enquiries/${id}`);
+  return response.data;
+};
+
+export const useDeleteBookingEnquiry = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteBookingEnquiry,
+    onSuccess: () => {
+      // Refresh the booking enquiry list after deletion
+      queryClient.invalidateQueries({
+        queryKey: ["booking-enquiry-form"],
+      });
+    },
+  });
+};

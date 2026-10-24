@@ -120,6 +120,7 @@ const RentLadgerTable = () => {
         propertyId: filters.propertyId || "",
         rentIds,
         columns: columnsToExport.map((column) => column.key),
+        clientName: client?.fullName || "",
       });
 
       if (!blob || blob.size === 0) {
@@ -131,7 +132,13 @@ const RentLadgerTable = () => {
       const link = document.createElement("a");
 
       link.href = url;
-      link.download = `rent-ledger-${new Date().toISOString().slice(0, 10)}.pdf`;
+      const clientName = client?.fullName
+        ? client.fullName.trim().replace(/[^a-zA-Z0-9]+/g, "-")
+        : "";
+
+      link.download = `rent-ledger-${clientName}-${new Date()
+        .toISOString()
+        .slice(0, 10)}.pdf`;
 
       document.body.appendChild(link);
       link.click();
@@ -468,7 +475,7 @@ const RentLadgerTable = () => {
                             : "text-gray-700"
                           }`}
                       >
-                      ₹{Number(item.currentDue || 0)}
+                        ₹{Number(item.currentDue || 0)}
                       </td>
                       <td className="p-3 text-green-600">
                         <div className="relative group inline-block">

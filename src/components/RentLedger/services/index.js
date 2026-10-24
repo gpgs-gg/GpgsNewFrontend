@@ -91,6 +91,7 @@ export const exportClientRentData = async ({
   propertyId = "",
   rentIds = [],
   columns = [],
+  clientName  = "",
 }) => {
   const response = await apiClient.post(
     "/rent-history/export",
@@ -101,6 +102,7 @@ export const exportClientRentData = async ({
       propertyId,
       rentIds,
       columns,
+      clientName
     },
     {
       responseType: "blob",

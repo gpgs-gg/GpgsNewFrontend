@@ -3,31 +3,108 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../../context/authContext";
 import Loader from "../../common/Loader";
 import DailyTodoTableSkeleton from "./DailyTodoTableSkeleton";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import "./DailyTodoTable.css";
 /* ================= CONFIG ================= */
 
 const SR_NO_WIDTH = 40;
 const FREQUENCY_WIDTH = 60;
-const ACTIVITIES_WIDTH = 290;
-const FIXED_COL_WIDTH = 140; // Fixed width for remaining columns
+const ACTIVITIES_WIDTH = 250; // Adjusted slightly for better fit
+const FIXED_COL_WIDTH = 160; // Slightly wider to accommodate pills
 const HIDDEN_COLUMNS = ["Notify"];
 
 /* ================= COLOR CONFIG ================= */
+/* Updated to match Screenshot Styles (Pill shapes with specific bg/text colors) */
 const COLORS = {
-  DONE: "bg-green-200", // Soft green (completed / on time)
-  UPCOMING: "bg-yellow-200 ", // Soft amber (upcoming)
-  DUE: "bg-white ", // Calm blue (due today)
-  OVERDUE: "bg-red-400 ", // Soft red (overdue)
-  SAMEDAY: "bg-blue-300 animate-pulse ",
+  DONE: "bg-green-100 text-green-700 border-green-200",
+  UPCOMING: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  DUE: "bg-white", // Used for empty/neutral
+  OVERDUE: "bg-red-100 text-red-600 border-red-200",
+  SAMEDAY: "bg-blue-100 text-blue-600 border-blue-200",
 };
 
+/* ================= VALIDATION ================= */
+const isValidDateFormat = (value) => {
+  const regex =
+    /^(0?[1-9]|[12][0-9]|3[01])\s(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{4}$/;
+
+  if (!regex.test(value)) return false;
+
+  const [day, monthStr, year] = value.split(" ");
+  const monthMap = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11,
+  };
+
+  const date = new Date(year, monthMap[monthStr], day);
+  return (
+    date.getFullYear() === Number(year) &&
+    date.getMonth() === monthMap[monthStr] &&
+    date.getDate() === Number(day)
+  );
+};
+const getDatePickerValue = (value) => {
+  const rawDate = value?.split("$")[0]?.split("_")[0]?.trim();
+
+  if (!rawDate || !isValidDateFormat(rawDate)) {
+    return null;
+  }
+
+  const [day, month, year] = rawDate.split(" ");
+
+  const monthMap = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11,
+  };
+
+  return new Date(Number(year), monthMap[month], Number(day));
+};
+
+const formatDatePickerValue = (date) => {
+  if (!date) return "NA";
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  return `${day} ${months[date.getMonth()]} ${date.getFullYear()}`;
+};
 /* ================= COMPONENT ================= */
 
-export default function DailyTodoTable({
-  title,
-
-  useFetchHook,
-  useUpdateHook,
-}) {
+export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
   const { user } = useAuth();
   const [rows, setRows] = useState([]);
   const [editedRows, setEditedRows] = useState([]);
@@ -36,21 +113,14 @@ export default function DailyTodoTable({
   const [editingCell, setEditingCell] = useState(null);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  // const [filteredRows, setFilteredRows] = useState([]);
   const [filteredColumns, setFilteredColumns] = useState([]);
-
-  //  const [setDiffDaysForAll, setDiffDaysForAll] = useState();
+  const [selectedDate, setSelectedDate] = useState(null);
   /* ================= TANSTACK QUERY ================= */
-  //const { data, isLoading } = useHouseKeepingData(month.sheet);
   const { data, isPending } = useFetchHook();
-  // Highlight clicked activity cell
   const [activeCell, setActiveCell] = useState(null);
-  // { row: number, col: string }
 
   // Filter logic
   const [selectedActivities, setSelectedActivities] = useState([]);
-
-  // column name like "01 Jan 2025"
 
   // for mobile long press
   const LONG_PRESS_TIME = 500; // ms
@@ -89,36 +159,29 @@ export default function DailyTodoTable({
         visibleHeaders.push(header === "" ? "S.No" : header);
       } else {
         visibleHeaders.push(header.title);
-
         propertyIdMap[header.title] = header.propertyId;
       }
     });
-    // console.log("Headers:", visibleHeaders);
-    // console.log("Property Map:", propertyIdMap);
-    setHeaders(visibleHeaders.filter((h) => !HIDDEN_COLUMNS.includes(h)));
 
+    setHeaders(
+      visibleHeaders.filter(
+        (h) => ![...HIDDEN_COLUMNS, "S.No", "SrNo", "Freq"].includes(h),
+      ),
+    );
     setPropertyMap(propertyIdMap);
     setRows(data.data);
-    // console.log(data.data);
     setEditedRows(JSON.parse(JSON.stringify(data.data)));
     setHasChanges(false);
-    // console.log("Headers:", visibleHeaders);
-    // console.log("Property Map:", propertyIdMap);
   }, [data]);
 
-  // Apply filtering logic
-
   /* ================= DATE UTILITIES ================= */
-  //  reset filter
   const resetFilters = () => {
     setSelectedActivities([]);
     setStatusFilter(null);
     setFilteredColumns([]);
     setActiveCell(null);
-    //window.location.reload();
   };
 
-  // toggle activity selection
   const toggleActivitySelection = (rIdx, activity) => {
     setActiveCell({ row: rIdx, col: "Activities" });
 
@@ -128,12 +191,10 @@ export default function DailyTodoTable({
         : [...prev, activity],
     );
 
-    // when activities change → reset column filters
     setStatusFilter(null);
     setFilteredColumns([]);
   };
 
-  //  future date validation
   const isFutureDate = (value) => {
     if (!isValidDateFormat(value)) return false;
 
@@ -159,10 +220,9 @@ export default function DailyTodoTable({
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    return inputDate > today; // ❌ future date
+    return inputDate > today;
   };
 
-  // parse date
   const parseCellDate = (cellValue) => {
     if (!cellValue || cellValue === "NA") return null;
 
@@ -190,63 +250,106 @@ export default function DailyTodoTable({
   let diffDays;
 
   /* ================= formatDateInput  ================= */
-  const getStatusForCell = (frequency, cellValue, uplValue) => {
-    const freq = Number(frequency);
-    const upl = Number(uplValue) || 0;
+const getStatusForCell = (frequency, cellValue, uplValue) => {
+  const freq = Number(frequency);
+  const notifyDays = Math.max(0, Number(uplValue) || 0);
 
-    if (!freq) return "";
+  if (!Number.isFinite(freq) || freq <= 0) return "";
 
-    const completedDate = parseCellDate(cellValue);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const completedDate = parseCellDate(cellValue);
 
-    // ❌ Not completed yet
-    if (!completedDate) {
-      return COLORS.DUE;
-    }
+  // No valid completion history
+  if (!completedDate) {
+    return COLORS.OVERDUE;
+  }
 
-    completedDate.setHours(0, 0, 0, 0);
+  completedDate.setHours(0, 0, 0, 0);
 
-    diffDays = Math.floor((today - completedDate) / (1000 * 60 * 60 * 24));
+  const diffDays = Math.round(
+    (today.getTime() - completedDate.getTime()) / (1000 * 60 * 60 * 24),
+  );
 
-    /* ================= DAILY ================= */
-    if (freq === 1) {
-      if (diffDays === 0) return COLORS.DONE;
-      if (diffDays < 0) return COLORS.DUE;
-      return COLORS.OVERDUE;
-    }
-
-    /* ================= GENERIC ================= */
-
-    if (diffDays < 0) return COLORS.DUE;
-
-    const daysLeft = freq - diffDays;
-    // 2️⃣ OVERDUE
-    if (diffDays > freq) {
-      return COLORS.OVERDUE;
-    }
-    if (diffDays === freq) {
-      return COLORS.SAMEDAY;
-    }
-    // ⚠️ Upcoming → use Upl from sheet
-    if (daysLeft >= 0 && daysLeft <= upl) {
-      return COLORS.UPCOMING;
-    }
-
-    // ✅ Done
-    if (diffDays >= 0 && diffDays <= freq) {
-      return COLORS.DONE;
-    }
-    // console.log(4444444444, diffDays === freq);
-    // 1️⃣ SAME DAY (exact due date)
-    if (diffDays === freq) {
-      return COLORS.SAMEDAY;
-    }
-
+  // Future completion date
+  if (diffDays < 0) {
     return COLORS.DUE;
-  };
+  }
 
+  // Task is due today
+  // Task is due today only when the frequency period has elapsed
+  if (diffDays === freq && notifyDays > 0) {
+    return COLORS.SAMEDAY;
+  }
+
+  // Task is overdue
+  if (diffDays > freq) {
+    return COLORS.OVERDUE;
+  }
+
+  // Upcoming notification period
+  if (freq - diffDays <= notifyDays) {
+    return COLORS.UPCOMING;
+  }
+
+  // Completed and not yet due
+  return COLORS.DONE;
+};;
+
+  // const getStatusForCell = (frequency, cellValue, uplValue) => {
+  //   const freq = Number(frequency);
+  //   const notifyDays = Math.max(0, Number(uplValue) || 0);
+
+  //   if (!Number.isFinite(freq) || freq <= 0) {
+  //     return "";
+  //   }
+
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
+
+  //   const completedDate = parseCellDate(cellValue);
+
+  //   // No valid completion history
+  //   if (!completedDate) {
+  //     return COLORS.OVERDUE;
+  //   }
+
+  //   completedDate.setHours(0, 0, 0, 0);
+
+  //   const diffDays = Math.round(
+  //     (today.getTime() - completedDate.getTime()) / (1000 * 60 * 60 * 24),
+  //   );
+
+  //   // Future dates are invalid
+  //   if (diffDays < 0) {
+  //     return COLORS.DUE;
+  //   }
+
+  //   // Keep Done throughout the cycle until the notification period begins.
+  //   const daysUntilDue = freq - diffDays;
+
+  //   if (daysUntilDue > notifyDays) {
+  //     return COLORS.DONE;
+  //   }
+
+  //   // Due today
+  //   if (daysUntilDue === 0) {
+  //     return COLORS.SAMEDAY;
+  //   }
+
+  //   // Past the due date
+  //   if (daysUntilDue < 0) {
+  //     return COLORS.OVERDUE;
+  //   }
+
+  //   // Upcoming based on Notify
+  //   if (daysUntilDue > 0 && daysUntilDue <= notifyDays) {
+  //     return COLORS.UPCOMING;
+  //   }
+
+  //   return COLORS.DUE;
+  // };
   const formatDateInput = (value) => {
     if (!value) return value;
 
@@ -254,8 +357,6 @@ export default function DailyTodoTable({
     if (parts.length !== 3) return value;
 
     let [day, month, year] = parts;
-
-    // Capitalize month (Dec, Jan, etc.)
     month = month.charAt(0).toUpperCase() + month.slice(1).toLowerCase();
 
     return `${day} ${month} ${year}`;
@@ -266,18 +367,14 @@ export default function DailyTodoTable({
     setSaving(true);
 
     const batchUpdates = [];
-
     const getPureValue = (val) => {
       if (val == null) return "NA";
-
       const value = String(val);
-
       return value.split("$")[0].split("_")[0].trim();
     };
 
     for (let r = 0; r < editedRows.length; r++) {
       const columnUpdates = [];
-
       const NON_EDITABLE_COLUMNS = ["S.No", "Activities", "Freq", "Notify"];
 
       for (let h of headers) {
@@ -295,10 +392,9 @@ export default function DailyTodoTable({
         }
       }
 
-      // ✅ Only push rows that actually changed
       if (columnUpdates.length > 0) {
         batchUpdates.push({
-          rowIndex: r, // frontend row index (0-based)
+          rowIndex: r,
           activityId: editedRows[r].activityId,
           columns: columnUpdates,
         });
@@ -312,16 +408,16 @@ export default function DailyTodoTable({
     }
 
     try {
-      // 🔥 SINGLE API CALL
-      //console.log("Sending payload", batchUpdates);
-
       await updateMutation.mutateAsync({
         updates: batchUpdates,
       });
 
-      // Sync local state
       setRows(JSON.parse(JSON.stringify(editedRows)));
       setHasChanges(false);
+
+      // Close the date picker after successful save
+      setEditingCell(null);
+      setSelectedDate(null);
 
       toast.success("Updated successfully");
     } catch (err) {
@@ -332,21 +428,16 @@ export default function DailyTodoTable({
   };
 
   /* ================= HANDLE CELL EDIT ================= */
-
   const handleCellEdit = (rowIndex, columnName, value) => {
     const trimmedValue = value.trim();
-
-    // Update editedRows
     const updatedEditedRows = [...editedRows];
     updatedEditedRows[rowIndex][columnName] = trimmedValue || "NA";
     setEditedRows(updatedEditedRows);
 
-    // Check if value changed from original
     const originalValue = rows[rowIndex][columnName];
     if (trimmedValue !== originalValue) {
       setHasChanges(true);
     } else {
-      // If user reverts to original value, check if all changes are reverted
       const hasAnyChanges = updatedEditedRows.some((row, rIdx) =>
         headers.some(
           (h, hIdx) =>
@@ -356,20 +447,14 @@ export default function DailyTodoTable({
       setHasChanges(hasAnyChanges);
     }
 
-    // End editing
     setEditingCell(null);
   };
 
   /* ================= GET COLUMN WIDTH ================= */
-
   const getColumnWidth = (index, header) => {
-    if (index === 0) return SR_NO_WIDTH; // S.No column
-    if (header === "Freq") return FREQUENCY_WIDTH;
     if (header === "Activities") return ACTIVITIES_WIDTH;
-    return FIXED_COL_WIDTH; // Fixed width for all other columns
+    return FIXED_COL_WIDTH;
   };
-
-  /* ================= GET STICKY LEFT POSITION ================= */
 
   const getStickyLeft = (index) => {
     let left = 0;
@@ -379,51 +464,11 @@ export default function DailyTodoTable({
     return left;
   };
 
-  /* ================= VALIDATION ================= */
-
-  const isValidDateFormat = (value) => {
-    const regex =
-      /^(0?[1-9]|[12][0-9]|3[01])\s(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{4}$/;
-
-    if (!regex.test(value)) return false;
-
-    // Extra safety: check if it's a real date
-    const [day, monthStr, year] = value.split(" ");
-    const monthMap = {
-      Jan: 0,
-      Feb: 1,
-      Mar: 2,
-      Apr: 3,
-      May: 4,
-      Jun: 5,
-      Jul: 6,
-      Aug: 7,
-      Sep: 8,
-      Oct: 9,
-      Nov: 10,
-      Dec: 11,
-    };
-
-    const date = new Date(year, monthMap[monthStr], day);
-    return (
-      date.getFullYear() === Number(year) &&
-      date.getMonth() === monthMap[monthStr] &&
-      date.getDate() === Number(day)
-    );
-  };
-
   /* ================= PARSE HISTORY VALUE ================= */
-
   const parseHistoryValue = (value) => {
     if (value == null) return [];
-
-    // already array
     if (Array.isArray(value)) return value;
-
-    // object
     if (typeof value === "object") return [];
-
-    // convert everything else to string
     value = String(value);
 
     if (value === "" || value === "NA") return [];
@@ -433,7 +478,6 @@ export default function DailyTodoTable({
       .filter(Boolean)
       .map((item, index) => {
         const [text, meta] = item.split("_");
-
         return {
           sr: index + 1,
           text: text?.trim() || "NA",
@@ -448,45 +492,46 @@ export default function DailyTodoTable({
   }
 
   // filter logic
-
   const isFilterApplied =
     selectedActivities.length > 0 ||
     filteredColumns.length > 0 ||
     statusFilter !== null;
 
-  // generic helper function for filtering activities with columns
   const getColumnsByStatusForActivities = (activities, targetStatus) => {
-    const unionSet = new Set();
+    const matchingColumns = new Set();
 
-    activities.forEach((activity) => {
-      const row = rows.find((r) => r.Activities === activity);
-      if (!row) return;
+    const selectedRows = rows.filter((row) =>
+      activities.includes(row.Activities),
+    );
 
+    selectedRows.forEach((row) => {
       const frequency = row["Freq"];
-      const upl = row["Notify"];
+      const notify = row["Notify"];
 
-      headers.forEach((head, idx) => {
-        if (idx < 3) return; // skip SrNo, Activities, Freq
+      headers.forEach((head) => {
+        // Skip only non-property columns.
+        // Do not skip columns based on their index.
+        if (["Activities", "Freq", "Notify", "S.No", "SrNo"].includes(head)) {
+          return;
+        }
 
-        const status = getStatusForCell(frequency, row[head], upl);
+        const status = getStatusForCell(frequency, row[head], notify);
+
         if (status === targetStatus) {
-          unionSet.add(head);
+          matchingColumns.add(head);
         }
       });
     });
 
-    // console.log(unionSet);
-    if ([...unionSet].length >= 1) {
-      //  console.log("unionSet.length", [...unionSet].length);
-      return Array.from(unionSet);
-    }
-    return [];
+    return [...matchingColumns];
   };
 
   // getFilterClass
   const getFilterClass = (type, baseClass) =>
     `${baseClass} cursor-pointer transition ${
-      statusFilter === type ? "  font-bold" : ""
+      statusFilter === type
+        ? "ring-2 ring-offset-1 ring-gray-400 font-bold"
+        : "opacity-80 hover:opacity-100"
     }`;
 
   //  apply status filter
@@ -502,13 +547,11 @@ export default function DailyTodoTable({
     setStatusFilter(type);
   };
 
-  // no filtered data
   const hideDataColumns =
     statusFilter &&
     filteredColumns.length === 0 &&
     selectedActivities.length > 0;
 
-  // empty filtered result
   const showNoDataFound =
     statusFilter &&
     filteredColumns.length === 0 &&
@@ -517,7 +560,6 @@ export default function DailyTodoTable({
   const moveToNextCell = (rowIndex, colIndex) => {
     let nextCol = colIndex + 1;
 
-    // Skip non-editable columns (first 3)
     while (nextCol < headers.length && nextCol < 3) {
       nextCol++;
     }
@@ -525,165 +567,149 @@ export default function DailyTodoTable({
     if (nextCol < headers.length) {
       setEditingCell({ row: rowIndex, col: headers[nextCol] });
     } else {
-      // Optional: move to first editable cell of next row
       const nextRow = rowIndex + 1;
       if (nextRow < rows.length) {
-        setEditingCell({ row: nextRow, col: headers[3] });
+        setEditingCell({
+          row: nextRow,
+          col: headers.find((h) => h !== "Activities"),
+        });
       } else {
         setEditingCell(null);
       }
     }
   };
 
-  /* ================= UI ================= */
+  /* ================= UI (UPDATED TO MATCH SCREENSHOT) ================= */
 
   return (
-    <div className=" w-auto    ">
-      <div className="flex flex-wrap  md:items-center md:justify-between  mx-2 mb-0">
-        <h1 className="text-xl font-bold underline px-5">
-          {title}
-          {/* DailyTodo – Housekeeping ({month.label}) */}
-        </h1>
+    <div className="w-full  font-sans text-gray-800">
+      {/* HEADER SECTION */}
 
-        {/* title color code  */}
-        <div className="flex   items-center md:text-lg md:gap-8 whitespace-nowrap md:mx-2 font-bold  md:px-4 md:py-2 ">
-          {/* already late */}
-          <p
-            onClick={() => applyStatusFilter("OVERDUE", COLORS.OVERDUE)}
-            className={getFilterClass(
-              "OVERDUE",
-              "px-6 p-1 md:py-1 bg-red-400 text-black",
-            )}
-          >
-            {statusFilter === "OVERDUE" && <span className=" mx-2">✔</span>}
-            Already Late
-          </p>
-
-          {/* done */}
-          <p
-            onClick={() => applyStatusFilter("DONE", COLORS.DONE)}
-            className={getFilterClass(
-              "DONE",
-              "px-6 py-1 bg-green-200 text-black",
-            )}
-          >
-            {statusFilter === "DONE" && <span className=" mx-2">✔</span>}
-            Done
-          </p>
-
-          {/* upcoming */}
-          <p
-            onClick={() => applyStatusFilter("UPCOMING", COLORS.UPCOMING)}
-            className={getFilterClass(
-              "UPCOMING",
-              "px-6 py-1 bg-yellow-200 text-black",
-            )}
-          >
-            {statusFilter === "UPCOMING" && <span className=" mx-2">✔</span>}
-            Upcoming
-          </p>
-
-          {/* same day */}
-          <p
-            onClick={() => applyStatusFilter("SAMEDAY", COLORS.SAMEDAY)}
-            className={getFilterClass(
-              "SAMEDAY",
-              "px-6 py-1 bg-blue-300 animate-pulse text-black",
-            )}
-          >
-            {statusFilter === "SAMEDAY" && <span className=" mx-2">✔</span>}
-            Today’s work
-          </p>
-          <div className="hidden">
-            {isFilterApplied && (
-              <button
-                onClick={resetFilters}
-                className="px-6 py-1 bg-gray-300 hover:bg-gray-400
-               text-black font-bold rounded transition"
-              >
-                Reset Filters
-              </button>
-            )}
-          </div>
+      {/* FILTER & ACTION BAR */}
+      <div className="px-6  bg-white flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-gray-200">
+        <div>
+          <h1 className="text-lg font-bold text-gray-400">{title}</h1>
         </div>
+        {/* Status Tabs */}
+        <div className="flex items-center justify-evenly  gap-6 text-sm font-medium overflow-x-auto pb-1 xl:pb-0">
+          <button
+            onClick={() => applyStatusFilter("OVERDUE", COLORS.OVERDUE)}
+            className={`flex cursor-pointer items-center gap-2 whitespace-nowrap ${statusFilter === "OVERDUE" ? "text-red-700 font-bold" : "text-gray-500 hover:text-gray-800"}`}
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-red-300"></span>{" "}
+            Already Late
+          </button>
+          {/* <button
+            onClick={() => applyStatusFilter("SAMEDAY", COLORS.SAMEDAY)}
+            className={`flex items-center gap-2 whitespace-nowrap ${statusFilter === "SAMEDAY" ? "text-blue-700 font-bold" : "text-gray-500 hover:text-gray-800"}`}
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-300"></span>{" "}
+            Today's Work
+          </button> */}
+          <button
+            onClick={() => applyStatusFilter("UPCOMING", COLORS.UPCOMING)}
+            className={`flex cursor-pointer items-center gap-2 whitespace-nowrap ${statusFilter === "UPCOMING" ? "text-yellow-700 font-bold" : "text-gray-500 hover:text-gray-800"}`}
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-yellow-300"></span>{" "}
+            Upcoming
+          </button>
+          <button
+            onClick={() => applyStatusFilter("DONE", COLORS.DONE)}
+            className={`flex cursor-pointer items-center gap-2 whitespace-nowrap ${statusFilter === "DONE" ? "text-green-700 font-bold" : "text-gray-500 hover:text-gray-800"}`}
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-green-300"></span> Done
+          </button>
 
-        <div className="flex gap-2 my-1 items-center text-[14px] px-8">
-          <div>
-            {isFilterApplied && (
-              <button
-                onClick={resetFilters}
-                className="px-6 py-1 bg-gray-300 hover:bg-gray-400
-               text-black font-bold rounded transition"
-              >
-                Reset Filters
-              </button>
-            )}
-          </div>
-          {hasChanges && (
+          {isFilterApplied && (
             <button
-              onClick={saveAllChanges}
-              disabled={saving}
-              className="theme-btn
-               font-bold text-black rounded disabled:opacity-50 transition-colors flex items-center gap-2"
+              onClick={resetFilters}
+              className="text-xs cursor-pointer text-red-600 underline ml-2"
             >
-              {saving ? (
-                <>
-                  <Loader /> Saving...
-                </>
-              ) : (
-                <> Save</>
-              )}
+              Reset
             </button>
           )}
         </div>
       </div>
 
-      <div className="relative lg:h-[79vh] h-auto overflow-x-auto overflow-y-auto bg-white shadow-lg rounded-md ">
+      {/* Save Button Strip */}
+      {hasChanges && (
+        <div className="absolute top-20 right-10 z-50">
+          <button
+            onClick={saveAllChanges}
+            disabled={saving}
+            className="bg-black text-white px-6 py-2 rounded-full shadow-lg font-bold disabled:opacity-50 transition-all flex items-center gap-2"
+          >
+            {saving ? (
+              <>
+                <Loader /> Saving...
+              </>
+            ) : (
+              <>Save Changes</>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* TABLE CONTAINER */}
+      <div className="relative h-[calc(100vh-180px)] overflow-auto bg-white">
         {showNoDataFound && (
-          <div className=" absolute top-[198px] left-[640px] z-[200] flex items-center gap-3 bg-white/90 backdrop-blur px-32 py-8 border border-gray-200 rounded-xl shadow-lg text-gray-600 font-semibold pointer-events-none animate-fadeIn">
-            <span className="text-orange-400 text-xl">📭</span>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 flex items-center gap-3 bg-white px-8 py-4 border border-gray-200 rounded-xl shadow-lg text-gray-600 font-semibold">
+            <span className="text-2xl">📭</span>
             <span>No Property Found with given Service</span>
           </div>
         )}
 
-        <table className="border-collapse text-sm table-fixed overflow-visible">
-          <thead className="sticky top-0 z-40 bg-gray-100">
+        <table className="border-collapse text-sm table-fixed min-w-full">
+          <thead className="sticky top-0 z-40 bg-gray-50 shadow-sm">
             <tr>
               {headers.map((head, i) => {
                 const isFilteredColumn =
-                  i < 3 || // always show SrNo, Activities, Freq
-                  (!hideDataColumns && // ⛔ hide when no data
+                  head === "Activities" ||
+                  (!hideDataColumns &&
                     (filteredColumns.length === 0 ||
                       filteredColumns.includes(head)));
-
-                // if (!isFilteredColumn) return null; // 🔥 HIDE HEADER
 
                 return (
                   <th
                     key={i}
-                    className={`  ${
-                      i === 0 || i === 2 ? "" : "px-5"
-                    } py-3  font-semibold      ${
-                      i < 3 ? "sticky z-50 bg-gray-100" : ""
-                    }      ${
-                      !isFilteredColumn && i >= 3 ? "hidden border-none" : ""
-                    }`}
+                    className={`${
+                      i === 0 ? "text-center" : "text-left"
+                    } py-3 px-4 font-semibold text-gray-500 uppercase tracking-wider text-xs border-b border-gray-200 ${
+                      i === 0 ? "sticky z-50 bg-gray-50" : ""
+                    } ${!isFilteredColumn && i > 0 ? "hidden" : ""}`}
                     style={{
-                      left: i < 3 ? getStickyLeft(i) : undefined,
+                      left: i === 0 ? getStickyLeft(i) : undefined,
                       width: getColumnWidth(i, head),
                       minWidth: getColumnWidth(i, head),
                       maxWidth: getColumnWidth(i, head),
-                      flexShrink: 0, // 🔒 IMPORTANT
                     }}
                   >
-                    <div className="truncate">{head}</div>
+                    <div className="flex items-center gap-2">
+                      {/* Icon for property columns */}
+                      {i > 0 && (
+                        <svg
+                          className="w-4 h-4 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                          ></path>
+                        </svg>
+                      )}
+                      <span className="truncate">{head}</span>
+                    </div>
                   </th>
                 );
               })}
             </tr>
           </thead>
 
-          <tbody className="overflow-visible">
+          <tbody className="divide-y divide-gray-100">
             {rows.map((row, rIdx) => {
               const frequency = row["Freq"];
               const upl = row["Notify"];
@@ -691,16 +717,16 @@ export default function DailyTodoTable({
               return (
                 <tr
                   key={rIdx}
-                  className={`transition-opacity overflow-visible duration-200 ${
+                  className={`group transition-all duration-200 ${
                     statusFilter &&
                     selectedActivities.length > 0 &&
                     !selectedActivities.includes(row.Activities)
-                      ? "bg-red-500/50 opacity-30"
-                      : "opacity-100"
+                      ? "bg-gray-50 opacity-40 grayscale"
+                      : "hover:bg-gray-50"
                   }`}
                 >
                   {headers.map((head, cIdx) => {
-                    const sticky = cIdx < 3;
+                    const sticky = cIdx === 0;
                     const isEditing =
                       editingCell?.row === rIdx && editingCell?.col === head;
                     const currentValue = editedRows[rIdx]?.[head] || row[head];
@@ -709,226 +735,317 @@ export default function DailyTodoTable({
                       editedRows[rIdx]?.[head] !== originalValue;
                     const width = getColumnWidth(cIdx, head);
                     const cellStatus =
-                      cIdx >= 3
+                      head !== "Activities"
                         ? getStatusForCell(frequency, currentValue, upl)
                         : "";
                     const isFilteredColumn =
-                      cIdx < 3 || // always show SrNo, Activities, Freq
-                      (!hideDataColumns && // ⛔ hide when no data
+                      head === "Activities" ||
+                      (!hideDataColumns &&
                         (filteredColumns.length === 0 ||
                           filteredColumns.includes(head)));
+                    const isLastColumn = cIdx === headers.length - 1;
+                    // Helper to determine pill style content
+                    const renderBadge = (status) => {
+                      if (!status)
+                        return <span className="text-gray-300">—</span>;
 
-                    // filteredColumns.length === 0 ||
-                    // filteredColumns.includes(head);
+                      let label = "";
+                      let icon = null;
+                      let baseClass =
+                        "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ";
+
+                      // Add border and shadow to mimic screenshot pills
+                      if (status === COLORS.DONE) {
+                        label = "Done";
+                        icon = (
+                          <svg
+                            className="w-3 h-3 mr-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="3"
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        );
+                      } else if (status === COLORS.OVERDUE) {
+                        label = "Late";
+                        icon = (
+                          <svg
+                            className="w-3 h-3 mr-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="3"
+                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        );
+                      } else if (status === COLORS.SAMEDAY) {
+                        label = "Today";
+                        icon = (
+                          <svg
+                            className="w-3 h-3 mr-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="3"
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        );
+                      } else if (status === COLORS.UPCOMING) {
+                        label = "Upcoming";
+                        icon = (
+                          <svg
+                            className="w-3 h-3 mr-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="3"
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                        );
+                      } else {
+                        // Default/Empty
+                        return <span className="text-gray-300">—</span>;
+                      }
+
+                      return (
+                        <div className={`${baseClass} ${status}`}>
+                          {icon}
+                          {label}
+                        </div>
+                      );
+                    };
 
                     return (
                       <td
                         key={cIdx}
-                        // onClick={() => {
-                        //   if (cIdx === 1) {
-                        //     toggleActivitySelection(rIdx, head, row.Activities);
-                        //   }
-                        // }}
-                        // onDoubleClick={() => {
-                        //   if (cIdx < 3) return; // Don't edit first 3 columns
-                        //   setEditingCell({ row: rIdx, col: head });
-                        // }}
-
                         onDoubleClick={() => {
-                          if (cIdx < 3) return;
+                          if (head === "Activities") return;
+
+                          setSelectedDate(getDatePickerValue(currentValue));
                           setEditingCell({ row: rIdx, col: head });
                         }}
                         onTouchStart={() => startLongPress(rIdx, head, cIdx)}
                         onTouchEnd={cancelLongPress}
                         onTouchMove={cancelLongPress}
-                        className={`border px-4 py-3 border-gray-50 hover:animate-none relative ${
-                          // Removed overflow-visible here as it's redundant if z-index is right
-                          sticky ? "sticky z-20 font-bold " : "z-10"
-                        } 
-    hover:z-[110] 
-    ${head === "Activities" ? "z-30" : ""} 
-    ${cIdx >= 3 ? cellStatus : ""}
-    ${cIdx === 0 || head === "Freq" ? "text-center" : ""}  
-    ${
-      activeCell?.row === rIdx && activeCell?.col === head
-        ? "bg-black/10"
-        : sticky
-          ? "bg-gray-100 "
-          : ""
-    }
-    ${!isFilteredColumn && cIdx >= 3 ? "hidden border-none" : ""}
-    `}
+                        className={`border-b border-gray-100 px-4 py-3 relative align-middle
+${sticky ? "sticky z-20 bg-white group-hover:bg-gray-50" : "hover:z-50"} 
+${!isFilteredColumn ? "hidden" : ""}
+`}
                         style={{
                           width: width,
                           minWidth: width,
                           maxWidth: width,
-                          flexShrink: 0, // 🔒 IMPORTANT
                           ...(sticky && { left: getStickyLeft(cIdx) }),
                         }}
                       >
                         {head === "SrNo" ? (
-                          <span className="font-bold flex justify-start items-start">
+                          <span className="text-gray-400 font-medium">
                             {rIdx + 1}
                           </span>
                         ) : isEditing ? (
-                          <div
-                            className="absolute inset-0 flex border-2
-                           border-black items-center justify-center z-40"
-                          >
-                            <input
-                              defaultValue={
-                                currentValue?.split("$")[0]?.split("_")[0] || ""
-                              }
-                              onBlur={(e) => {
-                                const trimmedValue = formatDateInput(
-                                  e.target.value.trim(),
+                          <div className="relative z-50 min-w-0 bg-white px-2 py-1">
+                            <DatePicker
+                              selected={selectedDate}
+                              onChange={(date) => {
+                                if (!date) return;
+
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+
+                                const selected = new Date(date);
+                                selected.setHours(0, 0, 0, 0);
+
+                                if (selected > today) {
+                                  toast.error("Future dates are not allowed");
+                                  return;
+                                }
+
+                                setSelectedDate(date);
+
+                                const updatedEditedRows = [...editedRows];
+                                updatedEditedRows[rIdx] = {
+                                  ...updatedEditedRows[rIdx],
+                                  [head]: formatDatePickerValue(date),
+                                };
+
+                                setEditedRows(updatedEditedRows);
+                                setHasChanges(
+                                  updatedEditedRows.some((row, rowIdx) =>
+                                    headers.some(
+                                      (h) =>
+                                        h !== "S.No" &&
+                                        String(row[h] ?? "NA") !==
+                                          String(rows[rowIdx][h] ?? "NA"),
+                                    ),
+                                  ),
                                 );
-                                if (trimmedValue && trimmedValue !== "NA") {
-                                  if (!isValidDateFormat(trimmedValue)) {
-                                    toast.error(
-                                      " Invalid date format! Use: 25 Dec 2025",
-                                    );
-                                    setEditingCell(null);
-                                    return;
-                                  }
-                                  if (isFutureDate(trimmedValue)) {
-                                    toast.error("Future dates are not allowed");
-                                    setEditingCell(null);
-                                    return;
-                                  }
-                                }
-                                handleCellEdit(rIdx, head, trimmedValue);
                               }}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === "Tab") {
-                                  e.preventDefault();
-                                  const trimmedValue = formatDateInput(
-                                    e.target.value.trim(),
-                                  );
-
-                                  if (trimmedValue && trimmedValue !== "NA") {
-                                    if (!isValidDateFormat(trimmedValue)) {
-                                      toast.error(
-                                        " Invalid date format! Use: 25 Dec 2025",
-                                      );
-                                      return;
-                                    }
-                                    if (isFutureDate(trimmedValue)) {
-                                      toast.error(
-                                        "Future dates are not allowed",
-                                      );
-                                      return;
-                                    }
-                                  }
-
-                                  handleCellEdit(rIdx, head, trimmedValue);
-                                  // 🔥 Move to next column in same row
-                                  moveToNextCell(rIdx, cIdx);
-                                }
-                                if (e.key === "Escape") {
-                                  setEditingCell(null);
-                                }
-                              }}
-                              className="  h-full w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 px-4 text-sm text-black caret-black font-medium"
-                              style={{
-                                boxShadow: "none",
-                                WebkitTextFillColor: "black",
-                                WebkitAppearance: "none",
-                                MozAppearance: "none",
-                              }}
+                              dateFormat="dd MMM yyyy"
+                              maxDate={new Date()}
+                              placeholderText="Select date"
+                              showPopperArrow={false}
+                              popperPlacement="bottom-start"
+                              className="w-full bg-transparent outline-none text-sm text-center font-medium text-gray-900"
+                              calendarClassName="shadow-xl"
+                              open
                             />
                           </div>
                         ) : (
-                          <div className="relative group cursor-pointer">
+                          <div className="relative group/cell w-full">
                             {(() => {
                               const historyArr =
                                 parseHistoryValue(currentValue);
                               const displayValue = historyArr[0]?.text || "-";
 
-                              return (
-                                <>
-                                  <div className="relative group flex items-center gap-2 ">
-                                    {head === "Activities" && (
-                                      <div>
-                                        <input
-                                          type="checkbox"
-                                          checked={selectedActivities.includes(
-                                            row.Activities,
-                                          )}
-                                          className="mr-2 h-5 w-5 accent-black border-gray-300 rounded focus:ring-orange-500"
-                                          // onClick={(e) => e.stopPropagation()}
-                                          onChange={() =>
-                                            toggleActivitySelection(
-                                              rIdx,
-                                              row.Activities,
-                                            )
-                                          }
-                                        />
-                                      </div>
-                                    )}
-                                    <div
-                                      className={`block ${
-                                        head === "Freq"
-                                          ? "whitespace-nowrap"
-                                          : "truncate max-w-[20ch]"
-                                      } ${
-                                        !currentValue || currentValue === "-"
-                                          ? "text-gray-400"
-                                          : "text-black"
-                                      }`}
-                                      style={{ maxWidth: width - 36 }}
-                                    >
-                                      {displayValue}
-
-                                      {isChanged && (
-                                        <span className="ml-1 text-xs">*</span>
+                              // Activities Column Custom UI
+                              if (head === "Activities") {
+                                return (
+                                  <div className="flex items-center gap-3">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedActivities.includes(
+                                        row.Activities,
                                       )}
+                                      className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                      onChange={() =>
+                                        toggleActivitySelection(
+                                          rIdx,
+                                          row.Activities,
+                                        )
+                                      }
+                                    />
+                                    <div className="flex flex-col text-left">
+                                      <span
+                                        className="font-bold text-gray-800 text-sm truncate max-w-[200px]"
+                                        title={row.Activities}
+                                      >
+                                        {row.Activities}
+                                      </span>
+                                      <span className="text-xs text-gray-500">
+                                        Every {frequency}{" "}
+                                        {Number(frequency) === 1
+                                          ? "Day"
+                                          : "Days"}
+                                      </span>
                                     </div>
                                   </div>
+                                );
+                              }
 
-                                  {historyArr.length > 0 && (
-                                    <div className="relative group overflow-visible ">
-                                      <div
-                                        className={`absolute left-[90%] top-0 opacity-0 group-hover:opacity-100 transition-all bg-white border border-gray-200 rounded-lg shadow-2xl z-[9999] min-w-[320px] pointer-events-none 
-    ${cIdx < 3 ? "ml-4" : "  ml-38"} 
-  `}
+                              // Frequency Column
+                              if (head === "Freq") {
+                                return (
+                                  <div className="text-center font-medium text-gray-600">
+                                    {frequency}D
+                                  </div>
+                                );
+                              }
+
+                              // Date Cells
+                              return (
+                                <div className="flex justify-center items-center h-full">
+                                  {renderBadge(cellStatus)}
+
+                                  {/* Hover Mark Done Button (Only if Due/Upcoming and no value) */}
+                                  {(cellStatus === COLORS.DUE ||
+                                    cellStatus === COLORS.OVERDUE ||
+                                    cellStatus === COLORS.UPCOMING) && (
+                                    <div className="absolute inset-0 bg-white/90 hidden group-hover/cell:flex items-center justify-center z-10 transition-all opacity-0 group-hover/cell:opacity-100">
+                                      <button
+                                        onClick={() => {
+                                          const today = new Date();
+                                          const day = String(
+                                            today.getDate(),
+                                          ).padStart(2, "0");
+                                          const months = [
+                                            "Jan",
+                                            "Feb",
+                                            "Mar",
+                                            "Apr",
+                                            "May",
+                                            "Jun",
+                                            "Jul",
+                                            "Aug",
+                                            "Sep",
+                                            "Oct",
+                                            "Nov",
+                                            "Dec",
+                                          ];
+                                          const month =
+                                            months[today.getMonth()];
+                                          const year = today.getFullYear();
+                                          const dateStr = `${day} ${month} ${year}`;
+                                          handleCellEdit(rIdx, head, dateStr);
+                                        }}
+                                        className="bg-white border border-gray-300 shadow-sm hover:bg-gray-50 text-gray-700 text-xs font-semibold py-1 px-3 rounded flex items-center gap-1"
                                       >
-                                        <div className="p-3 space-y-2 z-100 ">
-                                          {cIdx > 2 && (
-                                            <div className="text-xs font-semibold text-gray-500 uppercase">
-                                              Previous History - ( {diffDays} )
-                                            </div>
-                                          )}
-
-                                          {historyArr
-                                            .slice(0, 4)
-                                            .map((item, idx) => (
-                                              <div
-                                                key={idx}
-                                                className={`p-2 rounded  text-xs ${
-                                                  idx === 0
-                                                    ? "bg-gray-50"
-                                                    : "bg-gray-50"
-                                                }`}
-                                              >
-                                                <div className="whitespace-nowrap">
-                                                  <span className="font-semibold">
-                                                    {" "}
-                                                    {item.text}
-                                                  </span>{" "}
-                                                  {item.meta && (
-                                                    <span className="text-[10px] text-gray-500">
-                                                      {item.meta}
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              </div>
-                                            ))}
-                                        </div>
-                                      </div>
+                                        <svg
+                                          className="w-3 h-3"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="3"
+                                            d="M12 4v16m8-8H4"
+                                          />
+                                        </svg>
+                                        Mark Done
+                                      </button>
                                     </div>
                                   )}
-                                </>
+
+                                  {/* Hover Tooltip for History */}
+                                  {/* Hover Tooltip for History */}
+                                  {historyArr.length > 0 && (
+                                    <div
+                                      className={`absolute top-1/2 -translate-y-1/2 opacity-0 invisible group-hover/cell:opacity-100 group-hover/cell:visible transition-opacity duration-200 bg-gray-900 text-white text-xs rounded-md py-2 px-3 pointer-events-none z-[9999] shadow-xl min-w-[150px] w-max ${
+                                        isLastColumn
+                                          ? "right-full mr-2"
+                                          : "left-full ml-2"
+                                      }`}
+                                    >
+                                      <div className="font-bold border-b border-gray-700 pb-1 mb-1">
+                                        History
+                                      </div>
+
+                                      {historyArr.slice(0, 3).map((h, i) => (
+                                        <div
+                                          key={i}
+                                          className="whitespace-nowrap py-0.5 flex justify-between gap-2"
+                                        >
+                                          <span>{h.text}</span>
+                                          <span className="text-gray-400 text-[10px]">
+                                            {h.meta}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
                               );
                             })()}
                           </div>

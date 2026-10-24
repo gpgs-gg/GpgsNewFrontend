@@ -164,131 +164,128 @@ const PropertyFilter = ({
             <X size={20} />
           </button>
         </div>
-
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex-1 overflow-y-auto"
+          className="flex flex-col flex-1 min-h-0 overflow-hidden"
           id="property-filter-form"
         >
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
-            
-              {/* Property Code */}
-              <Controller
-                name="propertyId"
-                control={control}
-                render={({ field }) => (
-                  <div
-                    className={`select-group ${field.value ? "has-value" : ""}`}
-                  >
-                    <label className="select-label">Property Code</label>
-
-                    <AsyncPaginate
-                      additional={{
-                        page: 1,
-                      }}
-                      debounceTimeout={500}
-                      isClearable
-                      placeholder=""
-                      loadOptions={loadPropertyOptions}
-                      styles={selectStyles}
-                      value={field.value}
-                      onChange={(selectedOption) =>
-                        field.onChange(selectedOption)
-                      }
-                    />
-                  </div>
-                )}
-              />
-
-              {/* Location */}
-              <Controller
-                name="propertyLocation"
-                control={control}
-                render={({ field }) => (
-                  <div
-                    className={`select-group ${field.value ? "has-value" : ""}`}
-                  >
-                    <label className="select-label">Location</label>
-
-                    <Select
-                      options={locationOptions}
-                      isSearchable
-                      isClearable
-                      placeholder="Location"
-                      value={field.value}
-                      onChange={(option) => field.onChange(option)}
-                      styles={selectStyles}
-                    />
-                  </div>
-                )}
-              />
-
-              {/* Bed Count */}
-              <Controller
-                name="bedCount"
-                control={control}
-                render={({ field }) => (
-                  <div
-                    className={`select-group ${field.value ? "has-value" : ""}`}
-                  >
-                    <label className="select-label">Bed Count</label>
-
-                    <Select
-                      options={bedCountOptions}
-                      isSearchable
-                      isClearable
-                      placeholder="Bed Count"
-                      value={field.value}
-                      onChange={(option) => field.onChange(option)}
-                      styles={selectStyles}
-                    />
-                  </div>
-                )}
-              />
-
-              {/* Status */}
-              <Controller
-                name="status"
-                control={control}
-                render={({ field }) => (
-                  <div
-                    className={`select-group ${field.value ? "has-value" : ""}`}
-                  >
-                    <label className="select-label">Status</label>
-
-                    <Select
-                      options={statusOptions}
-                      isSearchable
-                      isClearable
-                      placeholder="Status"
-                      value={field.value}
-                      onChange={(option) => field.onChange(option)}
-                      styles={selectStyles}
-                    />
-                  </div>
-                )}
-              />
-            </div>
-            {/* Reset / Apply Buttons */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="w-full border border-gray-300 py-2 rounded-lg"
+          <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5">
+            {/* Property Code */}
+            <Controller
+              name="propertyId"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
                 >
-                  Reset
-                </button>
+                  <label className="select-label">Property Code</label>
 
-                <button
-                  type="submit"
-                  className="w-full bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600 text-white py-2 rounded-lg"
+                  <AsyncPaginate
+                    additional={{
+                      page: 1,
+                    }}
+                    debounceTimeout={500}
+                    isClearable
+                    placeholder=""
+                    loadOptions={loadPropertyOptions}
+                    styles={selectStyles}
+                    value={field.value}
+                    onChange={(selectedOption) =>
+                      field.onChange(selectedOption)
+                    }
+                  />
+                </div>
+              )}
+            />
+
+            {/* Location */}
+            <Controller
+              name="propertyLocation"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
                 >
-                  Apply Filters
-                </button>
-              </div>
+                  <label className="select-label">Location</label>
+
+                  <Select
+                    options={locationOptions}
+                    isSearchable
+                    isClearable
+                    placeholder="Location"
+                    value={field.value}
+                    onChange={(option) => field.onChange(option)}
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+
+            {/* Bed Count */}
+            <Controller
+              name="bedCount"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Bed Count</label>
+
+                  <Select
+                    options={bedCountOptions}
+                    isSearchable
+                    isClearable
+                    placeholder="Bed Count"
+                    value={field.value}
+                    onChange={(option) => field.onChange(option)}
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+
+            {/* Status */}
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Status</label>
+
+                  <Select
+                    options={statusOptions}
+                    isSearchable
+                    isClearable
+                    placeholder="Status"
+                    value={field.value}
+                    onChange={(option) => field.onChange(option)}
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+          </div>
+          {/* Reset / Apply Buttons */}
+          <div className="sticky bottom-0 bg-white border-t border-gray-200 p-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="w-full border border-gray-300 py-2 rounded-lg"
+              >
+                Reset
+              </button>
+
+              <button
+                type="submit"
+                className="w-full bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600 text-white py-2 rounded-lg"
+              >
+                Apply Filters
+              </button>
             </div>
-      
+          </div>
         </form>
       </div>
     </>

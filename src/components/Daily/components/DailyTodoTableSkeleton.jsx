@@ -9,7 +9,7 @@ const SkeletonBlock = ({ w = "100%", h = "16px" }) => (
 
 export default function DailyTodoTableSkeleton() {
   return (
-    <div className="min-h-screen w-auto bg-gray-50 pt-24 my-2">
+    <div className="min-h-screen w-auto bg-gray-50 pt-2 my-2">
       {/* HEADER */}
       <div className="flex flex-wrap md:items-center md:justify-between mx-2 mb-4">
         <div className="px-5 space-y-2">

@@ -613,9 +613,9 @@ const BankTransactionList = () => {
                           )}
                         </td>
 
-                        <td className="p-3 text-center">
+                        {/* <td className="p-3 text-center">
                           {item.userId?.fullName || "-"}
-                        </td>
+                        </td> */}
 
                         <td className="p-3 text-center">
                           {formatDate(item.createdAt)}
