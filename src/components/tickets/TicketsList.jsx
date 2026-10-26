@@ -134,6 +134,7 @@ const TicketsList = () => {
     { label: "Date Created", key: "dateCreated" },
     { label: "Property Code", key: "propertyCode" },
     { label: "Title", key: "title" },
+    { label: "Description", key: "description" },
     { label: "Status", key: "status" },
     { label: "Customer Impacted", key: "customerImpacted" },
     { label: "Escalated", key: "escalated" },
@@ -420,7 +421,7 @@ const TicketsList = () => {
                   <div className="flex items-center gap-2">
                     {[
                       { label: "ALL", value: "all" },
-                      { label: "CLIENTS TKT ", value: "Clients" },
+                      { label: "CLIENTS TKT ", value: "Client" },
                       { label: "GPGS TKT", value: "Employee" },
                     ].map((tab) => (
                       <button

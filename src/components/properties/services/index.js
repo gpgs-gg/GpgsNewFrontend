@@ -217,3 +217,305 @@ export const usePropertySequencesData = (enabled = true) => {
     enabled,
   });
 };
+
+
+
+
+
+
+// ====================== GET ALL PROPERTY EXPENSES ======================
+const getPropertyExpensesData = async ({
+  page = 1,
+  limit = 10,
+  search = "",
+  filters = {},
+}) => {
+  const params = { page, limit };
+
+  if (search?.trim()) {
+    params.search = search.trim();
+  }
+
+  if (filters.propertyId) {
+    params.propertyId = filters.propertyId;
+  }
+
+  if (filters.propertyLocation) {
+    params.propertyLocation = filters.propertyLocation;
+  }
+
+  if (filters.category) {
+    params.category = filters.category;
+  }
+
+  if (filters.paymentMode) {
+    params.paymentMode = filters.paymentMode;
+  }
+
+  if (filters.fromDate) {
+    params.fromDate = filters.fromDate;
+  }
+
+  if (filters.toDate) {
+    params.toDate = filters.toDate;
+  }
+
+  const response = await apiClient.get("/property-expenses", {
+    params,
+  });
+
+  return response.data;
+};
+
+export const usePropertyExpensesData = ({
+  page = 1,
+  limit = 10,
+  search = "",
+  filters = {},
+  enabled = true,
+}) => {
+  return useQuery({
+    queryKey: [
+      "property-expenses",
+      page,
+      limit,
+      search,
+      filters.propertyId,
+      filters.propertyLocation,
+      filters.category,
+      filters.paymentMode,
+      filters.fromDate,
+      filters.toDate,
+    ],
+    queryFn: () =>
+      getPropertyExpensesData({
+        page,
+        limit,
+        search,
+        filters,
+      }),
+    enabled,
+    keepPreviousData: true,
+  });
+};
+
+// ====================== GET SINGLE EXPENSE BY ID ======================
+const getSinglePropertyExpenseData = async (id) => {
+  const response = await apiClient.get(`/property-expenses/${id}`);
+  return response.data;
+};
+
+export const useSinglePropertyExpenseData = (id) => {
+  return useQuery({
+    queryKey: ["property-expense", id],
+    queryFn: () => getSinglePropertyExpenseData(id),
+    enabled: !!id,
+  });
+};
+
+// ====================== GET EXPENSES BY PROPERTY ID ======================
+const getExpensesByPropertyIdData = async ({
+  propertyId,
+  page = 1,
+  limit = 10,
+  search = "",
+  filters = {},
+}) => {
+  const params = { page, limit };
+
+  if (search?.trim()) {
+    params.search = search.trim();
+  }
+
+  if (filters.category) {
+    params.category = filters.category;
+  }
+
+  if (filters.paymentMode) {
+    params.paymentMode = filters.paymentMode;
+  }
+
+  if (filters.fromDate) {
+    params.fromDate = filters.fromDate;
+  }
+
+  if (filters.toDate) {
+    params.toDate = filters.toDate;
+  }
+
+  const response = await apiClient.get(
+    `/property-expenses/property/${propertyId}`,
+    { params }
+  );
+
+  return response.data;
+};
+
+export const useExpensesByPropertyId = ({
+  propertyId,
+  page = 1,
+  limit = 10,
+  search = "",
+  filters = {},
+  enabled = true,
+}) => {
+  return useQuery({
+    queryKey: [
+      "property-expenses-by-property",
+      propertyId,
+      page,
+      limit,
+      search,
+      filters.category,
+      filters.paymentMode,
+      filters.fromDate,
+      filters.toDate,
+    ],
+    queryFn: () =>
+      getExpensesByPropertyIdData({
+        propertyId,
+        page,
+        limit,
+        search,
+        filters,
+      }),
+    enabled: enabled && !!propertyId,
+    keepPreviousData: true,
+  });
+};
+
+// ====================== GET EXPENSE SUMMARY ======================
+const getPropertyExpenseSummaryData = async (filters = {}) => {
+  const params = {};
+
+  if (filters.propertyId) {
+    params.propertyId = filters.propertyId;
+  }
+
+  if (filters.category) {
+    params.category = filters.category;
+  }
+
+  if (filters.paymentMode) {
+    params.paymentMode = filters.paymentMode;
+  }
+
+  if (filters.fromDate) {
+    params.fromDate = filters.fromDate;
+  }
+
+  if (filters.toDate) {
+    params.toDate = filters.toDate;
+  }
+
+  const response = await apiClient.get("/property-expenses/summary", {
+    params,
+  });
+
+  return response.data;
+};
+
+export const usePropertyExpenseSummary = ({
+  filters = {},
+  enabled = true,
+} = {}) => {
+  return useQuery({
+    queryKey: [
+      "property-expense-summary",
+      filters.propertyId,
+      filters.category,
+      filters.paymentMode,
+      filters.fromDate,
+      filters.toDate,
+    ],
+    queryFn: () => getPropertyExpenseSummaryData(filters),
+    enabled,
+  });
+};
+
+// ====================== CREATE EXPENSE ======================
+const createPropertyExpenseData = async (data) => {
+  const response = await apiClient.post("/property-expenses", data);
+  return response.data;
+};
+
+export const useCreatePropertyExpense = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createPropertyExpenseData,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["property-expenses"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["property-expenses-by-property"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["property-expense-summary"],
+      });
+    },
+  });
+};
+
+// ====================== UPDATE EXPENSE ======================
+const updatePropertyExpenseData = async ({ id, data }) => {
+  const response = await apiClient.put(`/property-expenses/${id}`, data);
+  return response.data;
+};
+
+export const useUpdatePropertyExpense = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updatePropertyExpenseData,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["property-expenses"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["property-expenses-by-property"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["property-expense-summary"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["property-expense", variables.id],
+      });
+    },
+  });
+};
+
+// ====================== DELETE SINGLE EXPENSE ======================
+const deletePropertyExpenseData = async (id) => {
+  const response = await apiClient.delete(`/property-expenses/${id}`);
+  return response.data;
+};
+
+export const useDeletePropertyExpense = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deletePropertyExpenseData,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["property-expenses"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["property-expenses-by-property"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["property-expense-summary"],
+      });
+    },
+  });
+};
+
+

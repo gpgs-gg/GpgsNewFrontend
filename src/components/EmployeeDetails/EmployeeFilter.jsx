@@ -120,7 +120,7 @@ const EmployeeFilter = ({
       {/* FILTER DRAWER */}
 
       <div
-        className={`fixed top-0 right-0 z-50 h-full w-96 bg-white shadow-xl transition-transform duration-300 ${
+        className={`fixed top-0 right-0 z-50 h-full w-96 bg-white shadow-xl transition-transform duration-300 flex flex-col ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -140,32 +140,39 @@ const EmployeeFilter = ({
 
         {/* FORM */}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 p-5">
-          {/* DEPARTMENT */}
+        <form
+          id="employee-filter-form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-1 min-h-0 flex-col"
+        >
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-5 p-5">
+            {/* DEPARTMENT */}
 
-          <Controller
-            name="departmentId"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Department</label>
+            <Controller
+              name="departmentId"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Department</label>
 
-                <Select
-                  options={departmentOptions}
-                  isSearchable
-                  isClearable
-                  placeholder="Select "
-                  value={field.value}
-                  onChange={(option) => field.onChange(option)}
-                  styles={selectStyles}
-                />
-              </div>
-            )}
-          />
+                  <Select
+                    options={departmentOptions}
+                    isSearchable
+                    isClearable
+                    placeholder="Select "
+                    value={field.value}
+                    onChange={(option) => field.onChange(option)}
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
 
-          {/* TEAM */}
+            {/* TEAM */}
 
-          {/* <Controller
+            {/* <Controller
             name="teamCodeId"
             control={control}
             render={({ field }) => (
@@ -185,53 +192,59 @@ const EmployeeFilter = ({
             )}
           /> */}
 
-          {/* STATUS */}
+            {/* STATUS */}
 
-          <Controller
-            name="statusId"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Status</label>
+            <Controller
+              name="statusId"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Status</label>
 
-                <Select
-                  options={statusOptions}
-                  isSearchable
-                  isClearable
-                  placeholder="Select "
-                  value={field.value}
-                  onChange={(option) => field.onChange(option)}
-                  styles={selectStyles}
-                />
-              </div>
-            )}
-          />
-
+                  <Select
+                    options={statusOptions}
+                    isSearchable
+                    isClearable
+                    placeholder="Select "
+                    value={field.value}
+                    onChange={(option) => field.onChange(option)}
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+          </div>
           {/* BUTTONS */}
 
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => {
-                reset({
-                  departmentId: null,
-                  teamCodeId: null,
-                  statusId: null,
-                });
+          {/* FIXED FOOTER BUTTONS */}
+          <div className="shrink-0 border-t border-gray-200 bg-white p-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  reset({
+                    departmentId: null,
+                    teamCodeId: null,
+                    statusId: null,
+                  });
 
-                handleReset();
-              }}
-              className="w-full rounded-lg border border-gray-300 py-2 transition hover:bg-gray-50"
-            >
-              Reset
-            </button>
+                  handleReset();
+                }}
+                className="w-full rounded-lg border border-gray-300 py-2 transition hover:bg-gray-50"
+              >
+                Reset
+              </button>
 
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-gradient-to-r from-slate-800 via-slate-700 to-slate-900 py-2 text-white transition hover:opacity-90"
-            >
-              Apply Filters
-            </button>
+              <button
+                type="submit"
+                form="employee-filter-form"
+                className="w-full rounded-lg bg-gradient-to-r from-slate-800 via-slate-700 to-slate-900 py-2 text-white transition hover:opacity-90"
+              >
+                Apply Filters
+              </button>
+            </div>
           </div>
         </form>
       </div>

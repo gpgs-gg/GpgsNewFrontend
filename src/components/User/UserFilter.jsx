@@ -133,7 +133,7 @@ const UserFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 ${
+        className={`fixed top-0 right-0 z-50 h-full w-96 bg-white shadow-xl transition-transform duration-300 flex flex-col ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -145,77 +145,90 @@ const UserFilter = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-5">
-          {/* User */}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-1 min-h-0 flex-col"
+        >
+          {" "}
+          {/* SCROLLABLE FILTER FIELDS */}
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-5 p-5">
+            {/* User */}
 
-          <Controller
-            name="userId"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">User</label>
+            <Controller
+              name="userId"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">User</label>
 
-                <AsyncPaginate
-                  additional={{
-                    page: 1,
-                  }}
-                  debounceTimeout={500}
-                  isClearable
-                  placeholder=""
-                  loadOptions={loadUserOptions}
-                  styles={selectStyles}
-                  value={field.value}
-                  onChange={(option) => field.onChange(option)}
-                />
-              </div>
-            )}
-          />
+                  <AsyncPaginate
+                    additional={{
+                      page: 1,
+                    }}
+                    debounceTimeout={500}
+                    isClearable
+                    placeholder=""
+                    loadOptions={loadUserOptions}
+                    styles={selectStyles}
+                    value={field.value}
+                    onChange={(option) => field.onChange(option)}
+                  />
+                </div>
+              )}
+            />
 
-          {/* Role */}
+            {/* Role */}
 
-          <Controller
-            name="role"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Role</label>
+            <Controller
+              name="role"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Role</label>
 
-                <Select
-                  options={roleOptions}
-                  isSearchable
-                  isClearable
-                  placeholder="Role"
-                  value={field.value}
-                  onChange={(option) => field.onChange(option)}
-                  styles={selectStyles}
-                />
-              </div>
-            )}
-          />
+                  <Select
+                    options={roleOptions}
+                    isSearchable
+                    isClearable
+                    placeholder="Role"
+                    value={field.value}
+                    onChange={(option) => field.onChange(option)}
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
 
-          {/* Status */}
+            {/* Status */}
 
-          <Controller
-            name="isActive"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Status</label>
+            <Controller
+              name="isActive"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Status</label>
 
-                <Select
-                  options={statusOptions}
-                  isSearchable
-                  isClearable
-                  placeholder="Status"
-                  value={field.value}
-                  onChange={(option) => field.onChange(option)}
-                  styles={selectStyles}
-                />
-              </div>
-            )}
-          />
-
-          <div className="flex gap-3 pt-4">
+                  <Select
+                    options={statusOptions}
+                    isSearchable
+                    isClearable
+                    placeholder="Status"
+                    value={field.value}
+                    onChange={(option) => field.onChange(option)}
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+          </div>
+          <div className="shrink-0 border-t border-gray-200 bg-white p-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+            <div className="flex gap-3">
             <button
               type="button"
               onClick={handleReset}
@@ -230,6 +243,7 @@ const UserFilter = ({
             >
               Apply Filters
             </button>
+            </div>
           </div>
         </form>
       </div>

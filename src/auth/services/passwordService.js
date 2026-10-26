@@ -1,9 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  withCredentials: true, // IMPORTANT for refresh token cookies
-});
+import { apiClient } from "../../api/ApiClient";
 
 const login = async (data) => {
   const response = await apiClient.post("/login", data);

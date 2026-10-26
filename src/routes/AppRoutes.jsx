@@ -69,6 +69,7 @@ import { useAuth } from "../context/authContext";
 import BookingEnquiry from "../pages/BookingEnquiry";
 import RNRTable from "../components/New_RNR/RNRTable";
 import PageNotFound from "../components/common/PageNotFound";
+// import PropertyExpenses from "../components/properties/PropertyExpenses";
 const AppRoutes = () => {
   const { user } = useAuth();
   const role = user?.role?.trim().toLowerCase();
@@ -225,10 +226,15 @@ const AppRoutes = () => {
               path="/eb-details-for-clients"
               element={<EBCalculationData />}
             />
+
             <Route
               path="/prop-perso-details"
               element={<PropAndPersDetails />}
             />
+            {/* <Route
+              path="/property-expenses"
+              element={<PropertyExpenses />}
+            /> */}
             <Route path="/agreement-details" element={<Agreement />} />
           </Route>
         </Route>

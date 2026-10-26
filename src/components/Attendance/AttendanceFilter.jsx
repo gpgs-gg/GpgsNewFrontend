@@ -168,7 +168,7 @@ const AttendanceFilter = ({
       {/* FILTER DRAWER */}
 
       <div
-        className={`fixed top-0 right-0 z-50 h-full w-96 bg-white shadow-xl transition-transform duration-300 ${
+        className={`fixed top-0 right-0 z-50 h-full w-96 bg-white shadow-xl transition-transform duration-300 flex flex-col ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -188,154 +188,166 @@ const AttendanceFilter = ({
 
         {/* FORM */}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 p-5">
-          {/* ==================================================
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-1 min-h-0 flex-col"
+        >
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-5 p-5">
+            {/* ==================================================
     MONTH
 ================================================== */}
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Month</label>
+            <div>
+              <label className="block text-sm font-medium mb-2">Month</label>
 
-            <Controller
-              name="month"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`datepicker-group ${field.value ? "has-value" : ""}`}
-                >
-                  <DatePicker
-                    selected={
-                      field.value ? new Date(`${field.value}-01`) : null
-                    }
-                    onChange={(date) => {
-                      if (date) {
-                        const year = date.getFullYear();
-                        const month = String(date.getMonth() + 1).padStart(
-                          2,
-                          "0",
-                        );
-
-                        field.onChange(`${year}-${month}`);
-                      } else {
-                        field.onChange("");
+              <Controller
+                name="month"
+                control={control}
+                render={({ field }) => (
+                  <div
+                    className={`datepicker-group ${field.value ? "has-value" : ""}`}
+                  >
+                    <DatePicker
+                      selected={
+                        field.value ? new Date(`${field.value}-01`) : null
                       }
-                    }}
-                    dateFormat="MMM yyyy"
-                    showMonthYearPicker
-                    isClearable
-                    placeholderText="Select Month"
-                    className="custom-datepicker w-full"
-                  />
-                </div>
-              )}
-            />
-          </div>
+                      onChange={(date) => {
+                        if (date) {
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(
+                            2,
+                            "0",
+                          );
 
-          {/* ==================================================
+                          field.onChange(`${year}-${month}`);
+                        } else {
+                          field.onChange("");
+                        }
+                      }}
+                      dateFormat="MMM yyyy"
+                      showMonthYearPicker
+                      isClearable
+                      placeholderText="Select Month"
+                      className="custom-datepicker w-full"
+                    />
+                  </div>
+                )}
+              />
+            </div>
+
+            {/* ==================================================
     DATE
 ================================================== */}
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Date</label>
+            <div>
+              <label className="block text-sm font-medium mb-2">Date</label>
+
+              <Controller
+                name="date"
+                control={control}
+                render={({ field }) => (
+                  <div
+                    className={`datepicker-group ${field.value ? "has-value" : ""}`}
+                  >
+                    <DatePicker
+                      selected={field.value ? new Date(field.value) : null}
+                      onChange={(date) => {
+                        if (date) {
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(
+                            2,
+                            "0",
+                          );
+                          const day = String(date.getDate()).padStart(2, "0");
+
+                          field.onChange(`${year}-${month}-${day}`);
+                        } else {
+                          field.onChange("");
+                        }
+                      }}
+                      dateFormat="dd MMM yyyy"
+                      isClearable
+                      placeholderText="Select Date"
+                      className="custom-datepicker w-full"
+                    />
+                  </div>
+                )}
+              />
+            </div>
+            {/* ==================================================
+              STATUS
+          ================================================== */}
 
             <Controller
-              name="date"
+              name="status"
               control={control}
               render={({ field }) => (
                 <div
-                  className={`datepicker-group ${field.value ? "has-value" : ""}`}
+                  className={`select-group ${field.value ? "has-value" : ""}`}
                 >
-                  <DatePicker
-                    selected={field.value ? new Date(field.value) : null}
-                    onChange={(date) => {
-                      if (date) {
-                        const year = date.getFullYear();
-                        const month = String(date.getMonth() + 1).padStart(
-                          2,
-                          "0",
-                        );
-                        const day = String(date.getDate()).padStart(2, "0");
+                  <label className="select-label">Status</label>
 
-                        field.onChange(`${year}-${month}-${day}`);
-                      } else {
-                        field.onChange("");
-                      }
-                    }}
-                    dateFormat="dd MMM yyyy"
+                  <Select
+                    options={statusOptions}
+                    isSearchable
                     isClearable
-                    placeholderText="Select Date"
-                    className="custom-datepicker w-full"
+                    placeholder="Status"
+                    value={field.value}
+                    onChange={(option) => field.onChange(option)}
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name="employeeId"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Employee</label>
+
+                  <Select
+                    options={employeeOptions}
+                    isSearchable
+                    isClearable
+                    placeholder="Select "
+                    value={field.value}
+                    onChange={(option) => field.onChange(option)}
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name="department"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Department</label>
+
+                  <Select
+                    options={departmentOptions}
+                    isSearchable
+                    isClearable
+                    placeholder="Select"
+                    value={field.value}
+                    onChange={(option) => field.onChange(option)}
+                    styles={selectStyles}
                   />
                 </div>
               )}
             />
           </div>
-          {/* ==================================================
-              STATUS
-          ================================================== */}
-
-          <Controller
-            name="status"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Status</label>
-
-                <Select
-                  options={statusOptions}
-                  isSearchable
-                  isClearable
-                  placeholder="Status"
-                  value={field.value}
-                  onChange={(option) => field.onChange(option)}
-                  styles={selectStyles}
-                />
-              </div>
-            )}
-          />
-          <Controller
-            name="employeeId"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Employee</label>
-
-                <Select
-                  options={employeeOptions}
-                  isSearchable
-                  isClearable
-                  placeholder="Select "
-                  value={field.value}
-                  onChange={(option) => field.onChange(option)}
-                  styles={selectStyles}
-                />
-              </div>
-            )}
-          />
-          <Controller
-            name="department"
-            control={control}
-            render={({ field }) => (
-              <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                <label className="select-label">Department</label>
-
-                <Select
-                  options={departmentOptions}
-                  isSearchable
-                  isClearable
-                  placeholder="Select"
-                  value={field.value}
-                  onChange={(option) => field.onChange(option)}
-                  styles={selectStyles}
-                />
-              </div>
-            )}
-          />
           {/* ==================================================
               ACTION BUTTONS
           ================================================== */}
 
-          <div className="flex gap-3 pt-4">
+          <div className="shrink-0 border-t border-gray-200 bg-white p-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+  <div className="flex gap-3">
             <button
               type="button"
               onClick={() => {
@@ -360,7 +372,7 @@ const AttendanceFilter = ({
             >
               Apply Filters
             </button>
-          </div>
+          </div></div>
         </form>
       </div>
     </>

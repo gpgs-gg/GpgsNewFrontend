@@ -62,7 +62,7 @@ const ClientCreateEdit = () => {
         defaultValues: {
             newWorkLog: "",
             clientDocsStatus: ["Pending"],
-      parentDocsStatus: "Pending",
+            parentDocsStatus: "Pending",
         },
     });
 
@@ -100,17 +100,17 @@ const ClientCreateEdit = () => {
             label: "P. Booked",
         },
     ];
-const clientDocsStatusOptions = [
-    { value: "Pending", label: "Pending" },
-    { value: "KYC Done", label: "KYC Done" },
-    { value: "AG Done", label: "AG Done" },
-    { value: "P NOC Done", label: "P NOC Done" },
-  ];
+    const clientDocsStatusOptions = [
+        { value: "Pending", label: "Pending" },
+        { value: "KYC Done", label: "KYC Done" },
+        { value: "AG Done", label: "AG Done" },
+        { value: "P NOC Done", label: "P NOC Done" },
+    ];
 
-  const parentDocsStatusOptions = [
-    { value: "Pending", label: "Pending" },
-    { value: "KYC Done", label: "KYC Done" },
-  ];
+    const parentDocsStatusOptions = [
+        { value: "Pending", label: "Pending" },
+        { value: "KYC Done", label: "KYC Done" },
+    ];
     useEffect(() => {
         const ClientData = singleClientData?.data;
         if (!ClientData) return;
@@ -145,13 +145,13 @@ const clientDocsStatusOptions = [
                 : null,
             comments: ClientData.comment,
             status: ClientData.status,
-      // Document Status
-      clientDocsStatus:
-        Array.isArray(ClientData.clientDocsStatus) &&
-        ClientData.clientDocsStatus.length > 0
-          ? ClientData.clientDocsStatus
-          : ["Pending"],
-      parentDocsStatus: ClientData.parentDocsStatus || "Pending",
+            // Document Status
+            clientDocsStatus:
+                Array.isArray(ClientData.clientDocsStatus) &&
+                    ClientData.clientDocsStatus.length > 0
+                    ? ClientData.clientDocsStatus
+                    : ["Pending"],
+            parentDocsStatus: ClientData.parentDocsStatus || "Pending",
             // WorkLog
             newWorkLog: "",
         });
@@ -303,6 +303,17 @@ const clientDocsStatusOptions = [
         }
     };
 
+
+    const clientDoj = watch("clientDoj");
+
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+
+    const dojDate = clientDoj ? new Date(clientDoj) : null;
+    if (dojDate) dojDate.setHours(0, 0, 0, 0);
+
+    const canCancelBooking =
+        dojDate && dojDate >= currentDate;
 
     return (
         <div className="max-w-12xl mx-auto px-6 ">
@@ -527,6 +538,7 @@ const clientDocsStatusOptions = [
                             />
                             <label className="form-label">Comment</label>
                         </div> */}
+
                         <Controller
                             name="isBookingCancelled"
                             control={control}
@@ -544,15 +556,23 @@ const clientDocsStatusOptions = [
                                         {...field}
                                         options={isBookingCancelledOptions}
                                         isClearable
+                                        isDisabled={!canCancelBooking}
                                         placeholder=""
                                         value={isBookingCancelledOptions.find(
-                                            (option) => option.value === field.value,
-                                        )}
+                                            (option) => option.value === field.value
+                                        ) || null}
                                         onChange={(selectedOption) =>
-                                            field.onChange(selectedOption?.value)
+                                            field.onChange(selectedOption?.value ?? null)
                                         }
                                         styles={selectStyles}
                                     />
+
+                                    {!canCancelBooking && (
+                                        <small className="text-red-500">
+                                            Booking can only be cancelled when Client DOJ
+                                            is today or in the future.
+                                        </small>
+                                    )}
                                 </div>
                             )}
                         />
@@ -932,82 +952,81 @@ const clientDocsStatusOptions = [
                                 onRemoveNew={(index) => removeFile("clientPoliceNOC", index)}
                             />
                         </div>
-             <Controller
-              name="clientDocsStatus"
-              control={control}
-              defaultValue={["Pending"]}
-              render={({ field }) => {
-                const selectedValues = Array.isArray(field.value)
-                  ? field.value
-                  : [];
+                        <Controller
+                            name="clientDocsStatus"
+                            control={control}
+                            defaultValue={["Pending"]}
+                            render={({ field }) => {
+                                const selectedValues = Array.isArray(field.value)
+                                    ? field.value
+                                    : [];
 
-                const selectedOptions = clientDocsStatusOptions.filter(
-                  (option) => selectedValues.includes(option.value),
-                );
+                                const selectedOptions = clientDocsStatusOptions.filter(
+                                    (option) => selectedValues.includes(option.value),
+                                );
 
-                return (
-                  <div
-                    className={`select-group ${
-                      selectedValues.length ? "has-value" : ""
-                    }`}
-                  >
-                    <label className="select-label required-label">
-                      Client Docs Status
-                    </label>
+                                return (
+                                    <div
+                                        className={`select-group ${selectedValues.length ? "has-value" : ""
+                                            }`}
+                                    >
+                                        <label className="select-label required-label">
+                                            Client Docs Status
+                                        </label>
 
-                    <Select
-                      options={clientDocsStatusOptions}
-                      isMulti
-                      placeholder=""
-                      value={selectedOptions}
-                      onChange={(selectedOptions) => {
-                        const values =
-                          selectedOptions?.map((option) => option.value) || [];
+                                        <Select
+                                            options={clientDocsStatusOptions}
+                                            isMulti
+                                            placeholder=""
+                                            value={selectedOptions}
+                                            onChange={(selectedOptions) => {
+                                                const values =
+                                                    selectedOptions?.map((option) => option.value) || [];
 
-                        field.onChange(values);
-                      }}
-                      styles={selectStyles}
-                      isDisabled={isViewMode}
-                      closeMenuOnSelect={false}
-                    />
-                  </div>
-                );
-              }}
-            />
-            <Controller
-              name="parentDocsStatus"
-              control={control}
-              defaultValue="Pending"
-              render={({ field }) => (
-                <div
-                  className={`select-group ${field.value ? "has-value" : ""}`}
-                >
-                  <label className="select-label required-label">
-                    Parent Docs Status
-                  </label>
+                                                field.onChange(values);
+                                            }}
+                                            styles={selectStyles}
+                                            isDisabled={isViewMode}
+                                            closeMenuOnSelect={false}
+                                        />
+                                    </div>
+                                );
+                            }}
+                        />
+                        <Controller
+                            name="parentDocsStatus"
+                            control={control}
+                            defaultValue="Pending"
+                            render={({ field }) => (
+                                <div
+                                    className={`select-group ${field.value ? "has-value" : ""}`}
+                                >
+                                    <label className="select-label required-label">
+                                        Parent Docs Status
+                                    </label>
 
-                  <Select
-                    {...field}
-                    options={parentDocsStatusOptions}
-                    isClearable
-                    placeholder=""
-                    value={
-                      parentDocsStatusOptions.find(
-                        (option) => option.value === field.value,
-                      ) || null
-                    }
-                    onChange={(selectedOption) =>
-                      field.onChange(selectedOption?.value || "")
-                    }
-                    styles={selectStyles}
-                    isDisabled={isViewMode}
-                  />
-                </div>
-              )}
-            />
+                                    <Select
+                                        {...field}
+                                        options={parentDocsStatusOptions}
+                                        isClearable
+                                        placeholder=""
+                                        value={
+                                            parentDocsStatusOptions.find(
+                                                (option) => option.value === field.value,
+                                            ) || null
+                                        }
+                                        onChange={(selectedOption) =>
+                                            field.onChange(selectedOption?.value || "")
+                                        }
+                                        styles={selectStyles}
+                                        isDisabled={isViewMode}
+                                    />
+                                </div>
+                            )}
+                        />
                     </div>
                 </div>
-      
+
                 {/* ====================== WORK LOG ====================== */}
 
                 {clientId && (

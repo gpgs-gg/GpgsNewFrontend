@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../context/authContext";
 import Loader from "../../common/Loader";
@@ -250,52 +251,52 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
   let diffDays;
 
   /* ================= formatDateInput  ================= */
-const getStatusForCell = (frequency, cellValue, uplValue) => {
-  const freq = Number(frequency);
-  const notifyDays = Math.max(0, Number(uplValue) || 0);
+  const getStatusForCell = (frequency, cellValue, uplValue) => {
+    const freq = Number(frequency);
+    const notifyDays = Math.max(0, Number(uplValue) || 0);
 
-  if (!Number.isFinite(freq) || freq <= 0) return "";
+    if (!Number.isFinite(freq) || freq <= 0) return "";
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const completedDate = parseCellDate(cellValue);
+    const completedDate = parseCellDate(cellValue);
 
-  // No valid completion history
-  if (!completedDate) {
-    return COLORS.OVERDUE;
-  }
+    // No valid completion history
+    if (!completedDate) {
+      return COLORS.OVERDUE;
+    }
 
-  completedDate.setHours(0, 0, 0, 0);
+    completedDate.setHours(0, 0, 0, 0);
 
-  const diffDays = Math.round(
-    (today.getTime() - completedDate.getTime()) / (1000 * 60 * 60 * 24),
-  );
+    const diffDays = Math.round(
+      (today.getTime() - completedDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
 
-  // Future completion date
-  if (diffDays < 0) {
-    return COLORS.DUE;
-  }
+    // Future completion date
+    if (diffDays < 0) {
+      return COLORS.DUE;
+    }
 
-  // Task is due today
-  // Task is due today only when the frequency period has elapsed
-  if (diffDays === freq && notifyDays > 0) {
-    return COLORS.SAMEDAY;
-  }
+    // Task is due today
+    // Task is due today only when the frequency period has elapsed
+    if (diffDays === freq && notifyDays > 0) {
+      return COLORS.SAMEDAY;
+    }
 
-  // Task is overdue
-  if (diffDays > freq) {
-    return COLORS.OVERDUE;
-  }
+    // Task is overdue
+    if (diffDays > freq) {
+      return COLORS.OVERDUE;
+    }
 
-  // Upcoming notification period
-  if (freq - diffDays <= notifyDays) {
-    return COLORS.UPCOMING;
-  }
+    // Upcoming notification period
+    if (freq - diffDays <= notifyDays) {
+      return COLORS.UPCOMING;
+    }
 
-  // Completed and not yet due
-  return COLORS.DONE;
-};;
+    // Completed and not yet due
+    return COLORS.DONE;
+  };
 
   // const getStatusForCell = (frequency, cellValue, uplValue) => {
   //   const freq = Number(frequency);
@@ -361,7 +362,50 @@ const getStatusForCell = (frequency, cellValue, uplValue) => {
 
     return `${day} ${month} ${year}`;
   };
+  /* ================= CANCEL TEMPORARY CHANGES ================= */
+  const cancelAllChanges = () => {
+    // Revert all unsaved changes to original API data
+    setEditedRows(JSON.parse(JSON.stringify(rows)));
 
+    // Reset temporary editing state
+    setHasChanges(false);
+    setEditingCell(null);
+    setSelectedDate(null);
+
+    toast.info("Changes cancelled");
+  };
+  /* ================= CANCEL SINGLE CELL CHANGE ================= */
+  const cancelCellChange = (rowIndex, columnName) => {
+    const updatedEditedRows = editedRows.map((row, index) => {
+      if (index !== rowIndex) return row;
+
+      return {
+        ...row,
+        [columnName]: rows[rowIndex][columnName],
+      };
+    });
+
+    setEditedRows(updatedEditedRows);
+
+    // Check whether any other unsaved changes remain
+    const hasAnyChanges = updatedEditedRows.some((row, rIdx) =>
+      headers.some(
+        (head) =>
+          !["S.No", "SrNo", "Activities", "Freq", "Notify"].includes(head) &&
+          String(row[head] ?? "NA") !== String(rows[rIdx][head] ?? "NA"),
+      ),
+    );
+
+    setHasChanges(hasAnyChanges);
+
+    // Close the date picker if this cell was being edited
+    if (editingCell?.row === rowIndex && editingCell?.col === columnName) {
+      setEditingCell(null);
+      setSelectedDate(null);
+    }
+
+    //toast.info("Cell change cancelled");
+  };
   /* ================= SAVE ALL CHANGES ================= */
   const saveAllChanges = async () => {
     setSaving(true);
@@ -633,11 +677,22 @@ const getStatusForCell = (frequency, cellValue, uplValue) => {
 
       {/* Save Button Strip */}
       {hasChanges && (
-        <div className="absolute top-20 right-10 z-50">
+        <div className="absolute  top-20 right-90 z-50">
+          {/* Cancel Temporary Changes */}
+          {/* <button
+            type="button"
+            onClick={cancelAllChanges}
+            disabled={saving}
+            title="Cancel unsaved changes"
+            aria-label="Cancel unsaved changes"
+            className="flex items-center justify-center w-9 h-9 rounded-full border border-red-200 bg-white text-red-600 shadow-md hover:bg-red-50 disabled:opacity-50 transition-all"
+          >
+            <X size={18} strokeWidth={2.5} />
+          </button> */}
           <button
             onClick={saveAllChanges}
             disabled={saving}
-            className="bg-black text-white px-6 py-2 rounded-full shadow-lg font-bold disabled:opacity-50 transition-all flex items-center gap-2"
+            className="bg-black text-white px-4 py-1 rounded-xl shadow-lg font-bold disabled:opacity-50 transition-all flex items-center gap-2"
           >
             {saving ? (
               <>
@@ -674,7 +729,7 @@ const getStatusForCell = (frequency, cellValue, uplValue) => {
                     key={i}
                     className={`${
                       i === 0 ? "text-center" : "text-left"
-                    } py-3 px-4 font-semibold text-gray-500 uppercase tracking-wider text-xs border-b border-gray-200 ${
+                    } py-3 px-4 font-bold  uppercase tracking-wider text-xs border-b border-gray-200 ${
                       i === 0 ? "sticky z-50 bg-gray-50" : ""
                     } ${!isFilteredColumn && i > 0 ? "hidden" : ""}`}
                     style={{
@@ -688,7 +743,7 @@ const getStatusForCell = (frequency, cellValue, uplValue) => {
                       {/* Icon for property columns */}
                       {i > 0 && (
                         <svg
-                          className="w-4 h-4 text-gray-400"
+                          className="w-4 h-4 "
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -964,14 +1019,31 @@ ${!isFilteredColumn ? "hidden" : ""}
 
                               // Date Cells
                               return (
-                                <div className="flex justify-center items-center h-full">
+                                <div className="relative flex justify-center items-center h-full">
                                   {renderBadge(cellStatus)}
+
+                                  {/* Cancel only this cell's unsaved change */}
+                                  {isChanged && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        cancelCellChange(rIdx, head);
+                                      }}
+                                      disabled={saving}
+                                      title="Cancel this cell change"
+                                      aria-label={`Cancel change for ${head}`}
+                                      className="absolute right-1 top-1/2 -translate-y-1/2 z-20 text-red-600 disabled:opacity-50 transition-colors"
+                                    >
+                                      <X size={14} strokeWidth={2.5} />
+                                    </button>
+                                  )}
 
                                   {/* Hover Mark Done Button (Only if Due/Upcoming and no value) */}
                                   {(cellStatus === COLORS.DUE ||
                                     cellStatus === COLORS.OVERDUE ||
                                     cellStatus === COLORS.UPCOMING) && (
-                                    <div className="absolute inset-0 bg-white/90 hidden group-hover/cell:flex items-center justify-center z-10 transition-all opacity-0 group-hover/cell:opacity-100">
+                                    <div className="absolute inset-0 hidden group-hover/cell:flex items-center justify-center z-10 transition-all opacity-0 group-hover/cell:opacity-100">
                                       <button
                                         onClick={() => {
                                           const today = new Date();
@@ -998,7 +1070,7 @@ ${!isFilteredColumn ? "hidden" : ""}
                                           const dateStr = `${day} ${month} ${year}`;
                                           handleCellEdit(rIdx, head, dateStr);
                                         }}
-                                        className="bg-white border border-gray-300 shadow-sm hover:bg-gray-50 text-gray-700 text-xs font-semibold py-1 px-3 rounded flex items-center gap-1"
+                                        className=" border border-gray-300 shadow-sm hover:bg-gray-50 text-gray-700 text-xs font-semibold py-1 px-3 rounded flex items-center gap-1"
                                       >
                                         <svg
                                           className="w-3 h-3"

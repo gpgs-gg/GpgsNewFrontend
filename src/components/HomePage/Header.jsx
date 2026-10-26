@@ -929,7 +929,6 @@ const normalizedRole = String(userRole).trim().toLowerCase();
 
                 <div className="grid grid-cols-2 gap-3">
                   {/* Login */}
-
                   <Link
                     to="/login"
                     onClick={() => setMenuOpen(false)}
@@ -949,29 +948,7 @@ const normalizedRole = String(userRole).trim().toLowerCase();
                     "
                   >
                     Login
-                  </Link>
-
-                  {/* Get Started */}
-
-                  <Link
-                    to="/register"
-                    onClick={() => setMenuOpen(false)}
-                    className="
-                      h-12
-                      flex
-                      items-center
-                      justify-center
-                      rounded-xl
-                      bg-[#14223f]
-                      text-white
-                      text-sm
-                      font-semibold
-                      hover:bg-[#1d3155]
-                      transition-colors
-                    "
-                  >
-                    Get Started
-                  </Link>
+                  </Link>              
                 </div>
               )}
             </div>

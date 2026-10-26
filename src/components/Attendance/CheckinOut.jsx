@@ -237,18 +237,43 @@ const CheckinOut = () => {
   // Your current backend does NOT enforce 10 AM.
   // ======================================================
 
-  const getIndiaHour = () => {
-    const indiaHour = new Intl.DateTimeFormat("en-IN", {
+  // ======================================================
+  // CHECK-IN TIME RESTRICTION
+  // ======================================================
+
+  // Change these values whenever you want to update check-in time.
+  const CHECK_IN_HOUR = 6;
+  const CHECK_IN_MINUTE = 45;
+
+  const getIndiaTimeInMinutes = () => {
+    const parts = new Intl.DateTimeFormat("en-IN", {
       timeZone: "Asia/Kolkata",
       hour: "2-digit",
+      minute: "2-digit",
       hour12: false,
-    }).format(currentTime);
+    }).formatToParts(currentTime);
 
-    return Number(indiaHour);
+    const hour = Number(parts.find((part) => part.type === "hour")?.value);
+
+    const minute = Number(parts.find((part) => part.type === "minute")?.value);
+
+    return hour * 60 + minute;
   };
 
-  const canCheckIn = getIndiaHour() >= 10;
+  const allowedCheckInMinutes = CHECK_IN_HOUR * 60 + CHECK_IN_MINUTE;
 
+  const canCheckIn = getIndiaTimeInMinutes() >= allowedCheckInMinutes;
+  const formattedCheckInTime = new Date(
+    2000,
+    0,
+    1,
+    CHECK_IN_HOUR,
+    CHECK_IN_MINUTE,
+  ).toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
   // ======================================================
   // FORMAT REMAINING TIME
   // ======================================================
@@ -313,7 +338,9 @@ const CheckinOut = () => {
 
   const openCamera = async (mode) => {
     if (mode === "check-in" && !canCheckIn) {
-      toast.warning("Check-in is available only after 10:00 AM.");
+      toast.warning(
+        `Check-in is available only after ${String(CHECK_IN_HOUR).padStart(2, "0")}:${String(CHECK_IN_MINUTE).padStart(2, "0")} AM.`,
+      );
       return;
     }
 
@@ -965,7 +992,7 @@ const CheckinOut = () => {
     },
   ];
   return (
-    <div className="p-4 md:p-6">
+    <div className=" md:p-6">
       {/* ==================================================
           PAGE HEADER
       ================================================== */}
@@ -975,7 +1002,7 @@ const CheckinOut = () => {
             TODAY ATTENDANCE CARD
         ================================================== */}
 
-        <div className="overflow-hidden max-h-fit rounded-2xl border border-gray-200 bg-white shadow-sm p-2">
+        <div className="overflow-hidden max-h-fit rounded-2xl border border-gray-200 bg-white shadow-sm p-1">
           {/* CARD HEADER */}
 
           <div className="border-b border-gray-100 bg-gradient-to-r from-green-50 to-white px-5 py-4">
@@ -1290,7 +1317,7 @@ const CheckinOut = () => {
           {!hasCheckedIn && !canCheckIn && (
             <div className="mt-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-center">
               <p className="text-xs font-medium text-red-600">
-                Check-in is available after 10:00 AM.
+                Check-in is allowed after {formattedCheckInTime}.
               </p>
 
               <p className="mt-0.5 text-[11px] text-red-500">
@@ -1307,60 +1334,65 @@ const CheckinOut = () => {
         <div className="rounded-xl bg-white shadow-md">
           {/* HEADER */}
 
-          <div className="flex flex-col gap-4 border-b p-3 md:flex-row md:items-center md:justify-between">
-            <div>
+          <div className="flex flex-col gap-4  p-1 md:flex-row md:items-center md:justify-between">
+            {/* HEADER */}
+            <div className=" p-1">
               <h2 className="text-lg font-bold text-gray-800">
                 Attendance History
               </h2>
-            </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  setSelectedAttendance({
-                    employeeId: todayAttendance?.employeeId || null,
-                    attendanceDate: "",
-                  })
-                }
-                className="border whitespace-nowrap border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
-              >
-                <FaTicketAlt />
-                <span>Raise Request</span>
-              </button>
+              {/* Horizontally scrollable actions on mobile */}
+              <div className="mt-1 w-full min-w-0 overflow-x-auto pb-1">
+                <div className="flex w-max items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedAttendance({
+                        employeeId: todayAttendance?.employeeId || null,
+                        attendanceDate: "",
+                      })
+                    }
+                    className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-gray-300 px-3 py-2 text-sm transition hover:bg-gray-100"
+                  >
+                    <FaTicketAlt />
+                    <span>Raise Request</span>
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => setShowMyRequests(true)}
-                className="flex items-center gap-2 whitespace-nowrap rounded-lg  cursor-pointer px-4 py-2 text-sm font-medium border border-gray-300 transition hover:bg-gray-100"
-              >
-                {" "}
-                <FaCalendarAlt /> Show All Requests{" "}
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowMyRequests(true)}
+                    className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-gray-300 px-3 py-2 text-sm transition hover:bg-gray-100"
+                  >
+                    <FaCalendarAlt />
+                    <span>Show All Requests</span>
+                  </button>
 
-              <DatePicker
-                selected={month ? new Date(`${month}-01`) : null}
-                onChange={(date) => {
-                  if (date) {
-                    const year = date.getFullYear();
-                    const monthNumber = String(date.getMonth() + 1).padStart(
-                      2,
-                      "0",
-                    );
+                  <div className="w-[130px] shrink-0">
+                    <DatePicker
+                      selected={month ? new Date(`${month}-01`) : null}
+                      onChange={(date) => {
+                        if (date) {
+                          const year = date.getFullYear();
+                          const monthNumber = String(
+                            date.getMonth() + 1,
+                          ).padStart(2, "0");
 
-                    setMonth(`${year}-${monthNumber}`);
-                  } else {
-                    setMonth("");
-                  }
+                          setMonth(`${year}-${monthNumber}`);
+                        } else {
+                          setMonth("");
+                        }
 
-                  setCurrentPage(1);
-                }}
-                dateFormat="MMM yyyy"
-                showMonthYearPicker
-                isClearable
-                placeholderText="Select Month"
-                className="custom-datepicker"
-              />
+                        setCurrentPage(1);
+                      }}
+                      dateFormat="MMM yyyy"
+                      showMonthYearPicker
+                      isClearable
+                      placeholderText="Select Month"
+                      className="custom-datepicker w-full"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
