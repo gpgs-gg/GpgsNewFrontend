@@ -475,16 +475,15 @@ const RentLadgerTable = () => {
                             : "text-gray-700"
                           }`}
                       >
-                        ₹{Number(item.currentDue || 0)}
+                        ₹
+                        {Math.round(Number(item.currentDue || 0)).toLocaleString("en-IN")}
                       </td>
                       <td className="p-3 text-green-600">
                         <div className="relative group inline-block">
                           {/* Total */}
                           <span className="font-semibold cursor-pointer">
                             ₹
-                            {Number(item.totalReceived || 0).toLocaleString(
-                              "en-IN",
-                            )}
+                            {Math.round(Number(item.totalReceived || 0)).toLocaleString("en-IN")}
                           </span>
 
                           {/* Hover */}
@@ -510,13 +509,16 @@ const RentLadgerTable = () => {
                         </div>
                       </td>
                       <td className="p-3 font-semibold">
-                        ₹{item.totalReceivable}
+                        ₹
+                        {Math.round(Number(item.totalReceivable || 0)).toLocaleString("en-IN")}
                       </td>
                       <td className="p-3">₹{item.rentAmt}</td>
                       <td className="p-3">{item.daysCount}</td>
                       <td className="p-3">₹{item.ebAmt}</td>
                       <td className="p-3">₹{item.adjEB}</td>
-                      <td className="p-3">₹{item.previousDue}</td>
+                      <td className="p-3">
+                        ₹{Math.round(Number(item.previousDue || 0)).toLocaleString("en-IN")}
+                      </td>
                       <td className="p-3">₹{item.parkingCharges}</td>
                       <td className="p-3">₹{item.depositAmount}</td>
                       <td className="p-3">₹{item.processingFees}</td>

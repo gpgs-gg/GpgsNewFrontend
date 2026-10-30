@@ -112,7 +112,6 @@ const BedCreateEdit = () => {
 
   useEffect(() => {
     const Bed = singleBedData?.data;
-    console.log(Bed);
     if (!Bed) return;
     reset({
       propertyId: {
@@ -208,31 +207,34 @@ const BedCreateEdit = () => {
   return (
     <div className="max-w-12xl mx-auto h-[80vh] px-6">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">
+     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold sm:text-2xl">
                 {id ? "Update Bed" : "Create Bed"}
               </h1>
-              <p className="text-sm text-gray-500">
+
+              <p className="mt-1 text-sm text-gray-500">
                 {id
                   ? "Update existing Bed details"
                   : "Create and manage PG Beds"}
               </p>
             </div>
-            <div className="flex justify-end gap-5">
+
+            <div className="flex w-full items-center gap-3 sm:justify-end lg:w-auto lg:gap-5">
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium"
+                className="flex-1 rounded-lg border border-gray-600 px-4 py-2.5 text-sm font-medium transition hover:bg-gray-700 hover:text-white sm:flex-none sm:px-6"
               >
                 Cancel
               </button>
+
               {((id && canEditBed) || (!id && canAddBed)) && (
                 <button
                   type="submit"
                   disabled={isUpdateBed || isSubmitBed}
-                  className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                  className="theme-btn flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
                 >
                   {isUpdateBed || isSubmitBed ? (
                     <>
@@ -249,7 +251,6 @@ const BedCreateEdit = () => {
             </div>
           </div>
         </div>
-
         {/* Bed Details */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold mb-4">Bed Details</h2>

@@ -262,3 +262,26 @@ export const useRentGenerationLogs = (
     enabled,
   });
 };
+
+
+const enableClientLogin = async (bookingId) => {
+  const response = await apiClient.patch(
+    `/clients/booking/${bookingId}/enable-login`,
+  );
+
+  return response.data;
+};
+
+export const useEnableClientLogin = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: enableClientLogin,
+    onSuccess: () => {
+      // Refresh all clients list queries
+      queryClient.invalidateQueries({
+        queryKey: ["get-clients-data"],
+      });
+    },
+  });
+};

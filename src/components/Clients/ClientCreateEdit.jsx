@@ -31,11 +31,8 @@ const ClientCreateEdit = () => {
 
     const isViewMode = window.location.pathname.includes("/view/");
 
-
     const { data: propertiesDropdown, isPending: ispropertiesDropdown } =
         usePropertiesDropdown();
-
-
 
     const { mutate: createClientData, isPending: isSubmitClientData } =
         useCreateClientData();
@@ -125,6 +122,8 @@ const ClientCreateEdit = () => {
             callingNo: ClientData.callingNo,
             clientDoj: ClientData.clientDoj,
             ebDoj: ClientData.ebDoj,
+            monthlyRent: ClientData.monthlyRent,
+            depositAmount: ClientData.depositAmount,
             emailId: ClientData.emailId,
             parkingCharges: ClientData.parkingCharges,
             processingFees: ClientData.processingFees,
@@ -303,7 +302,6 @@ const ClientCreateEdit = () => {
         }
     };
 
-
     const clientDoj = watch("clientDoj");
 
     const currentDate = new Date();
@@ -312,8 +310,7 @@ const ClientCreateEdit = () => {
     const dojDate = clientDoj ? new Date(clientDoj) : null;
     if (dojDate) dojDate.setHours(0, 0, 0, 0);
 
-    const canCancelBooking =
-        dojDate && dojDate >= currentDate;
+    const canCancelBooking = dojDate && dojDate >= currentDate;
 
     return (
         <div className="max-w-12xl mx-auto px-6 ">
@@ -384,7 +381,9 @@ const ClientCreateEdit = () => {
 
                                     <Select
                                         {...field}
-                                        options={selectedPropertyOption ? [selectedPropertyOption] : []}
+                                        options={
+                                            selectedPropertyOption ? [selectedPropertyOption] : []
+                                        }
                                         isClearable
                                         placeholder=""
                                         isDisabled
@@ -394,11 +393,9 @@ const ClientCreateEdit = () => {
                                         }
                                         styles={selectStyles}
                                     />
-
                                 </div>
                             )}
                         />
-
                         <Controller
                             name="bedId"
                             control={control}
@@ -410,11 +407,7 @@ const ClientCreateEdit = () => {
                                     <label className="select-label required-label">Bed No</label>
                                     <Select
                                         {...field}
-                                        options={
-                                            selectedBedOption
-                                                ? [selectedBedOption]
-                                                : []
-                                        }
+                                        options={selectedBedOption ? [selectedBedOption] : []}
                                         isClearable
                                         isDisabled
                                         placeholder=""
@@ -427,7 +420,6 @@ const ClientCreateEdit = () => {
                                 </div>
                             )}
                         />
-
                         <div className="form-group">
                             <input
                                 {...register("roomNo")}
@@ -468,7 +460,6 @@ const ClientCreateEdit = () => {
                                 </div>
                             )}
                         />
-
                         <div className="form-group">
                             <input
                                 {...register("parkingCharges")}
@@ -538,7 +529,6 @@ const ClientCreateEdit = () => {
                             />
                             <label className="form-label">Comment</label>
                         </div> */}
-
                         <Controller
                             name="isBookingCancelled"
                             control={control}
@@ -558,9 +548,11 @@ const ClientCreateEdit = () => {
                                         isClearable
                                         isDisabled={!canCancelBooking}
                                         placeholder=""
-                                        value={isBookingCancelledOptions.find(
-                                            (option) => option.value === field.value
-                                        ) || null}
+                                        value={
+                                            isBookingCancelledOptions.find(
+                                                (option) => option.value === field.value,
+                                            ) || null
+                                        }
                                         onChange={(selectedOption) =>
                                             field.onChange(selectedOption?.value ?? null)
                                         }
@@ -569,14 +561,13 @@ const ClientCreateEdit = () => {
 
                                     {!canCancelBooking && (
                                         <small className="text-red-500">
-                                            Booking can only be cancelled when Client DOJ
-                                            is today or in the future.
+                                            Booking can only be cancelled when Client DOJ is today or
+                                            in the future.
                                         </small>
                                     )}
                                 </div>
                             )}
                         />
-
                         <Controller
                             name="clientDoj"
                             control={control}
@@ -598,7 +589,6 @@ const ClientCreateEdit = () => {
                                 </div>
                             )}
                         />
-
                         <Controller
                             name="ebDoj"
                             control={control}
@@ -620,8 +610,22 @@ const ClientCreateEdit = () => {
                                 </div>
                             )}
                         />
-
-
+                        {/* <div className="form-group">
+                            <input
+                                {...register("monthlyRent")}
+                                placeholder=" "
+                                className="form-input"
+                            />
+                            <label className="form-label required-label">Monthly Rent</label>
+                        </div>{" "}
+                        <div className="form-group">
+                            <input
+                                {...register("depositAmount")}
+                                placeholder=" "
+                                className="form-input"
+                            />
+                            <label className="form-label required-label">Deposit</label>
+                        </div> */}
                     </div>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -667,9 +671,7 @@ const ClientCreateEdit = () => {
                                             let days = 29;
 
                                             while (days > 0) {
-                                                noticeEndDate.setDate(
-                                                    noticeEndDate.getDate() + 1
-                                                );
+                                                noticeEndDate.setDate(noticeEndDate.getDate() + 1);
 
                                                 if (noticeEndDate.getDate() !== 31) {
                                                     days--;

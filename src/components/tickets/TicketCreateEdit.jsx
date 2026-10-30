@@ -72,6 +72,7 @@ function TicketCreateEdit() {
   const [compressionProgress, setCompressionProgress] = useState(0);
   const [compressionFileName, setCompressionFileName] = useState("");
   const [pendingFiles, setPendingFiles] = useState([]);
+  const [isDepartmentChanged, setIsDepartmentChanged] = useState(false);
   const submitLockRef = useRef(false);
   const assignee = watch("assignee");
   const manager = watch("manager");
@@ -201,11 +202,10 @@ function TicketCreateEdit() {
 
   const onSubmit = (data) => {
 
-  console.log("Submit triggered");
-  console.log("isDirty:", isDirty);
-  console.log("submitLock:", submitLockRef.current);
-  console.log("isCompressing:", isCompressing);
-
+  // console.log("Submit triggered");
+  // console.log("isDirty:", isDirty);
+  // console.log("submitLock:", submitLockRef.current);
+  // console.log("isCompressing:", isCompressing);
 
     const hasAttachmentChanges =
       attachmentFiles.length > 0 ||
@@ -265,21 +265,21 @@ function TicketCreateEdit() {
 
 
 
-console.log("Before updateTicket API call", {
-  id,
-  isDirty,
-  submitLock: submitLockRef.current,
-  isCompressing,
-  formDataEntries: [...formData.entries()].map(
-    ([key, value]) => ({
-      key,
-      value:
-        value instanceof File
-          ? `${value.name} (${value.size} bytes)`
-          : value,
-    })
-  ),
-});
+// console.log("Before updateTicket API call", {
+//   id,
+//   isDirty,
+//   submitLock: submitLockRef.current,
+//   isCompressing,
+//   formDataEntries: [...formData.entries()].map(
+//     ([key, value]) => ({
+//       key,
+//       value:
+//         value instanceof File
+//           ? `${value.name} (${value.size} bytes)`
+//           : value,
+//     })
+//   ),
+// });
 
 
 
@@ -493,7 +493,47 @@ console.log("Before updateTicket API call", {
                     value={DepartmentOptions.find(
                       (x) => x.value === field.value,
                     )}
-                    onChange={(e) => field.onChange(e?.value)}
+                   onChange={(selected) => {
+                      const oldDepartment = field.value ?? "";
+                      const newDepartment = selected?.value ?? "";
+
+                      if (oldDepartment !== newDepartment) {
+                        setIsDepartmentChanged(true);
+                        // Reset ticket status to Open when department changes
+                        if (id) {
+                          setValue("status", "Open", {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                        }
+                        // Clear all assignment fields
+                        setValue("ticketManager", "", {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+
+                        setValue("manager", "", {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+
+                        setValue("assignee", "", {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+
+                        // console.log("Department Changed:", {
+                        //   from: oldDepartment,
+                        //   to: newDepartment,
+                        // });
+
+                        // console.log(
+                        //   "Ticket Manager, Manager, and Assignee cleared",
+                        // );
+                      }
+
+                      field.onChange(newDepartment);
+                    }}
                     styles={selectStyles}
                   />
                   {errors.department && (

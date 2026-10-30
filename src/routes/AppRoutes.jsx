@@ -69,7 +69,9 @@ import { useAuth } from "../context/authContext";
 import BookingEnquiry from "../pages/BookingEnquiry";
 import RNRTable from "../components/New_RNR/RNRTable";
 import PageNotFound from "../components/common/PageNotFound";
-// import PropertyExpenses from "../components/properties/PropertyExpenses";
+import PropertyExpenses from "../components/PropertyExpenses/Main";
+
+
 const AppRoutes = () => {
   const { user } = useAuth();
   const role = user?.role?.trim().toLowerCase();
@@ -231,11 +233,13 @@ const AppRoutes = () => {
               path="/prop-perso-details"
               element={<PropAndPersDetails />}
             />
-            {/* <Route
-              path="/property-expenses"
+         <Route
+              path="/properties/expense/:propertyId"
               element={<PropertyExpenses />}
-            /> */}
+            />
+
             <Route path="/agreement-details" element={<Agreement />} />
+            
           </Route>
         </Route>
         <Route path="/booking" element={<BookingEnquiry />} />

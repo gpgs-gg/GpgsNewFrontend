@@ -13,7 +13,7 @@ import {
   useDeleteBedData,
   useDeleteMultipleBedsData,
 } from "./services";
-
+import BedMobileCard from "./BedMobileCard";
 import ConfirmModal from "../common/ConfirmModal";
 import { PAGINATION } from "../../constants/appConfig";
 import useDebounce from "../hooks/useDebounce";
@@ -309,7 +309,7 @@ const BedsTable = () => {
 
         {/* TABLE */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
-          <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
+      <div className="flex flex-col gap-3 border-b border-gray-200 px-3 py-3 md:flex-row md:items-center md:justify-between">
             {/* search */}
             <div className="relative w-80">
               <input
@@ -399,7 +399,53 @@ const BedsTable = () => {
           )} */}
           {/* TABLE CONTENT */}
           <div className="flex-1 overflow-auto ">
-            <table className="w-full">
+         {/* MOBILE CARD VIEW */}
+            <div className="space-y-3 p-3 md:hidden">
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="animate-pulse rounded-xl border border-slate-200 bg-white p-4"
+                  >
+                    <div className="mb-4 h-5 w-2/3 rounded bg-slate-200" />
+                    <div className="mb-3 grid grid-cols-2 gap-3">
+                      <div className="h-14 rounded-lg bg-slate-100" />
+                      <div className="h-14 rounded-lg bg-slate-100" />
+                    </div>
+                    <div className="mb-2 h-4 w-full rounded bg-slate-100" />
+                    <div className="h-4 w-3/4 rounded bg-slate-100" />
+                  </div>
+                ))
+              ) : paginatedData.length > 0 ? (
+                paginatedData.map((item) => (
+                  <BedMobileCard
+                    key={item._id}
+                    item={item}
+                    isSelected={selectedBeds.includes(item._id)}
+                    onSelect={handleSelect}
+                    isAdmin={isAdmin}
+                    canViewBed={canViewBed}
+                    canEditBed={canEditBed}
+                    canDeleteBed={canDeleteBed}
+                    deleting={deleting}
+                    onDelete={(bed) => {
+                      setDeleteType("single");
+                      setDeleteId(bed._id);
+                      setShowDeleteModal(true);
+                    }}
+                  />
+                ))
+              ) : (
+                <div className="rounded-xl border border-slate-200 bg-white px-4 py-12">
+                  <NoDataFound
+                    title="No Beds Found"
+                    description="Try searching or changing your filters."
+                  />
+                </div>
+              )}
+            </div>
+            {/* DESKTOP TABLE — KEEP YOUR EXISTING TABLE MARKUP */}
+            <table className="hidden md:block">
               <thead className="z-30 sticky top-0 bg-gray-100 whitespace-nowrap">
                 <tr>
                     {isAdmin && (
@@ -594,7 +640,7 @@ const BedsTable = () => {
           </div>
 
           {/* PAGINATION */}
-          <div className="border-t p-3 flex justify-between items-center">
+         <div className="flex flex-col gap-2 border-t border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-gray-500">
               Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
               {Math.min(currentPage * rowsPerPage, totalRecords)} of{" "}

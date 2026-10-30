@@ -202,3 +202,11 @@ export const exportTicketsData = async ({
 
     return response.data;
 };
+
+export const exportTicketsPDFData = async (payload) => {
+  const response = await apiClient.post("/tickets/export-pdf", payload, {
+    responseType: "blob",
+  });
+
+  return response.data;
+};

@@ -1,9 +1,11 @@
-import React from 'react'
+import PropertyExpenses from "./PropertyExpenses";
 
 const Main = () => {
   return (
-    <div>Main</div>
-  )
-}
+    <div>
+      <PropertyExpenses />
+    </div>
+  );
+};
 
-export default Main
+export default Main;

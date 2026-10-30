@@ -304,7 +304,7 @@ const { data: employeeData } = useEmployeeDetailsData({
         }
     };
     return (
-        <div className="max-w-12xl h-fit mx-auto my-5 bg-white shadow border border-gray-300 p-4 rounded-xl">
+        <div className="max-w-12xl h-[80vh] mx-auto my-5 bg-white shadow border border-gray-300 p-4 rounded-xl">
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="flex gap-4 mb-10 justify-center">
                     {!id && (
@@ -329,7 +329,7 @@ const { data: employeeData } = useEmployeeDetailsData({
                             setValue("mode", "single");
                         }}
                         className={`px-10 py-2 whitespace-nowrap rounded text-xl ${mode === "single"
-                            ? "border border-gray-200"
+                            ? "bg-black text-white"
                             : "bg-gray-300"
                             }`}
                     >

@@ -6,8 +6,10 @@ import {
   Filter,
   Phone,
   MessageCircle,
-  Trash2,X,
+  Trash2,
+  X,
   Plus,
+  Receipt,
 } from "lucide-react";
 import { formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import { Link } from "react-router-dom";
@@ -24,9 +26,11 @@ import TableSkeleton from "../common/TableSkelton";
 import useDebounce from "../hooks/useDebounce";
 import {
   useDeletePropertyData,
-  useDeleteMultiplePropertiesData,useCreatePropertySequenceData,
+  useDeleteMultiplePropertiesData,
+  useCreatePropertySequenceData,
 } from "./services/index";
 import PropertySequenceModal from "./PropertySequenceModal";
+import PropertyMobileCards from "./PropertyMobileCards";
 import { useAuth } from "../../context/authContext";
 import ConfirmModal from "../common/ConfirmModal";
 import { toast } from "react-toastify";
@@ -103,14 +107,14 @@ const PropertiesTable = () => {
   const [selectedProperties, setSelectedProperties] = useState([]);
   const { mutate: deleteProperty, isPending: deleting } =
     useDeletePropertyData();
-const [sequenceModalOpen, setSequenceModalOpen] = useState(false);
+  const [sequenceModalOpen, setSequenceModalOpen] = useState(false);
   const [propertyCodes, setPropertyCodes] = useState("");
   const { mutate: deleteMultipleProperties } =
     useDeleteMultiplePropertiesData();
   const isAllSelected =
     paginatedData.length > 0 &&
     paginatedData.every((item) => selectedProperties.includes(item._id));
-const { mutate: createPropertySequence, isPending: sequenceLoading } =
+  const { mutate: createPropertySequence, isPending: sequenceLoading } =
     useCreatePropertySequenceData();
   // One State for Filter chips
   const filterLabels = useMemo(() => {
@@ -250,7 +254,7 @@ const { mutate: createPropertySequence, isPending: sequenceLoading } =
         onError: (error) => {
           toast.error(
             error?.response?.data?.message ||
-              "Failed to create property sequence",
+            "Failed to create property sequence",
           );
         },
       },
@@ -261,29 +265,37 @@ const { mutate: createPropertySequence, isPending: sequenceLoading } =
       <div className="space-y-5">
         {/* HEADER */}
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold uppercase">
+        <div className="rounded-xl border border-gray-400 bg-white px-3 py-3 shadow-sm sm:px-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {/* Title */}
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold uppercase sm:text-2xl">
                 Properties Master
               </h1>
-              <p className="text-sm text-gray-500">Manage all PG properties</p>
+              <p className="text-xs text-gray-500 sm:text-sm">
+                Manage all PG properties
+              </p>
             </div>
-<button
-              type="button"
-              onClick={() => setSequenceModalOpen(true)}
-              className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
-            >
-              <Plus size={17} />
-              Add Property Sequence
-            </button>
-            {canAddProperty && (
-              <Link to="/properties/create">
-                <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                  + Add Property
-                </button>
-              </Link>
-            )}
+
+            {/* Buttons */}
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 sm:items-center">
+              <button
+                type="button"
+                onClick={() => setSequenceModalOpen(true)}
+                className="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 sm:w-auto sm:px-4"
+              >
+                <Plus size={17} />
+                Add Property Sequence
+              </button>
+
+              {canAddProperty && (
+                <Link to="/properties/create" className="w-full sm:w-auto">
+                  <button className="theme-btn w-full whitespace-nowrap rounded-lg px-4 py-2 text-sm text-white hover:bg-gray-700 sm:w-auto">
+                    + Add Property
+                  </button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 
@@ -360,7 +372,7 @@ const { mutate: createPropertySequence, isPending: sequenceLoading } =
             </div>
           </div>
           {/* Show Delete Selected Button */}
-          {isAdmin &&selectedProperties.length > 0 && (
+          {isAdmin && selectedProperties.length > 0 && (
             <button
               onClick={() => {
                 setDeleteType("bulk");
@@ -377,7 +389,7 @@ const { mutate: createPropertySequence, isPending: sequenceLoading } =
             </button>
           )}
           {/* TABLE CONTENT */}
-          <div className="flex-1 overflow-auto">
+          <div className="hidden flex-1 overflow-auto md:block">
             <table className="w-full min-w-[1700px]">
               <thead className="sticky top-0 z-40 bg-gray-100">
                 <tr>
@@ -433,6 +445,7 @@ const { mutate: createPropertySequence, isPending: sequenceLoading } =
                   <th className="p-3 text-center min-w-[110px]">Status</th>
 
                   <th className="p-3 text-left min-w-[250px]">Work Logs</th>
+                  <th className="p-3 text-left min-w-[250px]">Expense</th>
 
                   {/* ACTIONS - STICKY RIGHT */}
                   {showActions && (
@@ -566,6 +579,20 @@ const { mutate: createPropertySequence, isPending: sequenceLoading } =
                             <div className="text-xs text-gray-500">-</div>
                           )}
                         </td>
+
+                        <td className="p-3 text-center">
+                          <div className="flex justify-center">
+                            <Link to={`/properties/expense/${item._id}`}>
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-2 rounded-lg bg-green-100 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-200 whitespace-nowrap"
+                              >
+                                <Receipt size={16} />
+                                Add Property Expense
+                              </button>
+                            </Link>
+                          </div>
+                        </td>
                         {/* ACTIONS */}
                         {showActions && (
                           <td className="sticky right-0 z-20 bg-white p-3 w-[150px] min-w-[150px]">
@@ -616,8 +643,29 @@ const { mutate: createPropertySequence, isPending: sequenceLoading } =
             </table>
           </div>
 
+{/* MOBILE CARDS ONLY */}
+          <div className="flex-1 min-h-0 overflow-y-auto md:hidden">
+            <PropertyMobileCards
+              properties={paginatedData}
+              isLoading={isLoading}
+              isAdmin={isAdmin}
+              selectedProperties={selectedProperties}
+              onSelect={handleSelect}
+              showActions={showActions}
+              canViewProperty={canViewProperty}
+              canEditProperty={canEditProperty}
+              canDeleteProperty={canDeleteProperty}
+              deleting={deleting}
+              onDelete={(id) => {
+                setDeleteType("single");
+                setDeleteId(id);
+                setShowDeleteModal(true);
+              }}
+            />
+          </div>
+
           {/* PAGINATION */}
-          <div className="border-t p-3 flex justify-between items-center">
+         <div className="border-t p-3 flex flex-wrap justify-between items-center gap-2">
             <span className="text-sm text-gray-500">
               Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
               {Math.min(currentPage * rowsPerPage, totalRecords)} of{" "}
@@ -630,6 +678,7 @@ const { mutate: createPropertySequence, isPending: sequenceLoading } =
               onPageChange={setCurrentPage}
             />
           </div>
+
         </div>
       </div>
       <PropertyFilter

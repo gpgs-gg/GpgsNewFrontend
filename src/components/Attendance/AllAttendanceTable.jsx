@@ -62,12 +62,9 @@ const AllAttendanceTable = () => {
   const ACTION_WIDTH = 190;
   const { canEdit, canDelete } = useAuthorization();
 
-  const canEditAttendance = true;
-  const canDeleteAttendance = true;
-
   const showActions = true;
-  // const canEditAttendance = canEdit("attendance");
-  // const canDeleteAttendance = canDelete("attendance");
+  const canEditAttendance = canEdit("all_attendance");
+  const canDeleteAttendance = canDelete("all_attendance");
 
   // const showActions = canEditAttendance || canDeleteAttendance;
   const [filterOpen, setFilterOpen] = useState(false);
@@ -800,7 +797,6 @@ const AllAttendanceTable = () => {
 
 export default AllAttendanceTable;
 
-
 // import React, { useState, useEffect, useMemo } from "react";
 // import ConfirmModal from "../common/ConfirmModal";
 // import { toast } from "react-toastify";
@@ -1379,8 +1375,6 @@ export default AllAttendanceTable;
 //                         <td className="p-3 whitespace-nowrap">
 //                           {formatMinutes(attendance.deficitMinutes)}
 //                         </td>
-
-                      
 
 //                   {/* STATUS */}
 //                         <td className="p-3 text-center">

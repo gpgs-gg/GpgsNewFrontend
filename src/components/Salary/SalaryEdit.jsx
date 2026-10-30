@@ -965,43 +965,7 @@ const SalaryEdit = () => {
             </div>
           </div>
         </div>
-        {/* ============================================================
-            ADDITIONAL DETAILS
-        ============================================================ */}
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-5">
-            Additional Details
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* PREVIOUS DUE */}
-
-            {/* <div className="form-group">
-              <input
-                type="text"
-                {...register("previousDue")}
-                placeholder=" "
-                className="form-input"
-              />
-
-              <label className="form-label">Previous Due ₹</label>
-            </div> */}
-          </div>
-
-          {/* COMMENTS */}
-
-          <div className="form-group mt-4">
-            <textarea
-              {...register("comments")}
-              rows={3}
-              placeholder=" "
-              className="form-input resize-none"
-            />
-
-            <label className="form-label">Comments</label>
-          </div>
-        </div>
+  
         {/* ============================================================
     WORK LOG
 ============================================================ */}
@@ -1021,7 +985,7 @@ const SalaryEdit = () => {
             </div>
             {/* ====================== WORK LOG HISTORY ====================== */}
 
-            <div className="border rounded-lg bg-gray-50 p-4 h-64 flex flex-col">
+            <div className="border rounded-lg bg-gray-50 p-4  flex flex-col">
               <h3 className="font-semibold text-lg mb-3">Work Log History</h3>
 
               <div className="flex-1 overflow-y-auto pr-2">

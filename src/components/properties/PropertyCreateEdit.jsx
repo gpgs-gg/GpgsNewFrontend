@@ -297,25 +297,27 @@ const PropertyCreateEdit = () => {
   return (
     <div className="max-w-12xl mx-auto px-6">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-4 py-2">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">
+  <div className="rounded-xl border border-gray-300 bg-white px-3 py-3 shadow-sm sm:px-4 sm:py-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            {/* Heading */}
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold text-gray-900 sm:text-xl lg:text-2xl">
                 {id ? "Update Property" : "Create Property"}
               </h1>
 
-              <p className="text-sm text-gray-500">
+              <p className="mt-1 text-xs leading-5 text-gray-500 sm:text-sm">
                 {id
                   ? "Update existing property details"
                   : "Create and manage PG properties"}
               </p>
             </div>
 
-            <div className="flex justify-end gap-5">
+            {/* Actions */}
+            <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0 sm:gap-3">
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium"
+                className="flex-1 rounded-lg border border-gray-400 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 sm:flex-none sm:px-5"
               >
                 Cancel
               </button>
@@ -324,7 +326,7 @@ const PropertyCreateEdit = () => {
                 <button
                   type="submit"
                   disabled={isUpdateProperty || isSubmitProperty}
-                  className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                  className="theme-btn flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none sm:min-w-[150px]"
                 >
                   {isUpdateProperty || isSubmitProperty ? (
                     <>

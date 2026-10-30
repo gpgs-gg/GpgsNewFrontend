@@ -9,6 +9,7 @@ import {
   useGenerateMonthlyRentForAllClient,
   useGenerateSingleClientMonthlyRent,
   useRentGenerationLogs,
+  useEnableClientLogin,
 } from "./services";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import { AsyncPaginate } from "react-select-async-paginate";
@@ -34,6 +35,10 @@ const ClientsTable = () => {
   //console.log("caneditclient", canEditClient, canDeleteClient, canViewClient);
   const showActions = canViewClient || canEditClient || canDeleteClient;
   const [search, setSearch] = useState("");
+  const [enablingClientId, setEnablingClientId] = useState(null);
+  const [generatingRentClientId, setGeneratingRentClientId] = useState(null);
+  const { mutate: enableClientLogin, isPending: isEnablingClientLogin } =
+    useEnableClientLogin();
   const [currentPage, setCurrentPage] = useState(() => {
     const savedPage = localStorage.getItem("clients_page");
 
@@ -197,6 +202,7 @@ const ClientsTable = () => {
   } = useRentGenerationLogs();
 
   const handleGenerateMonthlyRent = (clientId) => {
+    setGeneratingRentClientId(clientId);
     generateMonthlyRent(clientId, {
       onSuccess: (response) => {
         toast.dismiss();
@@ -208,6 +214,7 @@ const ClientsTable = () => {
           "Monthly rent generated successfully";
 
         toast.success(message);
+        setGeneratingRentClientId(null);
       },
 
       onError: (error) => {
@@ -218,6 +225,7 @@ const ClientsTable = () => {
             error?.message ||
             "Failed to generate monthly rent",
         );
+        setGeneratingRentClientId(null);
       },
     });
   };
@@ -338,6 +346,25 @@ const ClientsTable = () => {
     BDR: "Bank Details Revised",
     "F&F DS": "F&F Details Sent",
     HD: "Handover Done",
+  };
+
+  const handleEnableClientLogin = (item) => {
+    const bookingId = item?.bookingId?._id || item?.bookingId;
+    setEnablingClientId(item._id);
+    enableClientLogin(bookingId, {
+      onSuccess: (response) => {
+        toast.dismiss();
+        toast.success(response?.message || "Client login enabled successfully");
+      },
+      onError: (error) => {
+        toast.error(
+          error?.response?.data?.message || "Failed to enable client login",
+        );
+      },
+      onSettled: () => {
+        setEnablingClientId(null);
+      },
+    });
   };
 
   return (
@@ -509,7 +536,7 @@ const ClientsTable = () => {
                     <th className="p-2 text-center whitespace-nowrap">
                       Stay Type
                     </th>
-                  
+
                     <th className="p-2 text-center whitespace-nowrap">
                       Client Name
                     </th>
@@ -695,128 +722,127 @@ const ClientsTable = () => {
                               </span>
                             </td>
 
-                       
                             {/* Client Name */}
                             <td className="p-3 font-bold flex justify-center items-center">
-                               <td className="p-2">
-                              {item.stayType === "T. Booked" &&
-                              item.permanentBooking ? (
-                                <div className="relative group inline-block">
-                                  <Info
-                                    size={18}
-                                    className="text-indigo-600 cursor-pointer hover:text-indigo-800 transition-colors"
-                                  />
+                              <td className="p-2">
+                                {item.stayType === "T. Booked" &&
+                                item.permanentBooking ? (
+                                  <div className="relative group inline-block">
+                                    <Info
+                                      size={18}
+                                      className="text-indigo-600 cursor-pointer hover:text-indigo-800 transition-colors"
+                                    />
 
-                                  {/* Hover Details */}
-                                  <div className="absolute left-0 top-full hidden group-hover:block z-50 w-80">
-                                    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl">
-                                      {/* Header */}
-                                      <div className="flex items-center justify-between bg-gray-50 px-4 py-3 border-b border-gray-200">
-                                        <div>
-                                          <p className="text-sm font-semibold text-gray-900">
-                                            Permanent Booking
-                                          </p>
-                                          <p className="text-xs text-gray-500 mt-0.5">
-                                            Property & room details
-                                          </p>
+                                    {/* Hover Details */}
+                                    <div className="absolute left-0 top-full hidden group-hover:block z-50 w-80">
+                                      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl">
+                                        {/* Header */}
+                                        <div className="flex items-center justify-between bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                          <div>
+                                            <p className="text-sm font-semibold text-gray-900">
+                                              Permanent Booking
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                              Property & room details
+                                            </p>
+                                          </div>
+
+                                          <span className="rounded-md bg-green-50 px-2 py-1 text-[11px] font-medium text-green-700 border border-green-100">
+                                            Permanent
+                                          </span>
                                         </div>
 
-                                        <span className="rounded-md bg-green-50 px-2 py-1 text-[11px] font-medium text-green-700 border border-green-100">
-                                          Permanent
-                                        </span>
-                                      </div>
+                                        {/* Details */}
+                                        <div className="px-4 py-3">
+                                          <div className="grid grid-cols-2 gap-x-8 gap-y-1">
+                                            {/* Property */}
+                                            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+                                              <span className="text-xs font-medium text-gray-500">
+                                                Property
+                                              </span>
+                                              <span className="ml-4 text-sm font-semibold text-gray-900">
+                                                {item.permanentBooking
+                                                  ?.propertyCode || "-"}
+                                              </span>
+                                            </div>
 
-                                      {/* Details */}
-                                      <div className="px-4 py-3">
-                                        <div className="grid grid-cols-2 gap-x-8 gap-y-1">
-                                          {/* Property */}
-                                          <div className="flex items-center justify-between border-b border-gray-100 py-2">
-                                            <span className="text-xs font-medium text-gray-500">
-                                              Property
-                                            </span>
-                                            <span className="ml-4 text-sm font-semibold text-gray-900">
-                                              {item.permanentBooking
-                                                ?.propertyCode || "-"}
-                                            </span>
-                                          </div>
+                                            {/* Room */}
+                                            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+                                              <span className="text-xs font-medium text-gray-500">
+                                                Room No
+                                              </span>
+                                              <span className="ml-4 text-sm font-medium text-gray-900">
+                                                {item.permanentBooking
+                                                  ?.roomNo || "-"}
+                                              </span>
+                                            </div>
 
-                                          {/* Room */}
-                                          <div className="flex items-center justify-between border-b border-gray-100 py-2">
-                                            <span className="text-xs font-medium text-gray-500">
-                                              Room No
-                                            </span>
-                                            <span className="ml-4 text-sm font-medium text-gray-900">
-                                              {item.permanentBooking?.roomNo ||
-                                                "-"}
-                                            </span>
-                                          </div>
+                                            {/* Bed */}
+                                            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+                                              <span className="text-xs font-medium text-gray-500">
+                                                Bed No
+                                              </span>
+                                              <span className="ml-4 text-sm font-medium text-gray-900">
+                                                {item.permanentBooking?.bedNo ||
+                                                  "-"}
+                                              </span>
+                                            </div>
 
-                                          {/* Bed */}
-                                          <div className="flex items-center justify-between border-b border-gray-100 py-2">
-                                            <span className="text-xs font-medium text-gray-500">
-                                              Bed No
-                                            </span>
-                                            <span className="ml-4 text-sm font-medium text-gray-900">
-                                              {item.permanentBooking?.bedNo ||
-                                                "-"}
-                                            </span>
-                                          </div>
+                                            {/* DOJ */}
+                                            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+                                              <span className="text-xs font-medium text-gray-500">
+                                                DOJ
+                                              </span>
+                                              <span className="ml-4 text-sm font-medium text-gray-900">
+                                                {item.clientDoj
+                                                  ? formatDate(item.clientDoj)
+                                                  : "-"}
+                                              </span>
+                                            </div>
 
-                                          {/* DOJ */}
-                                          <div className="flex items-center justify-between border-b border-gray-100 py-2">
-                                            <span className="text-xs font-medium text-gray-500">
-                                              DOJ
-                                            </span>
-                                            <span className="ml-4 text-sm font-medium text-gray-900">
-                                              {item.clientDoj
-                                                ? formatDate(item.clientDoj)
-                                                : "-"}
-                                            </span>
-                                          </div>
+                                            {/* Monthly Rent */}
+                                            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+                                              <span className="text-xs font-medium text-gray-500">
+                                                Monthly Rent
+                                              </span>
+                                              <span className="ml-4 text-sm font-semibold text-gray-900">
+                                                ₹
+                                                {Number(
+                                                  item.permanentBooking
+                                                    ?.monthlyRent || 0,
+                                                ).toLocaleString("en-IN")}
+                                              </span>
+                                            </div>
 
-                                          {/* Monthly Rent */}
-                                          <div className="flex items-center justify-between border-b border-gray-100 py-2">
-                                            <span className="text-xs font-medium text-gray-500">
-                                              Monthly Rent
-                                            </span>
-                                            <span className="ml-4 text-sm font-semibold text-gray-900">
-                                              ₹
-                                              {Number(
-                                                item.permanentBooking
-                                                  ?.monthlyRent || 0,
-                                              ).toLocaleString("en-IN")}
-                                            </span>
-                                          </div>
-
-                                          {/* Deposit */}
-                                          <div className="flex items-center justify-between border-b border-gray-100 py-2">
-                                            <span className="text-xs font-medium text-gray-500">
-                                              Deposit
-                                            </span>
-                                            <span className="ml-4 text-sm font-semibold text-gray-900">
-                                              ₹
-                                              {Number(
-                                                item.permanentBooking
-                                                  ?.depositAmount || 0,
-                                              ).toLocaleString("en-IN")}
-                                            </span>
+                                            {/* Deposit */}
+                                            <div className="flex items-center justify-between border-b border-gray-100 py-2">
+                                              <span className="text-xs font-medium text-gray-500">
+                                                Deposit
+                                              </span>
+                                              <span className="ml-4 text-sm font-semibold text-gray-900">
+                                                ₹
+                                                {Number(
+                                                  item.permanentBooking
+                                                    ?.depositAmount || 0,
+                                                ).toLocaleString("en-IN")}
+                                              </span>
+                                            </div>
                                           </div>
                                         </div>
-                                      </div>
 
-                                      {/* Footer */}
-                                      <div className="border-t border-gray-100 bg-gray-50 px-4 py-2">
-                                        <p className="text-[11px] text-gray-400">
-                                          Booking property information
-                                        </p>
+                                        {/* Footer */}
+                                        <div className="border-t border-gray-100 bg-gray-50 px-4 py-2">
+                                          <p className="text-[11px] text-gray-400">
+                                            Booking property information
+                                          </p>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                              ) : (
-                                ""
-                              )}
-                            </td>
+                                ) : (
+                                  ""
+                                )}
+                              </td>
                               {item.fullName || "-"}
                             </td>
                             {/* Status */}
@@ -840,10 +866,15 @@ const ClientsTable = () => {
                             </td>
 
                             {/* Room No */}
-                            <td className="p-3"><span className="">
-                              {item.bedId?.roomNo || "-"}
-                              </span> / <span className="font-bold">
-                                {item.bedId?.bedNo || "-"}</span></td>
+                            <td className="p-3">
+                              <span className="">
+                                {item.bedId?.roomNo || "-"}
+                              </span>{" "}
+                              /{" "}
+                              <span className="font-bold">
+                                {item.bedId?.bedNo || "-"}
+                              </span>
+                            </td>
 
                             {/* Bed No */}
                             {/* <td className="p-3">{item.bedId?.bedNo || "-"}</td> */}
@@ -1216,19 +1247,48 @@ const ClientsTable = () => {
                                     <span>Rent</span>
                                   </Link>
                                 )}
+
                                 {user?.role?.toLowerCase() === "admin" && (
                                   <button
                                     type="button"
                                     onClick={() =>
                                       handleGenerateMonthlyRent(item?._id)
                                     }
-                                    disabled={isGeneratingRent}
-                                    className="w-full flex items-center gap-1 px-2 py-1 rounded-lg border border-gray-300 hover:border-gray-800 text-left disabled:opacity-50"
+                                    disabled={
+                                      generatingRentClientId === item._id
+                                    }
+                                    className="w-full flex items-center justify-center gap-2 px-2 py-1 rounded-lg border border-gray-300 hover:border-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
-                                    <span>💰</span>
-                                    <span>
-                                      {isGeneratingRent ? "GEN..." : "GEN"}
-                                    </span>
+                                    {generatingRentClientId === item._id ? (
+                                      <span className="flex items-center gap-2">
+                                        <Loader />
+                                      </span>
+                                    ) : (
+                                      <>
+                                        <span>💰</span>
+                                        <span>GEN</span>
+                                      </>
+                                    )}
+                                  </button>
+                                )}
+
+                                {user?.role?.toLowerCase() === "admin" && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleEnableClientLogin(item)
+                                    }
+                                    disabled={enablingClientId === item._id}
+                                   className="w-full flex items-center gap-1 px-2 py-1 rounded-lg border border-gray-300 hover:border-gray-800 text-left"
+                                  >
+                                    {enablingClientId === item._id ? (
+                                      <span className="flex items-center gap-2">
+                                        <Loader />
+                                        <span>Please wait...</span>
+                                      </span>
+                                    ) : (
+                                      "Enable Login"
+                                    )}
                                   </button>
                                 )}
 
@@ -1271,7 +1331,7 @@ const ClientsTable = () => {
                                           </button>
 
                                           {/* Bed History */}
-                                          <button
+                                          {/* <button
                                             onClick={() => {
                                               setSelectedClient(item);
                                               setShowBedHistoryModal(true);
@@ -1281,23 +1341,22 @@ const ClientsTable = () => {
                                           >
                                             <span>📜</span>
                                             <span>Bed History</span>
-                                          </button>
-
-                                       
+                                          </button> */}
                                         </>
                                       )}
-                                         {/* Vacation */}
-                                          <button
-                                            onClick={() => {
-                                              setSelectedClient(item);
-                                              setShowClientVacationModal(true);
-                                              setOpenMenuId(null);
-                                            }}
-                                            className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
-                                          >
-                                            <span>🛏</span>
-                                            <span>Vacation</span>
-                                          </button>
+                                    {/* Vacation */}
+                                    <button
+                                      onClick={() => {
+                                        setSelectedClient(item);
+                                        setShowClientVacationModal(true);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
+                                    >
+                                      <span>🛏</span>
+                                      <span>Vacation</span>
+                                    </button>
+                                    
                                     <button
                                       onClick={() => {
                                         setSelectedClient(item);

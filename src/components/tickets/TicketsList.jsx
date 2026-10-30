@@ -9,6 +9,7 @@ import {
   exportTicketsData,
   useDeleteTicketData,
   useTicketsData,
+  exportTicketsPDFData,
 } from "./services";
 import { formatDate, formatDateAndTime } from "../../utils/dateFormatter";
 import TicketsFilter from "./TicketsFilter";
@@ -66,6 +67,8 @@ const TicketsList = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingCSV, setIsExportingCSV] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [showColumnSelector, setShowColumnSelector] = useState(false);
   const [previewFiles, setPreviewFiles] = useState([]);
   const rowsPerPage = 10;
@@ -207,7 +210,7 @@ const TicketsList = () => {
 
   const handleExport = async () => {
     try {
-      setIsExporting(true);
+      setIsExportingCSV(true);
       const columnsToExport = fullHeaders.filter((header) =>
         selectedColumns.size > 0 ? selectedColumns.has(header.key) : true,
       );
@@ -236,7 +239,58 @@ const TicketsList = () => {
       toast.dismiss();
       toast.error(error?.response?.data?.message || "Failed to export tickets");
     } finally {
-      setIsExporting(false);
+      setIsExportingCSV(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      setIsExportingPDF(true);
+
+      const columnsToExport = fullHeaders.filter((header) =>
+        selectedColumns.size > 0 ? selectedColumns.has(header.key) : true,
+      );
+
+      if (columnsToExport.length === 0) {
+        toast.dismiss();
+        toast.error("No columns selected for export!");
+        return;
+      }
+
+      const blob = await exportTicketsPDFData({
+        search: debouncedSearch,
+        filters,
+        ticketIds: [...selectedTickets],
+        columns: columnsToExport.map((column) => column.key),
+        createdBy: selectedTicketTab !== "all" ? selectedTicketTab : undefined,
+      });
+
+      if (!blob || blob.size === 0) {
+        toast.error("No ticket records available to export.");
+        return;
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = `tickets-${new Date().toISOString().split("T")[0]}.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Tickets exported to PDF successfully");
+      setShowColumnSelector(false);
+    } catch (error) {
+      toast.dismiss();
+      toast.error(
+        error?.response?.data?.message || "Failed to export tickets to PDF",
+      );
+    } finally {
+      setIsExportingPDF(false);
     }
   };
 
@@ -296,20 +350,16 @@ const TicketsList = () => {
         {/* HEADER */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-3 sm:px-4">
           <div className="flex flex-col gap-3">
-
             {/* Header */}
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <h1 className="text-lg sm:text-2xl font-bold">
-                  Tickets List
-                </h1>
+                <h1 className="text-lg sm:text-2xl font-bold">Tickets List</h1>
 
                 <p className="text-xs sm:text-sm text-gray-500">
                   Total Tickets: {totalRecords}
                 </p>
               </div>
               <div className="hidden md:flex gap-5 ">
-
                 <div className="flex items-center gap-1.5 whitespace-nowrap">
                   <span className="w-2.5 h-2.5 rounded-full bg-red-200 shrink-0"></span>
                   <span className="text-gray-600">Late Resolved</span>
@@ -324,15 +374,11 @@ const TicketsList = () => {
                   <span className="w-2.5 h-2.5 rounded-full bg-yellow-200 shrink-0"></span>
                   <span className="text-gray-600">SLA Warning</span>
                 </div>
-
               </div>
 
               {/* Add Ticket */}
               {canAddTicket && (
-                <Link
-                  to="/tickets/create"
-                  className="shrink-0"
-                >
+                <Link to="/tickets/create" className="shrink-0">
                   <button
                     type="button"
                     className="theme-btn text-white px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-lg hover:bg-gray-700 whitespace-nowrap"
@@ -341,11 +387,9 @@ const TicketsList = () => {
                   </button>
                 </Link>
               )}
-
             </div>
 
             {/* SLA Legend */}
-
           </div>
         </div>
         {/* TABLE */}
@@ -433,12 +477,12 @@ const TicketsList = () => {
                           setSelectedTickets(new Set());
                         }}
                         className={`flex cursor-pointer items-center font-bold gap-2 whitespace-nowrap rounded-lg border px-4 py-2 text-sm transition ${selectedTicketTab === tab.value
-                          ? tab.value === "Clients"
-                            ? "border-green-300 bg-green-50 text-green-700"
-                            : tab.value === "Employee"
+                            ? tab.value === "Clients"
                               ? "border-green-300 bg-green-50 text-green-700"
-                              : "border-green-300 bg-green-50 text-green-700"
-                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                              : tab.value === "Employee"
+                                ? "border-green-300 bg-green-50 text-green-700"
+                                : "border-green-300 bg-green-50 text-green-700"
+                            : "border-gray-300 text-gray-700 hover:bg-gray-50"
                           }`}
                       >
                         {tab.label}
@@ -569,7 +613,7 @@ const TicketsList = () => {
                           </td>
 
                           <td
-                            className={`sticky left-0 z-20 p-3 font-semibold shadow-md ${(() => {
+                            className={`sticky left-0 z-20 p-3 font-semibold  shadow-md ${(() => {
                               // Cancelled → White background
                               if (item.status === "Cancelled") {
                                 return "bg-white text-black";
@@ -604,7 +648,7 @@ const TicketsList = () => {
                                   break;
 
                                 default:
-                                  return "text-black";
+                                  return "text-black bg-white";
                               }
 
                               const createdDate = convertStringToDateTime(
@@ -650,8 +694,8 @@ const TicketsList = () => {
                           </td>
 
                           <td className="p-3">
-                            <div className="relative group max-w-75">
-                              {/* Normal Display */}
+                            <div className="relative group w-72">
+                              {/* Short title and description */}
                               <div className="font-medium truncate">
                                 {item.title
                                   ? item.title.length > 25
@@ -668,24 +712,24 @@ const TicketsList = () => {
                                   : "No Description"}
                               </div>
 
-                              {/* Hover Popup */}
+                              {/* Hover popup */}
                               <div
                                 className="
-        absolute left-0 top-full mt-2 z-50
-        hidden group-hover:block
-        w-96 max-w-[90vw]
-        rounded-lg border border-gray-200
-        bg-white shadow-xl
-        p-4
-      "
+                                    absolute left-0 top-full mt-2
+                                     hidden group-hover:block
+                                     w-122 max-w-[calc(100vw-2rem)]
+                                      max-h-72 overflow-y-auto
+                                      rounded-lg border border-gray-200
+                                     bg-white shadow-xl p-4
+                                          whitespace-normal wrap-break-word
+                                           z-50
+                                                "
                               >
-                                {/* Full Title */}
-                                <div className="text-sm font-semibold text-gray-900 mb-2 break-words">
+                                <div className="text-sm font-semibold text-gray-900 mb-2 wrap-break-word">
                                   {item.title || "N/A"}
                                 </div>
 
-                                {/* Full Description */}
-                                <div className="text-sm text-gray-600 whitespace-pre-wrap break-words leading-5">
+                                <div className="text-sm text-gray-600 whitespace-pre-wrap wrap-break-word leading-5">
                                   {item.description || "No Description"}
                                 </div>
                               </div>
@@ -779,14 +823,14 @@ const TicketsList = () => {
                                         <div
                                           key={log._id || index}
                                           className={`flex mb-3 ${isClient
-                                            ? "justify-start"
-                                            : "justify-end"
+                                              ? "justify-start"
+                                              : "justify-end"
                                             }`}
                                         >
                                           <div
                                             className={`max-w-[90%] rounded-lg px-2.5 py-2 ${isClient
-                                              ? "bg-blue-50 border border-blue-200"
-                                              : "bg-gray-50 border border-gray-200"
+                                                ? "bg-blue-50 border border-blue-200"
+                                                : "bg-gray-50 border border-gray-200"
                                               }`}
                                           >
                                             <div className="text-gray-700 font-medium">
@@ -937,7 +981,6 @@ const TicketsList = () => {
             </div>
           </div>
         </div>
-
       </div>
       <TicketsFilter
         isOpen={filterOpen}
@@ -974,6 +1017,10 @@ const TicketsList = () => {
         totalTickets={apiData.length}
         onExport={handleExport}
         isExporting={isExporting}
+        onExportPDF={handleExportPDF}
+        // onExportHindiPDF={handleExportHindiPDF}
+        isExportingCSV={isExportingCSV}
+        isExportingPDF={isExportingPDF}
       />
     </>
   );
