@@ -11,6 +11,7 @@ import {
   useRentGenerationLogs,
   useEnableClientLogin,
 } from "./services";
+import ClientMobileCard from "./ClientMobileCard";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import { AsyncPaginate } from "react-select-async-paginate";
 import { formatDate } from "../../utils/dateFormatter";
@@ -222,8 +223,8 @@ const ClientsTable = () => {
 
         toast.error(
           error?.response?.data?.message ||
-            error?.message ||
-            "Failed to generate monthly rent",
+          error?.message ||
+          "Failed to generate monthly rent",
         );
         setGeneratingRentClientId(null);
       },
@@ -374,7 +375,7 @@ const ClientsTable = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold uppercase">Client Master</h1>
+              <h1 className="text-xl md:text-2xl font-bold uppercase">Client Master</h1>
               <p className="text-sm text-gray-500">Manage all clients</p>
             </div>
 
@@ -393,137 +394,209 @@ const ClientsTable = () => {
         {/* TABLE */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
           {/* SEARCH */}
-          <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
-            <div className="relative w-80">
-              <input
+          <div className="border-b border-gray-200 px-3 py-3">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-3">
+              {/* SEARCH */}
+              <div className="relative w-full lg:w-80 lg:shrink-0">
+                <input
                 className="border px-3 py-2 pr-10 rounded-lg w-full"
-                placeholder="Search booking..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                }}
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch("");
+                  placeholder="Search booking..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setCurrentPage(1);
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2 flex-1">
-              {filterLabels.map((filter) => (
-                <div
-                  key={filter.key}
-                  className="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow"
-                >
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    {filter.title}
-                  </span>
+                />
 
-                  <span className="text-sm font-medium text-slate-800">
-                    {filter.value}
-                  </span>
-
+                {search && (
                   <button
                     type="button"
-                    onClick={() => removeFilter(filter.key)}
-                    className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-slate-400 transition hover:bg-red-100 hover:text-red-600"
+                    onClick={() => {
+                      setSearch("");
+                      setCurrentPage(1);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
                   >
                     ✕
                   </button>
-                </div>
-              ))}
-            </div>
+                )}
+              </div>
 
-            <div className="flex gap-2"></div>
-            <div className="flex gap-2">
-              {(hasActiveFilters || fnfClosedFilter || fnfCancelledFilter) && (
-                <button
-                  onClick={handleReset}
-                  className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2 hover:bg-gray-50"
-                >
-                  Reset
-                </button>
+              {/* FILTER CHIPS */}
+              {filterLabels.length > 0 && (
+                <div className="w-full min-w-0 lg:flex-1">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
+                    {filterLabels.map((filter) => (
+                      <div
+                        key={filter.key}
+                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs shadow-sm"
+                      >
+                        <span className="font-semibold text-slate-500">
+                          {filter.title}:
+                        </span>
+
+                        <span className="max-w-28 truncate font-medium text-slate-800">
+                          {filter.value}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            removeFilter(filter.key);
+                            setCurrentPage(1);
+                          }}
+                          className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                          aria-label={`Remove ${filter.title} filter`}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
 
-              {user?.role?.toLowerCase() === "admin" && (
+              {/* RESET AND ACTION BUTTONS */}
+              <div className="flex w-full flex-wrap items-center gap-2 lg:ml-auto lg:w-auto lg:shrink-0">
+                {(hasActiveFilters ||
+                  fnfClosedFilter ||
+                  fnfCancelledFilter) && (
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="flex-1 rounded-lg border border-red-200 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 sm:flex-none"
+                    >
+                      Reset
+                    </button>
+                  )}
+
+                {user?.role?.toLowerCase() === "admin" && (
+                  <button
+                    type="button"
+                    onClick={handleGenerateMonthlyRentForAllClients}
+                    disabled={isGeneratingRentAllClients}
+                    className="theme-btn flex-1 justify-center whitespace-nowrap sm:flex-none"
+                  >
+                    {isGeneratingRentAllClients ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader />
+                        <span>Please Wait...</span>
+                      </span>
+                    ) : (
+                      "Generate Monthly Rent"
+                    )}
+                  </button>
+                )}
+
                 <button
                   type="button"
-                  onClick={handleGenerateMonthlyRentForAllClients}
-                  disabled={isGeneratingRentAllClients}
-                  className="theme-btn"
+                  onClick={() => {
+                    setFnfClosedFilter((prev) => {
+                      const next = !prev;
+
+                      if (next) {
+                        setFnfCancelledFilter(false);
+                      }
+
+                      return next;
+                    });
+
+                    setCurrentPage(1);
+                  }}
+                  className={`flex-1 whitespace-nowrap rounded-lg border px-3 py-2.5 text-sm font-medium transition sm:flex-none ${fnfClosedFilter
+                      ? "border-green-300 bg-green-50 text-green-700"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    }`}
                 >
-                  {isGeneratingRentAllClients ? (
-                    <span className="flex items-center gap-2 ">
-                      <Loader />
-                      <span>please Wait...</span>
-                    </span>
-                  ) : (
-                    "Generate Monthly Rent"
-                  )}
+                  F&F Closed
                 </button>
-              )}
-              <button
-                onClick={() => {
-                  setFnfClosedFilter((prev) => {
-                    const next = !prev;
 
-                    if (next) {
-                      setFnfCancelledFilter(false);
-                    }
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFnfCancelledFilter((prev) => {
+                      const next = !prev;
 
-                    return next;
-                  });
+                      if (next) {
+                        setFnfClosedFilter(false);
+                      }
 
-                  setCurrentPage(1);
-                }}
-                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${
-                  fnfClosedFilter
-                    ? "bg-green-50 border-green-300 text-green-700"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                F&F Closed
-              </button>
-              <button
-                onClick={() => {
-                  setFnfCancelledFilter((prev) => {
-                    const next = !prev;
+                      return next;
+                    });
 
-                    if (next) {
-                      setFnfClosedFilter(false);
-                    }
+                    setCurrentPage(1);
+                  }}
+                  className={`flex-1 whitespace-nowrap rounded-lg border px-3 py-2.5 text-sm font-medium transition sm:flex-none ${fnfCancelledFilter
+                      ? "border-red-300 bg-red-50 text-red-700"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    }`}
+                >
+                  Cancelled
+                </button>
 
-                    return next;
-                  });
-
-                  setCurrentPage(1);
-                }}
-                className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${
-                  fnfCancelledFilter
-                    ? "bg-red-50 border-red-300 text-red-700"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                Cancelled
-              </button>
-              <button
-                onClick={() => setFilterOpen(true)}
-                className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
-              >
-                <Filter size={16} />
-                Filters
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterOpen(true)}
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:flex-none"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <Filter size={16} />
+                    Filters
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="flex-1 overflow-hidden">
-            <div className="overflow-auto h-full">
+          <div className="flex-1 min-h-0 overflow-hidden">
+            {/* MOBILE CARD VIEW */}
+            <div className="h-full space-y-3 overflow-y-auto bg-slate-50 p-3 md:hidden">
+              {isClients ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="animate-pulse rounded-xl border border-slate-200 bg-white p-4"
+                  >
+                    <div className="mb-4 h-5 w-2/3 rounded bg-slate-200" />
+                    <div className="mb-3 grid grid-cols-2 gap-3">
+                      <div className="h-14 rounded-lg bg-slate-100" />
+                      <div className="h-14 rounded-lg bg-slate-100" />
+                    </div>
+                    <div className="mb-2 h-4 w-full rounded bg-slate-100" />
+                    <div className="h-4 w-3/4 rounded bg-slate-100" />
+                  </div>
+                ))
+              ) : paginatedData?.length > 0 ? (
+                paginatedData.map((item) => (
+                  <ClientMobileCard
+                    key={item._id}
+                    item={item}
+                    user={user}
+                    canEditClient={canEditClient}
+                    canViewClient={canViewClient}
+                    generatingRentClientId={generatingRentClientId}
+                    enablingClientId={enablingClientId}
+                    handleGenerateMonthlyRent={handleGenerateMonthlyRent}
+                    handleEnableClientLogin={handleEnableClientLogin}
+                    setSelectedClient={setSelectedClient}
+                    setShowBedShiftModal={setShowBedShiftModal}
+                    setShowClientVacationModal={setShowClientVacationModal}
+                    setShowBedHistoryModal={setShowBedHistoryModal}
+                    setEditingVacation={setEditingVacation}
+                  />
+                ))
+              ) : (
+                <div className="rounded-xl border border-slate-200 bg-white px-4 py-12">
+                  <NoDataFound
+                    title="No Clients Found"
+                    description="No client records available"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* DESKTOP TABLE - KEEP EXISTING TABLE MARKUP */}
+            <div className="hidden h-full overflow-auto md:block">
               <table className="w-full whitespace-nowrap border-collapse">
                 <thead className="sticky top-0 bg-gray-100 z-20">
                   <tr>
@@ -706,15 +779,14 @@ const ClientsTable = () => {
 
                             <td className="p-3 text-center">
                               <span
-                                className={`px-2.5 py-1 rounded-full text-md font-semibold ${
-                                  item.bookingType === "Daily"
+                                className={`px-2.5 py-1 rounded-full text-md font-semibold ${item.bookingType === "Daily"
                                     ? " text-indigo-700"
                                     : item.stayType === "P. Booked"
                                       ? " text-emerald-700"
                                       : item.stayType === "T. Booked"
                                         ? " text-amber-700"
                                         : " text-gray-700"
-                                }`}
+                                  }`}
                               >
                                 {item.bookingType === "Daily"
                                   ? "Daily"
@@ -724,9 +796,9 @@ const ClientsTable = () => {
 
                             {/* Client Name */}
                             <td className="p-3 font-bold flex justify-center items-center">
-                              <td className="p-2">
+                              <>
                                 {item.stayType === "T. Booked" &&
-                                item.permanentBooking ? (
+                                  item.permanentBooking ? (
                                   <div className="relative group inline-block">
                                     <Info
                                       size={18}
@@ -794,8 +866,8 @@ const ClientsTable = () => {
                                                 DOJ
                                               </span>
                                               <span className="ml-4 text-sm font-medium text-gray-900">
-                                                {item.clientDoj
-                                                  ? formatDate(item.clientDoj)
+                                                {item?.permanentBooking?.clientDoj
+                                                  ? formatDate(item?.permanentBooking?.clientDoj)
                                                   : "-"}
                                               </span>
                                             </div>
@@ -842,7 +914,7 @@ const ClientsTable = () => {
                                 ) : (
                                   ""
                                 )}
-                              </td>
+                              </>
                               {item.fullName || "-"}
                             </td>
                             {/* Status */}
@@ -905,13 +977,12 @@ const ClientsTable = () => {
                               )}
                             </td>
                             <td
-                              className={`p-3 ${
-                                Number(
-                                  item?.latestRentHistory?.currentDue || 0,
-                                ) < 0
+                              className={`p-3 ${Number(
+                                item?.latestRentHistory?.currentDue || 0,
+                              ) < 0
                                   ? "text-green-600"
                                   : "text-red-600"
-                              }`}
+                                }`}
                             >
                               ₹
                               {Number(
@@ -1015,54 +1086,54 @@ const ClientsTable = () => {
                                                 {/* Vacation 1 */}
                                                 {(vacation.vacationStartDate1 ||
                                                   vacation.vacationLastDate1) && (
-                                                  <div className="flex items-center gap-5">
-                                                    <span className="font-medium text-gray-700">
-                                                      Vacation 1
-                                                    </span>
+                                                    <div className="flex items-center gap-5">
+                                                      <span className="font-medium text-gray-700">
+                                                        Vacation 1
+                                                      </span>
 
-                                                    <span className="text-gray-600">
-                                                      {vacation.vacationStartDate1
-                                                        ? formatDate(
+                                                      <span className="text-gray-600">
+                                                        {vacation.vacationStartDate1
+                                                          ? formatDate(
                                                             vacation.vacationStartDate1,
                                                           )
-                                                        : "-"}{" "}
-                                                      <span className="text-gray-400">
-                                                        →
-                                                      </span>{" "}
-                                                      {vacation.vacationLastDate1
-                                                        ? formatDate(
+                                                          : "-"}{" "}
+                                                        <span className="text-gray-400">
+                                                          →
+                                                        </span>{" "}
+                                                        {vacation.vacationLastDate1
+                                                          ? formatDate(
                                                             vacation.vacationLastDate1,
                                                           )
-                                                        : "-"}
-                                                    </span>
-                                                  </div>
-                                                )}
+                                                          : "-"}
+                                                      </span>
+                                                    </div>
+                                                  )}
 
                                                 {/* Vacation 2 */}
                                                 {(vacation.vacationStartDate2 ||
                                                   vacation.vacationLastDate2) && (
-                                                  <div className="flex items-center gap-5">
-                                                    <span className="font-medium text-gray-700">
-                                                      Vacation 2
-                                                    </span>
+                                                    <div className="flex items-center gap-5">
+                                                      <span className="font-medium text-gray-700">
+                                                        Vacation 2
+                                                      </span>
 
-                                                    <span className="text-gray-600">
-                                                      {vacation.vacationStartDate2
-                                                        ? formatDate(
+                                                      <span className="text-gray-600">
+                                                        {vacation.vacationStartDate2
+                                                          ? formatDate(
                                                             vacation.vacationStartDate2,
                                                           )
-                                                        : "-"}{" "}
-                                                      <span className="text-gray-400">
-                                                        →
-                                                      </span>{" "}
-                                                      {vacation.vacationLastDate2
-                                                        ? formatDate(
+                                                          : "-"}{" "}
+                                                        <span className="text-gray-400">
+                                                          →
+                                                        </span>{" "}
+                                                        {vacation.vacationLastDate2
+                                                          ? formatDate(
                                                             vacation.vacationLastDate2,
                                                           )
-                                                        : "-"}
-                                                    </span>
-                                                  </div>
-                                                )}
+                                                          : "-"}
+                                                      </span>
+                                                    </div>
+                                                  )}
                                               </div>
                                               {/* Vacation Comments */}
                                               <div className="max-h-40 text-[5px] overflow-y-auto space-y-2 pr-1 p-5 border border-gray-200 rounded">
@@ -1082,20 +1153,20 @@ const ClientsTable = () => {
                                                           [
                                                           {comment.createdAt
                                                             ? new Date(
-                                                                comment.createdAt,
-                                                              ).toLocaleString(
-                                                                "en-IN",
-                                                                {
-                                                                  day: "2-digit",
-                                                                  month:
-                                                                    "short",
-                                                                  year: "numeric",
-                                                                  hour: "2-digit",
-                                                                  minute:
-                                                                    "2-digit",
-                                                                  hour12: true,
-                                                                },
-                                                              )
+                                                              comment.createdAt,
+                                                            ).toLocaleString(
+                                                              "en-IN",
+                                                              {
+                                                                day: "2-digit",
+                                                                month:
+                                                                  "short",
+                                                                year: "numeric",
+                                                                hour: "2-digit",
+                                                                minute:
+                                                                  "2-digit",
+                                                                hour12: true,
+                                                              },
+                                                            )
                                                             : "-"}
                                                           ]
                                                         </span>{" "}
@@ -1121,11 +1192,10 @@ const ClientsTable = () => {
                               </div>
                             </td>
                             <td
-                              className={`p-3 font-semibold ${
-                                item.loginEnabled
+                              className={`p-3 font-semibold ${item.loginEnabled
                                   ? "text-green-600"
                                   : "text-red-600"
-                              }`}
+                                }`}
                             >
                               {item.loginEnabled ? "Enabled" : "Disabled"}
                             </td>
@@ -1233,9 +1303,8 @@ const ClientsTable = () => {
                             </td>
 
                             <td
-                              className={`p-3 sticky right-0 bg-white ${
-                                openMenuId === item._id ? "z-[9999]" : ""
-                              } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
+                              className={`p-3 sticky right-0 bg-white ${openMenuId === item._id ? "z-[9999]" : ""
+                                } shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
                             >
                               <div className="flex justify-center gap-2">
                                 {canViewClient && (
@@ -1279,7 +1348,7 @@ const ClientsTable = () => {
                                       handleEnableClientLogin(item)
                                     }
                                     disabled={enablingClientId === item._id}
-                                   className="w-full flex items-center gap-1 px-2 py-1 rounded-lg border border-gray-300 hover:border-gray-800 text-left"
+                                    className="w-full flex items-center gap-1 px-2 py-1 rounded-lg border border-gray-300 hover:border-gray-800 text-left"
                                   >
                                     {enablingClientId === item._id ? (
                                       <span className="flex items-center gap-2">
@@ -1302,11 +1371,10 @@ const ClientsTable = () => {
                                           : item._id,
                                       );
                                     }}
-                                    className={`p-2 rounded-md transition-colors ${
-                                      openMenuId === item._id
+                                    className={`p-2 rounded-md transition-colors ${openMenuId === item._id
                                         ? "bg-blue-100 text-blue-600"
                                         : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                    }`}
+                                      }`}
                                   >
                                     <FaEllipsisV />
                                   </button>
@@ -1356,7 +1424,7 @@ const ClientsTable = () => {
                                       <span>🛏</span>
                                       <span>Vacation</span>
                                     </button>
-                                    
+
                                     <button
                                       onClick={() => {
                                         setSelectedClient(item);
@@ -1444,7 +1512,7 @@ const ClientsTable = () => {
 
           {/* PAGINATION */}
           {totalRecords > 0 && (
-            <div className="border-t p-3 flex justify-between items-center bg-white">
+           <div className="flex flex-col gap-2 border-t border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm text-gray-500">
                 Showing {(currentPage - 1) * rowsPerPage + 1} - {"  "}
                 {Math.min(currentPage * rowsPerPage, totalRecords)} {"  "}

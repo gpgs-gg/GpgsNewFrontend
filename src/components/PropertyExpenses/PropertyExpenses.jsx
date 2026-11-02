@@ -26,6 +26,7 @@ import {
   useDeletePropertyExpense,
 } from "./services";
 import PropertyExpenseFilter from "./PropertyExpenseFilter";
+import PropertyExpenseMobileCards from "./PropertyExpenseMobileCards";
 const DEFAULT_EXPENSE_FILTERS = {
   expenseType: "",
   fromDate: "",
@@ -67,6 +68,13 @@ const PropertyExpenses = () => {
   });
 
   const expenses = expenseResponse?.data || [];
+
+  // Extract property details from API response
+  const property = expenseResponse?.property || {};
+
+  const propertyCode = property.propertyCode || "-";
+  const propertyLocation = property.propertyLocation || "-";
+
   const totalPages = expenseResponse?.pagination?.totalPages || 1;
   const totalAmount = expenseResponse?.summary?.totalExpenses || 0;
 
@@ -267,22 +275,27 @@ const PropertyExpenses = () => {
     <>
       <div className="space-y-5">
         {/* HEADER */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
-          <div className="flex flex-wrap justify-between items-center gap-3">
-            <div className="flex items-center gap-3">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-300 px-3 py-3 sm:px-4 sm:py-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:justify-between lg:items-center lg:gap-4">
+            <div className="flex items-start sm:items-center gap-3 min-w-0">
               <Link
                 to="/properties"
-                className="p-2 rounded-lg border hover:bg-gray-100"
+                className="shrink-0 p-2 rounded-lg border border-gray-200 hover:bg-gray-100"
                 title="Back to properties"
               >
                 <ArrowLeft size={18} />
               </Link>
 
-              <div>
-                <h1 className="text-2xl font-bold uppercase">
-                  Property Expenses
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg lg:text-xl font-bold uppercase text-gray-900 leading-snug">
+                  Property Expenses :
+                  <span className="text-green-800 break-all">
+                    {" "}
+                    {propertyCode}
+                  </span>
                 </h1>
-                <p className="text-sm text-gray-500">
+
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">
                   Manage expenses for this property
                 </p>
               </div>
@@ -291,7 +304,7 @@ const PropertyExpenses = () => {
             <button
               type="button"
               onClick={openCreateModal}
-              className="theme-btn inline-flex items-center gap-2 rounded-lg px-4 py-2 text-white hover:bg-gray-700"
+              className="theme-btn w-full sm:w-auto lg:w-auto inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-white hover:bg-gray-700"
             >
               <Plus size={17} />
               Add Property Expense
@@ -384,7 +397,7 @@ const PropertyExpenses = () => {
           </div>
 
           {/* TABLE CONTENT */}
-          <div className="flex-1 overflow-auto">
+          <div className="hidden md:block flex-1 overflow-auto">
             <table className="w-full min-w-[1100px]">
               <thead className="sticky top-0 z-20 bg-gray-100">
                 <tr>
@@ -581,7 +594,18 @@ const PropertyExpenses = () => {
               )}
             </table>
           </div>
-
+          {/* MOBILE EXPENSE CARDS */}
+          <div className="md:hidden flex-1 min-h-0 overflow-y-auto bg-gray-50">
+            <PropertyExpenseMobileCards
+              expenses={paginatedExpenses}
+              isLoading={isLoading}
+              currentPage={currentPage}
+              rowsPerPage={rowsPerPage}
+              onEdit={openEditModal}
+              onDelete={setDeleteExpense}
+              isDeleting={deleteExpenseMutation.isPending}
+            />
+          </div>
           {/* PAGINATION AND TOTAL */}
           <div className="border-t p-3 flex flex-wrap justify-between items-center gap-3">
             <div className="flex flex-wrap gap-4">

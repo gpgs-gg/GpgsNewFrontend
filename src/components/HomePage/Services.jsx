@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -108,8 +107,7 @@ const Services = () => {
       name: "Vidit Solanki",
       rating: 4,
       link: "https://maps.app.goo.gl/KDsmiM8rhkd9yCnw6",
-      reviewText:
-        "Good service. Actively takes action on issues raised.",
+      reviewText: "Good service. Actively takes action on issues raised.",
     },
     {
       name: "Yogita Bhagat",
@@ -241,9 +239,7 @@ const Services = () => {
       ========================================================== */}
 
       <section className="bg-[#f7f4ee] py-16 sm:py-20 overflow-hidden">
-
-        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-
+        <div className="mx-auto max-w-12xl px-5 sm:px-8 lg:px-10">
           {/* Heading */}
 
           <div
@@ -259,8 +255,8 @@ const Services = () => {
             </h2>
 
             <p className="mt-4 max-w-2xl text-sm leading-6 text-[#6d6b66] sm:text-base">
-              Discover what residents have to say about their experience
-              staying with us.
+              Discover what residents have to say about their experience staying
+              with us.
             </p>
 
             {/* Google */}
@@ -291,11 +287,7 @@ const Services = () => {
             >
               <span>See us on</span>
 
-              <img
-                src={googlePng}
-                alt="Google"
-                className="h-7 w-auto"
-              />
+              <img src={googlePng} alt="Google" className="h-7 w-auto" />
             </a>
           </div>
 
@@ -312,27 +304,21 @@ const Services = () => {
               slidesPerView="auto"
               loop
               autoplay={{
-                delay: 2800,
+                delay: 500,
                 disableOnInteraction: false,
               }}
               coverflowEffect={{
                 rotate: 0,
                 stretch: 0,
-                depth: 80,
+                depth: 100,
                 modifier: 3,
                 slideShadows: false,
               }}
               pagination={{
                 clickable: true,
               }}
-              modules={[
-                EffectCoverflow,
-                Pagination,
-                Autoplay,
-              ]}
-              onSwiper={(swiper) =>
-                setSwiperInstance(swiper)
-              }
+              modules={[EffectCoverflow, Pagination, Autoplay]}
+              onSwiper={(swiper) => setSwiperInstance(swiper)}
               className="premium-review-swiper"
             >
               {TestemonialContent.map((review, index) => (
@@ -367,7 +353,6 @@ const Services = () => {
                     {/* User */}
 
                     <div className="flex items-center gap-3">
-
                       <div
                         className="
                           flex
@@ -392,7 +377,6 @@ const Services = () => {
                       </div>
 
                       <div className="min-w-0">
-
                         <h3 className="truncate text-sm font-semibold text-[#14223f]">
                           {review.name}
                         </h3>
@@ -404,7 +388,6 @@ const Services = () => {
                             <span key={i}>★</span>
                           ))}
                         </div>
-
                       </div>
                     </div>
 
@@ -429,18 +412,11 @@ const Services = () => {
           SERVICES & ROOM OPTIONS
       ========================================================== */}
 
-      <section
-        id="services"
-        className="bg-white py-20 sm:py-24 lg:py-28"
-      >
+      <section id="services" className="bg-white py-20 sm:py-24 lg:py-28">
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-
           {/* Section Heading */}
 
-          <div
-            data-aos="fade-up"
-            className="mb-14 max-w-3xl"
-          >
+          <div data-aos="fade-up" className="mb-14 max-w-3xl">
             <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#9b6845]">
               Stay your way
             </span>
@@ -452,21 +428,20 @@ const Services = () => {
             </h2>
 
             <p className="mt-5 max-w-2xl text-base leading-7 text-[#6d6b66]">
-              Thoughtfully designed spaces with the comfort,
-              convenience and services you need for a better
-              everyday stay.
+              Thoughtfully designed spaces with the comfort, convenience and
+              services you need for a better everyday stay.
             </p>
           </div>
 
           {/* Main Grid */}
 
           <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-
             {/* ======================================================
                 IMAGE CAROUSEL
             ====================================================== */}
 
-            <div data-aos="zoom-in"
+            <div
+              data-aos="zoom-in"
               className="
                 overflow-hidden
                 rounded-[28px]
@@ -476,7 +451,6 @@ const Services = () => {
               "
             >
               <div className="overflow-hidden rounded-[22px]">
-
                 <Swiper
                   modules={[Autoplay]}
                   autoplay={{
@@ -502,15 +476,12 @@ const Services = () => {
                     </SwiperSlide>
                   ))}
                 </Swiper>
-
               </div>
 
               {/* Image Bottom Card */}
 
               <div className="px-4 pb-3 pt-5 sm:px-6">
-
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#9b6845]">
                       Your next home
@@ -521,28 +492,29 @@ const Services = () => {
                     </h3>
                   </div>
 
-                  <Link
-                    to="/contact"
-                    className="
-                      inline-flex
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-full
-                      bg-[#14223f]
-                      px-6
-                      py-3
-                      text-sm
-                      font-semibold
-                      text-white
-                      transition-all
-                      hover:-translate-y-0.5
-                      hover:bg-[#1d3155]
-                    "
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const section = document.getElementById("contact");
+
+                      if (section) {
+                        const headerOffset = 76;
+
+                        const elementPosition =
+                          section.getBoundingClientRect().top;
+                        const offsetPosition =
+                          elementPosition + window.pageYOffset - headerOffset;
+
+                        window.scrollTo({
+                          top: offsetPosition,
+                          behavior: "smooth",
+                        });
+                      }
+                    }}
+                    className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#14223f] px-6 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#1d3155]"
                   >
                     Reserve a Spot
-                  </Link>
-
+                  </button>
                 </div>
               </div>
             </div>
@@ -551,21 +523,22 @@ const Services = () => {
                 ROOM TYPES
             ====================================================== */}
 
-           <div data-aos="fade-down"
+            <div
+              data-aos="fade-down"
               className="grid grid-cols-1 gap-4 sm:grid-cols-2"
             >
               {roomOptions.map((room, index) => (
                 <div
                   key={index}
-                  className="
-                    group
-                    relative
+                  className=" 
+                  group
+                   relative
                     flex
-                    min-h-[220px]
+                    min-h-55
                     flex-col
                     justify-between
                     overflow-hidden
-                    rounded-[24px]
+                    rounded-3xl
                     border
                     border-[#e8e1d6]
                     bg-[#f7f4ee]
@@ -574,13 +547,11 @@ const Services = () => {
                     duration-500
                     hover:-translate-y-1
                     hover:bg-[#f1ede6]
-                    hover:shadow-[0_15px_35px_rgba(44,36,28,0.08)]
-                  "
+                    hover:shadow-[0_15px_35px_rgba(44,36,28,0.08)]"
                 >
                   {/* Number */}
 
                   <div className="flex items-center justify-between">
-
                     <span className="text-xs font-bold tracking-[0.15em] text-[#a58b70]">
                       0{index + 1}
                     </span>
@@ -604,7 +575,6 @@ const Services = () => {
                   </div>
 
                   <div>
-
                     <h3 className="text-xl font-semibold text-[#14223f]">
                       {room.title}
                     </h3>
@@ -614,7 +584,6 @@ const Services = () => {
                     </p>
 
                     <div className="mt-5">
-
                       <p className="text-xs uppercase tracking-[0.12em] text-[#a19a91]">
                         Starting from
                       </p>
@@ -626,7 +595,6 @@ const Services = () => {
                           / month
                         </span>
                       </p>
-
                     </div>
                   </div>
                 </div>
@@ -641,11 +609,8 @@ const Services = () => {
       ========================================================== */}
 
       <section className="bg-[#f7f4ee] py-20 sm:py-24">
-
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-
           <div className="grid gap-10 lg:grid-cols-2">
-
             {/* Services */}
 
             <div
@@ -667,7 +632,6 @@ const Services = () => {
               </h3>
 
               <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-
                 {/* WiFi */}
 
                 <div className="flex items-center gap-3 rounded-2xl bg-[#f7f4ee] p-4">
@@ -739,7 +703,6 @@ const Services = () => {
                     </p>
                   </div>
                 </div>
-
               </div>
             </div>
 
@@ -756,7 +719,6 @@ const Services = () => {
                 sm:p-9
               "
             >
-
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#d4a06e]">
                 Premium amenities
               </span>
@@ -766,11 +728,9 @@ const Services = () => {
               </h3>
 
               <div className="mt-8 space-y-6">
-
                 {/* Item 1 */}
 
                 <div className="flex gap-4">
-
                   <img
                     src={GreenTickPng}
                     alt=""
@@ -778,22 +738,18 @@ const Services = () => {
                   />
 
                   <div>
-                    <p className="font-semibold">
-                      Fully Furnished Rooms
-                    </p>
+                    <p className="font-semibold">Fully Furnished Rooms</p>
 
                     <p className="mt-1 text-sm leading-6 text-white/60">
-                      Full-size bed, quality mattress,
-                      wardrobe and bedside table.
+                      Full-size bed, quality mattress, wardrobe and bedside
+                      table.
                     </p>
                   </div>
-
                 </div>
 
                 {/* Item 2 */}
 
                 <div className="flex gap-4">
-
                   <img
                     src={GreenTickPng}
                     alt=""
@@ -801,22 +757,18 @@ const Services = () => {
                   />
 
                   <div>
-                    <p className="font-semibold">
-                      Modern Kitchen
-                    </p>
+                    <p className="font-semibold">Modern Kitchen</p>
 
                     <p className="mt-1 text-sm leading-6 text-white/60">
-                      Gas stove, microwave, toaster,
-                      mixer grinder and water purifier.
+                      Gas stove, microwave, toaster, mixer grinder and water
+                      purifier.
                     </p>
                   </div>
-
                 </div>
 
                 {/* Item 3 */}
 
                 <div className="flex gap-4">
-
                   <img
                     src={GreenTickPng}
                     alt=""
@@ -824,18 +776,13 @@ const Services = () => {
                   />
 
                   <div>
-                    <p className="font-semibold">
-                      Laundry & Utilities
-                    </p>
+                    <p className="font-semibold">Laundry & Utilities</p>
 
                     <p className="mt-1 text-sm leading-6 text-white/60">
-                      Fully automatic washing machine,
-                      geyser and refrigerator.
+                      Fully automatic washing machine, geyser and refrigerator.
                     </p>
                   </div>
-
                 </div>
-
               </div>
             </div>
           </div>
@@ -847,9 +794,7 @@ const Services = () => {
       ========================================================== */}
 
       <section className="bg-white py-20 sm:py-24">
-
         <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-
           <div
             data-aos="fade-up"
             className="
@@ -861,11 +806,9 @@ const Services = () => {
               lg:p-12
             "
           >
-
             {/* Heading */}
 
             <div className="mb-10">
-
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#9b6845]">
                 Good to know
               </span>
@@ -873,27 +816,19 @@ const Services = () => {
               <h2 className="mt-3 text-3xl font-semibold text-[#14223f] sm:text-4xl">
                 Simple, transparent living.
               </h2>
-
             </div>
 
             <div className="grid gap-12 md:grid-cols-2">
-
               {/* Monthly Expenses */}
 
               <div>
-
                 <h3 className="text-xl font-semibold text-[#14223f]">
                   Monthly Expenses
                 </h3>
 
                 <div className="mt-6 flex items-start gap-4">
-
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white">
-                    <img
-                      src={INRPng}
-                      alt=""
-                      className="h-7 w-7"
-                    />
+                    <img src={INRPng} alt="" className="h-7 w-7" />
                   </div>
 
                   <div>
@@ -902,29 +837,24 @@ const Services = () => {
                     </p>
 
                     <p className="mt-1 text-sm leading-6 text-[#77736c]">
-                      Electricity expenses are the resident's
-                      responsibility and may vary by property.
+                      Electricity expenses are the resident's responsibility and
+                      may vary by property.
                     </p>
                   </div>
-
                 </div>
-
               </div>
 
               {/* Security */}
 
               <div>
-
                 <h3 className="text-xl font-semibold text-[#14223f]">
                   Security Deposit
                 </h3>
 
                 <div className="mt-6 space-y-5">
-
                   {/* Deposit */}
 
                   <div className="flex gap-4">
-
                     <img
                       src={securedPng}
                       alt=""
@@ -932,16 +862,13 @@ const Services = () => {
                     />
 
                     <p className="text-sm leading-6 text-[#77736c]">
-                      1.5–2 months rent, depending on the
-                      property.
+                      1.5–2 months rent, depending on the property.
                     </p>
-
                   </div>
 
                   {/* Refund */}
 
                   <div className="flex gap-4">
-
                     <img
                       src={clockPng}
                       alt=""
@@ -951,13 +878,11 @@ const Services = () => {
                     <p className="text-sm leading-6 text-[#77736c]">
                       Fully refundable with 1 month notice.
                     </p>
-
                   </div>
 
                   {/* Documentation */}
 
                   <div className="flex gap-4">
-
                     <img
                       src={documentPng}
                       alt=""
@@ -967,9 +892,7 @@ const Services = () => {
                     <p className="text-sm leading-6 text-[#77736c]">
                       Documentation charges: ₹500 one-time.
                     </p>
-
                   </div>
-
                 </div>
               </div>
             </div>
@@ -990,7 +913,6 @@ const Services = () => {
                 sm:justify-between
               "
             >
-
               <div>
                 <p className="font-semibold text-[#14223f]">
                   Ready to find your next home?
@@ -1001,7 +923,7 @@ const Services = () => {
                 </p>
               </div>
 
-              <Link
+              {/* <Link
                 to="/contact"
                 className="
                   inline-flex
@@ -1020,8 +942,7 @@ const Services = () => {
                 "
               >
                 Explore Your Stay →
-              </Link>
-
+              </Link> */}
             </div>
           </div>
         </div>
@@ -1031,4 +952,3 @@ const Services = () => {
 };
 
 export default Services;
-

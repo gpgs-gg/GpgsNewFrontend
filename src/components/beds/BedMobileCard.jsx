@@ -42,7 +42,7 @@ const BedMobileCard = ({
     <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       {/* Card header */}
       <div className="flex items-start gap-3 border-b border-slate-100 bg-slate-50/70 p-4">
-        {isAdmin && (
+        {/* {isAdmin && (
           <input
             type="checkbox"
             aria-label={`Select bed ${item?.bedNo || ""}`}
@@ -50,7 +50,7 @@ const BedMobileCard = ({
             onChange={() => onSelect(item._id)}
             className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-slate-700"
           />
-        )}
+        )} */}
 
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700">
           <BedDouble size={21} />
@@ -186,7 +186,7 @@ const BedMobileCard = ({
                 className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
                 <Eye size={16} />
-                View
+              
               </Link>
             )}
 
@@ -196,7 +196,7 @@ const BedMobileCard = ({
                 className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
                 <Pencil size={15} />
-                Edit
+                
               </Link>
             )}
 
@@ -208,7 +208,7 @@ const BedMobileCard = ({
                 className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Trash2 size={16} />
-                Delete
+                
               </button>
             )}
           </div>

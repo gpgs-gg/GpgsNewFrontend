@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import { useAuthorization } from "../../context/AuthorizationContext";
 import TableSkeleton from "../common/TableSkelton";
+import FnfMobileCard from "./FnfMobileCard";
 function FullandFinalSettlement() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -76,7 +77,7 @@ function FullandFinalSettlement() {
     page: currentPage,
     limit: rowsPerPage,
     search: debouncedSearch,
-    filters:apiFilters,
+    filters: apiFilters,
   });
 
   const data = apiResponse?.data || [];
@@ -86,7 +87,7 @@ function FullandFinalSettlement() {
   const handleReset = () => {
     resetFilters();
     setSearch("");
-   setFnfClosedFilter(false);
+    setFnfClosedFilter(false);
     setFnfCancelledFilter(false);
     setCurrentPage(1);
 
@@ -103,7 +104,7 @@ function FullandFinalSettlement() {
   useEffect(() => {
     sessionStorage.setItem("fnfSearch", search);
   }, [search]);
-useEffect(() => {
+  useEffect(() => {
     localStorage.setItem("fnf_fnf_closed", String(fnfClosedFilter));
   }, [fnfClosedFilter]);
 
@@ -181,10 +182,10 @@ useEffect(() => {
         {/* TABLE */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
           {/* SEARCH */}
-          <div className="px-3 py-2 border-b border-gray-400">
-            <div className="flex justify-between gap-3 items-center">
+          <div className="border-b border-gray-200 px-3 py-3">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-3">
               {/* SEARCH */}
-              <div className="relative w-80">
+              <div className="relative w-full lg:w-80 lg:shrink-0">
                 <input
                   className="border px-3 py-2 pr-10 rounded-lg w-full"
                   placeholder="Search ..."
@@ -208,37 +209,47 @@ useEffect(() => {
                   </button>
                 )}
               </div>
+
               {/* FILTER CHIPS */}
               {filterLabels.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 flex-1">
-                  {filterLabels.map((filter) => (
-                    <div
-                      key={filter.key}
-                      className="flex items-center gap-2 bg-slate-100 border border-slate-300 text-slate-700 px-3 py-1.5 rounded-full text-sm"
-                    >
-                      <span className="font-medium">{filter.title}:</span>
-
-                      <span>{filter.value}</span>
-
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFilter(filter.key)}
-                        className="text-gray-500 hover:text-red-500"
+                <div className="w-full min-w-0 lg:flex-1">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
+                    {filterLabels.map((filter) => (
+                      <div
+                        key={filter.key}
+                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs shadow-sm"
                       >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ))}
+                        <span className="font-semibold text-slate-500">
+                          {filter.title}:
+                        </span>
+
+                        <span className="max-w-28 truncate font-medium text-slate-800">
+                          {filter.value}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFilter(filter.key)}
+                          className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                          aria-label={`Remove ${filter.title} filter`}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
-              {/* BUTTONS */}
-              <div className="flex gap-2">
+
+              {/* RESET AND FILTER BUTTONS */}
+              <div className="flex w-full flex-wrap items-center gap-2 lg:ml-auto lg:w-auto lg:shrink-0 lg:flex-nowrap">
                 {(filterLabels.length > 0 ||
                   fnfClosedFilter ||
                   fnfCancelledFilter) && (
                   <button
+                    type="button"
                     onClick={handleReset}
-                    className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2 hover:bg-gray-50"
+                    className="flex-1 rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 lg:flex-none"
                   >
                     Reset
                   </button>
@@ -246,6 +257,7 @@ useEffect(() => {
 
                 {/* F&F CLOSED */}
                 <button
+                  type="button"
                   onClick={() => {
                     setFnfClosedFilter((prev) => {
                       const next = !prev;
@@ -259,46 +271,25 @@ useEffect(() => {
 
                     setCurrentPage(1);
                   }}
-                  className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${
+                  className={`flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium transition lg:flex-none ${
                     fnfClosedFilter
-                      ? "bg-green-50 border-green-300 text-green-700"
+                      ? "border-green-300 bg-green-50 text-green-700"
                       : "border-gray-300 text-gray-700 hover:bg-gray-50"
                   }`}
                 >
                   F&F Closed
                 </button>
 
-                {/* CANCELLED */}
-                {/* <button
-                  onClick={() => {
-                    setFnfCancelledFilter((prev) => {
-                      const next = !prev;
-
-                      if (next) {
-                        setFnfClosedFilter(false);
-                      }
-
-                      return next;
-                    });
-
-                    setCurrentPage(1);
-                  }}
-                  className={`border px-4 py-2 rounded-lg flex items-center gap-2 transition ${
-                    fnfCancelledFilter
-                      ? "bg-red-50 border-red-300 text-red-700"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  Cancelled
-                </button> */}
-
-                {/* NORMAL FILTER */}
+                {/* FILTER */}
                 <button
+                  type="button"
                   onClick={() => setFilterOpen(true)}
-                  className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 lg:flex-none"
                 >
-                  <Filter size={16} />
-                  Filters
+                  <span className="flex items-center justify-center gap-2">
+                    <Filter size={16} />
+                    Filters
+                  </span>
                 </button>
               </div>
             </div>
@@ -306,9 +297,48 @@ useEffect(() => {
 
           {/* TABLE CONTENT */}
 
-          <div className="overflow-auto h-full">
-            <table className="w-full">
-              <thead className="bg-gray-100 whitespace-nowrap">
+          <div className="flex-1 overflow-auto">
+            {/* MOBILE CARD VIEW */}
+            <div className="space-y-3 p-3 md:hidden">
+              {isFetching ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="animate-pulse rounded-xl border border-slate-200 bg-white p-4"
+                  >
+                    <div className="mb-4 h-5 w-2/3 rounded bg-slate-200" />
+
+                    <div className="mb-3 grid grid-cols-2 gap-3">
+                      <div className="h-14 rounded-lg bg-slate-100" />
+                      <div className="h-14 rounded-lg bg-slate-100" />
+                    </div>
+
+                    <div className="mb-2 h-4 w-full rounded bg-slate-100" />
+                    <div className="h-4 w-3/4 rounded bg-slate-100" />
+                  </div>
+                ))
+              ) : data.length > 0 ? (
+                data.map((item) => (
+                  <FnfMobileCard
+                    key={item._id}
+                    item={item}
+                    canEditFnf={canEditFnf}
+                    onEdit={(client) => {
+                      setSelectedClient(client);
+                      setShowFnfForm(true);
+                    }}
+                  />
+                ))
+              ) : (
+                <div className="rounded-xl border border-slate-200 bg-white px-4 py-12 text-center text-sm text-gray-500">
+                  No Notice Clients Found
+                </div>
+              )}
+            </div>
+
+            {/* DESKTOP TABLE */}
+            <table className="hidden md:table min-w-max w-full">
+              <thead className="sticky top-0 z-20 bg-gray-100 whitespace-nowrap">
                 <tr>
                   <th className="p-3 text-left">Status</th>
                   <th className="p-3 text-left">Property Code</th>
@@ -394,7 +424,9 @@ useEffect(() => {
                               if (fnfStatus && fnfStatus.trim() !== "") {
                                 return (
                                   <span
-                                    title={statusFullForm[fnfStatus] || fnfStatus}
+                                    title={
+                                      statusFullForm[fnfStatus] || fnfStatus
+                                    }
                                     className="px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700 cursor-help"
                                   >
                                     {fnfStatus}
@@ -438,7 +470,7 @@ useEffect(() => {
                                              {item.emailId || "-"}
                                          </td> */}
 
-                      <td className="p-3 text-center">
+                          <td className="p-3 text-center">
                             <span
                               className={`px-2.5 py-1 rounded-full text-md font-semibold ${
                                 item.bookingType === "Daily"
@@ -482,7 +514,9 @@ useEffect(() => {
 
                           <td className="p-3">
                             <div className="flex items-center gap-2">
-                              <span>{fnfHistory.bankDetailReceived || "-"}</span>
+                              <span>
+                                {fnfHistory.bankDetailReceived || "-"}
+                              </span>
 
                               {fnfHistory.bankDetailReceived && (
                                 <button
@@ -503,10 +537,11 @@ useEffect(() => {
                             </div>
                           </td>
                           <td
-                            className={`p-3 ${Number(fnfHistory.fnfAmount) < 0
+                            className={`p-3 ${
+                              Number(fnfHistory.fnfAmount) < 0
                                 ? "text-red-600 font-semibold"
                                 : "text-green-600 font-semibold"
-                              }`}
+                            }`}
                           >
                             ₹ {fnfHistory.fnfAmount || 0}
                           </td>
@@ -534,7 +569,10 @@ useEffect(() => {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={18} className="p-5 text-center text-gray-500">
+                      <td
+                        colSpan={18}
+                        className="p-5 text-center text-gray-500"
+                      >
                         No Notice Clients Found
                       </td>
                     </tr>
@@ -545,7 +583,7 @@ useEffect(() => {
           </div>
 
           {/* PAGINATION */}
-          <div className="border-t p-3 flex justify-between items-center">
+          <div className="flex flex-col gap-2 border-t border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-gray-500">
               Showing{" "}
               {totalRecords === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1} -{" "}

@@ -34,7 +34,14 @@ const CheckinOut = () => {
   // ======================================================
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [month, setMonth] = useState("");
+  const [month, setMonth] = useState(() => {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const monthNumber = String(now.getMonth() + 1).padStart(2, "0");
+
+    return `${year}-${monthNumber}`;
+  });
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -244,7 +251,32 @@ const CheckinOut = () => {
   // Change these values whenever you want to update check-in time.
   const CHECK_IN_HOUR = 6;
   const CHECK_IN_MINUTE = 45;
+  useEffect(() => {
+    const startCameraOnPageLoad = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+          audio: false,
+        });
 
+        streamRef.current = stream;
+        setCameraOpen(true);
+      } catch (error) {
+        // console.error("Camera Error:", error);
+        toast.dismiss();
+        //   toast.error("Unable to access camera. Please allow camera permission.");
+      }
+    };
+
+    startCameraOnPageLoad();
+
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
   const getIndiaTimeInMinutes = () => {
     const parts = new Intl.DateTimeFormat("en-IN", {
       timeZone: "Asia/Kolkata",
@@ -339,59 +371,89 @@ const CheckinOut = () => {
   const openCamera = async (mode) => {
     if (mode === "check-in" && !canCheckIn) {
       toast.warning(
-        `Check-in is available only after ${String(CHECK_IN_HOUR).padStart(2, "0")}:${String(CHECK_IN_MINUTE).padStart(2, "0")} AM.`,
+        `Check-in is available only after ${formattedCheckInTime}.`,
       );
       return;
     }
 
-    if (isOpeningCamera || isAttendanceProcessing) return;
+    if (isAttendanceProcessing || isOpeningCamera) return;
+
+    const video = videoRef.current;
+    const stream = streamRef.current;
+
+    if (!stream || !video) {
+      toast.dismiss();
+      toast.error(
+        "Please allow camera access in your browser settings and try again.",
+      );
+      return;
+    }
 
     try {
-      setIsOpeningCamera(true);
+      // Attach the existing camera stream to the current video element.
+      if (video.srcObject !== stream) {
+        video.srcObject = stream;
+      }
+
+      await video.play();
+
+      // Wait until the browser provides actual video dimensions.
+      if (!video.videoWidth || video.readyState < 2) {
+        await new Promise((resolve, reject) => {
+          const cleanup = () => {
+            clearTimeout(timeout);
+            video.removeEventListener("loadeddata", checkReady);
+            video.removeEventListener("canplay", checkReady);
+          };
+
+          const checkReady = () => {
+            if (video.videoWidth > 0 && video.videoHeight > 0) {
+              cleanup();
+              resolve();
+            }
+          };
+
+          const timeout = setTimeout(() => {
+            cleanup();
+            reject(new Error("Camera preview did not become ready."));
+          }, 8000);
+
+          video.addEventListener("loadeddata", checkReady);
+          video.addEventListener("canplay", checkReady);
+
+          // Check again in case the video became ready just before listeners.
+          checkReady();
+        });
+      }
+
+      // Pass the mode directly; do not rely on updated React state.
       setCameraMode(mode);
-      setCapturedImage(null);
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: false,
-      });
-
-      streamRef.current = stream;
-      setCameraOpen(true);
+      captureSelfie(mode);
     } catch (error) {
-      console.error("Camera Error:", error);
-
-      setCameraMode(null);
-      toast.error("Unable to access camera. Please allow camera permission.");
-    } finally {
-      setIsOpeningCamera(false);
+      toast.dismiss();
+      console.error("Open camera error:", error);
+      toast.error("Camera is not ready. Please wait a moment and try again.");
     }
   };
 
   useEffect(() => {
-    if (!cameraOpen || !videoRef.current || !streamRef.current) return;
-
     const video = videoRef.current;
-    video.srcObject = streamRef.current;
+    const stream = streamRef.current;
 
-    const startVideo = async () => {
-      try {
-        await video.play();
-      } catch (error) {
-        console.error("Unable to start camera preview:", error);
-      }
-    };
+    if (!cameraOpen || !video || !stream) return;
 
-    if (video.readyState >= 1) {
-      startVideo();
-    } else {
-      video.onloadedmetadata = startVideo;
+    if (video.srcObject !== stream) {
+      video.srcObject = stream;
     }
+
+    video.play().catch((error) => {
+      console.error("Unable to start camera preview:", error);
+    });
 
     return () => {
       video.onloadedmetadata = null;
     };
-  }, [cameraOpen]);
+  }, [cameraOpen, capturedImage]);
   // ======================================================
   // STOP CAMERA
   // ======================================================
@@ -412,17 +474,13 @@ const CheckinOut = () => {
   // CAPTURE SELFIE
   // ======================================================
 
-  const captureSelfie = () => {
+  const captureSelfie = (mode) => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    if (!video || !canvas) {
-      toast.error("Camera is not ready.");
-      return;
-    }
-
-    if (!video.videoWidth || !video.videoHeight) {
-      toast.error("Camera is still starting. Please try again.");
+    if (!video || !canvas || !video.videoWidth || !video.videoHeight) {
+      toast.dismiss();
+      toast.error("Camera is not ready. Please try again.");
       return;
     }
 
@@ -432,22 +490,22 @@ const CheckinOut = () => {
     const context = canvas.getContext("2d");
 
     if (!context) {
+      toast.dismiss();
       toast.error("Unable to capture selfie.");
       return;
     }
 
-    // Mirror image
+    // Mirror the selfie.
     context.save();
     context.translate(canvas.width, 0);
     context.scale(-1, 1);
-
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
     context.restore();
 
     canvas.toBlob(
       (blob) => {
         if (!blob) {
+          toast.dismiss();
           toast.error("Unable to capture selfie. Please try again.");
           return;
         }
@@ -459,17 +517,11 @@ const CheckinOut = () => {
           url: imageUrl,
         });
 
-        stopCamera();
-
         const formData = new FormData();
-
         formData.append("selfie", blob, "attendance-selfie.jpg");
 
-        // ================================
-        // CHECK IN
-        // ================================
-
-        if (cameraMode === "check-in") {
+        // Use the mode argument, not cameraMode state.
+        if (mode === "check-in") {
           checkIn(formData, {
             onSuccess: (response) => {
               const utterance = new SpeechSynthesisUtterance(
@@ -482,18 +534,15 @@ const CheckinOut = () => {
 
               window.speechSynthesis.cancel();
               window.speechSynthesis.speak(utterance);
-
               toast.dismiss();
-
               toast.success(response?.message || "Check-in successful!");
 
               setCapturedImage(null);
               setCameraMode(null);
             },
-
             onError: (error) => {
-              console.error("Check In Error:", error);
-
+              // console.error("Check-in API error:", error);
+              toast.dismiss();
               toast.error(
                 error?.response?.data?.message ||
                   "Check-in failed. Please try again.",
@@ -503,13 +552,7 @@ const CheckinOut = () => {
               setCameraMode(null);
             },
           });
-        }
-
-        // ================================
-        // CHECK OUT
-        // ================================
-
-        if (cameraMode === "check-out") {
+        } else if (mode === "check-out") {
           checkOut(formData, {
             onSuccess: (response) => {
               const utterance = new SpeechSynthesisUtterance(
@@ -522,18 +565,15 @@ const CheckinOut = () => {
 
               window.speechSynthesis.cancel();
               window.speechSynthesis.speak(utterance);
-
               toast.dismiss();
-
               toast.success(response?.message || "Check-out successful!");
 
               setCapturedImage(null);
               setCameraMode(null);
             },
-
             onError: (error) => {
-              console.error("Check Out Error:", error);
-
+              // console.error("Check-out API error:", error);
+              toast.dismiss();
               toast.error(
                 error?.response?.data?.message ||
                   "Check-out failed. Please try again.",
@@ -549,42 +589,7 @@ const CheckinOut = () => {
       0.85,
     );
   };
-  useEffect(() => {
-    if (!cameraOpen) return;
 
-    let timer;
-    let attempts = 0;
-
-    const waitForCamera = () => {
-      const video = videoRef.current;
-
-      if (
-        video &&
-        video.readyState >= 2 &&
-        video.videoWidth > 0 &&
-        video.videoHeight > 0
-      ) {
-        // Camera is ready; capture the selfie.
-        captureSelfie();
-        return;
-      }
-
-      attempts += 1;
-
-      if (attempts >= 40) {
-        toast.error("Camera is taking too long to start. Please try again.");
-        stopCamera();
-        setCameraMode(null);
-        return;
-      }
-
-      timer = setTimeout(waitForCamera, 250);
-    };
-
-    timer = setTimeout(waitForCamera, 100);
-
-    return () => clearTimeout(timer);
-  }, [cameraOpen]);
   // ======================================================
   // ATTENDANCE STATUS
   // ======================================================
@@ -955,7 +960,7 @@ const CheckinOut = () => {
       const safeMonth = monthName.replace(/\s+/g, "-");
 
       doc.save(`Salary-Slip-${safeEmployeeId}-${safeMonth}.pdf`);
-
+      toast.dismiss();
       toast.success("Salary slip downloaded successfully.");
     } catch (error) {
       console.error("Salary Slip Download Error:", error);
@@ -969,7 +974,7 @@ const CheckinOut = () => {
     for (const [key, value] of formData.entries()) {
       console.log(key, value);
     }
-
+    toast.dismiss();
     // Test only — this does not save anything to the backend.
     toast.success("Dummy regularization request submitted successfully.");
   };

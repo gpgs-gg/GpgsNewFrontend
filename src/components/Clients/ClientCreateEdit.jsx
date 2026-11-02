@@ -316,7 +316,7 @@ const ClientCreateEdit = () => {
         <div className="max-w-12xl mx-auto px-6 ">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-4 py-2">
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
                         <div>
                             <h1 className="text-2xl font-bold">
                                 {clientId ? "Update Client" : "Create Client"}
@@ -329,7 +329,7 @@ const ClientCreateEdit = () => {
                             </p>
                         </div>
 
-                        <div className="flex justify-end gap-5">
+                        <div className="flex justify-end sm:gap-5 gap-3">
                             <button
                                 type="button"
                                 onClick={() => window.history.back()}

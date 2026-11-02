@@ -55,7 +55,7 @@ const BedsTable = () => {
   const { filters, setFilters, removeFilter, resetFilters } =
     usePersistedFilters("bed_filters", DEFAULT_BED_FILTERS);
   const { user } = useAuth();
-    const isAdmin = user?.role?.toLowerCase() === "admin";
+  const isAdmin = user?.role?.toLowerCase() === "admin";
   const [resetTrigger, setResetTrigger] = useState(0);
   const rowsPerPage = PAGINATION.BEDS_PER_PAGE || 10;
   const debouncedSearch = useDebounce(search);
@@ -309,75 +309,89 @@ const BedsTable = () => {
 
         {/* TABLE */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
-      <div className="flex flex-col gap-3 border-b border-gray-200 px-3 py-3 md:flex-row md:items-center md:justify-between">
-            {/* search */}
-            <div className="relative w-80">
-              <input
-                className="border px-3 py-2 pr-10 rounded-lg w-full"
-                placeholder="Search property..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch("");
+          {/* SEARCH, FILTER CHIPS AND FILTER BUTTONS */}
+          <div className="border-b border-gray-200 px-3 py-3">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-3">
+              {/* SEARCH */}
+              <div className="relative w-full lg:w-80 lg:shrink-0">
+                <input
+                  className="border px-3 py-2 pr-10 rounded-lg w-full"
+                  placeholder="Search property..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            {/* filter chips */}
-            <div className="flex flex-wrap items-center gap-2 flex-1">
-              {filterLabels.map((filter) => (
-                <div
-                  key={filter.key}
-                  className="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow"
-                >
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    {filter.title}
-                  </span>
+                />
 
-                  <span className="text-sm font-medium text-slate-800">
-                    {filter.value}
-                  </span>
-
+                {search && (
                   <button
                     type="button"
-                    onClick={() => handleRemoveFilter(filter.key)}
-                    className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-slate-400 transition hover:bg-red-100 hover:text-red-600"
+                    onClick={() => {
+                      setSearch("");
+                      setCurrentPage(1);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
                   >
                     ✕
                   </button>
-                </div>
-              ))}
-            </div>
-            {/* reset n filter  */}
-            <div className="flex gap-2">
+                )}
+              </div>
+
+              {/* FILTER CHIPS */}
               {filterLabels.length > 0 && (
-                <button
-                  onClick={handleReset}
-                  className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
-                >
-                  {/* <Filter size={16} /> */}
-                  Reset
-                </button>
+                <div className="w-full min-w-0 lg:flex-1">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
+                    {filterLabels.map((filter) => (
+                      <div
+                        key={filter.key}
+                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs shadow-sm"
+                      >
+                        <span className="font-semibold text-slate-500">
+                          {filter.title}:
+                        </span>
+
+                        <span className="max-w-28 truncate font-medium text-slate-800">
+                          {filter.value}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFilter(filter.key)}
+                          className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                          aria-label={`Remove ${filter.title} filter`}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
-              <button
-                onClick={() => setFilterOpen(true)}
-                className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
-              >
-                <Filter size={16} />
-                Filters
-              </button>
+
+              {/* RESET AND FILTER BUTTONS */}
+              <div className="flex w-full items-center gap-2 lg:ml-auto lg:w-auto lg:shrink-0">
+                {filterLabels.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="flex-1 rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 lg:flex-none"
+                  >
+                    Reset
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setFilterOpen(true)}
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 lg:flex-none"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <Filter size={16} />
+                    Filters
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
           {/* {canDeleteBed && selectedBeds.length > 0 && (
@@ -399,7 +413,7 @@ const BedsTable = () => {
           )} */}
           {/* TABLE CONTENT */}
           <div className="flex-1 overflow-auto ">
-         {/* MOBILE CARD VIEW */}
+            {/* MOBILE CARD VIEW */}
             <div className="space-y-3 p-3 md:hidden">
               {isLoading ? (
                 Array.from({ length: 4 }).map((_, index) => (
@@ -445,20 +459,24 @@ const BedsTable = () => {
               )}
             </div>
             {/* DESKTOP TABLE — KEEP YOUR EXISTING TABLE MARKUP */}
-            <table className="hidden md:block">
+            <table className="hidden md:table min-w-max w-full">
               <thead className="z-30 sticky top-0 bg-gray-100 whitespace-nowrap">
                 <tr>
-                    {isAdmin && (
-                  <th className="p-3 text-left whitespace-nowrap sticky left-0 z-20 bg-gray-100">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 cursor-pointer accent-red-600"
-                      checked={isAllSelected}
-                      onChange={handleSelectAll}
-                    />
-                  </th>
-                    )}
-                  <th className="p-3 text-left whitespace-nowrap sticky left-7.5 z-20 bg-gray-100">
+                  {isAdmin && (
+                    <th className="p-3 text-left whitespace-nowrap sticky left-0 z-20 bg-gray-100">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 cursor-pointer accent-red-600"
+                        checked={isAllSelected}
+                        onChange={handleSelectAll}
+                      />
+                    </th>
+                  )}
+                  <th
+                    className={`p-3 text-left whitespace-nowrap sticky z-20 bg-gray-100 ${
+                      isAdmin ? "left-[48px]" : "left-0"
+                    }`}
+                  >
                     Property Code
                   </th>
                   <th className="p-3 text-center">Room No </th>
@@ -495,21 +513,27 @@ const BedsTable = () => {
                         className="border-t border-gray-300 whitespace-nowrap text-center hover:bg-gray-50"
                       >
                         {isAdmin && (
-                        <td className="p-3 text-center sticky bg-white left-0 z-10">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 cursor-pointer accent-red-600"
-                            checked={selectedBeds.includes(item._id)}
-                            onChange={() => handleSelect(item._id)}
-                          />
-                        </td>
+                          <td className="p-3 text-center sticky bg-white left-0 z-10">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 cursor-pointer accent-red-600"
+                              checked={selectedBeds.includes(item._id)}
+                              onChange={() => handleSelect(item._id)}
+                            />
+                          </td>
                         )}
-                        <td className="p-3 sticky left-[30px] z-10 bg-white text-center font-semibold">
-                          {item?.propertyId?.propertyCode}
+                        <td
+                          className={`p-3 sticky z-10 bg-white text-center font-semibold ${
+                            isAdmin ? "left-[48px]" : "left-0"
+                          }`}
+                        >
+                          {item?.propertyId?.propertyCode || "-"}
                         </td>
                         <td className="p-3 text-center">{item.roomNo}</td>
                         <td className="p-3 text-center">{item.bedNo}</td>
-                        <td className="p-3 text-center">{item?.propertyId?.propertyLocation}</td>
+                        <td className="p-3 text-center">
+                          {item?.propertyId?.propertyLocation}
+                        </td>
                         <td className="p-3 text-center">{item?.gender}</td>
                         <td className="p-3 text-center">{item?.sharingType}</td>
                         <td className="p-3 text-center">
@@ -640,7 +664,7 @@ const BedsTable = () => {
           </div>
 
           {/* PAGINATION */}
-         <div className="flex flex-col gap-2 border-t border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 border-t border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-gray-500">
               Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
               {Math.min(currentPage * rowsPerPage, totalRecords)} of{" "}

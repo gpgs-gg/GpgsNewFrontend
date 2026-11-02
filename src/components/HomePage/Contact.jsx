@@ -346,15 +346,31 @@ const Contact = () => {
               Ready to explore your next home?
             </p>
 
-            <Link
-              to="/contact"
+        <button
+              type="button"
+              onClick={() => {
+                const section = document.getElementById("contact");
+
+                if (section) {
+                  const headerOffset = 76;
+
+                  const elementPosition = section.getBoundingClientRect().top;
+                  const offsetPosition =
+                    elementPosition + window.pageYOffset - headerOffset;
+
+                  window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth",
+                  });
+                }
+              }}
               className="group inline-flex items-center gap-3 rounded-full bg-black px-7 py-4 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-gray-800 hover:shadow-xl sm:text-base"
             >
               Reserve Your Spot
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-black transition-transform duration-300 group-hover:translate-x-1">
                 <ArrowRight size={15} />
               </span>
-            </Link>
+            </button>
           </div>
         </div>
       </section>

@@ -432,27 +432,43 @@ const About = () => {
               </p>
             </div>
 
-            <Link
-              to="/contact"
+          <button
+              type="button"
+              onClick={() => {
+                const section = document.getElementById("contact");
+
+                if (section) {
+                  const headerOffset = 76;
+
+                  const elementPosition = section.getBoundingClientRect().top;
+                  const offsetPosition =
+                    elementPosition + window.pageYOffset - headerOffset;
+
+                  window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth",
+                  });
+                }
+              }}
               className="
-                inline-flex
-                shrink-0
-                items-center
-                justify-center
-                rounded-full
-                bg-white
-                px-7
-                py-3.5
-                text-sm
-                font-semibold
-                text-[#14223f]
-                transition-all
-                hover:-translate-y-0.5
-                hover:bg-[#f7f4ee]
-              "
+    inline-flex
+    shrink-0
+    items-center
+    justify-center
+    rounded-full
+    bg-white
+    px-7
+    py-3.5
+    text-sm
+    font-semibold
+    text-[#14223f]
+    transition-all
+    hover:-translate-y-0.5
+    hover:bg-[#f7f4ee]
+  "
             >
               Upgrade Your Living →
-            </Link>
+            </button>
           </div>
         </div>
       </div>

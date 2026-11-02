@@ -199,7 +199,7 @@ const PropertiesTable = () => {
         onError: (error) => {
           toast.error(
             error?.response?.data?.message ||
-            "Failed to delete selected properties.",
+              "Failed to delete selected properties.",
           );
         },
       });
@@ -254,7 +254,7 @@ const PropertiesTable = () => {
         onError: (error) => {
           toast.error(
             error?.response?.data?.message ||
-            "Failed to create property sequence",
+              "Failed to create property sequence",
           );
         },
       },
@@ -302,73 +302,80 @@ const PropertiesTable = () => {
         {/* TABLE */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
           {/* SEARCH */}
-          <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
-            {/* Search */}
 
-            <div className="relative w-80">
-              <input
-                className="border px-3 py-2 pr-10 rounded-lg w-full"
-                placeholder="Search property..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch("");
+          {/* SEARCH, FILTER CHIPS AND FILTER BUTTONS */}
+          {/* SEARCH, FILTER CHIPS AND FILTER BUTTONS */}
+          <div className="border-b border-gray-300 px-3 py-3">
+            <div className="flex flex-col gap-3 lg:flex-row justify-between lg:items-center lg:gap-3">
+              {/* SEARCH */}
+              <div className="relative w-full sm:w-72 lg:w-64 lg:shrink-0">
+                <input
+                  className="border px-3 py-2 pr-10 rounded-lg w-full"
+                  placeholder="Search property..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            {/* Show Added Filter Chips */}
-            <div className="flex flex-wrap items-center gap-2 flex-1">
-              {filterLabels.map((filter) => (
-                <div
-                  key={filter.key}
-                  className="group inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-100 cursor-pointer"
-                >
-                  <span className="mr-2 font-medium text-slate-700">
-                    {filter.label}
-                  </span>
+                />
 
+                {search && (
                   <button
                     type="button"
-                    onClick={() => removeFilter(filter.key)}
-                    className="flex h-5 w-5 items-center justify-center rounded-full text-slate-400 transition-colors duration-200 hover:bg-red-100 hover:text-red-600"
-                    aria-label={`Remove ${filter.label}`}
+                    onClick={() => {
+                      setSearch("");
+                      setCurrentPage(1);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
                   >
-                    ✕
+                    <X size={16} />
                   </button>
-                </div>
-              ))}
-            </div>
-            {/* Reset Button */}
-            <div className="flex gap-2">
-              {hasActiveFilters && (
+                )}
+              </div>
+
+              {/* RESET AND FILTER BUTTONS */}
+              <div className="flex w-full items-center gap-2 lg:w-auto lg:shrink-0">
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 lg:flex-none"
+                  >
+                    Reset
+                  </button>
+                )}
+
                 <button
-                  onClick={handleReset}
-                  className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
+                  type="button"
+                  onClick={() => setFilterOpen(true)}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 lg:flex-none"
                 >
-                  {/* <Filter size={16} /> */}
-                  Reset
+                  <Filter size={16} />
+                  Filters
                 </button>
-              )}
-              <button
-                onClick={() => setFilterOpen(true)}
-                className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
-              >
-                <Filter size={16} />
-                Filters
-              </button>
+              </div>
+              {/* ACTIVE FILTER CHIPS */}
+              <>
+                {filterLabels.map((filter) => (
+                  <div
+                    key={filter.key}
+                    className="inline-flex max-w-full items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs sm:text-sm shadow-sm"
+                  >
+                    <span className="break-all font-medium text-slate-700">
+                      {filter.label}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => removeFilter(filter.key)}
+                      className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                      aria-label={`Remove ${filter.label}`}
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                ))}
+              </>
             </div>
           </div>
           {/* Show Delete Selected Button */}
@@ -526,10 +533,11 @@ const PropertiesTable = () => {
                         </td>
                         <td className="p-3 text-center">
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === "Active"
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              item.status === "Active"
                                 ? "bg-green-100 text-green-700"
                                 : "bg-red-100 text-red-700"
-                              }`}
+                            }`}
                           >
                             {item.status}
                           </span>
@@ -642,8 +650,7 @@ const PropertiesTable = () => {
               )}
             </table>
           </div>
-
-{/* MOBILE CARDS ONLY */}
+          {/* MOBILE CARDS ONLY */}
           <div className="flex-1 min-h-0 overflow-y-auto md:hidden">
             <PropertyMobileCards
               properties={paginatedData}
@@ -663,9 +670,8 @@ const PropertiesTable = () => {
               }}
             />
           </div>
-
           {/* PAGINATION */}
-         <div className="border-t p-3 flex flex-wrap justify-between items-center gap-2">
+          <div className="border-t p-3 flex flex-wrap justify-between items-center gap-2">
             <span className="text-sm text-gray-500">
               Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
               {Math.min(currentPage * rowsPerPage, totalRecords)} of{" "}
@@ -678,7 +684,6 @@ const PropertiesTable = () => {
               onPageChange={setCurrentPage}
             />
           </div>
-
         </div>
       </div>
       <PropertyFilter

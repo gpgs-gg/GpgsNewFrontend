@@ -1,5 +1,11 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Pencil, Filter, MessageSquarePlus, Phone, MessageCircle } from "lucide-react";
+import {
+  Pencil,
+  Filter,
+  MessageSquarePlus,
+  Phone,
+  MessageCircle,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
@@ -15,6 +21,7 @@ import TableSkeleton from "../common/TableSkelton";
 import { useAuth } from "../../context/authContext";
 import RnrFilter from "./RnrFilter";
 import { FaWhatsapp } from "react-icons/fa";
+import RnrClientMobileCard from "./RnrClientMobileCard";
 const RNRTable = () => {
   const { canEdit, canDelete, canSingleView } = useAuthorization();
   const { user } = useAuth();
@@ -212,7 +219,7 @@ const RNRTable = () => {
   const totalRecords = clients?.totalRecords || 0;
 
   const paginatedData = bookings;
-  console.log(paginatedData);
+  //console.log(paginatedData);
 
   // Reset to page 1 when filters or search changes
   const isInitialFilterLoad = useRef(true);
@@ -261,7 +268,7 @@ const RNRTable = () => {
 
   useEffect(() => {
     const handleOutsideClick = () => {
-      setOpenMenuId(null);
+      
     };
 
     document.addEventListener("click", handleOutsideClick);
@@ -279,112 +286,37 @@ const RNRTable = () => {
     HD: "Handover Done",
   };
 
-  // const numberToWords = (num) => {
-  //   if (num === 0) return "Zero Rupees";
-
-  //   const ones = [
-  //     "",
-  //     "One",
-  //     "Two",
-  //     "Three",
-  //     "Four",
-  //     "Five",
-  //     "Six",
-  //     "Seven",
-  //     "Eight",
-  //     "Nine",
-  //     "Ten",
-  //     "Eleven",
-  //     "Twelve",
-  //     "Thirteen",
-  //     "Fourteen",
-  //     "Fifteen",
-  //     "Sixteen",
-  //     "Seventeen",
-  //     "Eighteen",
-  //     "Nineteen",
-  //   ];
-
-  //   const tens = [
-  //     "",
-  //     "",
-  //     "Twenty",
-  //     "Thirty",
-  //     "Forty",
-  //     "Fifty",
-  //     "Sixty",
-  //     "Seventy",
-  //     "Eighty",
-  //     "Ninety",
-  //   ];
-
-  //   const convert = (n) => {
-  //     if (n < 20) return ones[n];
-
-  //     if (n < 100) {
-  //       return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
-  //     }
-
-  //     if (n < 1000) {
-  //       return (
-  //         ones[Math.floor(n / 100)] +
-  //         " Hundred" +
-  //         (n % 100 ? " " + convert(n % 100) : "")
-  //       );
-  //     }
-
-  //     if (n < 100000) {
-  //       return (
-  //         convert(Math.floor(n / 1000)) +
-  //         " Thousand" +
-  //         (n % 1000 ? " " + convert(n % 1000) : "")
-  //       );
-  //     }
-
-  //     if (n < 10000000) {
-  //       return (
-  //         convert(Math.floor(n / 100000)) +
-  //         " Lakh" +
-  //         (n % 100000 ? " " + convert(n % 100000) : "")
-  //       );
-  //     }
-
-  //     return (
-  //       convert(Math.floor(n / 10000000)) +
-  //       " Crore" +
-  //       (n % 10000000 ? " " + convert(n % 10000000) : "")
-  //     );
-  //   };
-
-  //   return convert(num) + " Rupees";
-  // };
-
   return (
     <>
       <div className="space-y-5">
         {/* HEADER */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
-          <div className="flex justify-between items-center">
+          <div className="flex gap-3 lg:flex-row lg:justify-between lg:items-center">
+            {/* TITLE */}
             <div>
-              <h1 className="text-2xl font-bold">Rent Not Received</h1>
+              <h1 className="text-xl lg:text-2xl font-bold">
+                Rent Not Received
+              </h1>
               <p className="text-sm text-gray-500">
                 Manage all rent Not received
               </p>
             </div>
-            <div className="px-4 py-2 text-lg font-bold">
-              Total Due Amt :{" "}
-              <span className="text-red-500">
-                ₹{" "}
-                {Number(clients?.totalCurrentDue || 0).toLocaleString("en-IN")}
-              </span>
-              {/* <div className="text-sm font-medium text-gray-400 mt-1">
-                {numberToWords(Number(clients?.totalCurrentDue || 0))}
-              </div> */}
+
+            {/* TOTAL DUE */}
+            <div className="px-0 py-1 text-base lg:px-4 lg:py-2 lg:text-lg font-bold">
+              <div className="flex flex-wrap items-center gap-1">
+                Total Due Amt :
+                <span className="text-red-500">
+                  ₹{" "}
+                  {Number(clients?.totalCurrentDue || 0).toLocaleString(
+                    "en-IN",
+                  )}
+                </span>
+              </div>
             </div>
+
             <Link to="/tickets/create">
-              {/* <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                + Add Ticket
-              </button> */}
+              {/* Keep your existing button here if needed */}
             </Link>
           </div>
         </div>
@@ -392,125 +324,180 @@ const RNRTable = () => {
         {/* TABLE */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
           {/* SEARCH */}
-          <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
-            <div className="relative w-80">
-              <input
-                className="border px-3 py-2 pr-10 rounded-lg w-full"
-                placeholder="Search booking..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                }}
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch("");
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2 flex-1">
-              {filterLabels.map((filter) => (
-                <div
-                  key={filter.key}
-                  className="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow"
-                >
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    {filter.title}
-                  </span>
+          <div className="border-b border-gray-400 px-3 py-3 lg:py-2">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              {/* SEARCH */}
+              <div className="relative w-full shrink-0 lg:w-80">
+                <input
+                  className="w-full rounded-lg border px-3 py-2 pr-10"
+                  placeholder="Search booking..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
 
-                  <span className="text-sm font-medium text-slate-800">
-                    {filter.value}
-                  </span>
-
+                {search && (
                   <button
                     type="button"
-                    onClick={() => removeFilter(filter.key)}
-                    className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-slate-400 transition hover:bg-red-100 hover:text-red-600"
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
                   >
                     ✕
                   </button>
-                </div>
-              ))}
-            </div>
+                )}
+              </div>
 
-            <div className="flex gap-2"></div>
-            <div className="flex gap-2">
-              {(hasActiveFilters || fnfClosedFilter || fnfCancelledFilter) && (
-                <button
-                  onClick={handleReset}
-                  className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2 hover:bg-gray-50"
-                >
-                  Reset
-                </button>
+              {/* FILTER CHIPS */}
+              {filterLabels.length > 0 && (
+                <div className="w-full min-w-0 lg:flex-1">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
+                    {filterLabels.map((filter) => (
+                      <div
+                        key={filter.key}
+                        className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 shadow-sm lg:py-1.5"
+                      >
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 lg:text-xs">
+                          {filter.title}
+                        </span>
+
+                        <span className="max-w-[130px] truncate text-xs font-medium text-slate-800 lg:max-w-none lg:text-sm">
+                          {filter.value}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => removeFilter(filter.key)}
+                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
 
-              <button
-                onClick={() => setFilterOpen(true)}
-                className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
-              >
-                <Filter size={16} />
-                Filters
-              </button>
+              {/* ACTION BUTTONS */}
+              <div className="flex w-full gap-2 lg:w-auto lg:shrink-0">
+                {(hasActiveFilters ||
+                  fnfClosedFilter ||
+                  fnfCancelledFilter) && (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm text-red-500 hover:bg-gray-50 lg:flex-none"
+                  >
+                    Reset
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setFilterOpen(true)}
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50 lg:flex-none"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <Filter size={16} />
+                    Filters
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
+          <div className="min-h-0 flex-1 overflow-hidden">
+            {/* MOBILE CARDS */}
+            <div className="h-full space-y-3 overflow-y-auto bg-slate-50 p-3 md:hidden">
+              {isClients ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="animate-pulse rounded-xl border bg-white p-4"
+                  >
+                    <div className="mb-4 h-5 w-2/3 rounded bg-slate-200" />
+                    <div className="mb-3 grid grid-cols-2 gap-3">
+                      <div className="h-10 rounded bg-slate-100" />
+                      <div className="h-10 rounded bg-slate-100" />
+                    </div>
+                    <div className="h-20 rounded bg-slate-100" />
+                  </div>
+                ))
+              ) : paginatedData?.length > 0 ? (
+                paginatedData.map((item) => (
+                  <RnrClientMobileCard
+                    key={item._id}
+                    item={item}
+                    statusFullForm={statusFullForm}
+                    onAddComment={(client) => {
+                      setCommentClient(client);
+                      setCommentText("");
+                    }}
+                  />
+                ))
+              ) : (
+                <div className="rounded-xl border bg-white py-10">
+                  <NoDataFound
+                    title="No Clients Found"
+                    description="No client records available"
+                  />
+                </div>
+              )}
+            </div>
 
-          <div className="flex-1 overflow-hidden">
-            <div className="overflow-auto h-full">
-              <table className="w-full whitespace-nowrap border-collapse">
-                <thead className="sticky top-0 bg-gray-100 z-20">
-                  <tr>
-                    {/* <th className="p-3 text-center whitespace-nowrap">
+            {/* DESKTOP TABLE */}
+            <div className="hidden h-full overflow-hidden md:block">
+              <div className="h-full overflow-auto">
+                <table className="w-full whitespace-nowrap border-collapse">
+                  <thead className="sticky top-0 bg-gray-100 z-20">
+                    <tr>
+                      {/* <th className="p-3 text-center whitespace-nowrap">
                       Sr No.
                     </th> */}
 
-                    <th className="p-3 text-start whitespace-nowrap">
-                      Property Code
-                    </th>
-                    <th className="p-3 text-start whitespace-nowrap">
-                      Room No
-                    </th>
+                      <th className="p-3 text-start whitespace-nowrap">
+                        Property Code
+                      </th>
+                      <th className="p-3 text-start whitespace-nowrap">
+                        Room No
+                      </th>
 
-                    <th className="p-3 text-start whitespace-nowrap">Bed No</th>
-                    <th className="p-3 text-start whitespace-nowrap">
-                      Client Name
-                    </th>
-                    <th className="p-3 text-start whitespace-nowrap">
-                      WhatsApp No
-                    </th>
+                      <th className="p-3 text-start whitespace-nowrap">
+                        Bed No
+                      </th>
+                      <th className="p-3 text-start whitespace-nowrap">
+                        Client Name
+                      </th>
+                      <th className="p-3 text-start whitespace-nowrap">
+                        WhatsApp No
+                      </th>
 
-                    <th className="p-3 text-start whitespace-nowrap">
-                      Calling No
-                    </th>
-                    <th className="p-3 text-start whitespace-nowrap">
-                      Stay Type
-                    </th>
-                    <th className="p-3 text-start whitespace-nowrap">Status</th>
-                    <th className="p-3 text-start whitespace-nowrap">
-                      Month/Year
-                    </th>
-                    <th className="p-3 text-start whitespace-nowrap">
-                      Rent Date
-                    </th>
+                      <th className="p-3 text-start whitespace-nowrap">
+                        Calling No
+                      </th>
+                      <th className="p-3 text-start whitespace-nowrap">
+                        Stay Type
+                      </th>
+                      <th className="p-3 text-start whitespace-nowrap">
+                        Status
+                      </th>
+                      <th className="p-3 text-start whitespace-nowrap">
+                        Month/Year
+                      </th>
+                      <th className="p-3 text-start whitespace-nowrap">
+                        Rent Date
+                      </th>
 
-                    <th className="p-3 text-start whitespace-nowrap">DOJ</th>
+                      <th className="p-3 text-start whitespace-nowrap">DOJ</th>
 
-                    <th className="p-3 text-start whitespace-nowrap">NSD</th>
-                    <th className="p-3 text-start whitespace-nowrap">NLD</th>
-                    <th className="p-3 text-start whitespace-nowrap">CVD</th>
-                    <th className="p-3 text-start whitespace-nowrap">
-                      Current Due
-                    </th>
-                    <th className="p-3 text-center whitespace-nowrap">
-                      Comment
-                    </th>
+                      <th className="p-3 text-start whitespace-nowrap">NSD</th>
+                      <th className="p-3 text-start whitespace-nowrap">NLD</th>
+                      <th className="p-3 text-start whitespace-nowrap">CVD</th>
+                      <th className="p-3 text-start whitespace-nowrap">
+                        Current Due
+                      </th>
+                      <th className="p-3 text-center whitespace-nowrap">
+                        Comment
+                      </th>
 
-                    {/* <th className="p-3 text-start whitespace-nowrap">
+                      {/* <th className="p-3 text-start whitespace-nowrap">
                       Total Amount
                     </th>
 
@@ -521,346 +508,364 @@ const RNRTable = () => {
                     <th className="p-3 text-start whitespace-nowrap">
                       Balance Amount
                     </th> */}
-                  </tr>
-                </thead>
-                {isClients ? (
-                  <TableSkeleton rows={20} columns={20} />
-                ) : (
-                  <tbody>
-                    {paginatedData?.length > 0 ? (
-                      paginatedData.map((item, index) => {
-                        const getClientStatus = (item) => {
-                          const today = new Date();
+                    </tr>
+                  </thead>
+                  {isClients ? (
+                    <TableSkeleton rows={20} columns={20} />
+                  ) : (
+                    <tbody>
+                      {paginatedData?.length > 0 ? (
+                        paginatedData.map((item, index) => {
+                          const getClientStatus = (item) => {
+                            const today = new Date();
 
-                          if (item.isBookingCancelled) {
-                            return {
-                              text: "Cancelled",
-                              className:
-                                "bg-red-50 text-red-700 border border-red-200",
-                            };
-                          }
-
-                          // Vacated highest priority
-                          if (item.clientVacatingDate) {
-                            const vacatedDate = new Date(
-                              item.clientVacatingDate,
-                            );
-
-                            if (vacatedDate <= today) {
+                            if (item.isBookingCancelled) {
                               return {
-                                text: "RFH",
+                                text: "Cancelled",
                                 className:
-                                  "bg-orange-100 text-orange-700 border border-orange-200",
+                                  "bg-red-50 text-red-700 border border-red-200",
                               };
                             }
-                          }
 
-                          // Permanent Notice
-                          if (item.noticeStartDate) {
+                            // Vacated highest priority
+                            if (item.clientVacatingDate) {
+                              const vacatedDate = new Date(
+                                item.clientVacatingDate,
+                              );
+
+                              if (vacatedDate <= today) {
+                                return {
+                                  text: "RFH",
+                                  className:
+                                    "bg-orange-100 text-orange-700 border border-orange-200",
+                                };
+                              }
+                            }
+
+                            // Permanent Notice
+                            if (item.noticeStartDate) {
+                              return {
+                                text: "Notice",
+                                className:
+                                  "bg-amber-50 text-amber-700 border border-amber-200",
+                              };
+                            }
+
                             return {
-                              text: "Notice",
+                              text: "Active",
                               className:
-                                "bg-amber-50 text-amber-700 border border-amber-200",
+                                "bg-emerald-50 text-emerald-700 border border-emerald-200",
                             };
-                          }
-
-                          return {
-                            text: "Active",
-                            className:
-                              "bg-emerald-50 text-emerald-700 border border-emerald-200",
                           };
-                        };
 
-                        return (
-                          <tr
-                            key={item._id}
-                            className="border-t text-center border-gray-300 hover:bg-gray-50"
-                          >
-                            {/* Sr No */}
-                            {/* <td className="p-3 font-medium">
+                          return (
+                            <tr
+                              key={item._id}
+                              className="border-t text-center border-gray-300 hover:bg-gray-50"
+                            >
+                              {/* Sr No */}
+                              {/* <td className="p-3 font-medium">
                             {(currentPage - 1) * rowsPerPage +
                               index +
                               1}
                           </td> */}
 
-                            {/* Status */}
+                              {/* Status */}
 
-                            {/* Property */}
-                            <td className="p-3">
-                              {item.propertyId?.propertyCode || "-"}
-                            </td>
+                              {/* Property */}
+                              <td className="p-3">
+                                {item.propertyId?.propertyCode || "-"}
+                              </td>
 
-                            {/* Room No */}
-                            <td className="p-3">{item.bedId?.roomNo || "-"}</td>
+                              {/* Room No */}
+                              <td className="p-3">
+                                {item.bedId?.roomNo || "-"}
+                              </td>
 
-                            {/* Bed No */}
-                            <td className="p-3">{item.bedId?.bedNo || "-"}</td>
+                              {/* Bed No */}
+                              <td className="p-3">
+                                {item.bedId?.bedNo || "-"}
+                              </td>
 
-                            {/* Client Name */}
-                            <td className="p-3 font-bold text-start">
-                              {item.fullName || "-"}
-                            </td>
-                            {/* Contact No */}
-                          
-<td className="p-3 whitespace-nowrap">
-  {item?.callingNo ? (
-    <a
-      href={`tel:${String(item.callingNo).replace(/[^\d+]/g, "")}`}
-      className="inline-flex items-center gap-2 "
-      title={`Call ${item.callingNo}`}
-    >
-      <span>{item.callingNo}</span>
-      <Phone size={16} className="text-blue-500"/>
-    </a>
-  ) : (
-    "-"
-  )}
-</td>
+                              {/* Client Name */}
+                              <td className="p-3 font-bold text-start">
+                                {item.fullName || "-"}
+                              </td>
+                              {/* Contact No */}
 
-<td className="p-3 whitespace-nowrap">
-  {item?.whatsappNo ? (
-    <a
-      href={`https://wa.me/${String(item.whatsappNo).replace(/\D/g, "")}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 "
-      title={`WhatsApp ${item.whatsappNo}`}
-    >
-      <span>{item.whatsappNo}</span>
-      <FaWhatsapp size={16} className="text-green-500" />
-    </a>
-  ) : (
-    "-"
-  )}
-</td>
+                              <td className="p-3 whitespace-nowrap">
+                                {item?.callingNo ? (
+                                  <a
+                                    href={`tel:${String(item.callingNo).replace(/[^\d+]/g, "")}`}
+                                    className="inline-flex items-center gap-2 "
+                                    title={`Call ${item.callingNo}`}
+                                  >
+                                    <span>{item.callingNo}</span>
+                                    <Phone
+                                      size={16}
+                                      className="text-blue-500"
+                                    />
+                                  </a>
+                                ) : (
+                                  "-"
+                                )}
+                              </td>
 
-                            {/* stay type */}
-                            <td className="p-3 text-center">
-                              <span
-                                className={`px-2.5 py-1 rounded-full text-md font-semibold ${item.bookingType === "Daily"
-                                    ? " text-indigo-700"
-                                    : item.stayType === "P. Booked"
-                                      ? " text-emerald-700"
-                                      : item.stayType === "T. Booked"
-                                        ? " text-amber-700"
-                                        : " text-gray-700"
+                              <td className="p-3 whitespace-nowrap">
+                                {item?.whatsappNo ? (
+                                  <a
+                                    href={`https://wa.me/${String(item.whatsappNo).replace(/\D/g, "")}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 "
+                                    title={`WhatsApp ${item.whatsappNo}`}
+                                  >
+                                    <span>{item.whatsappNo}</span>
+                                    <FaWhatsapp
+                                      size={16}
+                                      className="text-green-500"
+                                    />
+                                  </a>
+                                ) : (
+                                  "-"
+                                )}
+                              </td>
+
+                              {/* stay type */}
+                              <td className="p-3 text-center">
+                                <span
+                                  className={`px-2.5 py-1 rounded-full text-md font-semibold ${
+                                    item.bookingType === "Daily"
+                                      ? " text-indigo-700"
+                                      : item.stayType === "P. Booked"
+                                        ? " text-emerald-700"
+                                        : item.stayType === "T. Booked"
+                                          ? " text-amber-700"
+                                          : " text-gray-700"
                                   }`}
-                              >
-                                {item.bookingType === "Daily"
-                                  ? "Daily"
-                                  : item.stayType || "-"}
-                              </span>
-                            </td>
-                            {/* status */}
-                            <td className="p-3 text-center">
-                              {(() => {
-                                const fnfStatus = item?.fnf?.status;
+                                >
+                                  {item.bookingType === "Daily"
+                                    ? "Daily"
+                                    : item.stayType || "-"}
+                                </span>
+                              </td>
+                              {/* status */}
+                              <td className="p-3 text-center">
+                                {(() => {
+                                  const fnfStatus = item?.fnf?.status;
 
-                                if (fnfStatus && fnfStatus.trim() !== "") {
+                                  if (fnfStatus && fnfStatus.trim() !== "") {
+                                    return (
+                                      <span
+                                        title={
+                                          statusFullForm[fnfStatus] || fnfStatus
+                                        }
+                                        className="px-2.5 py-1 text-sm rounded-full font-semibold bg-gray-100 text-gray-700 cursor-help"
+                                      >
+                                        {fnfStatus}
+                                      </span>
+                                    );
+                                  }
+
+                                  const status = getClientStatus(item);
+
                                   return (
                                     <span
                                       title={
-                                        statusFullForm[fnfStatus] || fnfStatus
+                                        statusFullForm[status.text] ||
+                                        status.text
                                       }
-                                      className="px-2.5 py-1 text-sm rounded-full font-semibold bg-gray-100 text-gray-700 cursor-help"
+                                      className={`px-2.5 py-1 rounded-full text-sm font-semibold cursor-help ${status.className}`}
                                     >
-                                      {fnfStatus}
+                                      {status.text}
                                     </span>
                                   );
-                                }
+                                })()}
+                              </td>
 
-                                const status = getClientStatus(item);
+                              {/*  month/year */}
+                              {/* month/year */}
+                              <td className="p-3 text-center">
+                                {new Date(
+                                  item.latestRentHistory?.year,
+                                  item.latestRentHistory?.month - 1,
+                                ).toLocaleString("en-US", {
+                                  month: "long",
+                                })}{" "}
+                                {item.latestRentHistory?.year}
+                              </td>
+                              {/*  Rent Date */}
+                              <td className="p-3 text-center">Rent Date</td>
+                              {/* Rent Start Date */}
+                              <td className="p-3">
+                                {item.clientDoj
+                                  ? formatDate(item.clientDoj)
+                                  : "-"}
+                              </td>
 
-                                return (
-                                  <span
-                                    title={
-                                      statusFullForm[status.text] || status.text
-                                    }
-                                    className={`px-2.5 py-1 rounded-full text-sm font-semibold cursor-help ${status.className}`}
-                                  >
-                                    {status.text}
-                                  </span>
-                                );
-                              })()}
-                            </td>
+                              <td className="p-3">
+                                {formatDate(item.noticeStartDate) || "-"}
+                              </td>
+                              <td className="p-3">
+                                {formatDate(item.noticeLastDate) || "-"}
+                              </td>
+                              <td className="p-3">
+                                {formatDate(item.clientVacatingDate) || "-"}
+                              </td>
 
-                            {/*  month/year */}
-                            {/* month/year */}
-                            <td className="p-3 text-center">
-                              {new Date(
-                                item.latestRentHistory?.year,
-                                item.latestRentHistory?.month - 1,
-                              ).toLocaleString("en-US", { month: "long" })}{" "}
-                              {item.latestRentHistory?.year}
-                            </td>
-                            {/*  Rent Date */}
-                            <td className="p-3 text-center">Rent Date</td>
-                            {/* Rent Start Date */}
-                            <td className="p-3">
-                              {item.clientDoj
-                                ? formatDate(item.clientDoj)
-                                : "-"}
-                            </td>
-
-                            <td className="p-3">
-                              {formatDate(item.noticeStartDate) || "-"}
-                            </td>
-                            <td className="p-3">
-                              {formatDate(item.noticeLastDate) || "-"}
-                            </td>
-                            <td className="p-3">
-                              {formatDate(item.clientVacatingDate) || "-"}
-                            </td>
-
-                            <td
-                              className={`p-3 ${Number(
-                                item?.latestRentHistory?.currentDue || 0,
-                              ) < 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
+                              <td
+                                className={`p-3 ${
+                                  Number(
+                                    item?.latestRentHistory?.currentDue || 0,
+                                  ) < 0
+                                    ? "text-green-600"
+                                    : "text-red-600"
                                 }`}
-                            >
-                              ₹
-                              {Number(
-                                item?.latestRentHistory?.currentDue || 0,
-                              ).toLocaleString("en-IN")}
-                            </td>
+                              >
+                                ₹
+                                {Number(
+                                  item?.latestRentHistory?.currentDue || 0,
+                                ).toLocaleString("en-IN")}
+                              </td>
 
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                {/* Comments */}
-                                <div className="relative group flex-1 min-w-0">
-                                  {(() => {
-                                    // API response mein rentNotReceivedComment array hai
-                                    const comments =
-                                      item?.rentNotReceivedComment?.[0]
-                                        ?.comments || [];
+                              <td className="p-3">
+                                <div className="flex items-center gap-2">
+                                  {/* Comments */}
+                                  <div className="relative group flex-1 min-w-0">
+                                    {(() => {
+                                      // API response mein rentNotReceivedComment array hai
+                                      const comments =
+                                        item?.rentNotReceivedComment?.[0]
+                                          ?.comments || [];
 
-                                    if (!comments.length) {
+                                      if (!comments.length) {
+                                        return (
+                                          <span className="text-gray-400 text-sm">
+                                            No comment
+                                          </span>
+                                        );
+                                      }
+
+                                      const latestComment =
+                                        comments[comments.length - 1];
+
+                                      const formatDateTime = (value) => {
+                                        if (!value) return "";
+
+                                        const date = new Date(value);
+
+                                        if (isNaN(date.getTime())) return "";
+
+                                        const formattedDate =
+                                          date.toLocaleDateString("en-GB", {
+                                            day: "2-digit",
+                                            month: "short",
+                                            year: "numeric",
+                                            timeZone: "Asia/Kolkata",
+                                          });
+
+                                        const formattedTime =
+                                          date.toLocaleTimeString("en-US", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: true,
+                                            timeZone: "Asia/Kolkata",
+                                          });
+
+                                        return `${formattedDate} ${formattedTime}`;
+                                      };
+
+                                      const words = (
+                                        latestComment?.comment || ""
+                                      )
+                                        .trim()
+                                        .split(/\s+/)
+                                        .filter(Boolean);
+
                                       return (
-                                        <span className="text-gray-400 text-sm">
-                                          No comment
-                                        </span>
+                                        <>
+                                          {/* Latest comment */}
+                                          <div className="text-sm text-gray-700 cursor-pointer truncate">
+                                            <span className="font-semibold text-gray-700">
+                                              {formatDateTime(
+                                                latestComment?.date,
+                                              )}
+                                            </span>{" "}
+                                            {words.slice(0, 2).join(" ")}
+                                            {words.length > 2 ? "..." : ""}
+                                          </div>
+
+                                          {/* Hover Worklog */}
+                                          <div className="hidden group-hover:block absolute right-full top-0 mr-2 w-[520px] max-w-[80vw] max-h-[300px] overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-3">
+                                            <div className="font-semibold text-gray-800 text-sm mb-3 border-b border-gray-300 pb-2">
+                                              RNR Comments
+                                            </div>
+
+                                            <div className="">
+                                              {[...comments]
+                                                .reverse()
+                                                .map((comment, index) => (
+                                                  <div
+                                                    key={comment?._id || index}
+                                                    className="text-sm text-start text-gray-700 leading-relaxed whitespace-normal break-words"
+                                                  >
+                                                    <span className="font-semibold text-gray-800">
+                                                      [
+                                                      {formatDateTime(
+                                                        comment?.date,
+                                                      )}
+                                                      {comment?.addedBy
+                                                        ? ` - ${comment.addedBy}`
+                                                        : ""}
+                                                      ]
+                                                    </span>{" "}
+                                                    {comment?.comment || ""}
+                                                  </div>
+                                                ))}
+                                            </div>
+                                          </div>
+                                        </>
                                       );
-                                    }
+                                    })()}
+                                  </div>
 
-                                    const latestComment =
-                                      comments[comments.length - 1];
-
-                                    const formatDateTime = (value) => {
-                                      if (!value) return "";
-
-                                      const date = new Date(value);
-
-                                      if (isNaN(date.getTime())) return "";
-
-                                      const formattedDate =
-                                        date.toLocaleDateString("en-GB", {
-                                          day: "2-digit",
-                                          month: "short",
-                                          year: "numeric",
-                                          timeZone: "Asia/Kolkata",
-                                        });
-
-                                      const formattedTime =
-                                        date.toLocaleTimeString("en-US", {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                          hour12: true,
-                                          timeZone: "Asia/Kolkata",
-                                        });
-
-                                      return `${formattedDate} ${formattedTime}`;
-                                    };
-
-                                    const words = (latestComment?.comment || "")
-                                      .trim()
-                                      .split(/\s+/)
-                                      .filter(Boolean);
-
-                                    return (
-                                      <>
-                                        {/* Latest comment */}
-                                        <div className="text-sm text-gray-700 cursor-pointer truncate">
-                                          <span className="font-semibold text-gray-700">
-                                            {formatDateTime(
-                                              latestComment?.date,
-                                            )}
-                                          </span>{" "}
-                                          {words.slice(0, 2).join(" ")}
-                                          {words.length > 2 ? "..." : ""}
-                                        </div>
-
-                                        {/* Hover Worklog */}
-                                        <div className="hidden group-hover:block absolute right-full top-0 mr-2 w-[520px] max-w-[80vw] max-h-[300px] overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-3">
-                                          <div className="font-semibold text-gray-800 text-sm mb-3 border-b border-gray-300 pb-2">
-                                            RNR Comments
-                                          </div>
-
-                                          <div className="">
-                                            {[...comments]
-                                              .reverse()
-                                              .map((comment, index) => (
-                                                <div
-                                                  key={comment?._id || index}
-                                                  className="text-sm text-start text-gray-700 leading-relaxed whitespace-normal break-words"
-                                                >
-                                                  <span className="font-semibold text-gray-800">
-                                                    [
-                                                    {formatDateTime(
-                                                      comment?.date,
-                                                    )}
-                                                    {comment?.addedBy
-                                                      ? ` - ${comment.addedBy}`
-                                                      : ""}
-                                                    ]
-                                                  </span>{" "}
-                                                  {comment?.comment || ""}
-                                                </div>
-                                              ))}
-                                          </div>
-                                        </div>
-                                      </>
-                                    );
-                                  })()}
+                                  {/* Add Comment */}
+                                  <button
+                                    type="button"
+                                    title="Add Comment"
+                                    onClick={() => {
+                                      setCommentClient(item);
+                                      setCommentText("");
+                                    }}
+                                    className="shrink-0 p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition"
+                                  >
+                                    <MessageSquarePlus size={17} />
+                                  </button>
                                 </div>
-
-                                {/* Add Comment */}
-                                <button
-                                  type="button"
-                                  title="Add Comment"
-                                  onClick={() => {
-                                    setCommentClient(item);
-                                    setCommentText("");
-                                  }}
-                                  className="shrink-0 p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition"
-                                >
-                                  <MessageSquarePlus size={17} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan={15}>
-                          <NoDataFound
-                            title="No Clients Found"
-                            description="No client records available"
-                          />
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                )}
-              </table>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={15}>
+                            <NoDataFound
+                              title="No Clients Found"
+                              description="No client records available"
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  )}
+                </table>
+              </div>
             </div>
           </div>
 
           {/* PAGINATION */}
           {totalRecords > 0 && (
-            <div className="border-t p-3 flex justify-between items-center bg-white">
+            <div className="flex flex-col gap-2 border-t border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm text-gray-500">
                 Showing {(currentPage - 1) * rowsPerPage + 1} - {"  "}
                 {Math.min(currentPage * rowsPerPage, totalRecords)} {"  "}

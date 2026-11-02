@@ -40,15 +40,31 @@ const Footer = () => {
               </p>
             </div>
 
-            <Link
-              to="/contact"
+       <button
+               type="button"
+              onClick={() => {
+                const section = document.getElementById("contact");
+
+                if (section) {
+                  const headerOffset = 76;
+
+                  const elementPosition = section.getBoundingClientRect().top;
+                  const offsetPosition =
+                    elementPosition + window.pageYOffset - headerOffset;
+
+                  window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth",
+                  });
+                }
+              }}
               className="group inline-flex shrink-0 items-center justify-center gap-3 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-black transition-all duration-300 hover:-translate-y-1 hover:bg-gray-200 hover:shadow-xl sm:px-7 sm:text-base"
             >
               Book Your Stay
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black text-white transition-transform duration-300 group-hover:translate-x-1">
                 <ArrowUpRight size={14} />
               </span>
-            </Link>
+            </button>
           </div>
         </div>
 

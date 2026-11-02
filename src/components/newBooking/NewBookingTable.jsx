@@ -28,6 +28,7 @@ import image from "../../assets/icons8-verified-account (1).gif";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import { useAuthorization } from "../../context/AuthorizationContext";
 import { useAuth } from "../../context/authContext";
+import NewBookingMobileCard from "./NewBookingMobileCard";
 const NewBookingTable = () => {
   const [search, setSearch] = useState("");
   const [todayBookings, setTodayBookings] = useState(() => {
@@ -584,7 +585,9 @@ const NewBookingTable = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold uppercase">{todayBookings ? "Today's Bookings" : "New Bookings"}</h1>
+              <h1 className="text-2xl font-bold uppercase">
+                {todayBookings ? "Today's Bookings" : "New Bookings"}
+              </h1>
               <p className="text-sm text-gray-500">
                 Manage all client bookings
               </p>
@@ -603,97 +606,170 @@ const NewBookingTable = () => {
         {/* TABLE */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
           {/* SEARCH */}
-          <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
-            <div className="relative w-80">
-              <input
-                className="border px-3 py-2 pr-10 rounded-lg w-full"
-                placeholder="Search booking..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch("");
+          {/* SEARCH, FILTER CHIPS AND ACTION BUTTONS */}
+          <div className="border-b border-gray-200 px-3 py-3">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-3">
+              {/* SEARCH */}
+              <div className="relative w-full lg:w-80 lg:shrink-0">
+                <input
+                  className="border px-3 py-2 pr-10 rounded-lg w-full"
+                  placeholder="Search booking..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setCurrentPage(1);
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            {/* filter chips */}
-            <div className="flex flex-wrap items-center gap-2 flex-1">
-              {filterLabels.map((filter) => (
-                <div
-                  key={filter.key}
-                  className="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm hover:border-slate-300"
-                >
-                  <span className="text-xs font-semibold uppercase text-slate-500">
-                    {filter.title}
-                  </span>
+                />
 
-                  <span className="text-sm font-medium text-slate-800">
-                    {filter.value}
-                  </span>
-
+                {search && (
                   <button
                     type="button"
-                    onClick={() => handleRemoveFilter(filter.key)}
-                    className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                    onClick={() => {
+                      setSearch("");
+                      setCurrentPage(1);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
                   >
                     ✕
                   </button>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
+                )}
+              </div>
 
-              {hasActiveFilters && (
-                <button
-                  onClick={handleReset}
-                  className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2 hover:bg-gray-50"
-                >
-                  Reset
-                </button>
+              {/* FILTER CHIPS */}
+              {filterLabels.length > 0 && (
+                <div className="w-full min-w-0 lg:flex-1">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
+                    {filterLabels.map((filter) => (
+                      <div
+                        key={filter.key}
+                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs shadow-sm"
+                      >
+                        <span className="font-semibold text-slate-500">
+                          {filter.title}:
+                        </span>
+
+                        <span className="max-w-28 truncate font-medium text-slate-800">
+                          {filter.value}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleRemoveFilter(filter.key);
+                            setCurrentPage(1);
+                          }}
+                          className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                          aria-label={`Remove ${filter.title} filter`}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
-              <button
-                onClick={() => {
-                  setTodayBookings((prev) => !prev);
-                  setCurrentPage(1);
-                }}
-                className={`border px-4 py-2 rounded-lg flex items-center gap-2 ${todayBookings
-                    ? "bg-green-600 text-white border-green-600"
-                    : "border-gray-300 hover:bg-gray-50"
+
+              {/* RESET AND ACTION BUTTONS */}
+              <div className="flex w-full flex-wrap items-center gap-2 lg:ml-auto lg:w-auto lg:shrink-0">
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="flex-1 rounded-lg border border-red-200 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 lg:flex-none"
+                  >
+                    Reset
+                  </button>
+                )}
+
+                {/* TODAY'S BOOKINGS */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTodayBookings((prev) => !prev);
+                    setCurrentPage(1);
+                  }}
+                  className={`flex-1 whitespace-nowrap rounded-lg border px-3 py-2.5 text-sm font-medium lg:flex-none ${
+                    todayBookings
+                      ? "border-green-600 bg-green-600 text-white"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
                   }`}
-              >
-                Today's Bookings
-              </button>
-              <div className="flex gap-2">
-                <Link to="/clients">
-                  <button className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50">
+                >
+                  Today's Bookings
+                </button>
+
+                {/* CLIENTS LIST */}
+                <Link to="/clients" className="flex-1 lg:flex-none">
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
                     <RiTelegram2Line size={19} />
                     Clients List
                   </button>
                 </Link>
 
+                {/* FILTER BUTTON */}
                 <button
+                  type="button"
                   onClick={() => setFilterOpen(true)}
-                  className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50"
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 lg:flex-none"
                 >
-                  <Filter size={16} />
-                  Filters
+                  <span className="flex items-center justify-center gap-2">
+                    <Filter size={16} />
+                    Filters
+                  </span>
                 </button>
               </div>
             </div>
           </div>
 
           <div className="flex-1 overflow-hidden">
-            <div className="overflow-auto h-full">
+            {/* MOBILE CARD VIEW */}
+            <div className="h-full overflow-y-auto space-y-3 p-3 md:hidden">
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="animate-pulse rounded-xl border border-slate-200 bg-white p-4"
+                  >
+                    <div className="mb-4 h-5 w-2/3 rounded bg-slate-200" />
+
+                    <div className="mb-3 grid grid-cols-2 gap-3">
+                      <div className="h-12 rounded-lg bg-slate-100" />
+                      <div className="h-12 rounded-lg bg-slate-100" />
+                    </div>
+
+                    <div className="mb-3 h-20 rounded-lg bg-slate-100" />
+                    <div className="h-28 rounded-lg bg-slate-100" />
+                  </div>
+                ))
+              ) : bookings?.length > 0 ? (
+                bookings.map((item) => (
+                  <NewBookingMobileCard
+                    key={item._id}
+                    item={item}
+                    onStatusToggle={handleStatusToggle}
+                    onPaymentVerification={handlePaymentVerification}
+                    onDelete={handleDelete}
+                    isPending={isPending}
+                    isPendingDelete={isLoadingDelete}
+                    canEditBooking={canEditBooking}
+                    canViewBooking={canViewBooking}
+                    canDeleteBooking={canDeleteBooking}
+                  />
+                ))
+              ) : (
+                <div className="rounded-xl border border-slate-200 bg-white px-4 py-12">
+                  <NoDataFound
+                    title="No Bookings Found"
+                    description="No booking records available"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* DESKTOP TABLE - EXISTING CODE */}
+            <div className="hidden h-full overflow-auto md:block">
               <table className="min-w-max w-full whitespace-nowrap border-collapse">
                 <thead className="sticky top-0 bg-gray-100 z-10">
                   <tr>
@@ -756,19 +832,21 @@ const NewBookingTable = () => {
                                   />
                                   <div className="w-11 h-5 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors">
                                     <div
-                                      className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${item.status === "Booked"
+                                      className={`h-4 w-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${
+                                        item.status === "Booked"
                                           ? "translate-x-5"
                                           : "translate-x-0.5"
-                                        }`}
+                                      }`}
                                     />
                                   </div>
                                 </label>
 
                                 <span
-                                  className={`text-sm font-medium ${item.status === "Booked"
+                                  className={`text-sm font-medium ${
+                                    item.status === "Booked"
                                       ? "text-green-600"
                                       : "text-red-600"
-                                    }`}
+                                  }`}
                                 >
                                   {item.status === "Booked"
                                     ? "Booked"
@@ -886,8 +964,9 @@ const NewBookingTable = () => {
                             {/* Sticky Actions Column */}
                             {showActions && (
                               <td
-                                className={`p-3 sticky right-0 bg-white ${openMenuId === item._id ? "z-[9999]" : "z-0"
-                                  } min-w-[150px] shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
+                                className={`p-3 sticky right-0 bg-white ${
+                                  openMenuId === item._id ? "z-[9999]" : "z-0"
+                                } min-w-[150px] shadow-[-4px_0_6px_rgba(0,0,0,0.05)]`}
                               >
                                 <div className="flex justify-center relative">
                                   <button
@@ -900,10 +979,11 @@ const NewBookingTable = () => {
                                           : item._id,
                                       );
                                     }}
-                                    className={`p-2 rounded-md transition-colors ${openMenuId === item._id
+                                    className={`p-2 rounded-md transition-colors ${
+                                      openMenuId === item._id
                                         ? "bg-blue-100 text-blue-600"
                                         : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                      }`}
+                                    }`}
                                   >
                                     <MoreVertical size={20} />
                                   </button>
@@ -976,7 +1056,7 @@ const NewBookingTable = () => {
 
           {/* PAGINATION */}
           {bookings.length > 0 && (
-            <div className="border-t p-3 flex justify-between items-center bg-white">
+            <div className="flex flex-col gap-2 border-t border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm text-gray-500">
                 Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
                 {Math.min(currentPage * rowsPerPage, totalRecords)} of{" "}

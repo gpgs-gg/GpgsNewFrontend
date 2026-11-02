@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { FiCopy } from "react-icons/fi";
-import { Eye, Pencil, Filter, Phone, MessageCircle } from "lucide-react";
+import { Eye, Pencil, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
@@ -15,7 +15,7 @@ import usePersistedFilters from "../hooks/usePersistedFilters";
 import TableSkeleton from "../common/TableSkelton";
 import { useAuthorization } from "../../context/AuthorizationContext";
 import { useAuth } from "../../context/authContext";
-
+import BankTransactionMobileCard from "./BankTransactionMobileCard";
 const BankTransactionList = () => {
   const DEFAULT_BANK_TRANSACTION_FILTERS = {
     fromDate: "",
@@ -294,387 +294,433 @@ const BankTransactionList = () => {
       <div className="space-y-5">
         {/* HEADER */}
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
-          <div className="flex justify-between items-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:justify-between lg:items-center">
+            {/* Title */}
             <div>
-              <h1 className="text-2xl font-bold uppercase">
+              <h1 className="text-xl sm:text-2xl font-bold uppercase">
                 Bank Transactions
               </h1>
               <p className="text-sm text-gray-500">Manage All Transactions</p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 items-center">
+            {/* Totals + Upload */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               {/* Totals */}
-              <div className="flex items-center gap-2">
-                <div className="border border-green-300 bg-green-50 rounded-lg px-4 py-2 min-w-40">
+              <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+                <div className="border border-green-300 bg-green-50 rounded-lg px-3 sm:px-4 py-2 min-w-0 sm:min-w-40">
                   <div className="text-xs text-gray-500">Total Deposit</div>
-
-                  <div className="text-lg font-semibold text-green-600">
+                  <div className="text-base sm:text-lg font-semibold text-green-600 whitespace-nowrap">
                     ₹{Number(totalDeposit).toLocaleString("en-IN")}
                   </div>
                 </div>
 
-                <div className="border border-red-300 bg-red-50 rounded-lg px-4 py-2 min-w-40">
+                <div className="border border-red-300 bg-red-50 rounded-lg px-3 sm:px-4 py-2 min-w-0 sm:min-w-40">
                   <div className="text-xs text-gray-500">Total Withdrawal</div>
-
-                  <div className="text-lg font-semibold text-red-600">
+                  <div className="text-base sm:text-lg font-semibold text-red-600 whitespace-nowrap">
                     ₹{Number(totalWithdrawal).toLocaleString("en-IN")}
                   </div>
                 </div>
               </div>
-              <div>
-                {isAdmin && (
-                  <Link to="/bank-transactions/upload">
-                    <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                      + Uplaod Transactions
-                    </button>
-                  </Link>
-                )}
-              </div>
+
+              {/* Upload */}
+              {isAdmin && (
+                <Link
+                  to="/bank-transactions/upload"
+                  className="w-full sm:w-auto"
+                >
+                  <button className="theme-btn text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full whitespace-nowrap">
+                    + Upload Transactions
+                  </button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
 
         {/* TABLE */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
-          {/* SEARCH */}
-          <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
-            {/* Search */}
-            <div className="relative w-80">
-              <input
-                className="border px-3 py-2 pr-10 rounded-lg w-full"
-                placeholder="Search transaction..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch("");
+          <div className="px-3 py-2 border-b border-gray-400">
+            <div className="flex flex-col gap-1 lg:flex-row lg:justify-between lg:gap-3">
+              {/* Search */}
+              <div className="relative w-full lg:w-80 lg:shrink-0">
+                <input
+                  className="border px-3 py-2 pr-10 rounded-lg w-full"
+                  placeholder="Search transaction..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
+                />
 
-            {/* Filter Chips */}
-            <div className="flex flex-wrap items-center gap-2 flex-1">
-              {filterLabels.map((filter) => (
-                <div
-                  key={filter.key}
-                  className="group inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-100"
-                >
-                  <span className="mr-2 font-medium text-slate-700">
-                    {filter.label}
-                  </span>
-
+                {search && (
                   <button
                     type="button"
-                    onClick={() => removeFilter(filter.key)}
-                    className="flex h-5 w-5 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                    onClick={() => {
+                      setSearch("");
+                      setCurrentPage(1);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
                   >
                     ✕
                   </button>
+                )}
+              </div>
+
+              {/* Filter Chips */}
+              <div className="w-full  min-w-0 lg:flex-1">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
+                  {filterLabels.map((filter) => (
+                    <div
+                      key={filter.key}
+                      className="group inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-100"
+                    >
+                      <span className="mr-2 font-medium text-slate-700">
+                        {filter.label}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => removeFilter(filter.key)}
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            {/* todays transaction */}
-            {/* <button
-              onClick={handleTodayTransactions}
-              className="theme-btn px-4 py-2 rounded-lg whitespace-nowrap"
-            >
-              Today's Transactions
-            </button> */}
-            <div className="flex items-center gap-2">
-              {canEditSalary && (
+              </div>
+
+              {/* Transaction Type Buttons */}
+              <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:flex lg:w-auto lg:shrink-0 lg:items-center">
+                {canEditSalary && (
+                  <button
+                    onClick={() => applyTransactionType("salary")}
+                    className={`px-4 py-2 rounded-lg border ${
+                      filters.transactionType === "salary"
+                        ? "bg-green-600 text-white"
+                        : "bg-white"
+                    }`}
+                  >
+                    Salary
+                  </button>
+                )}
+
                 <button
-                  onClick={() => applyTransactionType("salary")}
+                  onClick={() => applyTransactionType("deposit")}
                   className={`px-4 py-2 rounded-lg border ${
-                    filters.transactionType === "salary"
+                    filters.transactionType === "deposit"
                       ? "bg-green-600 text-white"
                       : "bg-white"
                   }`}
                 >
-                  Salary
+                  Deposit
                 </button>
-              )}
 
-              <button
-                onClick={() => applyTransactionType("deposit")}
-                className={`px-4 py-2 rounded-lg border ${
-                  filters.transactionType === "deposit"
-                    ? "bg-green-600 text-white"
-                    : "bg-white"
-                }`}
-              >
-                Deposit
-              </button>
-
-              <button
-                onClick={() => applyTransactionType("withdrawal")}
-                className={`px-4 py-2 rounded-lg border ${
-                  filters.transactionType === "withdrawal"
-                    ? "bg-red-600 text-white"
-                    : "bg-white"
-                }`}
-              >
-                Withdrawal
-              </button>
-            </div>
-            {/* Buttons */}
-            <div className="flex gap-2">
-              {hasActiveFilters && (
                 <button
-                  onClick={handleReset}
-                  className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
+                  onClick={() => applyTransactionType("withdrawal")}
+                  className={`px-4 py-2 rounded-lg border ${
+                    filters.transactionType === "withdrawal"
+                      ? "bg-red-600 text-white"
+                      : "bg-white"
+                  }`}
                 >
-                  Reset
+                  Withdrawal
                 </button>
-              )}
+              </div>
 
-              <button
-                onClick={() => {
-                  setFilterOpen(true);
-                }}
-                className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
-              >
-                <Filter size={16} />
-                Filters
-              </button>
+              {/* Buttons */}
+              <div className="flex w-full gap-2 lg:w-auto lg:shrink-0">
+                {hasActiveFilters && (
+                  <button
+                    onClick={handleReset}
+                    className="flex-1 lg:flex-none border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center justify-center gap-2"
+                  >
+                    Reset
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    setFilterOpen(true);
+                  }}
+                  className="flex-1 lg:flex-none border border-gray-300 px-4 py-2 rounded-lg flex items-center justify-center gap-2"
+                >
+                  <Filter size={16} />
+                  Filters
+                </button>
+              </div>
             </div>
           </div>
-
           {/* TABLE CONTENT */}
-          <div className="flex-1 overflow-auto">
-            <table className="w-full">
-              <thead className="sticky top-0 bg-gray-100 whitespace-nowrap z-20">
-                <tr>
-                  <th className="p-3 text-center">Date</th>
-                  <th className="p-3 text-center">Account</th>
-                  <th className="p-3 text-left">Narration</th>
-                  <th className="p-3 text-center">Cheque / Ref No.</th>
-                  <th className="p-3 text-right">Withdrawal</th>
-                  <th className="p-3 text-right">Deposit</th>
-                  <th className="p-3 text-right">Property / Expense Code</th>
-                  <th className="p-3 text-right">Expense Category</th>
-                  <th className="p-3 text-right">Assignee</th>
-                  <th className="p-3 text-right">Status</th>
-                  <th className="p-3 text-right">Reviewer</th>
-                  <th className="p-3 text-right">Auditor</th>
-                  <th className="p-3 text-right">Balance</th>
-                  <th className="p-3 text-center">Value Date</th>
-                  <th className="p-3 text-center">Source</th>
-                  <th className="p-3 text-center">WorkLog</th>
-                  {/* <th className="p-3 text-center">Uploaded By</th> */}
-                  <th className="p-3 text-center">Created At</th>
-                  <th className="p-3 text-center">Link Payment</th>
-                  <th className="p-3 text-center">Actions</th>
-                </tr>
-              </thead>
+          <div className="flex-1 min-h-0 overflow-hidden">
+            {/* MOBILE CARDS */}
+            <div className="md:hidden h-full overflow-y-auto p-3 space-y-3">
               {isFetching ? (
-                <TableSkeleton rows={20} columns={20} />
+                Array.from({ length: 5 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="animate-pulse rounded-xl border border-gray-200 p-3 space-y-3"
+                  >
+                    <div className="h-4 w-1/3 rounded bg-gray-200" />
+                    <div className="h-3 w-2/3 rounded bg-gray-200" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="h-14 rounded bg-gray-200" />
+                      <div className="h-14 rounded bg-gray-200" />
+                    </div>
+                    <div className="h-3 w-full rounded bg-gray-200" />
+                    <div className="h-3 w-3/4 rounded bg-gray-200" />
+                  </div>
+                ))
+              ) : paginatedData.length > 0 ? (
+                paginatedData.map((item) => (
+                  <BankTransactionMobileCard
+                    key={item._id}
+                    item={item}
+                    onCopy={handleCopy}
+                    onLinkPayment={(transaction) => {
+                      setSelectedTransaction(transaction);
+                      setDrawerOpen(true);
+                    }}
+                  />
+                ))
               ) : (
-                <tbody>
-                  {paginatedData.length > 0 ? (
-                    paginatedData.map((item) => (
-                      <tr
-                        key={item._id}
-                        className="border-t border-gray-300 hover:bg-gray-50 whitespace-nowrap"
-                      >
-                        <td className="p-3 text-center">
-                          {formatDate(item.date)}
-                        </td>
-                        <td className="p-3 text-center">{item.account}</td>
+                <div className="flex min-h-64 items-center justify-center">
+                  <NoDataFound
+                    title="No Transactions Found"
+                    description="Upload a bank statement to get started."
+                  />
+                </div>
+              )}
+            </div>
 
-                        <td className="p-3 max-w-md">
-                          <div className="flex items-center gap-2">
-                            <div className="relative group flex-1 min-w-0">
-                              <div className="truncate cursor-pointer">
-                                {item.narration}
+            {/* DESKTOP TABLE */}
+            <div className="hidden md:block h-full overflow-auto">
+              <table className="w-full">
+                <thead className="sticky top-0 bg-gray-100 whitespace-nowrap z-20">
+                  <tr>
+                    <th className="p-3 text-center">Date</th>
+                    <th className="p-3 text-center">Account</th>
+                    <th className="p-3 text-left">Narration</th>
+                    <th className="p-3 text-center">Cheque / Ref No.</th>
+                    <th className="p-3 text-right">Withdrawal</th>
+                    <th className="p-3 text-right">Deposit</th>
+                    <th className="p-3 text-right">Property / Expense Code</th>
+                    <th className="p-3 text-right">Expense Category</th>
+                    <th className="p-3 text-right">Assignee</th>
+                    <th className="p-3 text-right">Status</th>
+                    <th className="p-3 text-right">Reviewer</th>
+                    <th className="p-3 text-right">Auditor</th>
+                    <th className="p-3 text-right">Balance</th>
+                    <th className="p-3 text-center">Value Date</th>
+                    <th className="p-3 text-center">Source</th>
+                    <th className="p-3 text-center">WorkLog</th>
+                    {/* <th className="p-3 text-center">Uploaded By</th> */}
+                    <th className="p-3 text-center">Created At</th>
+                    <th className="p-3 text-center">Link Payment</th>
+                    <th className="p-3 text-center">Actions</th>
+                  </tr>
+                </thead>
+                {isFetching ? (
+                  <TableSkeleton rows={20} columns={20} />
+                ) : (
+                  <tbody>
+                    {paginatedData.length > 0 ? (
+                      paginatedData.map((item) => (
+                        <tr
+                          key={item._id}
+                          className="border-t border-gray-300 hover:bg-gray-50 whitespace-nowrap"
+                        >
+                          <td className="p-3 text-center">
+                            {formatDate(item.date)}
+                          </td>
+                          <td className="p-3 text-center">{item.account}</td>
+
+                          <td className="p-3 max-w-md">
+                            <div className="flex items-center gap-2">
+                              <div className="relative group flex-1 min-w-0">
+                                <div className="truncate cursor-pointer">
+                                  {item.narration}
+                                </div>
+
+                                {/* Full narration on hover */}
+                                <div className="absolute left-50  mt-[-15] z-50 hidden group-hover:block w-max max-w-lg bg-gray-200 border border-gray-200 text-md rounded-md px-3 py-2 shadow-lg whitespace-normal break-words">
+                                  {item.narration}
+                                </div>
                               </div>
 
-                              {/* Full narration on hover */}
-                              <div className="absolute left-50  mt-[-15] z-50 hidden group-hover:block w-max max-w-lg bg-gray-200 border border-gray-200 text-md rounded-md px-3 py-2 shadow-lg whitespace-normal break-words">
-                                {item.narration}
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleCopy(item.narration, item.chqNo)
-                              }
-                              className="text-gray-500 hover:text-blue-600 transition-colors shrink-0"
-                              title="Copy narration"
-                            >
-                              <FiCopy size={16} />
-                            </button>
-                          </div>
-                        </td>
-
-                        <td className="p-3 text-center">{item.chqNo || "-"}</td>
-
-                        <td className="p-3 text-right text-red-600 font-medium">
-                          {item.withdrawal
-                            ? Number(item.withdrawal).toLocaleString("en-IN")
-                            : "-"}
-                        </td>
-
-                        <td className="p-3 text-right text-green-600 font-medium">
-                          {item.deposit
-                            ? Number(item.deposit).toLocaleString("en-IN")
-                            : "-"}
-                        </td>
-
-                        <td className="p-3 text-center">
-                          {item?.propertyId?.propertyCode ||
-                            item?.expenseCode?.label}
-                        </td>
-                        <td className="p-3 text-center">
-                          {item?.expenseCategory || "-"}
-                        </td>
-                        <td className="p-3 text-center">
-                          {item?.assignee || "-"}
-                        </td>
-                        <td className="p-3 text-center">
-                          {item?.status || "-"}
-                        </td>
-                        <td className="p-3 text-center">
-                          {item?.reviewer || "-"}
-                        </td>
-                        <td className="p-3 text-center">
-                          {item?.auditor || "-"}
-                        </td>
-
-                        <td className="p-3 text-right font-semibold">
-                          {Number(item.balance || 0).toLocaleString("en-IN")}
-                        </td>
-
-                        <td className="p-3 text-center">
-                          {formatDate(item.valueDate)}
-                        </td>
-
-                        <td className="p-3 text-center">
-                          <span className="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs">
-                            {item.source}
-                          </span>
-                        </td>
-
-                        <td className="px-2">
-                          {item.workLogs?.length > 0 ? (
-                            <div className="group relative cursor-pointer">
-                              {/* Short Text */}
-                              <div className="truncate max-w-28 text-xs">
-                                {
-                                  [...item.workLogs].sort(
-                                    (a, b) =>
-                                      new Date(b.createdAt) -
-                                      new Date(a.createdAt),
-                                  )[0]?.message
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleCopy(item.narration, item.chqNo)
                                 }
-                              </div>
-
-                              {/* Hover Popup */}
-                              <div className="absolute right-0 top-4 hidden group-hover:block bg-white border shadow-xl rounded-lg p-3 w-80 max-h-62.5 overflow-y-auto whitespace-pre-line text-xs z-50">
-                                {[...item.workLogs]
-                                  .sort(
-                                    (a, b) =>
-                                      new Date(b.createdAt) -
-                                      new Date(a.createdAt),
-                                  )
-                                  .map((log, index) => (
-                                    <div
-                                      key={log._id || index}
-                                      className="mb-3"
-                                    >
-                                      <div className="text-gray-700">
-                                        {log.createdBy}
-                                        <span className="mx-1">•</span>
-                                        {formatDateAndTime(log.createdAt)}
-                                      </div>
-
-                                      <div className="mt-1 font-medium">
-                                        {log.message}
-                                      </div>
-                                    </div>
-                                  ))}
-                              </div>
+                                className="text-gray-500 hover:text-blue-600 transition-colors shrink-0"
+                                title="Copy narration"
+                              >
+                                <FiCopy size={16} />
+                              </button>
                             </div>
-                          ) : (
-                            <div className="text-xs text-gray-500">-</div>
-                          )}
-                        </td>
+                          </td>
 
-                        {/* <td className="p-3 text-center">
+                          <td className="p-3 text-center">
+                            {item.chqNo || "-"}
+                          </td>
+
+                          <td className="p-3 text-right text-red-600 font-medium">
+                            {item.withdrawal
+                              ? Number(item.withdrawal).toLocaleString("en-IN")
+                              : "-"}
+                          </td>
+
+                          <td className="p-3 text-right text-green-600 font-medium">
+                            {item.deposit
+                              ? Number(item.deposit).toLocaleString("en-IN")
+                              : "-"}
+                          </td>
+
+                          <td className="p-3 text-center">
+                            {item?.propertyId?.propertyCode ||
+                              item?.expenseCode?.label}
+                          </td>
+                          <td className="p-3 text-center">
+                            {item?.expenseCategory || "-"}
+                          </td>
+                          <td className="p-3 text-center">
+                            {item?.assignee || "-"}
+                          </td>
+                          <td className="p-3 text-center">
+                            {item?.status || "-"}
+                          </td>
+                          <td className="p-3 text-center">
+                            {item?.reviewer || "-"}
+                          </td>
+                          <td className="p-3 text-center">
+                            {item?.auditor || "-"}
+                          </td>
+
+                          <td className="p-3 text-right font-semibold">
+                            {Number(item.balance || 0).toLocaleString("en-IN")}
+                          </td>
+
+                          <td className="p-3 text-center">
+                            {formatDate(item.valueDate)}
+                          </td>
+
+                          <td className="p-3 text-center">
+                            <span className="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs">
+                              {item.source}
+                            </span>
+                          </td>
+
+                          <td className="px-2">
+                            {item.workLogs?.length > 0 ? (
+                              <div className="group relative cursor-pointer">
+                                {/* Short Text */}
+                                <div className="truncate max-w-28 text-xs">
+                                  {
+                                    [...item.workLogs].sort(
+                                      (a, b) =>
+                                        new Date(b.createdAt) -
+                                        new Date(a.createdAt),
+                                    )[0]?.message
+                                  }
+                                </div>
+
+                                {/* Hover Popup */}
+                                <div className="absolute right-0 top-4 hidden group-hover:block bg-white border shadow-xl rounded-lg p-3 w-80 max-h-62.5 overflow-y-auto whitespace-pre-line text-xs z-50">
+                                  {[...item.workLogs]
+                                    .sort(
+                                      (a, b) =>
+                                        new Date(b.createdAt) -
+                                        new Date(a.createdAt),
+                                    )
+                                    .map((log, index) => (
+                                      <div
+                                        key={log._id || index}
+                                        className="mb-3"
+                                      >
+                                        <div className="text-gray-700">
+                                          {log.createdBy}
+                                          <span className="mx-1">•</span>
+                                          {formatDateAndTime(log.createdAt)}
+                                        </div>
+
+                                        <div className="mt-1 font-medium">
+                                          {log.message}
+                                        </div>
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-xs text-gray-500">-</div>
+                            )}
+                          </td>
+
+                          {/* <td className="p-3 text-center">
                           {item.userId?.fullName || "-"}
                         </td> */}
 
-                        <td className="p-3 text-center">
-                          {formatDate(item.createdAt)}
-                        </td>
+                          <td className="p-3 text-center">
+                            {formatDate(item.createdAt)}
+                          </td>
 
-                        <td className="p-3 text-center">
-                          {item?.deposit > 0 && (
-                            <button
-                              disabled={item?.isMapped}
-                              onClick={() => {
-                                setSelectedTransaction(item);
-                                setDrawerOpen(true);
-                              }}
-                              className={`px-3 py-1 rounded ${
-                                item?.isMapped
-                                  ? "bg-gray-300 cursor-not-allowed"
-                                  : "bg-green-600 hover:bg-green-700"
-                              } text-white text-sm`}
-                            >
-                              Link Payment
-                            </button>
-                          )}
-                        </td>
+                          <td className="p-3 text-center">
+                            {item?.deposit > 0 && (
+                              <button
+                                disabled={item?.isMapped}
+                                onClick={() => {
+                                  setSelectedTransaction(item);
+                                  setDrawerOpen(true);
+                                }}
+                                className={`px-3 py-1 rounded ${
+                                  item?.isMapped
+                                    ? "bg-gray-300 cursor-not-allowed"
+                                    : "bg-green-600 hover:bg-green-700"
+                                } text-white text-sm`}
+                              >
+                                Link Payment
+                              </button>
+                            )}
+                          </td>
 
-                        <td className="p-3">
-                          <div className="flex justify-center gap-2">
-                            <button className="p-2 bg-blue-100 rounded hover:bg-blue-200">
-                              <Eye size={16} />
-                            </button>
+                          <td className="p-3">
+                            <div className="flex justify-center gap-2">
+                              <button className="p-2 bg-blue-100 rounded hover:bg-blue-200">
+                                <Eye size={16} />
+                              </button>
 
-                            <Link
-                              to={`/bank/edit/${item.account}/${item._id}`}
-                              className="p-2 bg-yellow-100 rounded hover:bg-yellow-200 inline-flex"
-                            >
-                              <Pencil size={16} />
-                            </Link>
+                              <Link
+                                to={`/bank/edit/${item.account}/${item._id}`}
+                                className="p-2 bg-yellow-100 rounded hover:bg-yellow-200 inline-flex"
+                              >
+                                <Pencil size={16} />
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={11} className="h-64">
+                          <div className="flex justify-center items-center h-full">
+                            <NoDataFound
+                              title="No Transactions Found"
+                              description="Upload a bank statement to get started."
+                            />
                           </div>
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={11} className="h-64">
-                        <div className="flex justify-center items-center h-full">
-                          <NoDataFound
-                            title="No Transactions Found"
-                            description="Upload a bank statement to get started."
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              )}
-            </table>
+                    )}
+                  </tbody>
+                )}
+              </table>
+            </div>
           </div>
 
           {/* PAGINATION */}
-          <div className="border-t p-3 flex justify-between items-center">
+          <div className="flex flex-col gap-2 border-t border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-gray-500">
               Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
               {Math.min(currentPage * rowsPerPage, totalRecords)} of{" "}

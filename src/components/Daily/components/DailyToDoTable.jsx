@@ -7,6 +7,8 @@ import DailyTodoTableSkeleton from "./DailyTodoTableSkeleton";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./DailyTodoTable.css";
+import Select from "react-select";
+import { selectStyles } from "../../../utils/selectStyles";
 /* ================= CONFIG ================= */
 
 const SR_NO_WIDTH = 40;
@@ -116,10 +118,14 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
   const [hasChanges, setHasChanges] = useState(false);
   const [filteredColumns, setFilteredColumns] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState("All");
+  const [propertyLocationMap, setPropertyLocationMap] = useState({});
+  const [locationOptions, setLocationOptions] = useState([]);
   /* ================= TANSTACK QUERY ================= */
   const { data, isPending } = useFetchHook();
   const [activeCell, setActiveCell] = useState(null);
-
+  // console.log("Location Options:", locationOptions);
+  // console.log("Selected Location:", selectedLocation);
   // Filter logic
   const [selectedActivities, setSelectedActivities] = useState([]);
 
@@ -146,6 +152,45 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
   // "OVERDUE" | "DONE" | "UPCOMING" | "SAMEDAY"
 
   const updateMutation = useUpdateHook();
+  useEffect(() => {
+    if (!data?.success) return;
+
+    const visibleHeaders = [];
+    const propertyIdMap = {};
+    const locationMap = {};
+
+    data.headers.forEach((header) => {
+      if (typeof header === "string") {
+        visibleHeaders.push(header === "" ? "S.No" : header);
+      } else {
+        const propertyCode = String(header.title || "").trim();
+        const normalizedCode = propertyCode.toUpperCase();
+
+        visibleHeaders.push(propertyCode);
+
+        propertyIdMap[propertyCode] = header.propertyId;
+
+        locationMap[normalizedCode] = String(header.location || "").trim();
+      }
+    });
+
+    setHeaders(
+      visibleHeaders.filter(
+        (h) => ![...HIDDEN_COLUMNS, "S.No", "SrNo", "Freq"].includes(h),
+      ),
+    );
+
+    setPropertyMap(propertyIdMap);
+    setPropertyLocationMap(locationMap);
+
+    setLocationOptions(
+      [...new Set(Object.values(locationMap).filter(Boolean))].sort(),
+    );
+
+    setRows(data.data);
+    setEditedRows(JSON.parse(JSON.stringify(data.data)));
+    setHasChanges(false);
+  }, [data]);
 
   /* ================= SYNC API → LOCAL STATE ================= */
 
@@ -181,6 +226,7 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
     setStatusFilter(null);
     setFilteredColumns([]);
     setActiveCell(null);
+    setSelectedLocation("All");
   };
 
   const toggleActivitySelection = (rIdx, activity) => {
@@ -462,9 +508,10 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
       // Close the date picker after successful save
       setEditingCell(null);
       setSelectedDate(null);
-
+toast.dismiss()
       toast.success("Updated successfully");
     } catch (err) {
+      toast.dismiss()
       toast.error("Failed to update data");
     } finally {
       setSaving(false);
@@ -530,17 +577,14 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
       });
   };
 
-  /* ================= LOADING ================= */
-  if (isPending) {
-    return <DailyTodoTableSkeleton />;
-  }
+  
 
   // filter logic
   const isFilterApplied =
     selectedActivities.length > 0 ||
     filteredColumns.length > 0 ||
-    statusFilter !== null;
-
+    statusFilter !== null ||
+    selectedLocation !== "All";
   const getColumnsByStatusForActivities = (activities, targetStatus) => {
     const matchingColumns = new Set();
 
@@ -581,6 +625,7 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
   //  apply status filter
   const applyStatusFilter = (type, color) => {
     if (selectedActivities.length === 0) {
+      toast.dismiss()
       toast.error("Please select at least one activity");
       return;
     }
@@ -622,20 +667,132 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
       }
     }
   };
+  const normalizeCode = (value) =>
+    String(value ?? "")
+      .trim()
+      .toUpperCase();
 
+  const normalizeLocation = (value) =>
+    String(value ?? "")
+      .trim()
+      .toLowerCase();
+
+  const visibleHeaders = headers.filter((head) => {
+    if (["Activities", "SrNo", "S.No", "Freq"].includes(head.trim())) {
+      return true;
+    }
+
+    if (selectedLocation === "All") {
+      return true;
+    }
+
+    const propertyLocation = propertyLocationMap[normalizeCode(head)];
+
+    return (
+      normalizeLocation(propertyLocation) ===
+      normalizeLocation(selectedLocation)
+    );
+  });
   /* ================= UI (UPDATED TO MATCH SCREENSHOT) ================= */
+  useEffect(() => {
+    if (!data?.success || !data?.headers) return;
 
+    if (selectedLocation === "All") {
+      const allPropertyCodes = data.headers
+        .filter((header) => typeof header === "object")
+        .map((header) => header.title);
+      return;
+    }
+
+    const selectedLocationPropertyCodes = data.headers
+      .filter(
+        (header) =>
+          typeof header === "object" &&
+          normalizeLocation(header.location) ===
+            normalizeLocation(selectedLocation),
+      )
+      .map((header) => header.title);
+
+    console.log("Selected Location:", selectedLocation);
+    console.log(
+      "Property Codes for Selected Location:",
+      selectedLocationPropertyCodes,
+    );
+  }, [data, selectedLocation]);
   return (
     <div className="w-full  font-sans text-gray-800">
       {/* HEADER SECTION */}
 
       {/* FILTER & ACTION BAR */}
-      <div className="px-6  bg-white flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-gray-200">
+      {/* FILTER & ACTION BAR */}
+      <div className="px-6 bg-white flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-gray-200">
         <div>
           <h1 className="text-lg font-bold text-gray-400">{title}</h1>
         </div>
         {/* Status Tabs */}
         <div className="flex items-center justify-evenly  gap-6 text-sm font-medium overflow-x-auto pb-1 xl:pb-0">
+          {/* <div className="flex items-center gap-3">
+            <select
+              value={selectedLocation}
+              onChange={(e) => {
+                setSelectedLocation(e.target.value);
+                setSelectedActivities([]);
+                setStatusFilter(null);
+                setFilteredColumns([]);
+                setActiveCell(null);
+              }}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="All">All Locations</option>
+
+              {locationOptions.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
+            </select>
+          </div> */}
+          <div className="w-52 min-w-[180px] pb-1">
+            <Select
+              options={[
+                { value: "All", label: "All Locations" },
+                ...locationOptions.map((location) => ({
+                  value: location,
+                  label: location,
+                })),
+              ]}
+              value={[
+                { value: "All", label: "All Locations" },
+                ...locationOptions.map((location) => ({
+                  value: location,
+                  label: location,
+                })),
+              ].find((option) => option.value === selectedLocation)}
+              onChange={(selected) => {
+                setSelectedLocation(selected?.value || "All");
+                setSelectedActivities([]);
+                setStatusFilter(null);
+                setFilteredColumns([]);
+                setActiveCell(null);
+              }}
+              isClearable={false}
+              isSearchable
+              placeholder="Select Location"
+              menuPortalTarget={document.body}
+              menuPosition="fixed"
+              styles={{
+                ...selectStyles,
+                menuPortal: (base) => ({
+                  ...base,
+                  zIndex: 99999,
+                }),
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 99999,
+                }),
+              }}
+            />
+          </div>
           <button
             onClick={() => applyStatusFilter("OVERDUE", COLORS.OVERDUE)}
             className={`flex cursor-pointer items-center gap-2 whitespace-nowrap ${statusFilter === "OVERDUE" ? "text-red-700 font-bold" : "text-gray-500 hover:text-gray-800"}`}
@@ -663,7 +820,6 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
           >
             <span className="w-2.5 h-2.5 rounded-full bg-green-300"></span> Done
           </button>
-
           {isFilterApplied && (
             <button
               onClick={resetFilters}
@@ -677,7 +833,7 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
 
       {/* Save Button Strip */}
       {hasChanges && (
-        <div className="absolute  top-20 right-90 z-50">
+        <div className="absolute  top-24 right-144 z-50">
           {/* Cancel Temporary Changes */}
           {/* <button
             type="button"
@@ -717,7 +873,7 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
         <table className="border-collapse text-sm table-fixed min-w-full">
           <thead className="sticky top-0 z-40 bg-gray-50 shadow-sm">
             <tr>
-              {headers.map((head, i) => {
+              {visibleHeaders.map((head, i) => {
                 const isFilteredColumn =
                   head === "Activities" ||
                   (!hideDataColumns &&
@@ -780,7 +936,7 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
                       : "hover:bg-gray-50"
                   }`}
                 >
-                  {headers.map((head, cIdx) => {
+                  {visibleHeaders.map((head, cIdx) => {
                     const sticky = cIdx === 0;
                     const isEditing =
                       editingCell?.row === rIdx && editingCell?.col === head;
@@ -798,7 +954,7 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
                       (!hideDataColumns &&
                         (filteredColumns.length === 0 ||
                           filteredColumns.includes(head)));
-                    const isLastColumn = cIdx === headers.length - 1;
+                    const isLastColumn = cIdx === visibleHeaders.length - 1;
                     // Helper to determine pill style content
                     const renderBadge = (status) => {
                       if (!status)
@@ -932,6 +1088,7 @@ ${!isFilteredColumn ? "hidden" : ""}
                                 selected.setHours(0, 0, 0, 0);
 
                                 if (selected > today) {
+                                  toast.dismiss()
                                   toast.error("Future dates are not allowed");
                                   return;
                                 }
@@ -1042,7 +1199,8 @@ ${!isFilteredColumn ? "hidden" : ""}
                                   {/* Hover Mark Done Button (Only if Due/Upcoming and no value) */}
                                   {(cellStatus === COLORS.DUE ||
                                     cellStatus === COLORS.OVERDUE ||
-                                    cellStatus === COLORS.UPCOMING) && (
+                                    cellStatus === COLORS.UPCOMING ||
+                                    cellStatus === COLORS.SAMEDAY) && (
                                     <div className="absolute inset-0 hidden group-hover/cell:flex items-center justify-center z-10 transition-all opacity-0 group-hover/cell:opacity-100">
                                       <button
                                         onClick={() => {
@@ -1090,7 +1248,6 @@ ${!isFilteredColumn ? "hidden" : ""}
                                     </div>
                                   )}
 
-                                  {/* Hover Tooltip for History */}
                                   {/* Hover Tooltip for History */}
                                   {historyArr.length > 0 && (
                                     <div
