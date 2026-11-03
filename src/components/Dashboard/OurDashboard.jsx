@@ -6,6 +6,7 @@ import useDebounce from "../../components/hooks/useDebounce";
 import { formatDate } from "../../utils/dateFormatter";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import usePageTitle from "../hooks/usePageTitle";
 // Convert date to Indian timezone and get YYYY-MM-DD
 const getIndianDateKey = (date) => {
   if (!date) return "";
@@ -46,6 +47,7 @@ const getDaysLeft = (date) => {
 };
 
 function OurDashboard() {
+   usePageTitle("Dashboard");
   const [showRentHikeList, setShowRentHikeList] = useState(false);
   const [uniquePropertyOnly, setUniquePropertyOnly] = useState(false);
   const [propertySearch, setPropertySearch] = useState("");

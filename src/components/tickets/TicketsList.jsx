@@ -427,7 +427,7 @@ const TicketsList = () => {
               </div>
 
               {/* ACTIVE FILTER CHIPS */}
-          {Object.keys(filters).length > 0 && (
+              {Object.keys(filters).length > 0 && (
                 <div className="flex items-center mx-4 gap-2 shrink-0 max-w-[450px] overflow-x-auto overflow-y-hidden whitespace-nowrap px-2 py-1 scrollbar-thin">
                   {Object.entries(filters).map(([key, value]) => {
                     if (!value) return null;
@@ -477,12 +477,12 @@ const TicketsList = () => {
                           setSelectedTickets(new Set());
                         }}
                         className={`flex cursor-pointer items-center font-bold gap-2 whitespace-nowrap rounded-lg border px-4 py-2 text-sm transition ${selectedTicketTab === tab.value
-                            ? tab.value === "Clients"
+                          ? tab.value === "Clients"
+                            ? "border-green-300 bg-green-50 text-green-700"
+                            : tab.value === "Employee"
                               ? "border-green-300 bg-green-50 text-green-700"
-                              : tab.value === "Employee"
-                                ? "border-green-300 bg-green-50 text-green-700"
-                                : "border-green-300 bg-green-50 text-green-700"
-                            : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                              : "border-green-300 bg-green-50 text-green-700"
+                          : "border-gray-300 text-gray-700 hover:bg-gray-50"
                           }`}
                       >
                         {tab.label}
@@ -624,7 +624,8 @@ const TicketsList = () => {
                               }
 
                               // Resolved on time
-                              if (item.status === "Resolved") {
+                              if (item.status === "Resolved" ||
+                                item.status === "Closed") {
                                 return "bg-green-200";
                               }
 
@@ -823,14 +824,14 @@ const TicketsList = () => {
                                         <div
                                           key={log._id || index}
                                           className={`flex mb-3 ${isClient
-                                              ? "justify-start"
-                                              : "justify-end"
+                                            ? "justify-start"
+                                            : "justify-end"
                                             }`}
                                         >
                                           <div
                                             className={`max-w-[90%] rounded-lg px-2.5 py-2 ${isClient
-                                                ? "bg-blue-50 border border-blue-200"
-                                                : "bg-gray-50 border border-gray-200"
+                                              ? "bg-blue-50 border border-blue-200"
+                                              : "bg-gray-50 border border-gray-200"
                                               }`}
                                           >
                                             <div className="text-gray-700 font-medium">

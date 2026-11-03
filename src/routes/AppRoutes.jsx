@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 import MainLayout from "../layouts/MainLayout";
 import ProtectedRoute from "../routes/protectedRoutes";
@@ -70,10 +70,65 @@ import BookingEnquiry from "../pages/BookingEnquiry";
 import RNRTable from "../components/New_RNR/RNRTable";
 import PageNotFound from "../components/common/PageNotFound";
 import PropertyExpenses from "../components/PropertyExpenses/Main";
+import { useEffect } from "react";
 
 
 const AppRoutes = () => {
   const { user } = useAuth();
+  const location = useLocation();
+
+useEffect(() => {
+  const path = location.pathname;
+
+  const pageTitles = [
+    { path: "/", title: "Home" },
+    { path: "/login", title: "Login" },
+    { path: "/module", title: "Sidebar Module" },
+    { path: "/register", title: "Register" },
+    { path: "/dashboard", title: "Dashboard" },
+    { path: "/properties", title: "Properties" },
+    { path: "/beds", title: "Beds" },
+    { path: "/new-bookings", title: "New Bookings" },
+    { path: "/rent-ledger", title: "Rent Ledger" },
+    { path: "/available-beds", title: "Available Beds" },
+    { path: "/clients", title: "Clients" },
+    { path: "/tickets", title: "Tickets" },
+    { path: "/bank-transactions", title: "Bank Transactions" },
+    { path: "/options", title: " Dynamic Options" },
+    { path: "/users", title: "Users" },
+    { path: "/leads", title: "Leads" },
+    { path: "/renthistory", title: "Rent History" },
+    { path: "/settings", title: "Settings" },
+    { path: "/house-keeping", title: "House Keeping" },
+    { path: "/maintenance", title: "Maintenance" },
+    { path: "/employees", title: "Employees" },
+    { path: "/check-in-out", title: "Check In / Out" },
+    { path: "/attendance", title: "Attendance" },
+    { path: "/rent-not-received", title: "Rent Not Received" },
+    { path: "/salary", title: "Salary" },
+    { path: "/aceb-area", title: "ACEB Calculation" },
+    { path: "/eb-info", title: "EB Information" },
+    { path: "/client-tickets", title: "Client Tickets" },
+    { path: "/permissions", title: "Permissions" },
+    { path: "/eb-calculator", title: "EB Calculator" },
+    { path: "/agreement-details", title: "Agreement Details" },
+    { path: "/booking", title: "Booking Enquiry" },
+    { path: "/full-&-final-settlement", title: "F&F Settlement" },
+    { path: "/new-rent-not-received", title: "Rent Not Received" },
+    { path: "/eb-calcul-data-details", title: "EB Details" },
+    { path: "/eb-details-for-clients", title: "EB Details" },
+    { path: "/prop-perso-details", title: "Property & Personal Details"},
+  ];
+
+  const matchedPage = pageTitles.find(
+    (item) =>
+      path === item.path || path.startsWith(item.path + "/")
+  );
+
+  document.title = matchedPage
+    ? `${matchedPage.title} | GPGS`
+    : "GPGS | Gopal's Paying Guest Services";
+}, [location.pathname]);
   const role = user?.role?.trim().toLowerCase();
   const isClient = role === "client";
 

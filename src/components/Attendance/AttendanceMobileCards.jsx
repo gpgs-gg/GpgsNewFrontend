@@ -191,7 +191,7 @@ const AttendanceHistoryCards = ({
                   </div>
                 </div>
                 {/* ATTENDANCE REGULARIZATION BUTTON */}
-                <div className="border-t border-gray-100 px-4 pb-4 pt-3">
+                {/* <div className="border-t border-gray-100 px-4 pb-4 pt-3">
                   <button
                     type="button"
                     onClick={() => setSelectedAttendance(attendance)}
@@ -199,7 +199,7 @@ const AttendanceHistoryCards = ({
                   >
                     Request Regularization
                   </button>
-                </div>
+                </div> */}
               </article>
             );
           })}

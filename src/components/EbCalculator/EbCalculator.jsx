@@ -4083,28 +4083,37 @@ EB Calculation: ${createError?.response?.data?.message ||
                 );
             },
 
-            onError: (error) => {
-                console.error(
-                    "EB Rent History Update Error:",
-                    error?.response?.data
-                );
+onError: (error) => {
+    console.error(
+        "EB Rent History Update Error:",
+        error?.response?.data
+    );
 
-                const failedClients =
-                    error?.response?.data?.failedClients || [];
+    const failedClients =
+        error?.response?.data?.failedClients || [];
 
-                if (failedClients.length > 0) {
-                    failedClients.forEach((client) => {
-                        toast.error(client.message);
-                    });
-                } else {
-                    toast.error(
-                        error?.response?.data?.message ||
-                        "Failed to update EB amount in Rent History"
-                    );
-                }
+    if (failedClients.length > 0) {
+        const errorMessage = failedClients
+            .map((client, index) => {
+                return `${index + 1}. ${client.ClientName}\n   ${client.message}`;
+            })
+            .join("\n\n");
 
-                setIsLoading(false);
-            },
+        toast.error(
+            `EB Rent History Update Failed:\n\n${errorMessage}`,
+            {
+                autoClose: 15000,
+            }
+        );
+    } else {
+        toast.error(
+            error?.response?.data?.message ||
+            "Failed to update EB amount in Rent History"
+        );
+    }
+
+    setIsLoading(false);
+},
         });
     };
 

@@ -21,7 +21,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import EBInfoFilter from "./EBInfoFilter";
 import { formatDateAndTime } from "../../utils/dateFormatter";
 import { TableFilePreview } from "../common/FilePreview";
-
+import { useEmployeeDetailsData } from "../EmployeeDetails/Services/index";
 function EBInfoList() {
 
     // ================= DEFAULT NEXT MONTH =================
@@ -54,10 +54,15 @@ function EBInfoList() {
         getNextMonth()
     );
 
+    const { data: employeeData } = useEmployeeDetailsData({
+    page: 1,
+    limit: 1000,
+  });
     const debouncedSearch = useDebounce(search);
 
-    const rowsPerPage =
-        PAGINATION.PROPERTIES_PER_PAGE || 10;
+    // const rowsPerPage =
+    //     PAGINATION.PROPERTIES_PER_PAGE || 10;
+    const rowsPerPage = 20;
 
     // ================= API =================
 
@@ -94,12 +99,17 @@ function EBInfoList() {
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
     ];
 
-    const assigneeOptions = [
-        { value: "Akash", label: "Akash" },
-        { value: "Rahul", label: "Rahul" },
-        { value: "Priya", label: "Priya" },
-    ];
-
+ const assigneeOptions =
+    employeeData?.data
+      ?.filter(
+        (employee) =>
+          employee.department?.trim().toLowerCase() === "account" &&
+          employee.status === "active",
+      )
+      .map((employee) => ({
+        value: employee.employeeName,
+        label: `${employee.employeeName}`,
+      })) || [];
     // ================= CONVERT STRING TO DATE =================
 
     const selectedMonth = billingMonth
