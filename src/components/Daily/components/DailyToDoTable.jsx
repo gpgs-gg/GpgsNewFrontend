@@ -124,8 +124,8 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
   /* ================= TANSTACK QUERY ================= */
   const { data, isPending } = useFetchHook();
   const [activeCell, setActiveCell] = useState(null);
-  // console.log("Location Options:", locationOptions);
-  // console.log("Selected Location:", selectedLocation);
+  console.log("Location Options:", locationOptions);
+  console.log("Selected Location:", selectedLocation);
   // Filter logic
   const [selectedActivities, setSelectedActivities] = useState([]);
 
@@ -508,10 +508,10 @@ export default function DailyTodoTable({ title, useFetchHook, useUpdateHook }) {
       // Close the date picker after successful save
       setEditingCell(null);
       setSelectedDate(null);
-toast.dismiss()
+      toast.dismiss();
       toast.success("Updated successfully");
     } catch (err) {
-      toast.dismiss()
+      toast.dismiss();
       toast.error("Failed to update data");
     } finally {
       setSaving(false);
@@ -577,8 +577,6 @@ toast.dismiss()
       });
   };
 
-  
-
   // filter logic
   const isFilterApplied =
     selectedActivities.length > 0 ||
@@ -625,7 +623,7 @@ toast.dismiss()
   //  apply status filter
   const applyStatusFilter = (type, color) => {
     if (selectedActivities.length === 0) {
-      toast.dismiss()
+      toast.dismiss();
       toast.error("Please select at least one activity");
       return;
     }
@@ -719,8 +717,22 @@ toast.dismiss()
       selectedLocationPropertyCodes,
     );
   }, [data, selectedLocation]);
+  if (isPending) {
+    return <DailyTodoTableSkeleton />;
+  }
+
+  if (!isPending && !data?.success) {
+    return (
+      <div className="w-full h-[60vh] flex items-center justify-center">
+        <p className="text-sm text-gray-500">
+          Unable to load daily activities. Please try again.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full  font-sans text-gray-800">
+    <div className="w-full font-sans text-gray-800">
       {/* HEADER SECTION */}
 
       {/* FILTER & ACTION BAR */}
@@ -731,27 +743,6 @@ toast.dismiss()
         </div>
         {/* Status Tabs */}
         <div className="flex items-center justify-evenly  gap-6 text-sm font-medium overflow-x-auto pb-1 xl:pb-0">
-          {/* <div className="flex items-center gap-3">
-            <select
-              value={selectedLocation}
-              onChange={(e) => {
-                setSelectedLocation(e.target.value);
-                setSelectedActivities([]);
-                setStatusFilter(null);
-                setFilteredColumns([]);
-                setActiveCell(null);
-              }}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="All">All Locations</option>
-
-              {locationOptions.map((location) => (
-                <option key={location} value={location}>
-                  {location}
-                </option>
-              ))}
-            </select>
-          </div> */}
           <div className="w-52 min-w-[180px] pb-1">
             <Select
               options={[
@@ -770,12 +761,13 @@ toast.dismiss()
               ].find((option) => option.value === selectedLocation)}
               onChange={(selected) => {
                 setSelectedLocation(selected?.value || "All");
+
                 setSelectedActivities([]);
                 setStatusFilter(null);
                 setFilteredColumns([]);
                 setActiveCell(null);
               }}
-              isClearable={false}
+              isClearable={true}
               isSearchable
               placeholder="Select Location"
               menuPortalTarget={document.body}
@@ -1088,7 +1080,7 @@ ${!isFilteredColumn ? "hidden" : ""}
                                 selected.setHours(0, 0, 0, 0);
 
                                 if (selected > today) {
-                                  toast.dismiss()
+                                  toast.dismiss();
                                   toast.error("Future dates are not allowed");
                                   return;
                                 }

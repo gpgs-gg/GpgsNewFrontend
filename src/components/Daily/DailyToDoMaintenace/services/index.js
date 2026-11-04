@@ -24,7 +24,6 @@ const updateMaintenanceRow = async (payload) => {
 
 export const useUpdateMaintenanceRow = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: updateMaintenanceRow,
     onSuccess: () => {

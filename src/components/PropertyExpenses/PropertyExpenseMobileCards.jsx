@@ -86,16 +86,26 @@ const PropertyExpenseMobileCards = ({
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
-                          }
+                          },
                         )
                       : "-"}
                   </div>
                 </div>
               </div>
+              <div className="flex shrink-0 flex-col items-end gap-1.5">
+                <span className="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-500">
+                  #{(currentPage - 1) * rowsPerPage + index + 1}
+                </span>
 
-              <span className="shrink-0 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-500">
-                #{(currentPage - 1) * rowsPerPage + index + 1}
-              </span>
+                {expense.newSetUp ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-1 text-[10px] font-bold text-green-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    New Setup
+                  </span>
+                ) : (
+                 <></>
+                )}
+              </div>
             </div>
 
             {/* AMOUNT */}
@@ -111,13 +121,11 @@ const PropertyExpenseMobileCards = ({
               </div>
 
               <div className="flex flex-col items-end gap-1">
-                <span className="text-xs text-gray-500">
-                  Payment Mode
-                </span>
+                <span className="text-xs text-gray-500">Payment Mode</span>
 
                 <span
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getPaymentStyle(
-                    expense.paymentMode
+                    expense.paymentMode,
                   )}`}
                 >
                   <Wallet size={13} />
@@ -150,15 +158,13 @@ const PropertyExpenseMobileCards = ({
                   <p className="mt-1.5 text-[11px] text-gray-400">
                     {latestWorkLog.createdBy || "System"}
                     {latestWorkLog.createdAt &&
-                      ` • ${new Date(
-                        latestWorkLog.createdAt
-                      ).toLocaleString("en-IN")}`}
+                      ` • ${new Date(latestWorkLog.createdAt).toLocaleString(
+                        "en-IN",
+                      )}`}
                   </p>
                 </>
               ) : (
-                <p className="text-xs text-gray-400">
-                  No work logs available
-                </p>
+                <p className="text-xs text-gray-400">No work logs available</p>
               )}
             </div>
 

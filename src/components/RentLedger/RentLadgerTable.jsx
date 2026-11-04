@@ -19,6 +19,7 @@ import { useAuth } from "../../context/authContext";
 import ConfirmModal from "../common/ConfirmModal";
 import ExportDrawer from "../tickets/ExportDrawer";
 import { toast } from "react-toastify";
+import RentLedgerMobileCards from "./RentLedgerMobileCards";
 const RentLadgerTable = () => {
   const { clientId } = useParams();
   const { canEdit, canSingleView } = useAuthorization();
@@ -303,8 +304,8 @@ const RentLadgerTable = () => {
         {/* TABLE */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
           {/* SEARCH */}
-          <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
-            <div className="relative w-80">
+        <div className="px-3 py-2 border-b border-gray-400 flex flex-wrap items-center justify-between gap-3">
+            <div className="relative w-full sm:w-80">
               <input
                 className="border px-3 py-2 pr-10 rounded-lg w-full"
                 placeholder="Search property..."
@@ -362,6 +363,7 @@ const RentLadgerTable = () => {
 
           {/* TABLE CONTENT */}
           <div className="flex-1 overflow-auto">
+            <div className="hidden md:block">
             <table className="w-full">
               <thead className="sticky top-0 bg-gray-100 whitespace-nowrap">
                 <tr>
@@ -759,7 +761,26 @@ const RentLadgerTable = () => {
                   </tr>
                 )}
               </tbody>
-            </table>
+            </table></div>
+            {/* MOBILE CARDS: mobile screens only */}
+            <div className="md:hidden">
+              <RentLedgerMobileCards
+                data={paginatedData}
+                selectedRentRecords={selectedRentRecords}
+                setSelectedRentRecords={setSelectedRentRecords}
+                canViewRentLedger={canViewRentLedger}
+                canEditRentLedger={canEditRentLedger}
+                isAdmin={isAdmin}
+                showActions={showActions}
+                currentMonth={currentMonth}
+                currentYear={currentYear}
+                deletePending={deleteRentMutation.isPending}
+                onDelete={(id) => {
+                  setDeleteId(id);
+                  setShowDeleteModal(true);
+                }}
+              />
+            </div>
           </div>
 
           {/* PAGINATION */}

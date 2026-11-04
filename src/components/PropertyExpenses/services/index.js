@@ -218,3 +218,46 @@ export const useDeletePropertyExpense = () => {
     },
   });
 };
+export const useBankTransactionsByPropertyId = ({
+  propertyId,
+  page,
+  limit,
+  search,
+  filters,
+}) => {
+  return useQuery({
+    queryKey: [
+      "bankTransactionsByProperty",
+      propertyId,
+      page,
+      limit,
+      search,
+      filters,
+    ],
+
+    queryFn: async () => {
+      const response = await apiClient.get(
+        `/property-expenses/propertyExpense/${propertyId}`,
+        {
+          params: {
+            page,
+            limit,
+            search: search?.trim() || undefined,
+
+            expenseCategory: filters?.expenseType || undefined,
+
+            fromDate: filters?.fromDate || undefined,
+
+            toDate: filters?.toDate || undefined,
+          },
+        },
+      );
+
+      return response.data;
+    },
+
+    enabled: Boolean(propertyId),
+
+    keepPreviousData: true,
+  });
+};

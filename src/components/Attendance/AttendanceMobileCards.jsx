@@ -25,20 +25,32 @@ const AttendanceHistoryCards = ({
   const getAttendanceDateForInput = (value) => {
     if (!value) return "";
 
-    const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (match) {
-      // Build a LOCAL date (not UTC) so no shift occurs
-      const [, y, m, d] = match;
-      return `${y}-${m}-${d}`;
+    // Preserve an existing date-only value.
+    const dateOnlyMatch = String(value).match(/^(\d{4}-\d{2}-\d{2})$/);
+
+    if (dateOnlyMatch) {
+      return dateOnlyMatch[1];
     }
 
     const date = new Date(value);
+
     if (Number.isNaN(date.getTime())) return "";
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    // Always convert to Indian calendar date.
+    const parts = new Intl.DateTimeFormat("en-IN", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(date);
+
+    const getPart = (type) => parts.find((part) => part.type === type)?.value;
+
+    const formattedDate = `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
+
+    //console.log("MOBILE CORRECTED REGULARIZATION DATE:", formattedDate);
+
+    return formattedDate;
   };
   return (
     <div className="p-3 md:p-5">
@@ -191,15 +203,32 @@ const AttendanceHistoryCards = ({
                   </div>
                 </div>
                 {/* ATTENDANCE REGULARIZATION BUTTON */}
-                {/* <div className="border-t border-gray-100 px-4 pb-4 pt-3">
+                <div className="border-t border-gray-100 px-4 pb-4 pt-3">
                   <button
                     type="button"
-                    onClick={() => setSelectedAttendance(attendance)}
+                    onClick={() => {
+                      const formattedDate = getAttendanceDateForInput(
+                        attendance.attendanceDate,
+                      );
+
+                      // console.log("===== MOBILE REGULARIZATION DATE =====");
+                      // console.log(
+                      //   "Original attendance date:",
+                      //   attendance.attendanceDate,
+                      // );
+                      // console.log("Formatted attendance date:", formattedDate);
+                      // console.log("Full attendance record:", attendance);
+
+                      setSelectedAttendance({
+                        ...attendance,
+                        attendanceDate: formattedDate,
+                      });
+                    }}
                     className="w-full rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 text-sm font-semibold text-green-700 transition hover:border-green-300 hover:bg-green-100"
                   >
                     Request Regularization
                   </button>
-                </div> */}
+                </div>
               </article>
             );
           })}

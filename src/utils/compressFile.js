@@ -58,8 +58,8 @@ const loadFFmpeg = async () => {
 
 export const compressImage = async (file, onProgress) => {
   const options = {
-    maxSizeMB: 0.05,
-    maxWidthOrHeight: 800,
+    maxSizeMB: 0.08,
+    maxWidthOrHeight: 1000,
     useWebWorker: true,
     initialQuality: 0.2,
     fileType: "image/jpeg",

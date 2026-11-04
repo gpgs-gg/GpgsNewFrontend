@@ -68,6 +68,7 @@ const PropertyExpenses = () => {
   });
 
   const expenses = expenseResponse?.data || [];
+  console.log("Fetched expenses:", expenses); // Debugging line
 
   // Extract property details from API response
   const property = expenseResponse?.property || {};
@@ -432,7 +433,7 @@ const PropertyExpenses = () => {
                         </td>
 
                         <td className="p-3">
-                          {expense.expenseDate ? (
+                          {expense.expenseDate || expense.expense_date ? (
                             <span className="font-bold">
                               {new Date(expense.expenseDate).toLocaleDateString(
                                 "en-GB",
@@ -558,25 +559,29 @@ const PropertyExpenses = () => {
                         {/* <td className="p-3">{expense.createdBy || "-"}</td> */}
 
                         <td className="p-3">
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => openEditModal(expense)}
-                              className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
-                              title="Edit expense"
-                            >
-                              <Pencil size={16} />
-                            </button>
+                          {expense.sourceType !== "BANK_TRANSACTION" &&
+                            !expense.isReadOnly && (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => openEditModal(expense)}
+                                  className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
+                                  title="Edit expense"
+                                >
+                                  <Pencil size={16} />
+                                </button>
 
-                            <button
-                              type="button"
-                              onClick={() => setDeleteExpense(expense)}
-                              disabled={deleteExpenseMutation.isPending}
-                              className="p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeleteExpense(expense)}
+                                  disabled={deleteExpenseMutation.isPending}
+                                  className="p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                                  title="Delete expense"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            )}
                         </td>
                       </tr>
                     ))

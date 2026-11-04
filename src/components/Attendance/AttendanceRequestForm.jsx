@@ -17,27 +17,53 @@ import { useManagerEmployees } from "../EmployeeDetails/Services/index";
 const getDateInputValue = (value) => {
   if (!value) return "";
 
-  // Keep the date portion when the API returns an ISO date string.
-  const match = String(value).match(/^\d{4}-\d{2}-\d{2}/);
-  if (match) return match[0];
+  const valueString = String(value);
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
+  // If the API provides a date-only value, preserve it exactly.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(valueString)) {
+    return valueString;
+  }
 
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  // For timestamps, extract the date in Indian Standard Time.
+  const parsedDate = new Date(valueString);
 
-  return `${year}-${month}-${day}`;
+  if (Number.isNaN(parsedDate.getTime())) return "";
+
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(parsedDate);
+
+  const dateParts = Object.fromEntries(
+    parts.map(({ type, value }) => [type, value]),
+  );
+
+  return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
 };
 
 // ✅ Convert string "YYYY-MM-DD" -> Date object (same as regularization modal)
 const getDateObject = (dateValue) => {
   if (!dateValue) return null;
 
-  const date = new Date(`${dateValue}T00:00:00`);
+  const match = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
-  if (isNaN(date.getTime())) return null;
+  if (!match) return null;
+
+  const [, year, month, day] = match;
+
+  // Construct a local date without parsing an ISO date string.
+  const date = new Date(Number(year), Number(month) - 1, Number(day));
+
+  // Reject invalid dates such as 2026-02-30.
+  if (
+    date.getFullYear() !== Number(year) ||
+    date.getMonth() !== Number(month) - 1 ||
+    date.getDate() !== Number(day)
+  ) {
+    return null;
+  }
 
   return date;
 };
@@ -223,6 +249,7 @@ const EmployeeAttendanceRequestModal = ({
       event.target.value = "";
     }
   };
+  
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-[2px] sm:p-4"
@@ -296,26 +323,34 @@ const EmployeeAttendanceRequestModal = ({
 
                   <DatePicker
                     selected={getDateObject(date)}
-                      onChange={(selectedDate) => {
-    if (!selectedDate) {
-      setDate("");
-      return;
-    }
+                    onChange={(selectedDate) => {
+                      if (!selectedDate) {
+                        setDate("");
+                        return;
+                      }
 
-    // Prevent future dates
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+                      const selectedYear = selectedDate.getFullYear();
+                      const selectedMonth = selectedDate.getMonth();
+                      const selectedDay = selectedDate.getDate();
 
-    if (selectedDate > today) {
-      return;
-    }
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
 
-    const year = selectedDate.getFullYear();
-    const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
-    const day = String(selectedDate.getDate()).padStart(2, "0");
+                      const selectedCalendarDate = new Date(
+                        selectedYear,
+                        selectedMonth,
+                        selectedDay,
+                      );
 
-    setDate(`${year}-${month}-${day}`);
-  }}
+                      // Prevent selecting future dates.
+                      if (selectedCalendarDate > today) return;
+
+                      const year = String(selectedYear);
+                      const month = String(selectedMonth + 1).padStart(2, "0");
+                      const day = String(selectedDay).padStart(2, "0");
+
+                      setDate(`${year}-${month}-${day}`);
+                    }}
                     // onChange={(selectedDate) => {
                     //   if (!selectedDate) {
                     //     setDate("");

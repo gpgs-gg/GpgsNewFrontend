@@ -1,11 +1,16 @@
-import React from "react";
+import DailyTodoTable from "../components/DailyToDoTable";
 
-const MaintenanceTable = () => {
+import {
+  useMaintenanceData,
+  useUpdateMaintenanceRow,
+} from "../DailyToDoMaintenace/services/index";
+
+export default function MaintenancePage() {
   return (
-    <div>
-      <h1>Maintenance TABLE</h1>
-    </div>
+    <DailyTodoTable
+      title="DailyTodo – Maintenance"
+      useFetchHook={useMaintenanceData}
+      useUpdateHook={useUpdateMaintenanceRow}
+    />
   );
-};
-
-export default MaintenanceTable;
+}

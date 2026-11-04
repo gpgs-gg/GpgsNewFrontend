@@ -26,6 +26,8 @@ import TableSkeleton from "../common/TableSkelton";
 import { useAuth } from "../../context/authContext";
 import RentGenerationLogPopup from "./RentGenerationLogPopup";
 import Loader from "../common/Loader";
+import { Play, File } from "lucide-react";
+import { TableFilePreview } from "../common/FilePreview";
 const ClientsTable = () => {
   const { canAdd, canEdit, canDelete, canSingleView } = useAuthorization();
   const { user } = useAuth();
@@ -35,9 +37,12 @@ const ClientsTable = () => {
   const canViewClient = canSingleView("clients");
   //console.log("caneditclient", canEditClient, canDeleteClient, canViewClient);
   const showActions = canViewClient || canEditClient || canDeleteClient;
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => {
+    return sessionStorage.getItem("clients_search") || "";
+  });
   const [enablingClientId, setEnablingClientId] = useState(null);
   const [generatingRentClientId, setGeneratingRentClientId] = useState(null);
+  const [previewFiles, setPreviewFiles] = useState([]);
   const { mutate: enableClientLogin, isPending: isEnablingClientLogin } =
     useEnableClientLogin();
   const [currentPage, setCurrentPage] = useState(() => {
@@ -63,6 +68,14 @@ const ClientsTable = () => {
   useEffect(() => {
     localStorage.setItem("clients_fnf_cancelled", String(fnfCancelledFilter));
   }, [fnfCancelledFilter]);
+
+  useEffect(() => {
+    if (search.trim()) {
+      sessionStorage.setItem("clients_search", search);
+    } else {
+      sessionStorage.removeItem("clients_search");
+    }
+  }, [search]);
   const [filterOpen, setFilterOpen] = useState(false);
 
   const DEFAULT_CLIENT_FILTERS = {
@@ -299,6 +312,7 @@ const ClientsTable = () => {
     resetFilters();
 
     setSearch("");
+    sessionStorage.removeItem("clients_search");
     setFnfClosedFilter(false);
     setFnfCancelledFilter(false);
     setCurrentPage(1);
@@ -413,6 +427,7 @@ const ClientsTable = () => {
                     type="button"
                     onClick={() => {
                       setSearch("");
+                      sessionStorage.removeItem("clients_search");
                       setCurrentPage(1);
                     }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
@@ -611,6 +626,10 @@ const ClientsTable = () => {
                     </th>
 
                     <th className="p-2 text-center whitespace-nowrap">
+                      P.Info
+                    </th>
+
+                    <th className="p-2 text-center whitespace-nowrap">
                       Client Name
                     </th>
 
@@ -795,8 +814,8 @@ const ClientsTable = () => {
                             </td>
 
                             {/* Client Name */}
-                            <td className="p-3 font-bold flex justify-center items-center">
-                              <>
+                            <td className="p-1 text-center">
+                               <>
                                 {item.stayType === "T. Booked" &&
                                   item.permanentBooking ? (
                                   <div className="relative group inline-block">
@@ -809,7 +828,7 @@ const ClientsTable = () => {
                                     <div className="absolute left-0 top-full hidden group-hover:block z-50 w-80">
                                       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl">
                                         {/* Header */}
-                                        <div className="flex items-center justify-between bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                        <div className="flex items-center justify-between bg-gray-50 px-4 py-1 border-b border-gray-200">
                                           <div>
                                             <p className="text-sm font-semibold text-gray-900">
                                               Permanent Booking
@@ -915,6 +934,9 @@ const ClientsTable = () => {
                                   ""
                                 )}
                               </>
+                            </td>
+
+                            <td className="p-3 font-bold items-center">
                               {item.fullName || "-"}
                             </td>
                             {/* Status */}
@@ -1222,8 +1244,8 @@ const ClientsTable = () => {
                               "en-IN"
                             )}
                           </td> */}
-                            <td className="p-3">
-                              <div className="flex gap-2">
+                          <td className="p-3">
+                              <div className="flex ">
                                 {[
                                   { label: "Photo", docs: item.photo },
                                   { label: "Aadhaar", docs: item.aadhaarCard },
@@ -1248,57 +1270,23 @@ const ClientsTable = () => {
                                     label: "Attachments",
                                     docs: item.attachments,
                                   },
-                                ]
-                                  .filter(
-                                    ({ docs }) =>
-                                      Array.isArray(docs) && docs.length > 0,
+                                ].map(({ label, docs }) => {
+                                  if (
+                                    !docs ||
+                                    (Array.isArray(docs) && docs.length === 0)
                                   )
-                                  .map(({ label, docs }) => (
-                                    <div key={label} className="">
-                                      {/* <p className="mb-2 text-xs font-semibold text-slate-600">
+                                    return null;
+
+                                  return (
+                                    <div key={label} className="min-w-0">
+                                      {/* <p className="text-xs font-semibold text-gray-600 mb-1">
                                         {label}
                                       </p> */}
 
-                                      <div className="flex  gap-3">
-                                        {docs.map((url, index) => {
-                                          const isPdf = /\.pdf(?:$|[?#])/i.test(
-                                            url,
-                                          );
-
-                                          return (
-                                            <a
-                                              key={`${label}-${index}`}
-                                              href={url}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              title={`Preview ${label}`}
-                                              className="block h-9 w-9 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 transition hover:border-blue-400"
-                                            >
-                                              {isPdf ? (
-                                                <div className="flex h-full flex-col items-center justify-center gap-2">
-                                                  <FileText className="h-10 w-10 text-red-500" />
-                                                  {/* <span className="text-xs font-medium text-slate-600">
-                                                    View PDF
-                                                  </span> */}
-                                                </div>
-                                              ) : (
-                                                <img
-                                                  src={url}
-                                                  alt={`${label} ${index + 1}`}
-                                                  loading="lazy"
-                                                  className="h-full w-full object-cover"
-                                                  onError={(e) => {
-                                                    e.currentTarget.style.display =
-                                                      "none";
-                                                  }}
-                                                />
-                                              )}
-                                            </a>
-                                          );
-                                        })}
-                                      </div>
+                                      <TableFilePreview files={docs} />
                                     </div>
-                                  ))}
+                                  );
+                                })}
                               </div>
                             </td>
 

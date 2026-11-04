@@ -43,16 +43,16 @@ const RentHistory = () => {
   const latestTemporaryRent =
     temporaryRents.length > 0
       ? [...temporaryRents].sort((a, b) => {
-        const dateA = new Date(
-          a.updatedAt || a.createdAt || a.endDate || a.startDate || 0,
-        ).getTime();
+          const dateA = new Date(
+            a.updatedAt || a.createdAt || a.endDate || a.startDate || 0,
+          ).getTime();
 
-        const dateB = new Date(
-          b.updatedAt || b.createdAt || b.endDate || b.startDate || 0,
-        ).getTime();
+          const dateB = new Date(
+            b.updatedAt || b.createdAt || b.endDate || b.startDate || 0,
+          ).getTime();
 
-        return dateB - dateA;
-      })[0]
+          return dateB - dateA;
+        })[0]
       : null;
 
   const currentRent = permanentRent || latestTemporaryRent || {};
@@ -62,8 +62,17 @@ const RentHistory = () => {
   const bed = currentRent?.bedId || {};
 
   // Total due = Permanent Due + Latest Temporary Due
-  const permanentCurrentDue = Number(permanentRent?.currentDue || 0);
-  const temporaryCurrentDue = Number(latestTemporaryRent?.currentDue || 0);
+  // Cancelled booking ka due total mein include nahi hoga
+  const permanentCurrentDue =
+    permanentRent?.clientId?.isBookingCancelled === true
+      ? 0
+      : Number(permanentRent?.currentDue || 0);
+
+  const temporaryCurrentDue =
+    latestTemporaryRent?.clientId?.isBookingCancelled === true
+      ? 0
+      : Number(latestTemporaryRent?.currentDue || 0);
+
   const totalCurrentDue = permanentCurrentDue + temporaryCurrentDue;
   const fnfAmount = Number(FnfPermanentRent[0]?.clientId?.fnf?.fnfAmount || 0);
 
@@ -129,22 +138,24 @@ const RentHistory = () => {
               {/* ================= TOP TOTAL DUE ================= */}
 
               <div
-                className={`rounded-2xl border px-5 py-3 shadow-sm ${totalCurrentDue < 0
+                className={`rounded-2xl border px-5 py-3 shadow-sm ${
+                  totalCurrentDue < 0
                     ? "border-green-200 bg-green-50"
                     : totalCurrentDue > 0
                       ? "border-red-200 bg-red-50"
                       : "border-gray-200 bg-gray-50"
-                  }`}
+                }`}
               >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p
-                      className={`text-sm font-semibold tracking-wide ${totalCurrentDue < 0
+                      className={`text-sm font-semibold tracking-wide ${
+                        totalCurrentDue < 0
                           ? "text-green-700"
                           : totalCurrentDue > 0
                             ? "text-red-600"
                             : "text-gray-700"
-                        }`}
+                      }`}
                     >
                       {totalCurrentDue < 0
                         ? "Your Excess Amount"
@@ -154,12 +165,13 @@ const RentHistory = () => {
                     </p>
 
                     <p
-                      className={`mt-1 text-2xl font-bold tracking-tight ${totalCurrentDue < 0
+                      className={`mt-1 text-2xl font-bold tracking-tight ${
+                        totalCurrentDue < 0
                           ? "text-green-600"
                           : totalCurrentDue > 0
                             ? "text-red-600"
                             : "text-gray-800"
-                        }`}
+                      }`}
                     >
                       ₹{" "}
                       {Math.round(Number(totalCurrentDue || 0)).toLocaleString(
@@ -180,18 +192,20 @@ const RentHistory = () => {
 
               {fnfAmount !== 0 && (
                 <div
-                  className={`rounded-xl border p-4 shadow-sm ${fnfAmount < 0
+                  className={`rounded-xl border p-4 shadow-sm ${
+                    fnfAmount < 0
                       ? "border-red-200 bg-red-50"
                       : "border-emerald-200 bg-emerald-50"
-                    }`}
+                  }`}
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${fnfAmount < 0
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+                          fnfAmount < 0
                             ? "bg-red-100 text-red-600"
                             : "bg-emerald-100 text-emerald-600"
-                          }`}
+                        }`}
                       >
                         <span className="text-xl font-bold">
                           {fnfAmount < 0 ? "↑" : "↓"}
@@ -204,8 +218,9 @@ const RentHistory = () => {
                         </p>
 
                         <p
-                          className={`mt-1 text-sm font-semibold ${fnfAmount < 0 ? "text-red-700" : "text-emerald-700"
-                            }`}
+                          className={`mt-1 text-sm font-semibold ${
+                            fnfAmount < 0 ? "text-red-700" : "text-emerald-700"
+                          }`}
                         >
                           {fnfAmount < 0
                             ? `Amount Receivable from ${FnfPermanentRent[0]?.clientId?.fullName}`
@@ -226,17 +241,19 @@ const RentHistory = () => {
                       </p>
 
                       <p
-                        className={`mt-1 text-2xl font-bold tracking-tight ${fnfAmount < 0 ? "text-red-700" : "text-emerald-700"
-                          }`}
+                        className={`mt-1 text-2xl font-bold tracking-tight ${
+                          fnfAmount < 0 ? "text-red-700" : "text-emerald-700"
+                        }`}
                       >
                         ₹ {Math.abs(fnfAmount).toLocaleString("en-IN")}
                       </p>
 
                       <span
-                        className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${fnfAmount < 0
+                        className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          fnfAmount < 0
                             ? "bg-red-100 text-red-700"
                             : "bg-emerald-100 text-emerald-700"
-                          }`}
+                        }`}
                       >
                         {fnfAmount < 0 ? "Receivable" : "Payable"}
                       </span>
@@ -260,7 +277,6 @@ const RentHistory = () => {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-
                     {/* Rent */}
                     {/* <div className="rounded-xl bg-gray-50 p-4">
                       <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
@@ -287,9 +303,9 @@ const RentHistory = () => {
                       </p>
                       <p className="mt-1 text-lg font-bold text-green-600">
                         ₹
-                        {Math.round(Number(currentRent.totalReceived || 0)).toLocaleString(
-                          "en-IN",
-                        )}
+                        {Math.round(
+                          Number(currentRent.totalReceived || 0),
+                        ).toLocaleString("en-IN")}
                       </p>
                     </div>
 
@@ -299,9 +315,9 @@ const RentHistory = () => {
                       </p>
                       <p className="mt-1 text-lg font-bold text-gray-900">
                         ₹
-                        {Math.round(Number(currentRent.rentAmt || 0)).toLocaleString(
-                          "en-IN",
-                        )}
+                        {Math.round(
+                          Number(currentRent.rentAmt || 0),
+                        ).toLocaleString("en-IN")}
                       </p>
                     </div>
                     {/* EB */}
@@ -311,7 +327,9 @@ const RentHistory = () => {
                       </p>
                       <p className="mt-1 text-lg font-bold text-orange-600">
                         ₹
-                        {Math.round(Number(currentRent.ebAmt || 0)).toLocaleString("en-IN")}
+                        {Math.round(
+                          Number(currentRent.ebAmt || 0),
+                        ).toLocaleString("en-IN")}
                       </p>
                     </div>
                     {/* Parking */}
@@ -321,9 +339,9 @@ const RentHistory = () => {
                       </p>
                       <p className="mt-1 text-lg font-bold text-gray-900">
                         ₹
-                        {Math.round(Number(currentRent.parkingCharges || 0)).toLocaleString(
-                          "en-IN",
-                        )}
+                        {Math.round(
+                          Number(currentRent.parkingCharges || 0),
+                        ).toLocaleString("en-IN")}
                       </p>
                     </div>
                     {/* Previous Due */}
@@ -333,9 +351,9 @@ const RentHistory = () => {
                       </p>
                       <p className="mt-1 text-lg font-bold text-yellow-700">
                         ₹
-                        {Math.round(Number(currentRent.previousDue || 0)).toLocaleString(
-                          "en-IN",
-                        )}
+                        {Math.round(
+                          Number(currentRent.previousDue || 0),
+                        ).toLocaleString("en-IN")}
                       </p>
                     </div>
                     {/* Adjustment */}
@@ -345,9 +363,9 @@ const RentHistory = () => {
                       </p>
                       <p className="mt-1 text-lg font-bold text-gray-900">
                         ₹
-                        {Math.round(Number(currentRent.adjAmt || 0)).toLocaleString(
-                          "en-IN",
-                        )}
+                        {Math.round(
+                          Number(currentRent.adjAmt || 0),
+                        ).toLocaleString("en-IN")}
                       </p>
                     </div>
                     {/* Processing */}
@@ -357,9 +375,9 @@ const RentHistory = () => {
                       </p>
                       <p className="mt-1 text-lg font-bold text-gray-900">
                         ₹
-                        {Math.round(Number(currentRent.processingFees || 0)).toLocaleString(
-                          "en-IN",
-                        )}
+                        {Math.round(
+                          Number(currentRent.processingFees || 0),
+                        ).toLocaleString("en-IN")}
                       </p>
                     </div>
                     {/* Deposit */}
@@ -380,7 +398,6 @@ const RentHistory = () => {
                         {currentRent.daysCount || 0}
                       </p>
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -440,10 +457,11 @@ const RentHistory = () => {
                     return (
                       <div
                         key={item._id}
-                        className={`rounded-lg border p-3 shadow-sm ${isCurrent
+                        className={`rounded-lg border p-3 shadow-sm ${
+                          isCurrent
                             ? "bg-green-50 border-green-200"
                             : "bg-white border-gray-200"
-                          }`}
+                        }`}
                       >
                         {/* Header: Property + Pay Status */}
                         <div className="flex items-center justify-between gap-2 mb-2">
@@ -452,14 +470,15 @@ const RentHistory = () => {
                           </span>
                           <span
                             className={`px-2 py-1 text-xs rounded-full font-semibold
-                      ${item.paymentStatus === "Paid"
-                                ? "bg-green-100 text-green-700"
-                                : item.paymentStatus === "Partial"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : item.paymentStatus === "Shifted"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "bg-red-100 text-red-700"
-                              }`}
+                      ${
+                        item.paymentStatus === "Paid"
+                          ? "bg-green-100 text-green-700"
+                          : item.paymentStatus === "Partial"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : item.paymentStatus === "Shifted"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-red-100 text-red-700"
+                      }`}
                           >
                             {item.paymentStatus}
                           </span>
@@ -468,12 +487,13 @@ const RentHistory = () => {
                         {/* Stay + Month/Year */}
                         <div className="flex flex-wrap items-center gap-2 mb-3">
                           <span
-                            className={`px-2 py-1 text-xs rounded-full font-semibold ${item.stayType === "T. Booked"
+                            className={`px-2 py-1 text-xs rounded-full font-semibold ${
+                              item.stayType === "T. Booked"
                                 ? "bg-orange-100 text-orange-700"
                                 : item.stayType === "P. Booked"
                                   ? "bg-blue-100 text-blue-700"
                                   : "bg-gray-100 text-gray-700"
-                              }`}
+                            }`}
                           >
                             {item.stayType === "T. Booked"
                               ? "Temporary"
@@ -493,16 +513,18 @@ const RentHistory = () => {
                               Current Due
                             </div>
                             <div
-                              className={`text-sm font-bold ${item.currentDue > 0
+                              className={`text-sm font-bold ${
+                                item.currentDue > 0
                                   ? "text-red-600"
                                   : item.currentDue < 0
                                     ? "text-green-600"
                                     : "text-gray-700"
-                                }`}
+                              }`}
                             >
-                              ₹{Math.round(Number(item.currentDue)).toLocaleString(
-                                "en-IN",
-                              )}
+                              ₹
+                              {Math.round(
+                                Number(item.currentDue),
+                              ).toLocaleString("en-IN")}
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-md p-2">
@@ -511,9 +533,9 @@ const RentHistory = () => {
                             </div>
                             <div className="text-sm font-bold text-green-600">
                               ₹
-                              {Math.round(Number(item.totalReceived || 0)).toLocaleString(
-                                "en-IN",
-                              )}
+                              {Math.round(
+                                Number(item.totalReceived || 0),
+                              ).toLocaleString("en-IN")}
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-md p-2">
@@ -521,7 +543,8 @@ const RentHistory = () => {
                               Receivable
                             </div>
                             <div className="text-sm font-semibold">
-                              ₹{Math.round(item.totalReceivable).toLocaleString(
+                              ₹
+                              {Math.round(item.totalReceivable).toLocaleString(
                                 "en-IN",
                               )}
                             </div>
@@ -566,7 +589,8 @@ const RentHistory = () => {
                                 Previous Due
                               </span>
                               <span className="font-semibold">
-                                ₹{Math.round(item.previousDue).toLocaleString(
+                                ₹
+                                {Math.round(item.previousDue).toLocaleString(
                                   "en-IN",
                                 )}
                               </span>
@@ -643,18 +667,18 @@ const RentHistory = () => {
                                     const formattedDate =
                                       date && !isNaN(date.getTime())
                                         ? date.toLocaleDateString("en-GB", {
-                                          day: "2-digit",
-                                          month: "short",
-                                          year: "numeric",
-                                        })
+                                            day: "2-digit",
+                                            month: "short",
+                                            year: "numeric",
+                                          })
                                         : "";
                                     const formattedTime =
                                       date && !isNaN(date.getTime())
                                         ? date.toLocaleTimeString("en-US", {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                          hour12: true,
-                                        })
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: true,
+                                          })
                                         : "";
 
                                     return (
@@ -729,43 +753,52 @@ const RentHistory = () => {
                         <tr
                           key={item._id}
                           className={`border-t border-gray-200 whitespace-nowrap text-center
-                    ${item.monthName === currentMonth &&
-                              item.year === currentYear &&
-                              item.paymentStatus !== "Shifted"
-                              ? "bg-green-100 hover:bg-green-100"
-                              : "hover:bg-gray-50"
-                            }`}
+                    ${
+                      item.monthName === currentMonth &&
+                      item.year === currentYear &&
+                      item.paymentStatus !== "Shifted"
+                        ? "bg-green-100 hover:bg-green-100"
+                        : "hover:bg-gray-50"
+                    }`}
                         >
                           <td className="p-3 font-bold">
                             {item.propertyId?.propertyCode}
                           </td>
                           <td className="p-3">
                             <span
-                              className={`px-3 py-1 text-xs rounded-full font-semibold ${item.stayType === "T. Booked"
-                                  ? "bg-orange-100 text-orange-700"
-                                  : item.stayType === "P. Booked"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "bg-gray-100 text-gray-700"
-                                }`}
+                              className={`px-3 py-1 text-xs rounded-full font-semibold ${
+                                item?.clientId?.isBookingCancelled === true ||
+                                item?.clientId?.isBookingCancelled === "true"
+                                  ? "bg-red-100 text-red-700"
+                                  : item.stayType === "T. Booked"
+                                    ? "bg-orange-100 text-orange-700"
+                                    : item.stayType === "P. Booked"
+                                      ? "bg-blue-100 text-blue-700"
+                                      : "bg-gray-100 text-gray-700"
+                              }`}
                             >
-                              {item.stayType === "T. Booked"
-                                ? "Temporary"
-                                : item.stayType === "P. Booked"
-                                  ? "Permanent"
-                                  : item.stayType || "-"}
+                              {item?.clientId?.isBookingCancelled === true ||
+                              item?.clientId?.isBookingCancelled === "true"
+                                ? "Cancelled"
+                                : item.stayType === "T. Booked"
+                                  ? "Temporary"
+                                  : item.stayType === "P. Booked"
+                                    ? "Permanent"
+                                    : item.stayType || "-"}
                             </span>
                           </td>
                           <td className="p-3">
                             <span
                               className={`px-3 py-1 text-sm rounded-full font-semibold
-                        ${item.paymentStatus === "Paid"
-                                  ? "bg-green-100 text-green-700"
-                                  : item.paymentStatus === "Partial"
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : item.paymentStatus === "Shifted"
-                                      ? "bg-blue-100 text-blue-700"
-                                      : "bg-red-100 text-red-700"
-                                }`}
+                        ${
+                          item.paymentStatus === "Paid"
+                            ? "bg-green-100 text-green-700"
+                            : item.paymentStatus === "Partial"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : item.paymentStatus === "Shifted"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-red-100 text-red-700"
+                        }`}
                             >
                               {item.paymentStatus}
                             </span>
@@ -773,21 +806,24 @@ const RentHistory = () => {
                           <td className="p-3 font-bold">{item.monthName}</td>
                           <td className="p-3">{item.year}</td>
                           <td
-                            className={`p-3 font-semibold ${item.currentDue > 0
+                            className={`p-3 font-semibold ${
+                              item.currentDue > 0
                                 ? "text-red-600"
                                 : item.currentDue < 0
                                   ? "text-green-600"
                                   : "text-gray-700"
-                              }`}
+                            }`}
                           >
-                            ₹{Math.round(item.currentDue).toLocaleString(
+                            ₹
+                            {Math.round(item.currentDue).toLocaleString(
                               "en-IN",
                             )}
                           </td>
                           <td className="p-3 text-green-600">
                             <div className="relative group inline-block">
                               <span className="font-semibold cursor-pointer">
-                                ₹{Math.round(item.totalReceived).toLocaleString(
+                                ₹
+                                {Math.round(item.totalReceived).toLocaleString(
                                   "en-IN",
                                 )}
                               </span>
@@ -812,7 +848,8 @@ const RentHistory = () => {
                             </div>
                           </td>
                           <td className="p-3 font-semibold">
-                            ₹{Math.round(item.totalReceivable).toLocaleString(
+                            ₹
+                            {Math.round(item.totalReceivable).toLocaleString(
                               "en-IN",
                             )}
                           </td>
@@ -820,9 +857,13 @@ const RentHistory = () => {
                           <td className="p-3">{item.daysCount}</td>
                           <td className="p-3">₹{item.ebAmt}</td>
                           <td className="p-3">₹{item.adjEB}</td>
-                          <td className="p-3"> ₹{Math.round(item.previousDue).toLocaleString(
-                            "en-IN",
-                          )}</td>
+                          <td className="p-3">
+                            {" "}
+                            ₹
+                            {Math.round(item.previousDue).toLocaleString(
+                              "en-IN",
+                            )}
+                          </td>
                           <td className="p-3">₹{item.parkingCharges}</td>
                           <td className="p-3">₹{item.depositAmount}</td>
                           <td className="p-3">₹{item.processingFees}</td>
@@ -846,7 +887,7 @@ const RentHistory = () => {
                                       {(() => {
                                         const latestComment =
                                           item.paymentComments[
-                                          item.paymentComments.length - 1
+                                            item.paymentComments.length - 1
                                           ];
                                         const date = latestComment?.date
                                           ? new Date(latestComment.date)
@@ -854,18 +895,18 @@ const RentHistory = () => {
                                         const formattedDate =
                                           date && !isNaN(date.getTime())
                                             ? date.toLocaleDateString("en-GB", {
-                                              day: "2-digit",
-                                              month: "short",
-                                              year: "numeric",
-                                            })
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                              })
                                             : "";
                                         const formattedTime =
                                           date && !isNaN(date.getTime())
                                             ? date.toLocaleTimeString("en-US", {
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                              hour12: true,
-                                            })
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                                hour12: true,
+                                              })
                                             : "";
                                         const text =
                                           latestComment?.comment || "";
@@ -892,24 +933,24 @@ const RentHistory = () => {
                                             const formattedDate =
                                               date && !isNaN(date.getTime())
                                                 ? date.toLocaleDateString(
-                                                  "en-GB",
-                                                  {
-                                                    day: "2-digit",
-                                                    month: "short",
-                                                    year: "numeric",
-                                                  },
-                                                )
+                                                    "en-GB",
+                                                    {
+                                                      day: "2-digit",
+                                                      month: "short",
+                                                      year: "numeric",
+                                                    },
+                                                  )
                                                 : "";
                                             const formattedTime =
                                               date && !isNaN(date.getTime())
                                                 ? date.toLocaleTimeString(
-                                                  "en-US",
-                                                  {
-                                                    hour: "2-digit",
-                                                    minute: "2-digit",
-                                                    hour12: true,
-                                                  },
-                                                )
+                                                    "en-US",
+                                                    {
+                                                      hour: "2-digit",
+                                                      minute: "2-digit",
+                                                      hour12: true,
+                                                    },
+                                                  )
                                                 : "";
                                             return (
                                               <div

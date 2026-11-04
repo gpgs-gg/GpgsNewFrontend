@@ -969,11 +969,11 @@ const CheckinOut = () => {
     }
   };
   const handleSubmitRegularization = async (formData) => {
-    console.log("Dummy regularization request:");
+    // console.log("Dummy regularization request:");
 
-    for (const [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
+    // for (const [key, value] of formData.entries()) {
+    //   console.log(key, value);
+    // }
     toast.dismiss();
     // Test only — this does not save anything to the backend.
     toast.success("Dummy regularization request submitted successfully.");
@@ -1569,7 +1569,21 @@ const CheckinOut = () => {
                       <td className="px-5 py-4">
                         <button
                           type="button"
-                          onClick={() => setSelectedAttendance(attendance)}
+                          onClick={() => {
+                            // console.log("DESKTOP REGULARIZATION CLICK");
+                            // console.log(
+                            //   "Original date:",
+                            //   attendance.attendanceDate,
+                            // );
+                            // console.log(
+                            //   "Formatted date:",
+                            //   getAttendanceDateForInput(
+                            //     attendance.attendanceDate,
+                            //   ),
+                            // );
+
+                            setSelectedAttendance(attendance);
+                          }}
                           className="whitespace-nowrap rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 transition hover:border-green-300 hover:bg-green-100"
                         >
                           Request Regularization

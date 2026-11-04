@@ -29,6 +29,7 @@ const PropertyExpenseModal = ({
   } = useForm({
     defaultValues: {
       expenseCategory: "",
+      newSetUp: false,
       expenseDate: new Date(),
       amount: "",
       paymentMode: "",
@@ -42,6 +43,7 @@ const PropertyExpenseModal = ({
     reset({
       expenseCategory:
         initialData?.category || initialData?.expenseCategory || "",
+      newSetUp: initialData?.newSetUp ?? false,
       expenseDate: initialData?.expenseDate
         ? new Date(initialData.expenseDate)
         : new Date(),
@@ -50,10 +52,7 @@ const PropertyExpenseModal = ({
       comment: initialData?.comment || "",
     });
   }, [isOpen, initialData, reset]);
-  const { data: options = {} } = useBatchOptions([
-    "propertyexpensecategory",
-   
-  ]);
+  const { data: options = {} } = useBatchOptions(["propertyexpensecategory"]);
   if (!isOpen) return null;
   const dummyCategoryOptions = [
     { value: "Electricity", label: "Electricity" },
@@ -67,7 +66,7 @@ const PropertyExpenseModal = ({
     { value: "Painting", label: "Painting" },
     { value: "Other", label: "Other" },
   ];
- const expenseCategoryOptions = options.propertyexpensecategory || [];
+  const expenseCategoryOptions = options.propertyexpensecategory || [];
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4">
       <div className="flex max-h-[95vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
@@ -168,7 +167,34 @@ const PropertyExpenseModal = ({
                 );
               }}
             />
+            {/* New Set Up */}
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <Controller
+                name="newSetUp"
+                control={control}
+                render={({ field }) => (
+                  <label className="flex cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={!!field.value}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                      className="h-5 w-5 cursor-pointer rounded accent-green-600"
+                    />
 
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">
+                        New Set Up
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Mark this expense as a new property setup expense.
+                      </p>
+                    </div>
+                  </label>
+                )}
+              />
+            </div>
             {/* Expense Date */}
             <Controller
               name="expenseDate"
@@ -290,7 +316,7 @@ const PropertyExpenseModal = ({
                 className="form-input resize-y"
               />
 
-              <label className="form-label">Comment</label>
+              <label className="form-label">Payment Details</label>
             </div>
           </div>
           {/* Work Log History - Edit Mode Only */}
