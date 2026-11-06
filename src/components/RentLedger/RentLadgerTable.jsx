@@ -252,7 +252,7 @@ const RentLadgerTable = () => {
           </div>
 
           {clientId && client && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
               <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
                 <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
                   Client Name
@@ -297,6 +297,17 @@ const RentLadgerTable = () => {
                   {bed?.roomNo} / {bed?.bedNo}
                 </p>
               </div>
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  EB Cycle (Start/End)
+                </p>
+
+                <p className="mt-1 text-lg font-semibold text-gray-900">
+                  {property?.utility?.ebStartCycle ?? "-"}
+                  {" / "}
+                  {property?.utility?.ebEndCycle ?? "-"}
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -304,7 +315,7 @@ const RentLadgerTable = () => {
         {/* TABLE */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
           {/* SEARCH */}
-        <div className="px-3 py-2 border-b border-gray-400 flex flex-wrap items-center justify-between gap-3">
+          <div className="px-3 py-2 border-b border-gray-400 flex flex-wrap items-center justify-between gap-3">
             <div className="relative w-full sm:w-80">
               <input
                 className="border px-3 py-2 pr-10 rounded-lg w-full"
@@ -364,377 +375,377 @@ const RentLadgerTable = () => {
           {/* TABLE CONTENT */}
           <div className="flex-1 overflow-auto">
             <div className="hidden md:block">
-            <table className="w-full">
-              <thead className="sticky top-0 bg-gray-100 whitespace-nowrap">
-                <tr>
-                  <th className="p-3 text-center">
-                    <input
-                      type="checkbox"
-                      checked={
-                        paginatedData.length > 0 &&
-                        paginatedData.every((item) =>
-                          selectedRentRecords.has(item._id),
-                        )
-                      }
-                      onChange={handleSelectAllRent}
-                      className="h-4 w-4 accent-gray-500"
-                      aria-label="Select all rent records on this page"
-                    />
-                  </th>
-                  <th className="p-3 text-center">Property</th>
-                  <th className="p-3 text-center">Pay Status</th>
-                  <th className="p-3 text-center">Month</th>
-                  <th className="p-3 text-center">Year</th>
-                  {/* <th className="p-3 text-center">Stay Type</th> */}
-                  <th className="p-3 text-center">Current Due</th>
-                  <th className="p-3 text-center">Total Received</th>
-                  <th className="p-3 text-center">Total Receivable</th>
-                  <th className="p-3 text-center">Rent Amount</th>
-                  <th className="p-3 text-center">Days Count</th>
-                  <th className="p-3 text-center">EB Amount</th>
-                  <th className="p-3 text-center">Adj. EB</th>
-                  <th className="p-3 text-center">Previous Due</th>
-                  <th className="p-3 text-center">Parking Charges</th>
-                  <th className="p-3 text-center">Deposit</th>
-                  <th className="p-3 text-center">Processing Fee</th>
-                  <th className="p-3 text-center">Adj. Amount</th>
-                  <th className="p-3 text-center">Flat EB</th>
-                  <th className="p-3 text-center">Monthly Rent</th>
-                  <th className="p-3 text-center">Rent Start Date</th>
-                  <th className="p-3 text-center">Rent Last Date</th>
-                  <th className="p-3 text-center">Payment Comments</th>
-                  <th className="p-3 text-center">Remarks</th>
-
-                  {/* Sticky Header */}
-                  {showActions && (
-                    <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
-                      Actions
+              <table className="w-full">
+                <thead className="sticky top-0 bg-gray-100 whitespace-nowrap">
+                  <tr>
+                    <th className="p-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={
+                          paginatedData.length > 0 &&
+                          paginatedData.every((item) =>
+                            selectedRentRecords.has(item._id),
+                          )
+                        }
+                        onChange={handleSelectAllRent}
+                        className="h-4 w-4 accent-gray-500"
+                        aria-label="Select all rent records on this page"
+                      />
                     </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedData.length > 0 ? (
-                  paginatedData.map((item) => (
-                    <tr
-                      key={item._id}
-                      className={`border-t border-gray-200 whitespace-nowrap text-center
+                    <th className="p-3 text-center">Property</th>
+                    <th className="p-3 text-center">Pay Status</th>
+                    <th className="p-3 text-center">Month</th>
+                    <th className="p-3 text-center">Year</th>
+                    {/* <th className="p-3 text-center">Stay Type</th> */}
+                    <th className="p-3 text-center">Current Due</th>
+                    <th className="p-3 text-center">Total Received</th>
+                    <th className="p-3 text-center">Total Receivable</th>
+                    <th className="p-3 text-center">Rent Amount</th>
+                    <th className="p-3 text-center">Days Count</th>
+                    <th className="p-3 text-center">EB Amount</th>
+                    <th className="p-3 text-center">Adj. EB</th>
+                    <th className="p-3 text-center">Previous Due</th>
+                    <th className="p-3 text-center">Parking Charges</th>
+                    <th className="p-3 text-center">Deposit</th>
+                    <th className="p-3 text-center">Processing Fee</th>
+                    <th className="p-3 text-center">Adj. Amount</th>
+                    <th className="p-3 text-center">Flat EB</th>
+                    <th className="p-3 text-center">Monthly Rent</th>
+                    <th className="p-3 text-center">Rent Start Date</th>
+                    <th className="p-3 text-center">Rent Last Date</th>
+                    <th className="p-3 text-center">Payment Comments</th>
+                    <th className="p-3 text-center">Remarks</th>
+
+                    {/* Sticky Header */}
+                    {showActions && (
+                      <th className="p-3 text-center sticky right-0 bg-gray-100 z-30 min-w-37.5 shadow-[-4px_0_6px_rgba(0,0,0,0.1)]">
+                        Actions
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedData.length > 0 ? (
+                    paginatedData.map((item) => (
+                      <tr
+                        key={item._id}
+                        className={`border-t border-gray-200 whitespace-nowrap text-center
     ${item.monthName === currentMonth &&
-                          item.year === currentYear &&
-                          item.paymentStatus !== "Shifted"
-                          ? "bg-green-100 hover:bg-green-100"
-                          : "hover:bg-gray-50"
-                        }`}
-                    >
-                      <td className="p-3 text-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedRentRecords.has(item._id)}
-                          onChange={() => {
-                            setSelectedRentRecords((prev) => {
-                              const next = new Set(prev);
-
-                              if (next.has(item._id)) {
-                                next.delete(item._id);
-                              } else {
-                                next.add(item._id);
-                              }
-
-                              return next;
-                            });
-                          }}
-                          className="h-4 w-4 accent-gray-500"
-                          aria-label={`Select rent record ${item.monthName} ${item.year}`}
-                        />
-                      </td>
-                      <td className="p-3 font-bold">
-                        {item.propertyId?.propertyCode}
-                      </td>
-                      <td className="p-3">
-                        <span
-                          className={`px-3 py-1 text-sm rounded-full font-semibold
-                             ${item.paymentStatus === "Paid"
-                              ? "bg-green-100 text-green-700"
-                              : item.paymentStatus === "Partial"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : item.paymentStatus === "Shifted"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-red-100 text-red-700"
-                            }`}
-                        >
-                          {item.paymentStatus}
-                        </span>
-                      </td>
-
-                      <td className="p-3 font-bold">{item.monthName}</td>
-                      <td className="p-3">{item.year}</td>
-                      {/* <td className="p-3">{item.stayType}</td> */}
-                      <td
-                        className={`p-3 font-semibold ${item.currentDue > 0
-                          ? "text-red-600"
-                          : item.currentDue < 0
-                            ? "text-green-600"
-                            : "text-gray-700"
+                            item.year === currentYear &&
+                            item.paymentStatus !== "Shifted"
+                            ? "bg-green-100 hover:bg-green-100"
+                            : "hover:bg-gray-50"
                           }`}
                       >
-                        ₹
-                        {Math.round(Number(item.currentDue || 0)).toLocaleString("en-IN")}
-                      </td>
-                      <td className="p-3 text-green-600">
-                        <div className="relative group inline-block">
-                          {/* Total */}
-                          <span className="font-semibold cursor-pointer">
-                            ₹
-                            {Math.round(Number(item.totalReceived || 0)).toLocaleString("en-IN")}
+                        <td className="p-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedRentRecords.has(item._id)}
+                            onChange={() => {
+                              setSelectedRentRecords((prev) => {
+                                const next = new Set(prev);
+
+                                if (next.has(item._id)) {
+                                  next.delete(item._id);
+                                } else {
+                                  next.add(item._id);
+                                }
+
+                                return next;
+                              });
+                            }}
+                            className="h-4 w-4 accent-gray-500"
+                            aria-label={`Select rent record ${item.monthName} ${item.year}`}
+                          />
+                        </td>
+                        <td className="p-3 font-bold">
+                          {item.propertyId?.propertyCode}
+                        </td>
+                        <td className="p-3">
+                          <span
+                            className={`px-3 py-1 text-sm rounded-full font-semibold
+                             ${item.paymentStatus === "Paid"
+                                ? "bg-green-100 text-green-700"
+                                : item.paymentStatus === "Partial"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : item.paymentStatus === "Shifted"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-red-100 text-red-700"
+                              }`}
+                          >
+                            {item.paymentStatus}
                           </span>
+                        </td>
 
-                          {/* Hover */}
-                          {item.totalReceivedHistory?.length > 0 && (
-                            <div className="absolute right-0 top-full mt-2 hidden group-hover:block z-[100] w-max">
-                              <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3">
-                                <div className="text-xs text-gray-500 mb-1">
-                                  Payment Breakdown
-                                </div>
-
-                                <div className="text-sm font-semibold text-green-600 whitespace-nowrap">
-                                  {item.totalReceivedHistory
-                                    .map((payment) =>
-                                      Number(
-                                        payment.amount || 0,
-                                      ).toLocaleString("en-IN"),
-                                    )
-                                    .join(" + ")}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-3 font-semibold">
-                        ₹
-                        {Math.round(Number(item.totalReceivable || 0)).toLocaleString("en-IN")}
-                      </td>
-                      <td className="p-3">₹{item.rentAmt}</td>
-                      <td className="p-3">{item.daysCount}</td>
-                      <td className="p-3">₹{item.ebAmt}</td>
-                      <td className="p-3">₹{item.adjEB}</td>
-                      <td className="p-3">
-                        ₹{Math.round(Number(item.previousDue || 0)).toLocaleString("en-IN")}
-                      </td>
-                      <td className="p-3">₹{item.parkingCharges}</td>
-                      <td className="p-3">₹{item.depositAmount}</td>
-                      <td className="p-3">₹{item.processingFees}</td>
-
-                      <td className="p-3 text-green-600">
-                        <div className="relative group inline-block">
-                          {/* Total */}
-                          <span className="font-semibold cursor-pointer">
-                            ₹{Number(item.adjAmt || 0).toLocaleString("en-IN")}
-                          </span>
-
-                          {/* Hover */}
-                          {item.adjustedAmountHistory?.length > 0 && (
-                            <div className="absolute right-0 top-full mt-2 hidden group-hover:block z-[100] w-max">
-                              <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3">
-                                <div className="text-xs text-gray-500 mb-1">
-                                  Payment Breakdown
-                                </div>
-
-                                <div className="text-sm font-semibold text-green-600 whitespace-nowrap">
-                                  {item.adjustedAmountHistory
-                                    .map((payment) =>
-                                      Number(
-                                        payment.amount || 0,
-                                      ).toLocaleString("en-IN"),
-                                    )
-                                    .join(" + ")}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="p-3">₹{item.flatEB}</td>
-                      <td className="p-3">₹{item.monthlyRent}</td>
-
-                      {/* <td className="p-3">₹{item.parkingChargesReceived}</td> */}
-                      {/* <td className="p-3">₹{item.parkingChargesDue}</td> */}
-
-                      {/* <td className="p-3">₹{item.processingFeesReceived}</td> */}
-                      {/* <td className="p-3">₹{item.processingFeesDue}</td> */}
-
-                      {/* <td className="p-3">₹{item.depositAmountReceived}</td> */}
-                      {/* <td className="p-3">₹{item.depositAmountDue}</td> */}
-
-                      <td className="p-3">
-                        {item.startDate ? formatDate(item.startDate) : "-"}
-                      </td>
-
-                      <td className="p-3">
-                        {item.endDate ? formatDate(item.endDate) : "-"}
-                      </td>
-
-                      <td className="p-3">
-                        <div className="flex items-center gap-2">
-                          {/* Payment Comments */}
-                          <div className="relative group flex-1 min-w-0">
-                            {item?.paymentComments?.length > 0 ? (
-                              <>
-                                {/* Latest Comment */}
-                                <div className="text-sm text-gray-700 cursor-pointer">
-                                  {(() => {
-                                    const latestComment =
-                                      item.paymentComments[
-                                      item.paymentComments.length - 1
-                                      ];
-
-                                    const date = latestComment?.date
-                                      ? new Date(latestComment.date)
-                                      : null;
-
-                                    const formattedDate =
-                                      date && !isNaN(date.getTime())
-                                        ? date.toLocaleDateString("en-GB", {
-                                          day: "2-digit",
-                                          month: "short",
-                                          year: "numeric",
-                                        })
-                                        : "";
-
-                                    const formattedTime =
-                                      date && !isNaN(date.getTime())
-                                        ? date.toLocaleTimeString("en-US", {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                          hour12: true,
-                                        })
-                                        : "";
-
-                                    const text = latestComment?.comment || "";
-                                    const words = text.trim().split(/\s+/);
-
-                                    return (
-                                      <>
-                                        <span className="font-semibold text-gray-700">
-                                          [{formattedDate} {formattedTime}]
-                                        </span>{" "}
-                                        {words.slice(0, 2).join(" ")}
-                                        {words.length > 2 ? "..." : ""}
-                                      </>
-                                    );
-                                  })()}
-                                </div>
-
-                                {/* Hover Worklog */}
-                                <div className="hidden group-hover:block absolute right-full top-0 w-[420px] max-h-[300px] overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-3 text-left">
-                                  <div className="space-y-3 text-left">
-                                    {[...item.paymentComments]
-                                      .reverse()
-                                      .map((comment, index) => {
-                                        const date = comment?.date
-                                          ? new Date(comment.date)
-                                          : null;
-
-                                        const formattedDate =
-                                          date && !isNaN(date.getTime())
-                                            ? date.toLocaleDateString("en-GB", {
-                                              day: "2-digit",
-                                              month: "short",
-                                              year: "numeric",
-                                            })
-                                            : "";
-
-                                        const formattedTime =
-                                          date && !isNaN(date.getTime())
-                                            ? date.toLocaleTimeString("en-US", {
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                              hour12: true,
-                                            })
-                                            : "";
-
-                                        return (
-                                          <div
-                                            key={comment?._id || index}
-                                            className="w-full text-left text-sm text-gray-700 leading-relaxed whitespace-normal break-words"
-                                          >
-                                            <span className="font-semibold text-gray-800">
-                                              [{formattedDate} {formattedTime}]
-                                            </span>{" "}
-                                            {comment?.comment}
-                                          </div>
-                                        );
-                                      })}
-                                  </div>
-                                </div>
-                              </>
-                            ) : (
-                              <span className="text-gray-400 text-sm">
-                                No comment
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="p-3">{item.remarks || "-"}</td>
-
-                      {/* Sticky Actions Column */}
-                      {showActions && (
+                        <td className="p-3 font-bold">{item.monthName}</td>
+                        <td className="p-3">{item.year}</td>
+                        {/* <td className="p-3">{item.stayType}</td> */}
                         <td
-                          className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${item.monthName === currentMonth &&
-                            Number(item.year) === currentYear &&
-                            item.paymentStatus !== "Shifted"
-                            ? "bg-green-100"
-                            : "bg-white"
+                          className={`p-3 font-semibold ${item.currentDue > 0
+                            ? "text-red-600"
+                            : item.currentDue < 0
+                              ? "text-green-600"
+                              : "text-gray-700"
                             }`}
                         >
-                          <div className="flex justify-center gap-2">
-                            {canViewRentLedger && item.paymentStatus !== "Shifted" && (
-                              <Link to={`/rent-ledger/edit/${item._id}`}>
-                                <button
-                                  // disabled={
-                                  //   !(
-                                  //     item.monthName === currentMonth &&
-                                  //     item.year === currentYear
-                                  //   )
-                                  // }
-                                  className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200"
-                                >
-                                  <Eye size={16} />
-                                </button>
-                              </Link>
+                          ₹
+                          {Math.round(Number(item.currentDue || 0)).toLocaleString("en-IN")}
+                        </td>
+                        <td className="p-3 text-green-600">
+                          <div className="relative group inline-block">
+                            {/* Total */}
+                            <span className="font-semibold cursor-pointer">
+                              ₹
+                              {Math.round(Number(item.totalReceived || 0)).toLocaleString("en-IN")}
+                            </span>
+
+                            {/* Hover */}
+                            {item.totalReceivedHistory?.length > 0 && (
+                              <div className="absolute right-0 top-full mt-2 hidden group-hover:block z-[100] w-max">
+                                <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3">
+                                  <div className="text-xs text-gray-500 mb-1">
+                                    Payment Breakdown
+                                  </div>
+
+                                  <div className="text-sm font-semibold text-green-600 whitespace-nowrap">
+                                    {item.totalReceivedHistory
+                                      .map((payment) =>
+                                        Number(
+                                          payment.amount || 0,
+                                        ).toLocaleString("en-IN"),
+                                      )
+                                      .join(" + ")}
+                                  </div>
+                                </div>
+                              </div>
                             )}
-                            <>
-                              <>
-                                {canEditRentLedger && item.paymentStatus !== "Shifted" && (
-                                  <Link to={`/rent-ledger/edit/${item._id}`}>
-                                    <button
-                                      // disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
-                                      className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
-                                    >
-                                      <Pencil size={16} />
-                                    </button>
-                                  </Link>
-                                )}
-                              </>{" "}
-                              {isAdmin && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setDeleteId(item._id);
-                                    setShowDeleteModal(true);
-                                  }}
-                                  disabled={deleteRentMutation.isPending}
-                                  className="p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
-                                  title={`Delete ${item.monthName} ${item.year} rent`}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
+                          </div>
+                        </td>
+                        <td className="p-3 font-semibold">
+                          ₹
+                          {Math.round(Number(item.totalReceivable || 0)).toLocaleString("en-IN")}
+                        </td>
+                        <td className="p-3">₹{item.rentAmt}</td>
+                        <td className="p-3">{item.daysCount}</td>
+                        <td className="p-3">₹{item.ebAmt}</td>
+                        <td className="p-3">₹{item.adjEB}</td>
+                        <td className="p-3">
+                          ₹{Math.round(Number(item.previousDue || 0)).toLocaleString("en-IN")}
+                        </td>
+                        <td className="p-3">₹{item.parkingCharges}</td>
+                        <td className="p-3">₹{item.depositAmount}</td>
+                        <td className="p-3">₹{item.processingFees}</td>
+
+                        <td className="p-3 text-green-600">
+                          <div className="relative group inline-block">
+                            {/* Total */}
+                            <span className="font-semibold cursor-pointer">
+                              ₹{Number(item.adjAmt || 0).toLocaleString("en-IN")}
+                            </span>
+
+                            {/* Hover */}
+                            {item.adjustedAmountHistory?.length > 0 && (
+                              <div className="absolute right-0 top-full mt-2 hidden group-hover:block z-[100] w-max">
+                                <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3">
+                                  <div className="text-xs text-gray-500 mb-1">
+                                    Payment Breakdown
+                                  </div>
+
+                                  <div className="text-sm font-semibold text-green-600 whitespace-nowrap">
+                                    {item.adjustedAmountHistory
+                                      .map((payment) =>
+                                        Number(
+                                          payment.amount || 0,
+                                        ).toLocaleString("en-IN"),
+                                      )
+                                      .join(" + ")}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="p-3">₹{item.flatEB}</td>
+                        <td className="p-3">₹{item.monthlyRent}</td>
+
+                        {/* <td className="p-3">₹{item.parkingChargesReceived}</td> */}
+                        {/* <td className="p-3">₹{item.parkingChargesDue}</td> */}
+
+                        {/* <td className="p-3">₹{item.processingFeesReceived}</td> */}
+                        {/* <td className="p-3">₹{item.processingFeesDue}</td> */}
+
+                        {/* <td className="p-3">₹{item.depositAmountReceived}</td> */}
+                        {/* <td className="p-3">₹{item.depositAmountDue}</td> */}
+
+                        <td className="p-3">
+                          {item.startDate ? formatDate(item.startDate) : "-"}
+                        </td>
+
+                        <td className="p-3">
+                          {item.endDate ? formatDate(item.endDate) : "-"}
+                        </td>
+
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            {/* Payment Comments */}
+                            <div className="relative group flex-1 min-w-0">
+                              {item?.paymentComments?.length > 0 ? (
+                                <>
+                                  {/* Latest Comment */}
+                                  <div className="text-sm text-gray-700 cursor-pointer">
+                                    {(() => {
+                                      const latestComment =
+                                        item.paymentComments[
+                                        item.paymentComments.length - 1
+                                        ];
+
+                                      const date = latestComment?.date
+                                        ? new Date(latestComment.date)
+                                        : null;
+
+                                      const formattedDate =
+                                        date && !isNaN(date.getTime())
+                                          ? date.toLocaleDateString("en-GB", {
+                                            day: "2-digit",
+                                            month: "short",
+                                            year: "numeric",
+                                          })
+                                          : "";
+
+                                      const formattedTime =
+                                        date && !isNaN(date.getTime())
+                                          ? date.toLocaleTimeString("en-US", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: true,
+                                          })
+                                          : "";
+
+                                      const text = latestComment?.comment || "";
+                                      const words = text.trim().split(/\s+/);
+
+                                      return (
+                                        <>
+                                          <span className="font-semibold text-gray-700">
+                                            [{formattedDate} {formattedTime}]
+                                          </span>{" "}
+                                          {words.slice(0, 2).join(" ")}
+                                          {words.length > 2 ? "..." : ""}
+                                        </>
+                                      );
+                                    })()}
+                                  </div>
+
+                                  {/* Hover Worklog */}
+                                  <div className="hidden group-hover:block absolute right-full top-0 w-[420px] max-h-[300px] overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] p-3 text-left">
+                                    <div className="space-y-3 text-left">
+                                      {[...item.paymentComments]
+                                        .reverse()
+                                        .map((comment, index) => {
+                                          const date = comment?.date
+                                            ? new Date(comment.date)
+                                            : null;
+
+                                          const formattedDate =
+                                            date && !isNaN(date.getTime())
+                                              ? date.toLocaleDateString("en-GB", {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                              })
+                                              : "";
+
+                                          const formattedTime =
+                                            date && !isNaN(date.getTime())
+                                              ? date.toLocaleTimeString("en-US", {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                                hour12: true,
+                                              })
+                                              : "";
+
+                                          return (
+                                            <div
+                                              key={comment?._id || index}
+                                              className="w-full text-left text-sm text-gray-700 leading-relaxed whitespace-normal break-words"
+                                            >
+                                              <span className="font-semibold text-gray-800">
+                                                [{formattedDate} {formattedTime}]
+                                              </span>{" "}
+                                              {comment?.comment}
+                                            </div>
+                                          );
+                                        })}
+                                    </div>
+                                  </div>
+                                </>
+                              ) : (
+                                <span className="text-gray-400 text-sm">
+                                  No comment
+                                </span>
                               )}
-                            </>
-                            {/* 
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="p-3">{item.remarks || "-"}</td>
+
+                        {/* Sticky Actions Column */}
+                        {showActions && (
+                          <td
+                            className={`p-3 sticky right-0 z-10 shadow-[-4px_0_6px_rgba(0,0,0,0.05)] ${item.monthName === currentMonth &&
+                              Number(item.year) === currentYear &&
+                              item.paymentStatus !== "Shifted"
+                              ? "bg-green-100"
+                              : "bg-white"
+                              }`}
+                          >
+                            <div className="flex justify-center gap-2">
+                              {canViewRentLedger && item.paymentStatus !== "Shifted" && (
+                                <Link to={`/rent-ledger/edit/${item._id}`}>
+                                  <button
+                                    // disabled={
+                                    //   !(
+                                    //     item.monthName === currentMonth &&
+                                    //     item.year === currentYear
+                                    //   )
+                                    // }
+                                    className="p-2 bg-blue-100 rounded-lg hover:bg-blue-200"
+                                  >
+                                    <Eye size={16} />
+                                  </button>
+                                </Link>
+                              )}
+                              <>
+                                <>
+                                  {canEditRentLedger && item.paymentStatus !== "Shifted" && (
+                                    <Link to={`/rent-ledger/edit/${item._id}`}>
+                                      <button
+                                        // disabled = {!(item.monthName === currentMonth && item.year === currentYear)}
+                                        className="p-2 bg-yellow-100 rounded-lg hover:bg-yellow-200"
+                                      >
+                                        <Pencil size={16} />
+                                      </button>
+                                    </Link>
+                                  )}
+                                </>{" "}
+                                {isAdmin && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setDeleteId(item._id);
+                                      setShowDeleteModal(true);
+                                    }}
+                                    disabled={deleteRentMutation.isPending}
+                                    className="p-2 bg-red-100 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                                    title={`Delete ${item.monthName} ${item.year} rent`}
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                )}
+                              </>
+                              {/* 
                           <button
                             onClick={() =>
                               handleDelete(item._id)
@@ -743,25 +754,25 @@ const RentLadgerTable = () => {
                           >
                             <Trash2 size={16} />
                           </button> */}
-                          </div>
-                        </td>
-                      )}
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={15} className="h-64">
+                        <div className="flex items-center justify-center h-full">
+                          <NoDataFound
+                            title="No Rent History Found"
+                            description="No rent history available for this client."
+                          />
+                        </div>
+                      </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={15} className="h-64">
-                      <div className="flex items-center justify-center h-full">
-                        <NoDataFound
-                          title="No Rent History Found"
-                          description="No rent history available for this client."
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table></div>
+                  )}
+                </tbody>
+              </table></div>
             {/* MOBILE CARDS: mobile screens only */}
             <div className="md:hidden">
               <RentLedgerMobileCards

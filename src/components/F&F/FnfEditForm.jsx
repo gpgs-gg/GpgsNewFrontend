@@ -204,8 +204,8 @@ function FnfEditForm({ client, onClose }) {
           toast.dismiss();
           toast.error(
             error?.response?.data?.message ||
-              error?.message ||
-              "Something went wrong",
+            error?.message ||
+            "Something went wrong",
           );
         },
       },
@@ -256,28 +256,26 @@ Property Code : *${propertyCode}*
 
 📌 Security Deposit : *₹${formatAmount(securityDeposit)}*
 
-📌 F&F Settlement ${
-      settlementAmount >= 0 ? "Refundable" : "Payable"
-    } Amount: *₹${formatAmount(Math.abs(settlementAmount))}*
+📌 F&F Settlement ${settlementAmount >= 0 ? "Refundable" : "Payable"
+      } Amount: *₹${formatAmount(Math.abs(settlementAmount))}*
 
-_${
-      settlementAmount >= 0
+_${settlementAmount >= 0  
         ? "(GPGS will pay you this amount)."
         : "(You have to pay this amount to GPGS)."
-    }_
+      }_
 
 For detailed settlement calculations and other details, please visit:
 
 🌐 https://gpgs24.in
 
-Please check all the details carefully. If you have any concerns or queries regarding the settlement, kindly let us know.
+Please check all the details and comments carefully. If you have any concerns or queries regarding the settlement, kindly let us know.
 
 *Gopal's Paying Guest Services*
 
 Customer Care / Emergency No. 1 : 8928191814
 Customer Care / Emergency No. 2 : 9326325181
 
-(Service Hours : 10 AM to 7 PM)
+(Service Hours : 10 AM to 7 PM) 
 `.trim();
 
     const phone = whatsappNo.replace(/\D/g, "");
@@ -363,9 +361,8 @@ Customer Care / Emergency No. 2 : 9326325181
                   value={fnfAmount}
                   readOnly
                   disabled
-                  className={`form-input cursor-not-allowed font-bold ${
-                    fnfAmount < 0 ? "text-red-600" : "text-green-600"
-                  }`}
+                  className={`form-input cursor-not-allowed font-bold ${fnfAmount < 0 ? "text-red-600" : "text-green-600"
+                    }`}
                 />
 
                 <label className="form-label">F&F Amount</label>
@@ -478,7 +475,7 @@ Customer Care / Emergency No. 2 : 9326325181
                         const reducedBy =
                           originalSize > 0
                             ? ((originalSize - compressedSize) / originalSize) *
-                              100
+                            100
                             : 0;
                         // console.log(`File: ${file.name}`);
                         // console.log(
@@ -567,38 +564,38 @@ Customer Care / Emergency No. 2 : 9326325181
                         BUTTONS
                     ================================================== */}
 
-       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 border-t pt-4">
-  <button
-    type="button"
-    onClick={sendFnfWhatsAppMessage}
-    className="flex w-full sm:w-fit justify-center items-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 font-semibold text-white hover:bg-green-700"
-  >
-    <MessageCircle size={18} />
-    FNF WhatsApp Message
-  </button>
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 border-t pt-4">
+            <button
+              type="button"
+              onClick={sendFnfWhatsAppMessage}
+              className="flex w-full sm:w-fit justify-center items-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 font-semibold text-white hover:bg-green-700"
+            >
+              <MessageCircle size={18} />
+              FNF WhatsApp Message
+            </button>
 
-  <button
-    type="button"
-    onClick={onClose}
-    className="w-full sm:w-fit rounded-lg border px-5 py-2.5 font-medium text-gray-700 hover:bg-gray-50"
-  >
-    Cancel
-  </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-fit rounded-lg border px-5 py-2.5 font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
 
-  <button
-    type="submit"
-    className="theme-btn flex w-full sm:w-fit justify-center items-center gap-2"
-    disabled={isUpdateClientData}
-  >
-    {isUpdateClientData ? (
-      <Loader size={18} className="animate-spin" />
-    ) : (
-      <CheckCircle size={18} />
-    )}
+            <button
+              type="submit"
+              className="theme-btn flex w-full sm:w-fit justify-center items-center gap-2"
+              disabled={isUpdateClientData}
+            >
+              {isUpdateClientData ? (
+                <Loader size={18} className="animate-spin" />
+              ) : (
+                <CheckCircle size={18} />
+              )}
 
-    {isUpdateClientData ? "Saving..." : "Save F&F"}
-  </button>
-</div>
+              {isUpdateClientData ? "Saving..." : "Save F&F"}
+            </button>
+          </div>
         </form>
       </div>
 

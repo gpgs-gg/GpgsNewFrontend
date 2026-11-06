@@ -649,7 +649,7 @@ export const TableFilePreview = ({ files }) => {
                   })
                 }
                 title="Click to preview attachment"
-                className="group relative w-12 h-12 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 hover:border-gray-500 hover:shadow-md transition-all flex items-center justify-center"
+                className="group relative w-9 h-9 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 hover:border-gray-500 hover:shadow-md transition-all flex items-center justify-center"
               >
                 {type === "image" ? (
                   file.thumbnailUrl ? (
@@ -662,7 +662,7 @@ export const TableFilePreview = ({ files }) => {
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-0.5">
-                      <ImageIcon size={21} className="text-gray-500" />
+                      <ImageIcon size={15} className="text-gray-500" />
                       <span className="text-[8px] text-gray-500">IMAGE</span>
                     </div>
                   )
@@ -678,7 +678,7 @@ export const TableFilePreview = ({ files }) => {
                       />
                     ) : (
                       <div className="flex flex-col items-center justify-center gap-0.5">
-                        <Play size={21} className="text-blue-600" />
+                        <Play size={15} className="text-blue-600" />
                         <span className="text-[8px] text-gray-500">VIDEO</span>
                       </div>
                     )}
@@ -689,7 +689,7 @@ export const TableFilePreview = ({ files }) => {
                   </>
                 ) : type === "pdf" ? (
                   <div className="flex flex-col items-center justify-center gap-0.5">
-                    <FileText size={22} className="text-red-600" />
+                    <FileText size={15} className="text-red-600" />
                     <span className="text-[8px] font-semibold text-red-600">
                       PDF
                     </span>
