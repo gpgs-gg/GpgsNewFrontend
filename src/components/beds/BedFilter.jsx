@@ -45,6 +45,7 @@ const BedFilter = ({
       previousRentHikeDateTo: "",
 
       status: "",
+      sortByAlphanumeric: false,
     },
   });
   const loadPropertyOptions = async (search, loadedOptions, { page }) => {
@@ -90,8 +91,8 @@ const BedFilter = ({
         label: item,
       }));
   }, [apiData]);
-    const { data: options = {} } = useBatchOptions(["locations"]);
-    const locationOptions = options.locations || [];
+  const { data: options = {} } = useBatchOptions(["locations"]);
+  const locationOptions = options.locations || [];
   // Gender Options
   const genderOptions = [
     { value: "Male", label: "Male" },
@@ -134,6 +135,7 @@ const BedFilter = ({
       depositAmountMax: data.depositAmountMax || "",
 
       status: data.status || "",
+      sortByAlphanumeric: Boolean(data.sortByAlphanumeric),
     };
     const labels = [
       data.propertyId && {
@@ -237,7 +239,7 @@ const BedFilter = ({
       sharingType: initialFilters.sharingType || "",
       bathAttached: initialFilters.bathAttached || "",
       acRoom: initialFilters.acRoom || "",
-
+      sortByAlphanumeric: false,
       monthlyRentMin: initialFilters.monthlyRentMin || "",
       monthlyRentMax: initialFilters.monthlyRentMax || "",
 
@@ -297,7 +299,7 @@ const BedFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
+        className={`fixed top-0 right-0 h-dvh w-96 max-w-full bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -310,11 +312,11 @@ const BedFilter = ({
         </div>
 
         <form
-          className="flex-1 overflow-y-auto  space-y-5"
-          id="bed-filter-form"
+          className="flex-1 min-h-0 flex flex-col overflow-hidden"
+          id="available-bed-filter-form"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5">
             {/* Property Code */}
             <Controller
               name="propertyId"
@@ -338,7 +340,7 @@ const BedFilter = ({
               )}
             />
             {/* Location */}
-           <Controller
+            <Controller
               name="propertyLocation"
               control={control}
               render={({ field }) => (
@@ -361,6 +363,40 @@ const BedFilter = ({
                       field.onChange(selected?.value || "")
                     }
                   />
+                </div>
+              )}
+            />
+            {/* Alphanumeric Sorting */}
+            <Controller
+              name="sortByAlphanumeric"
+              control={control}
+              render={({ field }) => (
+                <div
+                  onClick={() => field.onChange(!field.value)}
+                  className="flex cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white p-3 shadow-sm hover:bg-gray-50"
+                >
+                  <div>
+                    <label className="text-sm font-medium text-gray-900">
+                      Sort by (A–Z)
+                    </label>
+                    {/* <p className="mt-1 text-xs text-gray-500">
+                      Sort property codes alphabetically
+                    </p> */}
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-pressed={Boolean(field.value)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-300 ${
+                      field.value ? "bg-blue-600" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${
+                        field.value ? "translate-x-5" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
                 </div>
               )}
             />

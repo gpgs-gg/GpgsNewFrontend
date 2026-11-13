@@ -151,6 +151,7 @@ const expanded = mobileOpen || !collapsed || hovered;
     full_final_settlement: <Users size={22} />,
 
     rent_not_received: <CircleDollarSign size={22} />,
+    new_rent_not_received: <CircleDollarSign size={22} />,
 
     tickets: <Ticket size={22} />,
 
@@ -193,8 +194,8 @@ const expanded = mobileOpen || !collapsed || hovered;
     "clients",
     "rent_history",
     "rent_not_received",
+    "new_rent_not_received",
     "New R N R",
-    "New Rnr",
     "full_final_settlement",
     "tickets",
     "pg_leads",

@@ -46,6 +46,8 @@ const AvailableBedsTable = () => {
     clientName: "",
     hasCvd: false,
     sortByRent: false,
+    sortByAlphanumeric: false,
+    sortByRedFlag: false,
     gender: "",
   };
 
@@ -228,7 +230,20 @@ const AvailableBedsTable = () => {
         value: filters.clientName,
       });
     }
-
+if (filters.sortByRedFlag) {
+  labels.push({
+    key: "sortByRedFlag",
+    title: "Sort",
+    value: "Red Flag First",
+  });
+}
+if (filters.sortByAlphanumeric) {
+      labels.push({
+        key: "sortByAlphanumeric",
+        title: "Sort",
+        value: "Alphanumeric (A–Z)",
+      });
+    }
     return labels;
   }, [filters]);
   const handleRemoveFilter = (key) => {

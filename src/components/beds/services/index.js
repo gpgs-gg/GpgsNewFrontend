@@ -85,6 +85,10 @@ const getBedsData = async ({ page = 1, limit = 10, search, filters = {} }) => {
   if (filters.previousRentHikeDateTo) {
     params.previousRentHikeDateTo = filters.previousRentHikeDateTo;
   }
+  // Alphanumeric Sorting
+  if (filters.sortByAlphanumeric) {
+    params.sortByAlphanumeric = true;
+  }
   const response = await apiClient.get("/beds", {
     params,
   });
@@ -131,6 +135,7 @@ export const useBedsData = ({
 
       filters.previousRentHikeDateFrom,
       filters.previousRentHikeDateTo,
+      filters.sortByAlphanumeric,
     ],
     queryFn: () =>
       getBedsData({

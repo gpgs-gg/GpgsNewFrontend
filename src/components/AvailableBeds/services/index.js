@@ -34,6 +34,12 @@ const getAvailableBedsData = async ({
     params.depositAmountMax = filters.depositAmountMax;
   if (filters.hasCvd) params.hasCvd = true;
   if (filters.sortByRent) params.sortByRent = true;
+  if (filters.sortByAlphanumeric) {
+     params.sortByAlphanumeric = true;
+  }
+  if (filters.sortByRedFlag) {
+    params.sortByRedFlag = true;
+  }
   return (await apiClient.get("/available-beds", { params })).data;
 };
 
@@ -65,6 +71,8 @@ export const useAvailableBedsData = ({
       filters.depositAmountMax,
       filters.hasCvd,
       filters.sortByRent,
+      filters.sortByAlphanumeric,
+      filters.sortByRedFlag,
     ],
     queryFn: () =>
       getAvailableBedsData({

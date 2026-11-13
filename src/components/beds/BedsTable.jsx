@@ -48,7 +48,7 @@ const BedsTable = () => {
 
     depositAmountMin: "",
     depositAmountMax: "",
-
+sortByAlphanumeric: false,
     status: "",
   };
 
@@ -77,7 +77,13 @@ const BedsTable = () => {
         value: filters.propertyCode || filters.propertyId,
       });
     }
-
+if (filters.sortByAlphanumeric) {
+  labels.push({
+    key: "sortByAlphanumeric",
+    title: "Sorting",
+    value: "Property Code A–Z",
+  });
+}
     if (filters.propertyLocation) {
       labels.push({
         key: "propertyLocation",

@@ -100,6 +100,7 @@ const RNRTable = () => {
     clientStatus: "",
     clientDojFrom: "",
     clientDojTo: "",
+    fnfStatus: "",
   };
   const {
     filters,
@@ -953,12 +954,11 @@ const RNRTable = () => {
         resetTrigger={resetTrigger}
         onClose={() => setFilterOpen(false)}
         onApply={(data) => {
-          console.log("RNR Apply Data:", data);
-
           setFilters((prev) => ({
             ...prev,
             propertyId: data.propertyId || "",
             propertyCode: data.propertyCode || "",
+            fnfStatus: data.fnfStatus || "",
           }));
 
           setCurrentPage(1);

@@ -36,6 +36,8 @@ const AvailableBedsFilter = ({
     clientName: "",
     hasCvd: false,
     sortByRent: false,
+    sortByAlphanumeric: false,
+    sortByRedFlag: false,
     gender: "",
   };
   const { data: options = {} } = useBatchOptions(["locations"]);
@@ -316,6 +318,8 @@ const AvailableBedsFilter = ({
       clientName: initialFilters.clientName || "",
       hasCvd: Boolean(initialFilters.hasCvd),
       sortByRent: Boolean(initialFilters.sortByRent),
+      sortByAlphanumeric: Boolean(initialFilters.sortByAlphanumeric),
+      sortByRedFlag: Boolean(initialFilters.sortByRedFlag),
     });
   }, [isOpen, initialFilters, reset]);
 
@@ -326,7 +330,7 @@ const AvailableBedsFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
+        className={`fixed top-0 right-0 h-dvh w-96 max-w-full bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -340,11 +344,11 @@ const AvailableBedsFilter = ({
         </div>
 
         <form
-          className="flex-1 overflow-y-auto  space-y-5"
+          className="flex-1 min-h-0 flex flex-col overflow-hidden"
           id="available-bed-filter-form"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <div className="flex-1 overflow-y-auto p-5 space-y-5 ">
+          <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5">
             {/* Property Code */}
             <Controller
               name="propertyId"
@@ -369,7 +373,7 @@ const AvailableBedsFilter = ({
                 </div>
               )}
             />
-      {/* Gender */}
+            {/* Gender */}
             <Controller
               name="gender"
               control={control}
@@ -425,7 +429,6 @@ const AvailableBedsFilter = ({
                 </div>
               )}
             />
-      
             {/* CVD- Client Vacating Date */}
             <Controller
               name="hasCvd"
@@ -456,6 +459,7 @@ const AvailableBedsFilter = ({
                 </div>
               )}
             />
+
             {/* Rent Sorting */}
             <Controller
               name="sortByRent"
@@ -475,6 +479,74 @@ const AvailableBedsFilter = ({
                     type="button"
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
                       field.value ? "bg-green-600" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${
+                        field.value ? "translate-x-5" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              )}
+            />
+            {/* Alphanumeric Sorting */}
+            <Controller
+              name="sortByAlphanumeric"
+              control={control}
+              render={({ field }) => (
+                <div
+                  onClick={() => field.onChange(!field.value)}
+                  className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3 shadow-sm"
+                >
+                  <div>
+                    <label className="text-md font-medium text-gray-900">
+                      Sort by (A–Z)
+                    </label>
+                    {/* <p className="text-xs text-gray-500 mt-1">
+                      Sort property codes alphabetically
+                    </p> */}
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-pressed={Boolean(field.value)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-300 ${
+                      field.value ? "bg-blue-600" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${
+                        field.value ? "translate-x-5" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              )}
+            />
+            {/* Red Flag Sorting */}
+            <Controller
+              name="sortByRedFlag"
+              control={control}
+              render={({ field }) => (
+                <div
+                  onClick={() => field.onChange(!field.value)}
+                  className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3 shadow-sm cursor-pointer"
+                >
+                  <div>
+                    <label className="text-md font-medium text-gray-900">
+                      Sort by Red Flag
+                    </label>
+                    {/* <p className="mt-1 text-xs text-gray-500">
+                      Show Red Flag beds first
+                    </p> */}
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-pressed={Boolean(field.value)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-300 ${
+                      field.value ? "bg-red-600" : "bg-gray-300"
                     }`}
                   >
                     <span

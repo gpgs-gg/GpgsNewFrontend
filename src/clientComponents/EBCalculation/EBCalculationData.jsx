@@ -2,15 +2,17 @@
 import React, { useState, useMemo } from "react";
 import { Eye, Filter } from "lucide-react";
 
-import { useEBCalculations } from "./services";
+import { useEBCalculationById, useEBCalculations } from "./services";
 import Pagination from "../../components/common/Pagination";
 import NoDataFound from "../../components/common/NoDataFound";
 import useDebounce from "../../components/hooks/useDebounce";
+import { useCurrentUser } from "../../auth/services";
 
 function EBCalculationData() {
   const [search, setSearch] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const { data: currentUser } = useCurrentUser();
 
   // Expanded client details row
   const [expandedRow, setExpandedRow] = useState(null);
@@ -21,12 +23,13 @@ function EBCalculationData() {
   // GET EB CALCULATIONS
   // ============================================================
 
-  const {
-    data: apiResponse,
-    isLoading,
-    isError,
-  } = useEBCalculations();
+ const SendClientIdForPropertyId = currentUser?.user?.clientId;
 
+const {
+  data: apiResponse,
+  isLoading,
+  isError,
+} = useEBCalculationById(SendClientIdForPropertyId);
   // API se actual data
   const apiData = apiResponse?.data || [];
 

@@ -7,6 +7,9 @@ import { useAuthorization } from "../../context/AuthorizationContext";
 import TableSkeleton from "../../components/common/TableSkelton";
 import NoDataFound from "../common/NoDataFound";
 import Pagination from "../common/Pagination";
+import { Controller, useForm } from "react-hook-form";
+import { selectStyles } from "../../utils/selectStyles";
+import Select from "react-select"
 
 // ============================================================
 // CONSTANTS
@@ -110,6 +113,7 @@ const SalaryTable = ({ params = {}, onView }) => {
   const [selectedMonth, setSelectedMonth] = useState(
     Number(params?.month) || CURRENT_MONTH,
   );
+  const [selectedDepartment, setSelectedDepartment] = useState("");
 
   const [selectedYear, setSelectedYear] = useState(
     Number(params?.year) || CURRENT_YEAR,
@@ -167,9 +171,12 @@ const SalaryTable = ({ params = {}, onView }) => {
       year: selectedYear,
       page: currentPage,
       limit: ROWS_PER_PAGE,
+      department: selectedDepartment,
     }),
     [params, selectedMonth, selectedYear, currentPage],
   );
+
+  const { control, register, handleSubmit, reset, setValue, watch } = useForm();
 
   const { data, isLoading, isFetching } = useSalaryDetailsData(queryParams);
 
@@ -245,6 +252,18 @@ const SalaryTable = ({ params = {}, onView }) => {
     return date.getDay() === 4; // Thursday
   };
 
+
+
+  const departments = useMemo(
+    () =>
+      ["Account", "Maintenance", "IT", "Housekeeping", "Admin"].map(
+        (department) => ({
+          label: department,
+          value: department,
+        })
+      ),
+    []
+  );
   // ==========================================================
   // UI
   // ==========================================================
@@ -252,21 +271,53 @@ const SalaryTable = ({ params = {}, onView }) => {
   return (
     <div className="w-auto bg-gray-50">
       {/* =====================================================
-          HEADER
+                          HEADER
       ===================================================== */}
-
       <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-2">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold uppercase">Salary Master</h1>
 
             <p className="text-sm text-gray-500">
-              Manage employee salary details
+              Manage {totalRecords} employee salary details
               {selectedMonthName && ` - ${selectedMonthName} ${selectedYear}`}
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="grid grid-cols-2 gap-5">
+            <Controller
+              name="department"
+              control={control}
+              defaultValue={null}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value != null ? "has-value" : ""
+                    }`}
+                >
+                  <label className="select-label">
+                    Department
+                  </label>
+
+                  <Select
+                    {...field}
+                    options={departments}
+                    isClearable
+                    // isDisabled={field.value === "P. Booked"}
+                    placeholder=""
+                    value={departments.find(
+                      (option) => option.value === field.value,
+                    )}
+                    onChange={(selectedOption) => {
+                      field.onChange(selectedOption?.value || "");
+                      setSelectedDepartment(selectedOption?.value || "");
+                      setCurrentPage(1);
+                    }}
+                    styles={selectStyles}
+                  />
+                </div>
+              )}
+            />
+
             <div className="datepicker-group has-value">
               <label className="datepicker-label">Month & Year</label>
 
@@ -290,50 +341,36 @@ const SalaryTable = ({ params = {}, onView }) => {
                 dateFormat="MMMM yyyy"
                 isClearable
                 placeholderText="Select month & year"
-                className="custom-datepicker"
+                className="custom-datepicker h-10"
               />
             </div>
 
-            {/* REFRESHING */}
 
-            {isFetching && (
-              <span className="text-sm text-gray-500">Refreshing...</span>
-            )}
-
-            {/* RECORD COUNT */}
-
-            <span className="text-sm text-gray-500">
-              {totalRecords} Records
-            </span>
           </div>
+
+
         </div>
       </div>
-
       {/* =====================================================
           TABLE CARD
       ===================================================== */}
-
       <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh] mt-2">
         {/* ===================================================
             TABLE CONTENT
         =================================================== */}
-
         <div className="flex-1 overflow-auto">
           <table className="w-full min-w-max">
             {/* =================================================
                 HEADER
             ================================================= */}
-
             <thead className="z-30">
               <tr className="bg-[#111827] text-white">
-                {/* =========================
-        SR NO
+                {/* =========================SR NO
     ========================= */}
                 <th className="sticky top-0 left-0 z-50 w-[44px] min-w-[44px] max-w-[44px]  bg-[#111827]  border-r border-gray-600 px-1 py-2 text-center font-bold whitespace-nowrap">
                   {" "}
                   Sr{" "}
                 </th>
-
                 {/* =========================
         EMPLOYEE ID
     ========================= */}
@@ -343,20 +380,17 @@ const SalaryTable = ({ params = {}, onView }) => {
                 >
                   Employee ID
                 </th>
-
                 {/* =========================
         EMPLOYEE NAME
     ========================= */}
                 <th className="sticky top-0 left-[134px] z-50 bg-[#111827] border-r border-gray-600 px-3 py-2 text-left font-bold whitespace-nowrap">
                   Employee Name
                 </th>
-
                 {/* =========================
         DAYS
     ========================= */}
                 {DAYS.map((day) => {
                   const thursday = isThursday(day, selectedMonth, selectedYear);
-
                   return (
                     <th
                       key={day}

@@ -464,9 +464,9 @@ const ClientCreateEdit = () => {
                             <input
                                 {...register("parkingCharges")}
                                 placeholder=" "
-                                disabled
+                                // disabled
                                 type="text"
-                                className="form-input bg-gray-100!"
+                                className="form-input"
                             />
                             <label className="form-label required-label">
                                 Parking Charges{" "}

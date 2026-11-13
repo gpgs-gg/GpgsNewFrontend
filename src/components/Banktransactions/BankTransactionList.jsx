@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { FiCopy } from "react-icons/fi";
-import { Eye, Pencil, Filter } from "lucide-react";
+import { Eye, Pencil, Filter, Link2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
@@ -103,9 +103,8 @@ const BankTransactionList = () => {
     if (filters.expenseCode) {
       labels.push({
         key: "expenseCode",
-        label: `Expense Code : ${
-          filters.expenseCodeLabel || "Selected Expense Code"
-        }`,
+        label: `Expense Code : ${filters.expenseCodeLabel || "Selected Expense Code"
+          }`,
       });
     }
 
@@ -119,9 +118,8 @@ const BankTransactionList = () => {
     if (filters.transactionType) {
       labels.push({
         key: "transactionType",
-        label: `Type : ${
-          filters.transactionType === "deposit" ? "Deposit" : "Withdrawal"
-        }`,
+        label: `Type : ${filters.transactionType === "deposit" ? "Deposit" : "Withdrawal"
+          }`,
       });
     }
 
@@ -397,11 +395,10 @@ const BankTransactionList = () => {
                 {canEditSalary && (
                   <button
                     onClick={() => applyTransactionType("salary")}
-                    className={`px-4 py-2 rounded-lg border ${
-                      filters.transactionType === "salary"
-                        ? "bg-green-600 text-white"
-                        : "bg-white"
-                    }`}
+                    className={`px-4 py-2 rounded-lg border ${filters.transactionType === "salary"
+                      ? "bg-green-600 text-white"
+                      : "bg-white"
+                      }`}
                   >
                     Salary
                   </button>
@@ -409,22 +406,20 @@ const BankTransactionList = () => {
 
                 <button
                   onClick={() => applyTransactionType("deposit")}
-                  className={`px-4 py-2 rounded-lg border ${
-                    filters.transactionType === "deposit"
-                      ? "bg-green-600 text-white"
-                      : "bg-white"
-                  }`}
+                  className={`px-4 py-2 rounded-lg border ${filters.transactionType === "deposit"
+                    ? "bg-green-600 text-white"
+                    : "bg-white"
+                    }`}
                 >
                   Deposit
                 </button>
 
                 <button
                   onClick={() => applyTransactionType("withdrawal")}
-                  className={`px-4 py-2 rounded-lg border ${
-                    filters.transactionType === "withdrawal"
-                      ? "bg-red-600 text-white"
-                      : "bg-white"
-                  }`}
+                  className={`px-4 py-2 rounded-lg border ${filters.transactionType === "withdrawal"
+                    ? "bg-red-600 text-white"
+                    : "bg-white"
+                    }`}
                 >
                   Withdrawal
                 </button>
@@ -518,8 +513,8 @@ const BankTransactionList = () => {
                     <th className="p-3 text-center">WorkLog</th>
                     {/* <th className="p-3 text-center">Uploaded By</th> */}
                     <th className="p-3 text-center">Created At</th>
-                    <th className="p-3 text-center">Link Payment</th>
-                    <th className="p-3 text-center">Actions</th>
+                    {/* <th className="p-3 text-center">Link Payment</th> */}
+                    <th className="p-3 text-center sticky top-0 right-0 z-50 bg-gray-100">Actions</th>
                   </tr>
                 </thead>
                 {isFetching ? (
@@ -666,7 +661,7 @@ const BankTransactionList = () => {
                             {formatDate(item.createdAt)}
                           </td>
 
-                          <td className="p-3 text-center">
+                          {/* <td className="p-3 text-center">
                             {item?.deposit > 0 && (
                               <button
                                 disabled={item?.isMapped}
@@ -683,22 +678,52 @@ const BankTransactionList = () => {
                                 Link Payment
                               </button>
                             )}
-                          </td>
+                          </td> */}
 
-                          <td className="p-3">
-                            <div className="flex justify-center gap-2">
-                              <button className="p-2 bg-blue-100 rounded hover:bg-blue-200">
+
+                          <td className="sticky right-0 z-10 w-[130px] min-w-[130px] max-w-[130px] bg-white group-hover:bg-gray-50 border-l border-gray-300 px-2 py-1.5 whitespace-nowrap">
+                            <div className="flex justify-center items-center gap-2">
+
+                              {/* Fixed Link Payment Space */}
+                              <div className="w-8 h-8 shrink-0">
+                                {item?.deposit > 0 && (
+                                  <button
+                                    disabled={item?.isMapped}
+                                    onClick={() => {
+                                      setSelectedTransaction(item);
+                                      setDrawerOpen(true);
+                                    }}
+                                    title={item?.isMapped ? "Already Mapped" : "Link Payment"}
+                                    className={`w-8 h-8 flex items-center justify-center rounded ${item?.isMapped
+                                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                        : "bg-green-200 text-green-700 hover:bg-green-200"
+                                      }`}
+                                  >
+                                    <Link2 size={16} />
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* View */}
+                              <button
+                                title="View"
+                                className="w-8 h-8 flex items-center justify-center bg-blue-100 text-blue-700 rounded hover:bg-blue-200 shrink-0"
+                              >
                                 <Eye size={16} />
                               </button>
 
+                              {/* Edit */}
                               <Link
                                 to={`/bank/edit/${item.account}/${item._id}`}
-                                className="p-2 bg-yellow-100 rounded hover:bg-yellow-200 inline-flex"
+                                title="Edit"
+                                className="w-8 h-8 flex items-center justify-center bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 shrink-0"
                               >
                                 <Pencil size={16} />
                               </Link>
+
                             </div>
                           </td>
+
                         </tr>
                       ))
                     ) : (

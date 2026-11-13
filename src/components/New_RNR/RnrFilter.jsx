@@ -4,7 +4,8 @@ import { useForm, Controller } from "react-hook-form";
 import { selectStyles } from "../../utils/selectStyles";
 import { AsyncPaginate } from "react-select-async-paginate";
 import { getPropertyDropdown } from "../properties/services";
-
+import Select from "react-select";
+import { useBatchOptions } from "../Options/services";
 const RnrFilter = ({
   isOpen,
   onClose,
@@ -12,11 +13,18 @@ const RnrFilter = ({
   handleReset,
   initialFilters = {},
 }) => {
+  const defaultValues = {
+    propertyId: null,
+    fnfStatus: "",
+  };
+
   const { control, handleSubmit, reset } = useForm({
-    defaultValues: {
-      propertyId: null,
-    },
+    defaultValues,
   });
+
+  const { data: options = {} } = useBatchOptions(["fnfStatus"]);
+
+  const fnfStatusOptions = options.fnfstatus || [];
 
   // ======================================================
   // PROPERTY DROPDOWN
@@ -61,25 +69,29 @@ const RnrFilter = ({
   // ======================================================
 
   const onSubmit = (data) => {
-    console.log("Selected Property:", data.propertyId);
-
     const filters = {
       propertyId: data.propertyId?.value || "",
-
       propertyCode: data.propertyId?.label || "",
+      fnfStatus: data.fnfStatus || "",
     };
 
-    const labels = data.propertyId
-      ? [
-          {
-            key: "propertyCode",
-            label: `Property : ${data.propertyId.label}`,
-          },
-        ]
-      : [];
+    const labels = [];
+
+    if (data.propertyId) {
+      labels.push({
+        key: "propertyCode",
+        label: `Property : ${data.propertyId.label}`,
+      });
+    }
+
+    if (data.fnfStatus) {
+      labels.push({
+        key: "fnfStatus",
+        label: `FNF Status : ${data.fnfStatus}`,
+      });
+    }
 
     onApply(filters, labels);
-
     onClose();
   };
 
@@ -100,8 +112,15 @@ const RnrFilter = ({
 
     reset({
       propertyId: selectedProperty,
+      fnfStatus: initialFilters.fnfStatus || "",
     });
-  }, [isOpen, initialFilters.propertyId, initialFilters.propertyCode, reset]);
+  }, [
+    isOpen,
+    initialFilters.propertyId,
+    initialFilters.propertyCode,
+    initialFilters.fnfStatus,
+    reset,
+  ]);
 
   // ======================================================
   // UI
@@ -161,6 +180,35 @@ const RnrFilter = ({
                     value={field.value}
                     onChange={(selectedOption) =>
                       field.onChange(selectedOption)
+                    }
+                  />
+                </div>
+              )}
+            />
+            {/* ===========================
+    FNF Status
+=========================== */}
+            <Controller
+              name="fnfStatus"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">FNF Status</label>
+
+                  <Select
+                    options={fnfStatusOptions}
+                    isClearable
+                    placeholder=""
+                    styles={selectStyles}
+                    value={
+                      fnfStatusOptions.find(
+                        (option) => option.value === field.value,
+                      ) || null
+                    }
+                    onChange={(selected) =>
+                      field.onChange(selected?.value || "")
                     }
                   />
                 </div>

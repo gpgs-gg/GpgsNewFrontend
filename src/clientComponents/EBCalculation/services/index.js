@@ -39,19 +39,15 @@ export const getEBCalculationById = async (id) => {
 
     return response.data;
 };
-
-
 // ======================================================
 // REACT QUERY - GET EB CALCULATION BY ID
 // ======================================================
-
 export const useEBCalculationById = (id) => {
     return useQuery({
         queryKey: [
             "eb-calculation",
             id,
         ],
-
         queryFn: () =>
             getEBCalculationById(id),
 
