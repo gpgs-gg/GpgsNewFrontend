@@ -268,7 +268,7 @@ For detailed settlement calculations and other details, please visit:
 
 🌐 https://gpgs24.in
 
-Please check all the details and comments carefully. If you have any concerns or queries regarding the settlement, kindly let us know.
+Please review all the details and comments carefully. If you have any concerns or queries regarding the settlement, kindly let us know.please share your UPI ID or bank details so that we can process your refund.
 
 *Gopal's Paying Guest Services*
 
