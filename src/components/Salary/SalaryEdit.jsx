@@ -985,7 +985,7 @@ const SalaryEdit = () => {
             </div>
             {/* ====================== WORK LOG HISTORY ====================== */}
 
-            <div className="border rounded-lg bg-gray-50 p-4  flex flex-col">
+            <div className="border rounded-lg h-[350px] bg-gray-50 p-4  flex flex-col">
               <h3 className="font-semibold text-lg mb-3">Work Log History</h3>
 
               <div className="flex-1 overflow-y-auto pr-2">

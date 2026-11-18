@@ -71,7 +71,7 @@ import RNRTable from "../components/New_RNR/RNRTable";
 import PageNotFound from "../components/common/PageNotFound";
 import PropertyExpenses from "../components/PropertyExpenses/Main";
 import { useEffect } from "react";
-
+import HeroVideoSettings from "../components/admin/WebsiteSettings/HeroVideoSettings";
 
 const AppRoutes = () => {
   const { user } = useAuth();
@@ -292,7 +292,10 @@ useEffect(() => {
               path="/properties/expense/:propertyId"
               element={<PropertyExpenses />}
             />
-
+<Route
+              path="/options/admin/website-settings/hero-video"
+              element={<HeroVideoSettings />}
+            />
             <Route path="/agreement-details" element={<Agreement />} />
             
           </Route>

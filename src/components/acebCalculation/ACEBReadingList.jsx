@@ -101,26 +101,29 @@ function ACEBReadingList() {
                     <table className="w-max min-w-full">
                         <thead className="sticky top-0 z-40 bg-gray-100 whitespace-nowrap">
                             <tr>
-                                <th className="p-3 text-left">
+                                <th className="p-3 text-center">
                                     Month
                                 </th>
-                                <th className="p-3 text-left">
+                                <th className="p-3 text-center">
                                     Reading Date
                                 </th>
-                                <th className="p-3 text-left">
+                                <th className="p-3 text-center">
                                     Flat Total Units
                                 </th>
-                                <th className="p-3 text-left">
+                                <th className="p-3 text-center">
                                     Flat Total EB
                                 </th>
-                                <th className="p-3 text-left">
+                                <th className="p-3 text-center">
                                     Per Unit Cost
                                 </th>
-                                <th className="p-3 text-left">
-                                    Actual Units
+                                <th className="p-3 text-center">
+                                    AC Units
                                 </th>
-                                <th className="p-3 text-left">
-                                    Actual EB
+                                <th className="p-3 text-center">
+                                    AC EB
+                                </th>
+                                <th className="text-center">
+                                    Common EB
                                 </th>
                                 <th className="sticky right-0 bg-gray-100 p-3 text-center shadow-md">
                                     Actions
@@ -137,26 +140,29 @@ function ACEBReadingList() {
                                             key={item._id}
                                             className="border-t border-gray-300 hover:bg-gray-50 whitespace-nowrap"
                                         >
-                                            <td className="p-3 font-semibold">
+                                            <td className="p-3 text-center font-semibold">
                                                 {item.month || "-"}
                                             </td>
-                                            <td className="p-3">
+                                            <td className="p-3 text-center">
                                                 {formatDate(item.date) || "-"}
                                             </td>
-                                            <td className="p-3">
+                                            <td className="p-3 text-center">
                                                 {item.flatTotalUnits ?? "-"}
                                             </td>
-                                            <td className="p-3">
+                                            <td className="p-3 text-center">
                                                 {item.flatTotalEB ?? "-"}
                                             </td>
-                                            <td className="p-3">
+                                            <td className="p-3 text-center">
                                                 {item.perUnitCost ?? "-"}
                                             </td>
-                                            <td className="p-3">
+                                            <td className="p-3 text-center">
                                                 {item.actualTotalUnits ?? "-"}
                                             </td>
-                                            <td className="p-3">
+                                            <td className="p-3 text-center">
                                                 {item.actualTotalEB ?? "-"}
+                                            </td>
+                                            <td className="text-center">
+                                                {item.commonTotalEB ?? "-"}
                                             </td>
                                             {/* ACTIONS */}
                                             <td className="sticky right-0 z-20 bg-white p-3 shadow-md">

@@ -68,7 +68,7 @@ const PropertyExpenses = () => {
   });
 
   const expenses = expenseResponse?.data || [];
-  console.log("Fetched expenses:", expenses); // Debugging line
+  //console.log("Fetched expenses:", expenses); // Debugging line
 
   // Extract property details from API response
   const property = expenseResponse?.property || {};
@@ -214,44 +214,48 @@ const PropertyExpenses = () => {
     setFilterOpen(true);
   };
 
-  const handleExpenseSubmit = async (data) => {
-    try {
-      const payload = {
-        propertyId,
-        category: data.expenseCategory,
-        expenseDate: data.expenseDate
-          ? data.expenseDate.toISOString().split("T")[0]
-          : "",
-        amount: Number(data.amount),
-        paymentMode: data.paymentMode,
-        comment: data.comment?.trim() || "",
-      };
+const handleExpenseSubmit = async (data) => {
+  try {
+    const payload = {
+      propertyId,
+      category: data.expenseCategory,
+      expenseType: data.expenseType, // ADD THIS
+      expenseDate: data.expenseDate
+        ? data.expenseDate.toISOString().split("T")[0]
+        : "",
+      amount: Number(data.amount),
+      paymentMode: data.paymentMode,
+      comment: data.comment?.trim() || "",
+    };
 
-      if (editingExpense?._id) {
-        await updateExpenseMutation.mutateAsync({
-          id: editingExpense._id,
-          data: payload,
-        });
-        toast.dismiss();
-        toast.success("Property expense updated successfully");
-      } else {
-        await createExpenseMutation.mutateAsync(payload);
-        toast.dismiss();
-        toast.success("Property expense added successfully");
-      }
+    if (editingExpense?._id) {
+      await updateExpenseMutation.mutateAsync({
+        id: editingExpense._id,
+        data: payload,
+      });
 
-      closeExpenseModal();
-    } catch (error) {
-      console.error(
-        "Property expense save error:",
-        error.response?.data || error,
-      );
       toast.dismiss();
-      toast.error(
-        error.response?.data?.message || "Failed to save property expense",
-      );
+      toast.success("Property expense updated successfully");
+    } else {
+      await createExpenseMutation.mutateAsync(payload);
+
+      toast.dismiss();
+      toast.success("Property expense added successfully");
     }
-  };
+
+    closeExpenseModal();
+  } catch (error) {
+    console.error(
+      "Property expense save error:",
+      error.response?.data || error,
+    );
+
+    toast.dismiss();
+    toast.error(
+      error.response?.data?.message || "Failed to save property expense",
+    );
+  }
+};
 
   const handleDeleteExpense = async () => {
     if (!deleteExpense?._id) return;
@@ -407,6 +411,7 @@ const PropertyExpenses = () => {
                   <th className="p-3 text-left min-w-[180px]">
                     Expense Category
                   </th>
+                  <th className="p-3 text-left min-w-[160px]">Expense Type</th>
                   <th className="p-3 text-left min-w-[100px]">Payment Mode</th>
                   {/* <th className="p-3 text-left min-w-[300px]">Comments</th> */}
                   <th className="p-3 text-right min-w-[90px]">Amount</th>
@@ -450,7 +455,23 @@ const PropertyExpenses = () => {
                         </td>
 
                         <td className="p-3">{expense.category || "-"}</td>
-
+                        <td className="p-3">
+                          {expense.expenseType ? (
+                            <span
+                              className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ${
+                                expense.expenseType === "New Set Up"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : expense.expenseType === "Owner Expense"
+                                    ? "bg-purple-100 text-purple-700"
+                                    : "bg-green-100 text-green-700"
+                              }`}
+                            >
+                              {expense.expenseType}
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
                         {/* <td className="p-3 whitespace-pre-line">
                           {expense.description || "-"}
                         </td> */}

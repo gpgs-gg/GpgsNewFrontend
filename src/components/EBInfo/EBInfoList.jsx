@@ -22,6 +22,9 @@ import EBInfoFilter from "./EBInfoFilter";
 import { formatDateAndTime } from "../../utils/dateFormatter";
 import { TableFilePreview } from "../common/FilePreview";
 import { useEmployeeDetailsData } from "../EmployeeDetails/Services/index";
+import usePersistedFilters from "../hooks/usePersistedFilters";
+import { X } from "lucide-react";
+import { useMemo } from "react";
 function EBInfoList() {
 
     // ================= DEFAULT NEXT MONTH =================
@@ -42,7 +45,22 @@ function EBInfoList() {
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [filterOpen, setFilterOpen] = useState(false);
-    const [filters, setFilters] = useState({});
+    
+const DEFAULT_EB_FILTERS = {
+    propertyCode: "",
+    status: "",
+    ebPaidStatus: "",
+    EBCycle: "",
+    assignee: "",
+    reviewer: "",
+  };
+
+  const {
+    filters,
+    setFilters,
+    resetFilters,
+    removeFilter: removePersistedFilter,
+  } = usePersistedFilters("eb_info_filters", DEFAULT_EB_FILTERS);
     const [resetTrigger, setResetTrigger] = useState(0);
     const [selectedProperties, setSelectedProperties] = useState([]);
     const [showTransferModal, setShowTransferModal] = useState(false);
@@ -91,7 +109,61 @@ function EBInfoList() {
 
     const totalRecords =
         apiResponse?.totalRecords || 0;
+// ================= FILTER CHIPS =================
 
+  const filterLabels = useMemo(() => {
+    const labels = [];
+
+    if (filters.propertyCode) {
+      labels.push({
+        key: "propertyCode",
+        label: `Property : ${filters.propertyCode}`,
+      });
+    }
+
+    if (filters.status) {
+      labels.push({
+        key: "status",
+        label: `Status : ${filters.status}`,
+      });
+    }
+
+    if (filters.ebPaidStatus) {
+      labels.push({
+        key: "ebPaidStatus",
+        label: `EB Paid : ${filters.ebPaidStatus}`,
+      });
+    }
+
+    if (filters.EBCycle) {
+      labels.push({
+        key: "EBCycle",
+        label: `EB Cycle : ${filters.EBCycle}`,
+      });
+    }
+
+    if (filters.assignee) {
+      labels.push({
+        key: "assignee",
+        label: `Assignee : ${filters.assignee}`,
+      });
+    }
+
+    if (filters.reviewer) {
+      labels.push({
+        key: "reviewer",
+        label: `Reviewer : ${filters.reviewer}`,
+      });
+    }
+
+    return labels;
+  }, [filters]);
+
+  const hasActiveFilters = useMemo(() => {
+    return Object.values(filters).some(
+      (value) => value !== "" && value !== null && value !== undefined,
+    );
+  }, [filters]);
     // ================= MONTHS =================
 
     const months = [
@@ -136,6 +208,10 @@ function EBInfoList() {
         setCurrentPage(1);
     };
 
+    const removeFilter = (key) => {
+    removePersistedFilter(key);
+    setCurrentPage(1);
+  };
     const handleReset = () => {
         setFilters({});
         setSearch("");
@@ -259,89 +335,104 @@ function EBInfoList() {
 
                 {/* ================= SEARCH + MONTH ================= */}
 
-                <div className="px-3 py-2 border-b border-gray-400 flex justify-between gap-3">
+     <div className="border-b border-gray-200 px-3 py-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-3">
+            {/* SEARCH */}
+            <div className="relative w-full lg:w-80 lg:shrink-0">
+              <Search
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
 
-                    {/* SEARCH */}
+              <input
+                className="border px-3 py-2 pl-10 pr-10 rounded-lg w-full"
+                placeholder="Search Property..."
+                value={search}
+                onChange={(e) => handleSearch(e.target.value)}
+              />
 
-                    <div className="relative w-80">
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setCurrentPage(1);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
 
-                        <Search
-                            size={18}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                        />
+            {/* FILTER CHIPS */}
+            {filterLabels.length > 0 && (
+              <div className="w-full min-w-0 lg:flex-1">
+                <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-1 lg:pb-0">
+                  {filterLabels.map((filter) => (
+                    <div
+                      key={filter.key}
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs shadow-sm"
+                    >
+                      <span className="font-semibold text-slate-500">
+                        {filter.label.split(" : ")[0]}:
+                      </span>
 
-                        <input
-                            className="border px-3 py-2 pl-10 pr-10 rounded-lg w-full"
-                            placeholder="Search Property..."
-                            value={search}
-                            onChange={(e) =>
-                                handleSearch(e.target.value)
-                            }
-                        />
+                      <span className="max-w-28 truncate font-medium text-slate-800">
+                        {filter.label.split(" : ").slice(1).join(" : ")}
+                      </span>
 
-                        {search && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setSearch("");
-                                    setCurrentPage(1);
-                                }}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500"
-                            >
-                                ✕
-                            </button>
-                        )}
-
+                      <button
+                        type="button"
+                        onClick={() => removeFilter(filter.key)}
+                        className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                        aria-label={`Remove ${filter.key} filter`}
+                      >
+                        <X size={13} />
+                      </button>
                     </div>
-
-                    {selectedProperties.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={() => setShowTransferModal(true)}
-                            className="border border-gray-300 text-orange-500 px-4 py-2 rounded-lg"
-                        >
-                            Transfer ({selectedProperties.length})
-                        </button>
-                    )}
-
-                    {/* MONTH PICKER */}
-
-                    <div className="flex gap-2">
-                        <div className="has-value  ">
-
-                            <label className=" datepicker-label">
-                                Month
-                            </label>
-
-                            <DatePicker
-                                selected={selectedMonth}
-                                onChange={handleMonthChange}
-                                dateFormat="MMM yyyy"
-                                showMonthYearPicker
-                                className="custom-datepicker"
-                                placeholderText="Select Month"
-                            />
-
-                        </div>
-                        {Object.keys(filters).length > 0 && (
-                            <button
-                                onClick={handleReset}
-                                className="border border-gray-300 px-4 py-2 rounded-lg text-red-500 flex items-center gap-2"
-                            >
-                                {/* <Filter size={16} /> */}
-                                Reset
-                            </button>
-                        )}
-                        <button
-                            onClick={() => setFilterOpen(true)}
-                            className="border border-gray-300 px-4 py-2 rounded-lg flex items-center gap-2"
-                        >
-                            <Filter size={16} />
-                            Filters
-                        </button>
-                    </div>
-
+                  ))}
                 </div>
+              </div>
+            )}
+
+            {/* MONTH + RESET + FILTER BUTTONS */}
+            <div className="flex w-full items-center gap-2 lg:ml-auto lg:w-auto lg:shrink-0">
+              <div className="has-value min-w-0">
+                <label className="datepicker-label">Month</label>
+                <DatePicker
+                  selected={selectedMonth}
+                  onChange={handleMonthChange}
+                  dateFormat="MMM yyyy"
+                  showMonthYearPicker
+                  className="custom-datepicker"
+                  placeholderText="Select Month"
+                />
+              </div>
+
+              {filterLabels.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="flex-1 rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 lg:flex-none"
+                >
+                  Reset
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setFilterOpen(true)}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 lg:flex-none"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <Filter size={16} />
+                  Filters
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
 
                 {/* ================= TABLE CONTENT ================= */}
 

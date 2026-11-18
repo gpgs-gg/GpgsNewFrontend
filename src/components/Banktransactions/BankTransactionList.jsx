@@ -503,6 +503,7 @@ const BankTransactionList = () => {
                     <th className="p-3 text-right">Deposit</th>
                     <th className="p-3 text-right">Property / Expense Code</th>
                     <th className="p-3 text-right">Expense Category</th>
+                    <th className="p-3 text-center">Expense Type</th>
                     <th className="p-3 text-right">Assignee</th>
                     <th className="p-3 text-right">Status</th>
                     <th className="p-3 text-right">Reviewer</th>
@@ -580,6 +581,9 @@ const BankTransactionList = () => {
                           </td>
                           <td className="p-3 text-center">
                             {item?.expenseCategory || "-"}
+                          </td>
+                          <td className="p-3 text-center">
+                            {item?.expenseType || "-"}
                           </td>
                           <td className="p-3 text-center">
                             {item?.assignee || "-"}

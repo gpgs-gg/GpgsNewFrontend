@@ -57,6 +57,7 @@ export const getACConsumptionData = async (propertyId) => {
     );
     return response.data;
 };
+
 export const useACConsumptionData = (
     propertyId,
     startDate,
@@ -71,8 +72,7 @@ export const useACConsumptionData = (
 
         queryFn: () => getACConsumptionData(propertyId),
 
-        enabled:
-            !!propertyId 
+           enabled: !!propertyId && isACProperty
           
 
     });

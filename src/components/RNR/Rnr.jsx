@@ -47,6 +47,7 @@ function Rnr() {
   const [resetTrigger, setResetTrigger] = useState(0);
 
   const debouncedSearch = useDebounce(search);
+  // const rowsPerPage = PAGINATION.PROPERTIES_PER_PAGE || 10;
   const rowsPerPage = PAGINATION.PROPERTIES_PER_PAGE || 10;
   //  const { mutate: deleteUserData, isPending } = useDeleteUserData();
   // ======================================================

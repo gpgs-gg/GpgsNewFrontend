@@ -172,11 +172,17 @@ const ClientsTable = () => {
 
     return labels;
   }, [filters]);
-  const hasActiveFilters = useMemo(() => {
-    return Object.values(filters).some(
-      (value) => value !== "" && value !== null && value !== undefined,
-    );
-  }, [filters]);
+
+const hasActiveFilters = useMemo(() => {
+  return Object.entries(filters).some(
+    ([key, value]) =>
+      key !== "sortByCurrentDues" &&
+      value !== "" &&
+      value !== null &&
+      value !== undefined
+  );
+}, [filters]);
+
   const [resetTrigger, setResetTrigger] = useState(0);
   const [editingVacation, setEditingVacation] = useState(null);
   const [isVacationModalOpen, setIsVacationModalOpen] = useState(false);
@@ -382,6 +388,9 @@ const ClientsTable = () => {
     });
   };
 
+ console.log(hasActiveFilters )
+
+
   return (
     <>
       <div className="space-y-5">
@@ -523,7 +532,7 @@ const ClientsTable = () => {
                       : "border-gray-300 text-gray-700 hover:bg-gray-50"
                     }`}
                 >
-                  F&F Closed
+                  F&F Closed List
                 </button>
 
                 <button

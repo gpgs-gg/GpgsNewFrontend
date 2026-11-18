@@ -17,7 +17,7 @@ import RentLedgerSkeleton from "./RentLedgerSkeleton";
 import { useDeleteRentData } from "./services/index";
 import { useAuth } from "../../context/authContext";
 import ConfirmModal from "../common/ConfirmModal";
-import ExportDrawer from "../tickets/ExportDrawer";
+import ExportDrawer from "./ExportDrawer";
 import { toast } from "react-toastify";
 import RentLedgerMobileCards from "./RentLedgerMobileCards";
 const RentLadgerTable = () => {

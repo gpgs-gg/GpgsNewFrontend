@@ -20,6 +20,7 @@ import {
   useDropDowlList,
 } from "./Services/index";
 import { useAuth } from "../../context/authContext";
+import { useAuthorization } from "../../context/AuthorizationContext";
 import * as yup from "yup";
 const schema = yup.object({
   Name: yup.string().trim().required("Full Name is required"),
@@ -151,6 +152,9 @@ const EmployeesCreateEdit = () => {
   const { mutate: uploadEmployeeDocs, isPending: isUploadingDocs } =
     useUploadEmployeeDocs();
   const { user } = useAuth();
+  const {  canEdit } =
+      useAuthorization();
+    const canEditSalary = canEdit("all_salary");
   // ================= DYNAMIC DROPDOWN OPTIONS =================
 
   const getDropdownOptions = (data) =>
@@ -880,23 +884,26 @@ const EmployeesCreateEdit = () => {
                 </div>
               )}
             />
-            {/* Salary */}
-            <div className="form-group">
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                {...register("salary")}
-                placeholder=" "
-                className="form-input"
-              />
-              <label className="form-label">Salary</label>
-              {errors.salary && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.salary.message}
-                </p>
-              )}
-            </div>
+        
+           {/* Salary */}
+            {canEditSalary && (
+              <div className="form-group">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  {...register("salary")}
+                  placeholder=" "
+                  className="form-input"
+                />
+                <label className="form-label">Salary</label>
+                {errors.salary && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.salary.message}
+                  </p>
+                )}
+              </div>
+            )}
             {/* Working Hours */}
             <Controller
               name="workingHours"

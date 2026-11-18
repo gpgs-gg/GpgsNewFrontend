@@ -115,6 +115,11 @@ const OptionsTable = () => {
                 </button>
               </Link>
             )}
+            <Link to="/options/admin/website-settings/hero-video">
+              <button className="theme-btn text-white px-4 py-2 hover:bg-gray-700 rounded-lg">
+                + Hero SECTION video
+              </button>
+            </Link>
           </div>
         </div>
 

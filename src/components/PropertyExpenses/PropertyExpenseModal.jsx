@@ -29,7 +29,7 @@ const PropertyExpenseModal = ({
   } = useForm({
     defaultValues: {
       expenseCategory: "",
-      newSetUp: false,
+      expenseType: "",
       expenseDate: new Date(),
       amount: "",
       paymentMode: "",
@@ -43,7 +43,7 @@ const PropertyExpenseModal = ({
     reset({
       expenseCategory:
         initialData?.category || initialData?.expenseCategory || "",
-      newSetUp: initialData?.newSetUp ?? false,
+      expenseType: initialData?.expenseType || "",
       expenseDate: initialData?.expenseDate
         ? new Date(initialData.expenseDate)
         : new Date(),
@@ -167,97 +167,131 @@ const PropertyExpenseModal = ({
                 );
               }}
             />
-            {/* New Set Up */}
+            {/* Expense Type - Radio Buttons */}
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
               <Controller
-                name="newSetUp"
+                name="expenseType"
                 control={control}
-                render={({ field }) => (
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={!!field.value}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                      onBlur={field.onBlur}
-                      ref={field.ref}
-                      className="h-5 w-5 cursor-pointer rounded accent-green-600"
-                    />
+                rules={{ required: "Please select expense type" }}
+                render={({ field }) => {
+                  const expenseTypeOptions = [
+                    "New Set Up",
+                    "Owner Expense",
+                    "Monthly Expense",
+                  ];
 
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">
-                        New Set Up
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Mark this expense as a new property setup expense.
-                      </p>
-                    </div>
-                  </label>
-                )}
+                  return (
+                    <>
+                      <label className="mb-3 block text-sm font-semibold text-gray-800">
+                        Expense Type <span className="text-red-500">*</span>
+                      </label>
+
+                      <div className="flex flex-wrap items-center gap-5">
+                        {expenseTypeOptions.map((type) => (
+                          <label
+                            key={type}
+                            className={`flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-3 transition-colors ${
+                              field.value === type
+                                ? "border-green-600 bg-green-50 text-green-700"
+                                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name={field.name}
+                              value={type}
+                              checked={field.value === type}
+                              onChange={() => field.onChange(type)}
+                              onBlur={field.onBlur}
+                              ref={field.ref}
+                              className="h-4 w-4 accent-green-600"
+                            />
+
+                            <span className="text-sm font-medium whitespace-nowrap">
+                              {type}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+
+                      {errors.expenseType && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {errors.expenseType.message}
+                        </p>
+                      )}
+                    </>
+                  );
+                }}
               />
             </div>
-            {/* Expense Date */}
-            <Controller
-              name="expenseDate"
-              control={control}
-              rules={{ required: "Expense date is required" }}
-              render={({ field }) => (
-                <div>
-                  <div
-                    className={`datepicker-group ${
-                      field.value ? "has-value" : ""
-                    }`}
-                  >
-                    <label className="datepicker-label required-label">
-                      Expense Date
-                    </label>
+            {/* expense date and amount  */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              {/* Expense Date */}
+              <Controller
+                name="expenseDate"
+                control={control}
+                rules={{ required: "Expense date is required" }}
+                render={({ field }) => (
+                  <div>
+                    <div
+                      className={`datepicker-group ${
+                        field.value ? "has-value" : ""
+                      }`}
+                    >
+                      <label className="datepicker-label required-label">
+                        Expense Date
+                      </label>
 
-                    <DatePicker
-                      selected={field.value}
-                      onChange={field.onChange}
-                      dateFormat="dd MMM yyyy"
-                      className="custom-datepicker"
-                      placeholderText="Select expense date"
-                      maxDate={new Date()}
-                      isClearable
-                    />
+                      <DatePicker
+                        selected={field.value}
+                        onChange={field.onChange}
+                        dateFormat="dd MMM yyyy"
+                        className="custom-datepicker"
+                        placeholderText="Select expense date"
+                        maxDate={new Date()}
+                        isClearable
+                      />
+                    </div>
+
+                    {errors.expenseDate && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {errors.expenseDate.message}
+                      </p>
+                    )}
                   </div>
+                )}
+              />
 
-                  {errors.expenseDate && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.expenseDate.message}
-                    </p>
-                  )}
+              {/* Amount */}
+              <div>
+                <div className="form-group">
+                  <input
+                    {...register("amount", {
+                      required: "Amount is required",
+                      validate: (value) =>
+                        (Number.isFinite(Number(value)) && Number(value) > 0) ||
+                        "Amount must be greater than zero",
+                    })}
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    placeholder=" "
+                    className={`form-input ${
+                      errors.amount ? "border-red-500" : ""
+                    }`}
+                  />
+
+                  <label className="form-label required-label">
+                    Amount (₹)
+                  </label>
                 </div>
-              )}
-            />
 
-            {/* Amount */}
-            <div>
-              <div className="form-group">
-                <input
-                  {...register("amount", {
-                    required: "Amount is required",
-                    validate: (value) =>
-                      (Number.isFinite(Number(value)) && Number(value) > 0) ||
-                      "Amount must be greater than zero",
-                  })}
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  placeholder=" "
-                  className={`form-input ${
-                    errors.amount ? "border-red-500" : ""
-                  }`}
-                />
-
-                <label className="form-label required-label">Amount (₹)</label>
+                {errors.amount && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {errors.amount.message}
+                  </p>
+                )}
               </div>
-
-              {errors.amount && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.amount.message}
-                </p>
-              )}
             </div>
 
             {/* Payment Mode - Radio Buttons */}

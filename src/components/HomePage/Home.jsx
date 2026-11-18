@@ -13,7 +13,18 @@ import {
 import video1 from "../../videos/PV1NL21-privateR.mp4";
 import "./Home.css";
 
+import { useHeroVideo } from "../admin/services/index";
+
 const Home = () => {
+  const { data: heroVideoData } = useHeroVideo();
+
+  // Cloudinary video available असल्यास तो वापरेल.
+  // API fail किंवा video नसल्यास local video वापरेल.
+  const heroVideo =
+    heroVideoData?.success && heroVideoData?.videoUrl
+      ? heroVideoData.videoUrl
+      : video1;
+
   useEffect(() => {
     AOS.init({
       duration: 1000,
@@ -21,6 +32,8 @@ const Home = () => {
       easing: "ease-out-cubic",
     });
   }, []);
+
+  // Your existing scrollToContact function...
   const scrollToContact = () => {
     const section = document.getElementById("contact");
 
@@ -46,15 +59,18 @@ const Home = () => {
         className="relative min-h-screen overflow-hidden bg-[#17120f]"
       >
         {/* Background Video */}
+        {/* Background Video */}
         <div className="absolute inset-0">
           <video
+            key={heroVideo}
             className="h-full w-full object-cover"
             autoPlay
             muted
             loop
             playsInline
+            preload="auto"
           >
-            <source src={video1} type="video/mp4" />
+            <source src={heroVideo} type="video/mp4" />
           </video>
         </div>
 

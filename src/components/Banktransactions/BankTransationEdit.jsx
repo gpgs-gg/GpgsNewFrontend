@@ -14,11 +14,12 @@ import { selectStyles } from "../../utils/selectStyles";
 import Select from "react-select";
 import { useBatchOptions } from "../Options/services";
 import { useCurrentUser } from "../../auth/services";
+import CreatableSelect from "react-select/creatable";
 const BankTransactionEdit = () => {
     const navigate = useNavigate();
     const { account, id } = useParams();
     const { data: options = {} } = useBatchOptions([
-        "bankstatus", "expensecode", "expensecategory"
+        "bankstatus", "expensecode", "expensecategory", "expensetype",
     ]);
     const {
         control,
@@ -67,6 +68,7 @@ const BankTransactionEdit = () => {
                 propertyId: data.propertyId || "",
                 expensecode: data.expenseCode?.id || "",
                 expenseCategory: data.expenseCategory || "",
+                expenseType: data.expenseType || "",
                 status: data.status || "",
                 comment: data.comment || "",
                 isMapped: data.isMapped ?? false,
@@ -113,11 +115,13 @@ const BankTransactionEdit = () => {
     const statusOptions = options.bankstatus || [];
     const expensecategoryOptions = options.expensecategory || [];
     const expensecodeOptions = options.expensecode || [];
+    const expenseTypeOptions = options.expensetype || [];
 
     const onSubmit = (data) => {
         const payload = {
             propertyId: data.propertyId || "",
             expenseCategory: data.expenseCategory || "",
+            expenseType: data.expenseType || "",
             status: data.status || "",
             updatedByName: currentUser?.user?.name,
             comment: data.comment || "",
@@ -291,7 +295,7 @@ const BankTransactionEdit = () => {
                                     Withdrawal
                                 </p>
                                 <p className="text-sm font-semibold text-red-600">
-                                    ₹ {Number(transaction.withdrawal || 0).toLocaleString("en-IN")}
+                                    ₹ {" "}{Number(transaction.withdrawal || 0).toLocaleString("en-IN")}
                                 </p>
                             </div>
 
@@ -374,241 +378,327 @@ const BankTransactionEdit = () => {
 
                 {/* ================= EDIT SECTION ================= */}
                 {transaction?.isMapped === false && (
-                     <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div className="px-6 py-4 border-b border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-800">
-                            Update Information
-                        </h2>
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div className="px-6 py-4 border-b border-gray-200">
+                            <h2 className="text-lg font-semibold text-gray-800">
+                                Update Information
+                            </h2>
 
-                        <p className="text-sm text-gray-500 mt-1">
-                            Only the fields below can be modified.
-                        </p>
-                    </div>
-
-                    <div className="p-6">
-                        <div className="grid md:grid-cols-4 gap-5">
-                            {/* Chq / Ref No */}
-                            <Controller
-                                name="propertyId"
-                                control={control}
-                                // rules={{
-                                //     required: "Property is required",
-                                // }}
-                                render={({ field }) => (
-                                    <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                                        <label
-                                            className={`select-label form-label ${!expensecode ? "required-label" : ""
-                                                }`}
-                                        >
-                                            Property Code
-                                        </label>
-
-                                        <AsyncPaginate
-                                            additional={{ page: 1 }}
-                                            debounceTimeout={500}
-                                            isDisabled={!!expensecode}
-                                            className={expensecode ? "cursor-not-allowed" : ""}
-                                            isClearable
-                                            placeholder=""
-                                            loadOptions={loadPropertyOptions}
-                                            styles={selectStyles}
-                                            value={selectedProperty}
-                                            onChange={(selected) => {
-                                                setSelectedProperty(selected);
-                                                field.onChange(selected?.value || "");
-                                            }}
-                                        />
-
-                                        {errors.propertyId && (
-                                            <p className="text-red-500 text-sm mt-1">
-                                                {errors.propertyId.message}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-                            />
-
-                            {/* Source */}
-                            <Controller
-                                name="expensecode"
-                                control={control}
-                                render={({ field }) => (
-                                    <div
-                                        className={`select-group ${field.value ? "has-value" : ""
-                                            }`}
-                                    >
-                                        <label
-                                            className={`select-label form-label ${!propertyId ? "required-label" : ""
-                                                }`}
-                                        >
-                                            Expense Code
-                                        </label>
-
-                                        <Select
-                                            options={expensecodeOptions}
-                                            placeholder=""
-                                            isDisabled={!!propertyId}
-                                            className={propertyId ? "cursor-not-allowed" : ""}
-                                            isClearable
-                                            value={
-                                                expensecodeOptions.find(
-                                                    (x) => x.id === field.value
-                                                ) || null
-                                            }
-                                            onChange={(selected) => {
-                                                field.onChange(selected?.id || "");
-                                            }}
-                                            styles={selectStyles}
-                                        />
-
-                                        {errors.expensecode && (
-                                            <p className="text-red-500 text-sm mt-1">
-                                                {errors.expensecode.message}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-                            />
-
-                            <Controller
-                                name="expenseCategory"
-                                control={control}
-                                rules={{
-                                    required: "Expense Category is required",
-                                }}
-                                render={({ field }) => (
-                                    <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                                        <label className="select-label form-label required-label">Expense Category</label>
-                                        <Select
-                                            {...field}
-                                            options={expensecategoryOptions}
-                                            placeholder=""
-                                            isClearable
-                                            value={expensecategoryOptions.find(
-                                                (x) => x.value === field.value
-                                            )}
-                                            onChange={(e) => field.onChange(e?.value)}
-                                            styles={selectStyles}
-                                        />
-                                        {errors.expenseCategory && (
-                                            <p className="text-red-500 text-sm mt-1">
-                                                {errors.expenseCategory.message}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-                            />
-
-                            <Controller
-                                name="status"
-                                control={control}
-                                rules={{
-                                    required: "Status is required",
-                                }}
-                                render={({ field }) => (
-                                    <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                                        <label className="select-label form-label required-label">Status</label>
-                                        <Select
-                                            {...field}
-                                            options={statusOptions}
-                                            placeholder=""
-                                            isClearable
-                                            value={statusOptions.find(
-                                                (x) => x.value === field.value
-                                            )}
-                                            onChange={(e) => field.onChange(e?.value)}
-                                            styles={selectStyles}
-                                        />
-                                        {errors.status && (
-                                            <p className="text-red-500 text-sm mt-1">
-                                                {errors.status.message}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-                            />
-
-                            <div className="form-group ">
-                                <input
-                                    {...register("comment")}
-                                    placeholder=" "
-                                    className="form-input"
-                                />
-                                <label className="form-label">
-                                    Commnet
-                                </label>
-                            </div>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Only the fields below can be modified.
+                            </p>
                         </div>
-                        {/* ================= WORK LOG ================= */}
-                        {transaction?.workLogs?.length > 0 && (
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-2">
-                                <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                                    <div>
-                                        <h2 className="text-lg font-semibold text-gray-800">
-                                            Activity & Work Log
-                                        </h2>
 
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            Transaction update history
-                                        </p>
-                                    </div>
+                        <div className="p-6">
+                            <div className="grid md:grid-cols-4 gap-5">
+                                {/* Chq / Ref No */}
+                                <Controller
+                                    name="propertyId"
+                                    control={control}
+                                    // rules={{
+                                    //     required: "Property is required",
+                                    // }}
+                                    render={({ field }) => (
+                                        <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                                            <label
+                                                className={`select-label form-label ${!expensecode ? "required-label" : ""
+                                                    }`}
+                                            >
+                                                Property Code
+                                            </label>
 
-                                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
-                                        {transaction.workLogs.length} Logs
-                                    </span>
-                                </div>
+                                            <AsyncPaginate
+                                                additional={{ page: 1 }}
+                                                debounceTimeout={500}
+                                                isDisabled={!!expensecode}
+                                                className={expensecode ? "cursor-not-allowed" : ""}
+                                                isClearable
+                                                placeholder=""
+                                                loadOptions={loadPropertyOptions}
+                                                styles={selectStyles}
+                                                value={selectedProperty}
+                                                onChange={(selected) => {
+                                                    setSelectedProperty(selected);
+                                                    field.onChange(selected?.value || "");
+                                                }}
+                                            />
 
-                                <div className="p-6 mt">
-                                    <div className="space-y-4 max-h-50 overflow-y-auto">
-                                        {[...transaction.workLogs]
-                                            .reverse()
-                                            .map((log, index) => (
+                                            {errors.propertyId && (
+                                                <p className="text-red-500 text-sm mt-1">
+                                                    {errors.propertyId.message}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                />
+
+                                {/* Source */}
+                                <Controller
+                                    name="expensecode"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div
+                                            className={`select-group ${field.value ? "has-value" : ""
+                                                }`}
+                                        >
+                                            <label
+                                                className={`select-label form-label ${!propertyId ? "required-label" : ""
+                                                    }`}
+                                            >
+                                                Expense Code
+                                            </label>
+
+                                            <Select
+                                                options={expensecodeOptions}
+                                                placeholder=""
+                                                isDisabled={!!propertyId}
+                                                className={propertyId ? "cursor-not-allowed" : ""}
+                                                isClearable
+                                                value={
+                                                    expensecodeOptions.find(
+                                                        (x) => x.id === field.value
+                                                    ) || null
+                                                }
+                                                onChange={(selected) => {
+                                                    field.onChange(selected?.id || "");
+                                                }}
+                                                styles={selectStyles}
+                                            />
+
+                                            {errors.expensecode && (
+                                                <p className="text-red-500 text-sm mt-1">
+                                                    {errors.expensecode.message}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                />
+
+                                {/* Expense Type - Select or Create */}
+                                <Controller
+                                    name="expenseType"
+                                    control={control}
+                                    rules={{
+                                        required: "Expense Type is required",
+                                        validate: (value) =>
+                                            value?.trim() !== "" || "Expense Type is required",
+                                    }}
+                                    render={({ field }) => {
+                                        const selectedOption =
+                                            expenseTypeOptions.find(
+                                                (option) => option.value === field.value,
+                                            ) ||
+                                            (field.value
+                                                ? {
+                                                    value: field.value,
+                                                    label: field.value,
+                                                }
+                                                : null);
+
+                                        return (
+                                            <div>
                                                 <div
-                                                    key={index}
-                                                    className="relative pl-6 pb-4 border-b border-gray-100 last:border-0 last:pb-0"
+                                                    className={`select-group ${field.value ? "has-value" : ""
+                                                        }`}
                                                 >
-                                                    {/* Timeline Dot */}
-                                                    <span className="absolute left-0 top-1.5 w-2.5 h-2.5 rounded-full bg-gray-400" />
-                                                                                                        <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-gray-500">
-                                                        <span className="font-medium text-gray-700">
-                                                            {log.createdBy || "System"}
-                                                        </span>
+                                                    <label className="select-label form-label required-label">
+                                                        Expense Type
+                                                    </label>
 
-                                                        <span>•</span>
-
-                                                        <span>
-                                                            {log.createdAt
-                                                                ? new Date(log.createdAt).toLocaleString(
-                                                                    "en-IN",
-                                                                    {
-                                                                        day: "2-digit",
-                                                                        month: "short",
-                                                                        year: "numeric",
-                                                                        hour: "2-digit",
-                                                                        minute: "2-digit",
-                                                                        hour12: true,
-                                                                    }
-                                                                )
-                                                                : "-"}
-                                                        </span>
-                                                    </div>
-                                                    {/* Log Message */}
-                                                    <div className="text-sm  whitespace-pre-line">
-                                                        {log.message}
-                                                    </div>
-
-                                                    {/* User + Date */}
-
+                                                    <CreatableSelect
+                                                        value={selectedOption}
+                                                        onChange={(option) =>
+                                                            field.onChange(option?.value || "")
+                                                        }
+                                                        onBlur={field.onBlur}
+                                                        options={expenseTypeOptions}
+                                                        isClearable
+                                                        isSearchable
+                                                        placeholder=""
+                                                        formatCreateLabel={(inputValue) =>
+                                                            `Create "${inputValue}"`
+                                                        }
+                                                        styles={selectStyles}
+                                                    />
                                                 </div>
-                                            ))}
-                                    </div>
+
+                                                {errors.expenseType && (
+                                                    <p className="text-red-500 text-sm mt-1">
+                                                        {errors.expenseType.message}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        );
+                                    }}
+                                />
+                                {/* Expense Category - Select or Create */}
+                                <Controller
+                                    name="expenseCategory"
+                                    control={control}
+                                    rules={{
+                                        required: "Expense Category is required",
+                                        validate: (value) =>
+                                            value?.trim() !== "" || "Expense Category is required",
+                                    }}
+                                    render={({ field }) => {
+                                        const selectedOption =
+                                            expensecategoryOptions.find(
+                                                (option) => option.value === field.value,
+                                            ) ||
+                                            (field.value
+                                                ? {
+                                                    value: field.value,
+                                                    label: field.value,
+                                                }
+                                                : null);
+
+                                        return (
+                                            <div>
+                                                <div
+                                                    className={`select-group ${field.value ? "has-value" : ""
+                                                        }`}
+                                                >
+                                                    <label className="select-label form-label required-label">
+                                                        Expense Category / Item
+                                                    </label>
+
+                                                    <CreatableSelect
+                                                        value={selectedOption}
+                                                        onChange={(option) =>
+                                                            field.onChange(option?.value || "")
+                                                        }
+                                                        onBlur={field.onBlur}
+                                                        options={expensecategoryOptions}
+                                                        isClearable
+                                                        isSearchable
+                                                        placeholder="Select or enter "
+                                                        formatCreateLabel={(inputValue) =>
+                                                            `Create "${inputValue}"`
+                                                        }
+                                                        styles={selectStyles}
+                                                    />
+                                                </div>
+
+                                                {errors.expenseCategory && (
+                                                    <p className="text-red-500 text-sm mt-1">
+                                                        {errors.expenseCategory.message}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        );
+                                    }}
+                                />
+
+                                <Controller
+                                    name="status"
+                                    control={control}
+                                    rules={{
+                                        required: "Status is required",
+                                    }}
+                                    render={({ field }) => (
+                                        <div className={`select-group ${field.value ? "has-value" : ""}`}>
+                                            <label className="select-label form-label required-label">Status</label>
+                                            <Select
+                                                {...field}
+                                                options={statusOptions}
+                                                placeholder=""
+                                                isClearable
+                                                value={statusOptions.find(
+                                                    (x) => x.value === field.value
+                                                )}
+                                                onChange={(e) => field.onChange(e?.value)}
+                                                styles={selectStyles}
+                                            />
+                                            {errors.status && (
+                                                <p className="text-red-500 text-sm mt-1">
+                                                    {errors.status.message}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                />
+
+                                <div className="form-group ">
+                                    <input
+                                        {...register("comment")}
+                                        placeholder=" "
+                                        className="form-input"
+                                    />
+                                    <label className="form-label">
+                                        Commnet
+                                    </label>
                                 </div>
                             </div>
-                        )}
+                            {/* ================= WORK LOG ================= */}
+                            {transaction?.workLogs?.length > 0 && (
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-2">
+                                    <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                                        <div>
+                                            <h2 className="text-lg font-semibold text-gray-800">
+                                                Activity & Work Log
+                                            </h2>
+
+                                            <p className="text-sm text-gray-500 mt-1">
+                                                Transaction update history
+                                            </p>
+                                        </div>
+
+                                        <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                                            {transaction.workLogs.length} Logs
+                                        </span>
+                                    </div>
+
+                                    <div className="p-6 mt">
+                                        <div className="space-y-4 max-h-50 overflow-y-auto">
+                                            {[...transaction.workLogs]
+                                                .reverse()
+                                                .map((log, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="relative pl-6 pb-4 border-b border-gray-100 last:border-0 last:pb-0"
+                                                    >
+                                                        {/* Timeline Dot */}
+                                                        <span className="absolute left-0 top-1.5 w-2.5 h-2.5 rounded-full bg-gray-400" />
+                                                        <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-gray-500">
+                                                            <span className="font-medium text-gray-700">
+                                                                {log.createdBy || "System"}
+                                                            </span>
+
+                                                            <span>•</span>
+
+                                                            <span>
+                                                                {log.createdAt
+                                                                    ? new Date(log.createdAt).toLocaleString(
+                                                                        "en-IN",
+                                                                        {
+                                                                            day: "2-digit",
+                                                                            month: "short",
+                                                                            year: "numeric",
+                                                                            hour: "2-digit",
+                                                                            minute: "2-digit",
+                                                                            hour12: true,
+                                                                        }
+                                                                    )
+                                                                    : "-"}
+                                                            </span>
+                                                        </div>
+                                                        {/* Log Message */}
+                                                        <div className="text-sm  whitespace-pre-line">
+                                                            {log.message}
+                                                        </div>
+
+                                                        {/* User + Date */}
+
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
                 )}
-               
+
 
                 {/* ================= FOOTER ================= */}
                 <div className="flex justify-end gap-3 pb-5">

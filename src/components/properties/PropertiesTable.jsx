@@ -117,39 +117,43 @@ const PropertiesTable = () => {
   const { mutate: createPropertySequence, isPending: sequenceLoading } =
     useCreatePropertySequenceData();
   // One State for Filter chips
-  const filterLabels = useMemo(() => {
-    const labels = [];
+const filterLabels = useMemo(() => {
+  const labels = [];
 
-    if (filters.propertyId) {
-      labels.push({
-        key: "propertyId",
-        label: `Property : ${filters.propertyCode || filters.propertyId}`,
-      });
-    }
+  if (filters.propertyId) {
+    labels.push({
+      key: "propertyId",
+      title: "Property",
+      value: filters.propertyCode || filters.propertyId,
+    });
+  }
 
-    if (filters.propertyLocation) {
-      labels.push({
-        key: "propertyLocation",
-        label: `Location : ${filters.propertyLocation}`,
-      });
-    }
+  if (filters.propertyLocation) {
+    labels.push({
+      key: "propertyLocation",
+      title: "Location",
+      value: filters.propertyLocation,
+    });
+  }
 
-    if (filters.bedCount) {
-      labels.push({
-        key: "bedCount",
-        label: `Beds : ${filters.bedCount}`,
-      });
-    }
+  if (filters.bedCount) {
+    labels.push({
+      key: "bedCount",
+      title: "Beds",
+      value: filters.bedCount,
+    });
+  }
 
-    if (filters.status) {
-      labels.push({
-        key: "status",
-        label: `Status : ${filters.status}`,
-      });
-    }
+  if (filters.status) {
+    labels.push({
+      key: "status",
+      title: "Status",
+      value: filters.status,
+    });
+  }
 
-    return labels;
-  }, [filters]);
+  return labels;
+}, [filters]);
   const hasActiveFilters = useMemo(() => {
     return Object.values(filters).some(
       (value) => value !== "" && value !== null && value !== undefined,
@@ -303,12 +307,11 @@ const PropertiesTable = () => {
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col h-[75vh]">
           {/* SEARCH */}
 
-          {/* SEARCH, FILTER CHIPS AND FILTER BUTTONS */}
-          {/* SEARCH, FILTER CHIPS AND FILTER BUTTONS */}
+       {/* SEARCH, FILTER CHIPS AND FILTER BUTTONS */}
           <div className="border-b border-gray-300 px-3 py-3">
-            <div className="flex flex-col gap-3 lg:flex-row justify-between lg:items-center lg:gap-3">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-3">
               {/* SEARCH */}
-              <div className="relative w-full sm:w-72 lg:w-64 lg:shrink-0">
+              <div className="relative w-full lg:w-80 lg:shrink-0">
                 <input
                   className="border px-3 py-2 pr-10 rounded-lg w-full"
                   placeholder="Search property..."
@@ -333,13 +336,44 @@ const PropertiesTable = () => {
                 )}
               </div>
 
+              {/* FILTER CHIPS */}
+              {filterLabels.length > 0 && (
+                <div className="w-full min-w-0 lg:flex-1">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible lg:pb-0">
+                    {filterLabels.map((filter) => (
+                      <div
+                        key={filter.key}
+                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs shadow-sm"
+                      >
+                        <span className="font-semibold text-slate-500">
+                          {filter.title}:
+                        </span>
+
+                        <span className="max-w-28 truncate font-medium text-slate-800">
+                          {filter.value}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => removeFilter(filter.key)}
+                          className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
+                          aria-label={`Remove ${filter.title} filter`}
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* RESET AND FILTER BUTTONS */}
-              <div className="flex w-full items-center gap-2 lg:w-auto lg:shrink-0">
-                {hasActiveFilters && (
+              <div className="flex w-full items-center gap-2 lg:ml-auto lg:w-auto lg:shrink-0">
+                {filterLabels.length > 0 && (
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 lg:flex-none"
+                    className="flex-1 rounded-lg border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 lg:flex-none"
                   >
                     Reset
                   </button>
@@ -348,34 +382,14 @@ const PropertiesTable = () => {
                 <button
                   type="button"
                   onClick={() => setFilterOpen(true)}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 lg:flex-none"
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 lg:flex-none"
                 >
-                  <Filter size={16} />
-                  Filters
+                  <span className="flex items-center justify-center gap-2">
+                    <Filter size={16} />
+                    Filters
+                  </span>
                 </button>
               </div>
-              {/* ACTIVE FILTER CHIPS */}
-              <>
-                {filterLabels.map((filter) => (
-                  <div
-                    key={filter.key}
-                    className="inline-flex max-w-full items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs sm:text-sm shadow-sm"
-                  >
-                    <span className="break-all font-medium text-slate-700">
-                      {filter.label}
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={() => removeFilter(filter.key)}
-                      className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-red-100 hover:text-red-600"
-                      aria-label={`Remove ${filter.label}`}
-                    >
-                      <X size={13} />
-                    </button>
-                  </div>
-                ))}
-              </>
             </div>
           </div>
           {/* Show Delete Selected Button */}

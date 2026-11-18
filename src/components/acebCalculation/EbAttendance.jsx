@@ -298,8 +298,9 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
         ?.filter(ele => ele.fullName && ele.fullName.trim() !== "")
         .reduce((sum, ele) => {
             const billEnd = endDate ? normalizeDate(endDate) : null;
-            const doj = ele.ebDoj ? normalizeDate(new Date(ele.ebDoj)) : null;
-            const cvd = ele.clientVacatingDate ? normalizeDate(new Date(ele.clientVacatingDate)) : null;  // ✅ ADD
+            const doj = (ele.ebDoj || ele.clientDoj)
+                ? normalizeDate(new Date(ele.ebDoj || ele.clientDoj))
+                : null; const cvd = ele.clientVacatingDate ? normalizeDate(new Date(ele.clientVacatingDate)) : null;  // ✅ ADD
 
             if (doj && billEnd && doj > billEnd) return sum;
 
@@ -344,8 +345,9 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
     // Get per-head free EB
     const getPerHeadFreeEB = (client) => {
         const billEnd = endDate ? normalizeDate(endDate) : null;
-        const doj = client.ebDoj ? normalizeDate(new Date(client.ebDoj)) : null;
-        const cvd = client.clientVacatingDate ? normalizeDate(new Date(client.clientVacatingDate)) : null;  // ✅ ADD
+        const doj = (client.ebDoj || client.clientDoj)
+            ? normalizeDate(new Date(client.ebDoj || client.clientDoj))
+            : null; const cvd = client.clientVacatingDate ? normalizeDate(new Date(client.clientVacatingDate)) : null;  // ✅ ADD
 
         if (doj && billEnd && doj > billEnd) return 0;
 
@@ -371,9 +373,11 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
 
     // Calculate total days for client
     const calculateTotalDays = ({ ele }) => {
-        const doj = ele.ebDoj ? normalizeDate(new Date(ele.ebDoj)) : null;
+        const doj = (ele.ebDoj || ele.clientDoj)
+            ? normalizeDate(new Date(ele.ebDoj || ele.clientDoj))
+            : null;
         const cvd = ele.clientVacatingDate ? normalizeDate(new Date(ele.clientVacatingDate)) : null;
-        console.log(cvd)
+
         return headerDays.reduce((total, d) => {
             const currentDate = normalizeDate(d.date);
 
@@ -601,9 +605,9 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                                                 <th className="border border-gray-700 whitespace-nowrap font-bold px-3 py-2.5 min-w-[100px]">
                                                     Free EB
                                                 </th>
-                                                <th className="border border-gray-700 whitespace-nowrap font-bold px-3 py-2.5 min-w-[150px]">
+                                                {/* <th className="border border-gray-700 whitespace-nowrap font-bold px-3 py-2.5 min-w-[150px]">
                                                     Comments1
-                                                </th>
+                                                </th> */}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -618,7 +622,9 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
 
                                                         {headerDays.map((d, i) => {
                                                             const currentDate = normalizeDate(d.date);
-                                                            const doj = ele.ebDoj ? normalizeDate(new Date(ele.ebDoj)) : null;
+                                                            const doj = (ele.ebDoj || ele.clientDoj)
+                                                                ? normalizeDate(new Date(ele.ebDoj || ele.clientDoj))
+                                                                : null;
                                                             const cvd = ele.clientVacatingDate ? normalizeDate(new Date(ele.clientVacatingDate)) : null;  // ✅ ADD
 
                                                             let isOnVacation = false;
@@ -665,7 +671,7 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                                                             {calculateTotalDays({ ele })}
                                                         </td>
 
-                                                        <td className="border border-gray-200 px-1 py-1">
+                                                        {/* <td className="border border-gray-200 px-1 py-1">
                                                             <input
                                                                 placeholder='Amt'
                                                                 type="text"
@@ -682,13 +688,12 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                                                                 }}
                                                                 className="border border-gray-300 rounded px-1.5 py-0.5 w-20 text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none"
                                                             />
-                                                        </td>
+                                                        </td> */}
 
                                                         <td className="border border-gray-200 px-2 py-1 font-bold bg-orange-100 text-orange-800">
                                                             {getPerHeadFreeEB(ele)}
                                                         </td>
-
-                                                        <td className="border border-gray-200 px-1 py-1">
+                                                        {/* <td className="border border-gray-200 px-1 py-1">
                                                             <input
                                                                 type="text"
                                                                 defaultValue={comments1[`${ele._id}_${ele.ebDoj}`] ?? ""}
@@ -702,7 +707,8 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                                                                 placeholder='Comment'
                                                                 className="border border-gray-300 rounded px-1.5 py-0.5 w-full text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none"
                                                             />
-                                                        </td>
+                                                        </td> */}
+
                                                     </tr>
                                                 );
                                             })}

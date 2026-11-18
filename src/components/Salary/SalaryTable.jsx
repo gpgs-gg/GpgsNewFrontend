@@ -113,7 +113,9 @@ const SalaryTable = ({ params = {}, onView }) => {
   const [selectedMonth, setSelectedMonth] = useState(
     Number(params?.month) || CURRENT_MONTH,
   );
-  const [selectedDepartment, setSelectedDepartment] = useState("");
+const [selectedDepartment, setSelectedDepartment] = useState(() => {
+    return localStorage.getItem("salary_department") || "";
+  });
 
   const [selectedYear, setSelectedYear] = useState(
     Number(params?.year) || CURRENT_YEAR,
@@ -138,9 +140,16 @@ const SalaryTable = ({ params = {}, onView }) => {
     return Array.from({ length: daysInSelectedMonth }, (_, index) => index + 1);
   }, [daysInSelectedMonth]);
 
-  // ==========================================================
+// ==========================================================
   // SYNC URL / PARAMS
   // ==========================================================
+  useEffect(() => {
+    if (selectedDepartment) {
+      localStorage.setItem("salary_department", selectedDepartment);
+    } else {
+      localStorage.removeItem("salary_department");
+    }
+  }, [selectedDepartment]);
 
   useEffect(() => {
     if (params?.month) {
@@ -176,7 +185,16 @@ const SalaryTable = ({ params = {}, onView }) => {
     [params, selectedMonth, selectedYear, currentPage],
   );
 
-  const { control, register, handleSubmit, reset, setValue, watch } = useForm();
+const { control } = useForm({
+    defaultValues: {
+      department: selectedDepartment
+        ? {
+            label: selectedDepartment,
+            value: selectedDepartment,
+          }
+        : null,
+    },
+  });
 
   const { data, isLoading, isFetching } = useSalaryDetailsData(queryParams);
 
@@ -285,31 +303,32 @@ const SalaryTable = ({ params = {}, onView }) => {
           </div>
 
           <div className="grid grid-cols-2 gap-5">
-            <Controller
+         <Controller
               name="department"
               control={control}
-              defaultValue={null}
               render={({ field }) => (
                 <div
-                  className={`select-group ${field.value != null ? "has-value" : ""
-                    }`}
+                  className={`select-group ${
+                    field.value != null ? "has-value" : ""
+                  }`}
                 >
-                  <label className="select-label">
-                    Department
-                  </label>
+                  <label className="select-label">Department</label>
 
                   <Select
                     {...field}
                     options={departments}
                     isClearable
-                    // isDisabled={field.value === "P. Booked"}
                     placeholder=""
-                    value={departments.find(
-                      (option) => option.value === field.value,
-                    )}
+                    value={
+                      departments.find(
+                        (option) => option.value === selectedDepartment,
+                      ) || null
+                    }
                     onChange={(selectedOption) => {
-                      field.onChange(selectedOption?.value || "");
-                      setSelectedDepartment(selectedOption?.value || "");
+                      const department = selectedOption?.value || "";
+
+                      field.onChange(selectedOption);
+                      setSelectedDepartment(department);
                       setCurrentPage(1);
                     }}
                     styles={selectStyles}
@@ -317,7 +336,6 @@ const SalaryTable = ({ params = {}, onView }) => {
                 </div>
               )}
             />
-
             <div className="datepicker-group has-value">
               <label className="datepicker-label">Month & Year</label>
 

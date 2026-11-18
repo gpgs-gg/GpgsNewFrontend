@@ -56,20 +56,24 @@ const loadFFmpeg = async () => {
   return ffmpegLoadingPromise;
 };
 
+
 export const compressImage = async (file, onProgress) => {
   const options = {
-    maxSizeMB: 0.08,
-    maxWidthOrHeight: 1000,
+    maxSizeMB: 0.5, // Target around 500 KB
+    maxWidthOrHeight: 1920,
     useWebWorker: true,
-    initialQuality: 0.2,
+    initialQuality: 0.85,
     fileType: "image/jpeg",
     onProgress: (progress) => {
       onProgress?.(progress);
     },
   };
 
-  return await imageCompression(file, options);
+  const compressedFile = await imageCompression(file, options);
+
+  return compressedFile;
 };
+
 
 export const compressVideo = async (file, onProgress) => {
   await loadFFmpeg();

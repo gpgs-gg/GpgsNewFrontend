@@ -16,6 +16,7 @@ const RnrFilter = ({
   const defaultValues = {
     propertyId: null,
     fnfStatus: "",
+    sortByCurrentDues: false,
   };
 
   const { control, handleSubmit, reset } = useForm({
@@ -73,6 +74,7 @@ const RnrFilter = ({
       propertyId: data.propertyId?.value || "",
       propertyCode: data.propertyId?.label || "",
       fnfStatus: data.fnfStatus || "",
+      sortByCurrentDues: data.sortByCurrentDues || false,
     };
 
     const labels = [];
@@ -113,6 +115,7 @@ const RnrFilter = ({
     reset({
       propertyId: selectedProperty,
       fnfStatus: initialFilters.fnfStatus || "",
+      sortByCurrentDues: initialFilters.sortByCurrentDues || false,
     });
   }, [
     isOpen,
@@ -120,7 +123,7 @@ const RnrFilter = ({
     initialFilters.propertyCode,
     initialFilters.fnfStatus,
     reset,
-  ]);
+    initialFilters.sortByCurrentDues,]);
 
   // ======================================================
   // UI
@@ -211,6 +214,40 @@ const RnrFilter = ({
                       field.onChange(selected?.value || "")
                     }
                   />
+                </div>
+              )}
+            />
+
+            <Controller
+              name="sortByCurrentDues"
+              control={control}
+              render={({ field }) => (
+                <div
+                  onClick={() => field.onChange(!field.value)}
+                  className="flex items-center justify-between rounded-lg border border-gray-400 bg-white p-3 shadow-sm cursor-pointer"
+                >
+                  <div>
+                    <label className="text-md font-medium text-gray-900">
+                      Sort by Current Dues
+                    </label>
+                    {/* <p className="mt-1 text-xs text-gray-500">
+                      Highest dues first
+                    </p> */}
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-pressed={Boolean(field.value)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-300 ${
+                      field.value ? "bg-red-600" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-300 ${
+                        field.value ? "translate-x-5" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
                 </div>
               )}
             />

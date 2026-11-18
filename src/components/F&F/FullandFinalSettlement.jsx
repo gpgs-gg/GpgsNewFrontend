@@ -277,7 +277,7 @@ function FullandFinalSettlement() {
                       : "border-gray-300 text-gray-700 hover:bg-gray-50"
                   }`}
                 >
-                  F&F Closed
+                  F&F Closed List
                 </button>
 
                 {/* FILTER */}

@@ -24,16 +24,12 @@ const MONTHS = [
 
 const getNextMonth = (month) => {
     if (!month) return "";
-
     const match = month.match(
         /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)(\d{4})$/
     );
-
     if (!match) return "";
-
     const monthIndex = MONTHS.indexOf(match[1]);
     const year = Number(match[2]);
-
     const nextMonthIndex = monthIndex === 11 ? 0 : monthIndex + 1;
     const nextYear = monthIndex === 11 ? year + 1 : year;
 
@@ -243,11 +239,11 @@ const ACEBReadingCreateEdit = () => {
         watch("roomReadings") || [];
 
     const onSubmit = (data) => {
-        if (!isDirty) {
-            toast.dismiss();
-            toast.info("No changes detected.");
-            return;
-        }
+        // if (!isDirty) {
+        //     toast.dismiss();
+        //     toast.info("No changes detected.");
+        //     return;
+        // }
         const payload = {
             roomId: roomId,
             month: data.month,

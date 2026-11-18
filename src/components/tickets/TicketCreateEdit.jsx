@@ -902,6 +902,7 @@ function TicketCreateEdit() {
               <input
                 type="file"
                 multiple
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm,application/pdf"
                className="form-input !border !border-red-500 md:!border-gray-400"
                 onChange={async (e) => {
                   const files = Array.from(e.target.files || []);

@@ -101,6 +101,7 @@ const RNRTable = () => {
     clientDojFrom: "",
     clientDojTo: "",
     fnfStatus: "",
+    sortByCurrentDues: false,
   };
   const {
     filters,
@@ -119,7 +120,20 @@ const RNRTable = () => {
         value: filters.propertyCode || filters.propertyId,
       });
     }
-
+if (filters.fnfStatus) {
+      labels.push({
+        key: "fnfStatus",
+        title: "FNF Status",
+        value: filters.fnfStatus,
+      });
+    }
+ if (filters.sortByCurrentDues) {
+   labels.push({
+     key: "sortByCurrentDues",
+     title: "Sort",
+     value: "Current Dues: Highest First",
+   });
+ }
     if (filters.clientDojFrom || filters.clientDojTo) {
       labels.push({
         key: "clientDoj",
@@ -177,11 +191,13 @@ const RNRTable = () => {
 
     return labels;
   }, [filters]);
-  const hasActiveFilters = useMemo(() => {
-    return Object.values(filters).some(
-      (value) => value !== "" && value !== null && value !== undefined,
-    );
-  }, [filters]);
+const hasActiveFilters = useMemo(() => {
+  return Object.entries(filters).some(([key, value]) => {
+    if (key === "sortByCurrentDues") return value === true;
+
+    return value !== "" && value !== null && value !== undefined;
+  });
+}, [filters]);
   const [resetTrigger, setResetTrigger] = useState(0);
   const [editingVacation, setEditingVacation] = useState(null);
   const [isVacationModalOpen, setIsVacationModalOpen] = useState(false);
@@ -959,6 +975,7 @@ const RNRTable = () => {
             propertyId: data.propertyId || "",
             propertyCode: data.propertyCode || "",
             fnfStatus: data.fnfStatus || "",
+            sortByCurrentDues: data.sortByCurrentDues || false,
           }));
 
           setCurrentPage(1);

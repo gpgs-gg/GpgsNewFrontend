@@ -655,6 +655,7 @@ function TicketCreateEdit() {
               <input
                 type="file"
                 multiple
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm,application/pdf"
                 disabled={isCompressing || isCreateTicket || isUpdateTicket}
                 className="form-input"
                 onChange={handleAttachmentChange}
