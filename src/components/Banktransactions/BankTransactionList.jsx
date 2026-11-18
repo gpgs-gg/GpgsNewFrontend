@@ -33,6 +33,7 @@ const BankTransactionList = () => {
     assignee: "",
     expenseCategory: [],
     expenseCode: "",
+    expenseType: "",
   };
   const { user } = useAuth();
   const isAdmin = user?.role?.toLowerCase() === "admin";
@@ -174,6 +175,13 @@ const BankTransactionList = () => {
       labels.push({
         key: "narration",
         label: `Narration : ${filters.narration}`,
+      });
+    }
+
+    if (filters.expenseType) {
+      labels.push({
+        key: "expenseType",
+        label: `Expense Type : ${filters.expenseType}`,
       });
     }
 

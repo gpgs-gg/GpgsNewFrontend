@@ -67,7 +67,11 @@ const PropertyExpenses = () => {
     filters,
   });
 
-  const expenses = expenseResponse?.data || [];
+ const expenses = expenseResponse?.data || [];
+
+ const totalRecords = Number(expenseResponse?.totalRecords || 0);
+ const totalPages = Number(expenseResponse?.totalPages || 1);
+ const totalAmount = Number(expenseResponse?.summary?.totalExpenses || 0);
   //console.log("Fetched expenses:", expenses); // Debugging line
 
   // Extract property details from API response
@@ -76,8 +80,6 @@ const PropertyExpenses = () => {
   const propertyCode = property.propertyCode || "-";
   const propertyLocation = property.propertyLocation || "-";
 
-  const totalPages = expenseResponse?.pagination?.totalPages || 1;
-  const totalAmount = expenseResponse?.summary?.totalExpenses || 0;
 
   const createExpenseMutation = useCreatePropertyExpense();
   const updateExpenseMutation = useUpdatePropertyExpense();
@@ -182,7 +184,7 @@ const PropertyExpenses = () => {
     });
   }, [expenses, search, filters]);
 
-  const totalRecords = filteredExpenses.length;
+
 
   const paginatedExpenses = useMemo(() => {
     const startIndex = (currentPage - 1) * rowsPerPage;

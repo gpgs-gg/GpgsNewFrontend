@@ -35,6 +35,7 @@ const BankTransactionFilter = ({
     "bankstatus",
     "expensecategory",
     "expensecode",
+    "expensetype",
   ]);
 
   const { control, handleSubmit, reset } = useForm({
@@ -49,6 +50,7 @@ const BankTransactionFilter = ({
       propertyId: null,
       expenseCategory: [],
       expenseCode: null,
+      expensetype: null
     },
   });
   const expenseCodeOptions = useMemo(
@@ -61,6 +63,9 @@ const BankTransactionFilter = ({
       })),
     [options.expensecode],
   );
+
+  const expenseTypeOptions = options.expensetype || [];
+
   // PROPERTY CODE DROPDOWN
   const loadPropertyOptions = async (search, loadedOptions, { page }) => {
     try {
@@ -161,7 +166,9 @@ const BankTransactionFilter = ({
         (option) => option.value,
       );
     }
-
+    if (data.expenseType) {
+      filters.expenseType = data.expenseType.value;
+    }
     if (data.transactionType) {
       filters.transactionType = data.transactionType.value;
     }
@@ -247,9 +254,9 @@ const BankTransactionFilter = ({
       toDate: filters.toDate ? new Date(filters.toDate) : null,
       propertyId: filters.propertyId
         ? {
-            value: filters.propertyId,
-            label: filters.propertyCode || filters.propertyId,
-          }
+          value: filters.propertyId,
+          label: filters.propertyCode || filters.propertyId,
+        }
         : null,
       bankAccount: filters.account
         ? bankAccountOptions.find((x) => x.value === filters.account)
@@ -260,34 +267,44 @@ const BankTransactionFilter = ({
         : null,
       transactionType: filters.transactionType
         ? transactionTypeOptions.find(
-            (x) => x.value === filters.transactionType,
-          )
+          (x) => x.value === filters.transactionType,
+        )
         : null,
       expenseCategory: Array.isArray(filters?.expenseCategory)
         ? filters.expenseCategory.map((value) => {
-            const option = expenseCategoryOptions.find(
-              (x) => x.value === value,
-            );
+          const option = expenseCategoryOptions.find(
+            (x) => x.value === value,
+          );
 
-            return (
-              option || {
-                value,
-                label: value,
-              }
-            );
-          })
+          return (
+            option || {
+              value,
+              label: value,
+            }
+          );
+        })
         : [],
+
+expenseType: filters.expenseType
+        ? expenseTypeOptions.find(
+            (option) => option.value === filters.expenseType,
+          ) || {
+            value: filters.expenseType,
+            label: filters.expenseType,
+          }
+        : null,
+
       expenseCode: filters.expenseCode
         ? expenseCodeOptions.find(
-            (option) => option.value === filters.expenseCode,
-          ) || null
+          (option) => option.value === filters.expenseCode,
+        ) || null
         : null,
 
       assignee: filters?.assignee
         ? {
-            value: filters.assignee,
-            label: filters.assignee,
-          }
+          value: filters.assignee,
+          label: filters.assignee,
+        }
         : null,
     });
   }, [filters, isOpen, reset, bankAccountOptions, expenseCategoryOptions]);
@@ -298,9 +315,8 @@ const BankTransactionFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="flex justify-between items-center p-5 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 border-b border-slate-600">
           <h2 className="font-bold text-lg">Filters</h2>
@@ -371,9 +387,8 @@ const BankTransactionFilter = ({
               control={control}
               render={({ field }) => (
                 <div
-                  className={`select-group ${
-                    field.value?.length ? "has-value" : ""
-                  }`}
+                  className={`select-group ${field.value?.length ? "has-value" : ""
+                    }`}
                 >
                   <label className="select-label">Expense Category</label>
 
@@ -386,6 +401,27 @@ const BankTransactionFilter = ({
                     isMulti
                     isSearchable
                     placeholder="Expense Category"
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name="expenseType"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Expense Type</label>
+
+                  <Select
+                    options={expenseTypeOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    styles={selectStyles}
+                    isClearable
+                    isSearchable
+                    placeholder="Expense Type"
                   />
                 </div>
               )}
@@ -533,7 +569,7 @@ const BankTransactionFilter = ({
                 </div>
               )}
             />
-          
+
 
             {/* Status */}
             {/* <Controller

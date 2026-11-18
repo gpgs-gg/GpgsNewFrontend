@@ -84,7 +84,7 @@ export const useExpensesByPropertyId = ({
       page,
       limit,
       search,
-      filters.category,
+      filters.expenseType,
       filters.fromDate,
       filters.toDate,
     ],
