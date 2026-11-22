@@ -22,6 +22,7 @@ import {
 import { useAuth } from "../../context/authContext";
 import { useAuthorization } from "../../context/AuthorizationContext";
 import * as yup from "yup";
+import { compressAttachment } from "../../utils/compressFile";
 const schema = yup.object({
   Name: yup.string().trim().required("Full Name is required"),
 
@@ -136,6 +137,11 @@ const EmployeesCreateEdit = () => {
   const [aadharFiles, setAadharFiles] = useState([]);
   const [photoFiles, setPhotoFiles] = useState([]);
   const [bankFiles, setBankFiles] = useState([]);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
+  const [compressionFileName, setCompressionFileName] = useState("");
+  const [compressionType, setCompressionType] = useState("");
+  const [pendingFiles, setPendingFiles] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
   const [existingAadhar, setExistingAadhar] = useState([]);
   const [existingPhoto, setExistingPhoto] = useState([]);
@@ -392,7 +398,102 @@ const EmployeesCreateEdit = () => {
     });
   };
 
+
+  const handleCompressedFiles = async (files, type, inputElement) => {
+    if (!files.length) return;
+
+    if (isCompressing) {
+      toast.warning("Please wait until compression is complete.");
+      inputElement.value = "";
+      return;
+    }
+    setCompressionType(type);
+    setPendingFiles(files);
+    setIsCompressing(true);
+    setCompressionProgress(0);
+
+    try {
+      const compressedFiles = [];
+
+      for (const file of files) {
+        setCompressionFileName(file.name);
+        setCompressionProgress(0);
+
+        const originalSize = file.size;
+
+        const compressedFile = await compressAttachment(file, (progress) => {
+          setCompressionProgress(progress);
+        });
+
+        const compressedSize = compressedFile.size;
+
+        const reducedBy =
+          originalSize > 0
+            ? ((originalSize - compressedSize) / originalSize) * 100
+            : 0;
+
+        console.log(`File: ${file.name}`);
+        console.log(
+          `Original Size: ${(originalSize / 1024 / 1024).toFixed(2)} MB`,
+        );
+        console.log(
+          `Compressed Size: ${(compressedSize / 1024 / 1024).toFixed(2)} MB`,
+        );
+        console.log(`Reduced By: ${reducedBy.toFixed(2)}%`);
+
+        compressedFiles.push(compressedFile);
+      }
+
+      // Add compressed files to the correct document category
+      const currentFiles = {
+        aadharCard: aadharFiles,
+        photo: photoFiles,
+        bankPassbook: bankFiles,
+      };
+
+      const updateFiles = {
+        aadharCard: setAadharFiles,
+        photo: setPhotoFiles,
+        bankPassbook: setBankFiles,
+      };
+
+      const formFields = {
+        aadharCard: "documents.aadharCard",
+        photo: "documents.photo",
+        bankPassbook: "documents.bankPassbook",
+      };
+
+      const updatedFiles = [...currentFiles[type], ...compressedFiles];
+
+      updateFiles[type](updatedFiles);
+
+      setValue(formFields[type], updatedFiles, {
+        shouldDirty: true,
+      });
+
+      setCompressionProgress(100);
+    } catch (error) {
+      console.error("Document compression failed:", error);
+
+      toast.dismiss();
+      toast.error(error?.message || "Failed to compress document.");
+    } finally {
+      setPendingFiles([]);
+      setIsCompressing(false);
+      setCompressionProgress(0);
+      setCompressionFileName("");
+        setCompressionType("");
+
+      if (inputElement) {
+        inputElement.value = "";
+      }
+    }
+  };
   const handleDocumentUpload = () => {
+    if (isCompressing) {
+      toast.warning("Please wait until compression is complete.");
+      return;
+    }
     const employeeId = id || watch("EmployeeID");
 
     if (!employeeId) {
@@ -1360,25 +1461,18 @@ const EmployeesCreateEdit = () => {
   ========================================================= */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-xl font-semibold mb-4">Employee Documents</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Aadhar */}
           <div className="form-group">
             <input
               type="file"
               multiple
               className="form-input"
+              disabled={isCompressing}
               onChange={(e) => {
                 const files = Array.from(e.target.files || []);
 
-                setAadharFiles((prev) => {
-                  const updated = [...prev, ...files];
-
-                  setValue("documents.aadharCard", updated);
-
-                  return updated;
-                });
-
-                e.target.value = "";
+                handleCompressedFiles(files, "aadharCard", e.target);
               }}
             />
 
@@ -1386,7 +1480,17 @@ const EmployeesCreateEdit = () => {
 
             <FilePreview
               files={aadharFiles}
+              pendingFiles={
+                compressionType === "aadharCard" ? pendingFiles : []
+              }
               existingFiles={existingAadhar}
+              isCompressing={isCompressing && compressionType === "aadharCard"}
+              compressionProgress={
+                compressionType === "aadharCard" ? compressionProgress : 0
+              }
+              compressionFileName={
+                compressionType === "aadharCard" ? compressionFileName : ""
+              }
               onRemoveExisting={(index) =>
                 removeFile("aadharCard", index, true)
               }
@@ -1401,18 +1505,11 @@ const EmployeesCreateEdit = () => {
               multiple
               accept="image/*"
               className="form-input"
+              disabled={isCompressing}
               onChange={(e) => {
                 const files = Array.from(e.target.files || []);
 
-                setPhotoFiles((prev) => {
-                  const updated = [...prev, ...files];
-
-                  setValue("documents.photo", updated);
-
-                  return updated;
-                });
-
-                e.target.value = "";
+                handleCompressedFiles(files, "photo", e.target);
               }}
             />
 
@@ -1420,30 +1517,32 @@ const EmployeesCreateEdit = () => {
 
             <FilePreview
               files={photoFiles}
+              pendingFiles={compressionType === "photo" ? pendingFiles : []}
               existingFiles={existingPhoto}
+              isCompressing={isCompressing && compressionType === "photo"}
+              compressionProgress={
+                compressionType === "photo" ? compressionProgress : 0
+              }
+              compressionFileName={
+                compressionType === "photo" ? compressionFileName : ""
+              }
               onRemoveExisting={(index) => removeFile("photo", index, true)}
               onRemoveNew={(index) => removeFile("photo", index)}
             />
           </div>
 
           {/* Bank Passbook */}
+          {/* Bank Passbook */}
           <div className="form-group">
             <input
               type="file"
               multiple
               className="form-input"
+              disabled={isCompressing}
               onChange={(e) => {
                 const files = Array.from(e.target.files || []);
 
-                setBankFiles((prev) => {
-                  const updated = [...prev, ...files];
-
-                  setValue("documents.bankPassbook", updated);
-
-                  return updated;
-                });
-
-                e.target.value = "";
+                handleCompressedFiles(files, "bankPassbook", e.target);
               }}
             />
 
@@ -1451,7 +1550,19 @@ const EmployeesCreateEdit = () => {
 
             <FilePreview
               files={bankFiles}
+              pendingFiles={
+                compressionType === "bankPassbook" ? pendingFiles : []
+              }
               existingFiles={existingBank}
+              isCompressing={
+                isCompressing && compressionType === "bankPassbook"
+              }
+              compressionProgress={
+                compressionType === "bankPassbook" ? compressionProgress : 0
+              }
+              compressionFileName={
+                compressionType === "bankPassbook" ? compressionFileName : ""
+              }
               onRemoveExisting={(index) =>
                 removeFile("bankPassbook", index, true)
               }
@@ -1461,13 +1572,15 @@ const EmployeesCreateEdit = () => {
         </div>
 
         <div className="mt-5 flex justify-end">
-          <button
+       <button
             type="button"
             onClick={handleDocumentUpload}
-            disabled={isUploadingDocs}
+            disabled={isUploadingDocs || isCompressing}
             className="theme-btn text-white px-5 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50"
           >
-            {isUploadingDocs ? (
+            {isCompressing ? (
+              "Compressing..."
+            ) : isUploadingDocs ? (
               <>
                 <LoaderPage />
                 Uploading...

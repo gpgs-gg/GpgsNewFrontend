@@ -622,13 +622,17 @@ const CheckinOut = () => {
   // DOWNLOAD SALARY SLIP
   // ======================================================
 
-  // ======================================================
-  // DOWNLOAD SALARY SLIP
-  // ======================================================
-
-  const downloadSalarySlip = (salary) => {
+const downloadSalarySlip = (salary) => {
     try {
-      const doc = new jsPDF();
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+      });
+
+      // ==================================================
+      // EMPLOYEE DETAILS
+      // ==================================================
 
       const employeeName =
         existingSalaryResponse?.data?.employeeName ||
@@ -642,7 +646,10 @@ const CheckinOut = () => {
 
       const designation = todayAttendance?.employeeId?.designation || "--";
 
-      const department = todayAttendance?.employeeId?.department || "--";
+      const department =
+        existingSalaryResponse?.data?.department ||
+        todayAttendance?.employeeId?.department ||
+        "--";
 
       const monthName = new Date(
         salary.year,
@@ -652,322 +659,1071 @@ const CheckinOut = () => {
         year: "numeric",
       });
 
+      // ==================================================
+      // SALARY CALCULATIONS
+      // ==================================================
+      console.log("Salary Data:", salary);
       const monthlySalary = Number(salary.monthlySalary || 0);
       const payableSalary = Number(salary.payableSalary || 0);
       const paidAmount = Number(salary.paidAmount || 0);
 
-      // Salary difference treated as salary adjustment/deduction
+      const totalDaysInMonth = Number(salary.totalDaysInMonth || 0);
+
+      const perDaySalary = Number(
+        salary.perDaySalary ||
+          (totalDaysInMonth > 0 ? monthlySalary / totalDaysInMonth : 0),
+      );
+
+      const actualPresentDays = Number(salary.totalPresentDays || 0);
+
+      const weeklyOffDays = salary.paidLeaveDays - salary.publicHolidayDays;
+
+      const publicHolidayDays = Number(salary.publicHolidayDays || 0);
+
+      const totalPayableDays = Number(salary.totalPayableDays || 0);
+
+      const previousDue = Number(salary.previousDue || 0);
+
+      const currentDue = Number(
+        salary.currentDue ?? previousDue + payableSalary - paidAmount,
+      );
+
+      const paidLeaveDays = Number(salary.paidLeaveDays || 0);
+
+      const lop = Math.max(totalDaysInMonth - totalPayableDays, 0);
+
+      const baseSalary = monthlySalary;
+
+      const overtimeEarnings = Math.max(0, payableSalary - monthlySalary);
+
       const salaryAdjustment = Math.max(monthlySalary - payableSalary, 0);
 
+      const totalEarnings = monthlySalary;
       const totalDeductions = salaryAdjustment;
-
-      const formatAmount = (amount) =>
-        `Rs. ${Number(amount || 0).toLocaleString("en-IN")}`;
-
-      const companyTitle =
-        department?.trim().toLowerCase() === "it"
-          ? "Gopal's Innovative Technologies "
-          : "Gopal's Paying Guest Services";
-
-      const companySubtitle =
-        department?.trim().toLowerCase() === "it"
-          ? "Gits Technologies Pvt. Ltd."
-          : "GPMS";
+      const netPay = payableSalary;
 
       // ==================================================
-      // PAGE
+      // NUMBER FORMATTING
       // ==================================================
 
-      doc.setDrawColor(210, 210, 210);
-      doc.setLineWidth(0.4);
+      const formatNumber = (amount) =>
+        Number(amount || 0).toLocaleString("en-IN", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
 
-      doc.roundedRect(15, 12, 180, 270, 2, 2);
+      // ==================================================
+      // COMPANY DETAILS
+      // ==================================================
+
+      const isITDepartment = String(department).trim().toLowerCase() === "it";
+
+      const companyName = isITDepartment
+        ? "Gopal's Innovative Tech Solutions"
+        : "Gopal's Paying Guest Services";
+
+      const companySubtitle = isITDepartment
+        ? "Gits Technologies Pvt. Ltd."
+        : "GPMS";
+
+      // ==================================================
+      // COLORS
+      // ==================================================
+
+      const green = [79, 101, 43];
+      const lightGreen = [218, 228, 190];
+      const borderColor = [125, 125, 125];
+      const black = [25, 25, 25];
+      const white = [255, 255, 255];
+
+      // ==================================================
+      // PDF DIMENSIONS
+      // ==================================================
+
+      const pageWidth = 297;
+      const pageHeight = 210;
+
+      const x = 10;
+      const y = 10;
+      const w = 277;
+
+      const companyW = 65;
+      const titleW = 125;
+      const confidentialW = w - companyW - titleW;
+
+      const headerH = 28;
+      const employeeH = 28;
+      const salarySummaryH = 32;
+      const tableHeaderH = 10;
+      const tableBodyH = 35;
+      const totalH = 10;
+      const footerH = 12;
+
+      const tableX = x;
+
+      const summaryY = y + headerH + employeeH;
+
+      const tableY = summaryY + salarySummaryH;
+
+      const descriptionW = 128;
+      const earningsW = 72;
+      const deductionsW = w - descriptionW - earningsW;
+
+      const earningsX = tableX + descriptionW;
+
+      const deductionsX = earningsX + earningsW;
+
+      // ==================================================
+      // PAGE BACKGROUND
+      // ==================================================
+
+      doc.setFillColor(245, 248, 245);
+
+      doc.rect(0, 0, pageWidth, pageHeight, "F");
+
+      doc.setFillColor(...white);
+      doc.setDrawColor(...borderColor);
+      doc.setLineWidth(0.35);
+
+      doc.rect(
+        x,
+        y,
+        w,
+        headerH +
+          employeeH +
+          salarySummaryH +
+          tableHeaderH +
+          tableBodyH +
+          totalH +
+          footerH,
+        "FD",
+      );
 
       // ==================================================
       // COMPANY HEADER
       // ==================================================
 
+      doc.setFillColor(...green);
+
+      doc.rect(x, y, companyW, headerH, "F");
+
+      doc.setTextColor(...white);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(18);
-      doc.setTextColor(25, 50, 85);
+      doc.setFontSize(12);
 
-      doc.text(companyTitle, 21, 25);
+      const companyLines = doc.splitTextToSize(companyName, companyW - 10);
 
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(80, 80, 80);
-
-      doc.text(companySubtitle, 21, 32);
-
-      doc.setDrawColor(200, 200, 200);
-      doc.line(21, 38, 189, 38);
+      doc.text(companyLines, x + companyW / 2, y + 11, {
+        align: "center",
+        lineHeightFactor: 1.3,
+      });
 
       // ==================================================
       // SALARY SLIP TITLE
       // ==================================================
 
-      doc.setFillColor(225, 242, 250);
-      doc.roundedRect(20, 43, 170, 12, 2, 2, "F");
+      const titleX = x + companyW;
 
+      doc.setDrawColor(...borderColor);
+
+      doc.rect(titleX, y, titleW, headerH, "S");
+
+      doc.setTextColor(...black);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(15);
-      doc.setTextColor(25, 50, 85);
+      doc.setFontSize(20);
 
-      doc.text(`Salary Slip - ${monthName}`, 105, 51, {
+      doc.text("SALARY SLIP", titleX + titleW / 2, y + 13, { align: "center" });
+
+      doc.setLineWidth(0.25);
+
+      doc.line(titleX, y + 18, titleX + titleW, y + 18);
+
+      doc.setFontSize(10);
+
+      doc.text(monthName, titleX + titleW / 2, y + 24, { align: "center" });
+
+      // ==================================================
+      // CONFIDENTIAL BOX
+      // ==================================================
+
+      const confidentialX = titleX + titleW;
+
+      doc.setFillColor(...lightGreen);
+
+      doc.rect(confidentialX, y, confidentialW, headerH, "FD");
+
+      doc.setTextColor(...black);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+
+      doc.text("CONFIDENTIAL", confidentialX + confidentialW / 2, y + 16, {
         align: "center",
       });
 
       // ==================================================
-      // A. EMPLOYEE DETAILS
+      // EMPLOYEE INFORMATION
       // ==================================================
 
-      doc.setFillColor(225, 242, 250);
-      doc.roundedRect(20, 61, 170, 8, 1, 1, "F");
+      const detailsY = y + headerH;
+
+      doc.setDrawColor(...borderColor);
+
+      doc.rect(x, detailsY, w, employeeH, "S");
+
+      doc.line(x + w / 2, detailsY, x + w / 2, detailsY + employeeH);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(...black);
+
+      const leftDetails = [
+        ["Name", employeeName],
+        ["Employee ID", employeeId],
+        ["Pay Period", monthName],
+        // ["Total Days", String(totalDaysInMonth)],
+        // ["Payable Days", String(totalPayableDays)],
+      ];
+
+      const rightDetails = [
+        ["Title", designation],
+        ["Department", department],
+        ["Total Days", String(totalDaysInMonth)],
+        // ["LOP", String(lop)],
+        // ["Paid Leave", String(salary.paidLeaveDays)],
+      ];
+
+      const drawDetails = (details, startX) => {
+        details.forEach(([label, value], index) => {
+          const rowY = detailsY + 9 + index * 7;
+
+          doc.text(label, startX, rowY);
+          doc.text(":", startX + 48, rowY);
+
+          doc.text(String(value || "--"), startX + 53, rowY);
+        });
+      };
+
+      drawDetails(leftDetails, x + 5);
+
+      drawDetails(rightDetails, x + w / 2 + 5);
+
+      // ==================================================
+      // SALARY & PAYMENT SUMMARY
+      // ==================================================
+
+      doc.setDrawColor(...borderColor);
+      doc.setFillColor(245, 248, 245);
+
+      doc.rect(x, summaryY, w, salarySummaryH, "FD");
+
+      // Summary heading
+
+      doc.setFillColor(...green);
+
+      doc.rect(x, summaryY, w, 8, "F");
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
-      doc.setTextColor(25, 50, 85);
+      doc.setTextColor(...white);
 
-      doc.text("A. Employee Details", 23, 66.5);
+      doc.text("SALARY & PAYMENT SUMMARY", x + 5, summaryY + 5.5);
 
-      doc.setDrawColor(215, 215, 215);
-      doc.roundedRect(20, 69, 170, 47, 1, 1);
+      // All 10 salary details
 
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(50, 50, 50);
-
-      const employeeDetails = [
-        ["Employee Name", employeeName],
-        ["Employee ID", employeeId],
-        ["Designation", designation],
-        ["Department", department],
-        ["Pay Period", monthName],
-        ["Payable Days", String(Number(salary.totalPayableDays || 0))],
-        ["Paid Leave Days", String(Number(salary.paidLeaveDays || 0))],
-        ["Public Holiday Days", String(Number(salary.publicHolidayDays || 0))],
+      const summaryDetails = [
+        ["Fixed Salary", `Rs. ${formatNumber(monthlySalary)}`],
+        ["Per Day Salary", `Rs. ${formatNumber(perDaySalary)}`],
+        ["Actual Present Days", String(actualPresentDays)],
+        ["Weekly Off", String(weeklyOffDays)],
+        ["Public Holiday", String(publicHolidayDays)],
+        ["Total Payable Days", String(totalPayableDays)],
+        ["Total Payable Salary", `Rs. ${formatNumber(payableSalary)}`],
+        ["Paid Amount", `Rs. ${formatNumber(paidAmount)}`],
+        ["Current Due", `Rs. ${formatNumber(currentDue)}`],
+        ["Previous Due", `Rs. ${formatNumber(previousDue)}`],
       ];
 
-      let detailY = 76;
+      const cellW = w / 5;
+      const rowH = 12;
 
-      employeeDetails.forEach(([label, value]) => {
-        doc.text(label, 23, detailY);
-        doc.text(":", 68, detailY);
-        doc.text(String(value), 73, detailY);
+      summaryDetails.forEach(([label, value], index) => {
+        const row = Math.floor(index / 5);
+        const col = index % 5;
 
-        detailY += 5;
+        const cellX = x + col * cellW;
+
+        const cellY = summaryY + 8 + row * rowH;
+
+        // Cell border
+
+        doc.setDrawColor(210, 210, 210);
+
+        doc.rect(cellX, cellY, cellW, rowH, "S");
+
+        // Label
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7);
+        doc.setTextColor(90, 90, 90);
+
+        doc.text(label, cellX + cellW / 2, cellY + 4, { align: "center" });
+
+        // Value
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(...black);
+
+        doc.text(value, cellX + cellW / 2, cellY + 9, { align: "center" });
       });
 
       // ==================================================
-      // B. EARNINGS
+      // TABLE HEADER
       // ==================================================
 
-      doc.setFillColor(220, 240, 225);
-      doc.roundedRect(20, 121, 83, 8, 1, 1, "F");
+      const headerY = tableY;
+
+      doc.setFillColor(...green);
+
+      doc.rect(tableX, headerY, descriptionW, tableHeaderH, "F");
+
+      doc.rect(earningsX, headerY, earningsW, tableHeaderH, "F");
+
+      doc.rect(deductionsX, headerY, deductionsW, tableHeaderH, "F");
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
-      doc.setTextColor(30, 70, 45);
+      doc.setTextColor(...white);
 
-      doc.text("B. Earnings", 23, 126.5);
+      doc.text("Description", tableX + descriptionW / 2, headerY + 6.5, {
+        align: "center",
+      });
 
-      doc.setDrawColor(215, 215, 215);
-      doc.roundedRect(20, 129, 83, 48, 1, 1);
+      doc.text("Earnings", earningsX + earningsW / 2, headerY + 6.5, {
+        align: "center",
+      });
 
-      // Table header
-      doc.setFillColor(242, 246, 250);
-      doc.rect(20, 129, 83, 8, "F");
+      doc.text("Deductions", deductionsX + deductionsW / 2, headerY + 6.5, {
+        align: "center",
+      });
 
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
-      doc.setTextColor(45, 55, 65);
+      // ==================================================
+      // TABLE BODY
+      // ==================================================
 
-      doc.text("Component", 23, 134.5);
-      doc.text("Amount", 78, 134.5);
+      const bodyY = headerY + tableHeaderH;
 
-      doc.line(68, 129, 68, 177);
+      const bodyBottom = bodyY + tableBodyH;
 
-      // Basic Salary
+      doc.setDrawColor(...borderColor);
+      doc.setLineWidth(0.3);
+
+      doc.rect(tableX, bodyY, descriptionW, tableBodyH, "S");
+
+      doc.rect(earningsX, bodyY, earningsW, tableBodyH, "S");
+
+      doc.rect(deductionsX, bodyY, deductionsW, tableBodyH, "S");
+
+      // Adjustment details
+
+      const adjustmentDetails = salary.adjustmentDetails || {};
+
+      const specialPerks = Array.isArray(adjustmentDetails.specialPerks)
+        ? adjustmentDetails.specialPerks
+        : [];
+
+      // ==================================================
+      // SALARY DEDUCTIONS
+      // ==================================================
+
+      const paidDeduction = salary.paidAmountDetails?.deductedAmount || {};
+
+      const salaryDeductions =
+        paidDeduction.amount > 0
+          ? [
+              {
+                description:
+                  paidDeduction.label?.trim() ||
+                  paidDeduction.comments?.trim() ||
+                  "Salary Deduction",
+                amount: Number(paidDeduction.amount || 0),
+              },
+            ]
+          : [];
+
+      console.log("Deduction Details:", salaryDeductions);
+      console.log("Special Perks:", specialPerks);
+      // Existing salary rows
+
+      const salaryRows = [
+        {
+          description: "Base Salary",
+          earnings: baseSalary,
+          deductions: null,
+        },
+        // Special Perks (Earnings)
+        // Combine all Special Perks into one row
+        ...(specialPerks.length > 0
+          ? [
+              {
+                description: "Special Perk",
+                earnings: specialPerks.reduce(
+                  (total, item) => total + Number(item.amount || 0),
+                  0,
+                ),
+                deductions: null,
+              },
+            ]
+          : []),
+
+        // Salary Deductions
+        ...salaryDeductions.map((item) => ({
+          description: item.label?.trim() || "Salary Deduction",
+          earnings: null,
+          deductions: Number(item.amount || 0),
+        })),
+        // {
+        //   description: "Transportation Allowance",
+        //   earnings: 500,
+        //   deductions: null,
+        // },
+        // {
+        //   description: "Medical Allowance",
+        //   earnings: 500,
+        //   deductions: null,
+        // },
+      ];
+
       doc.setFont("helvetica", "normal");
-      doc.text("Basic Salary", 23, 143);
-      doc.text(formatAmount(monthlySalary), 78, 143);
+      doc.setFontSize(10);
+      doc.setTextColor(...black);
 
-      doc.line(20, 146, 103, 146);
+      salaryRows.forEach((row, index) => {
+        const rowY = bodyY + 7 + index * 10;
 
-      // Paid Salary
-      doc.text("Payable Salary", 23, 152);
-      doc.text(formatAmount(payableSalary), 78, 152);
+        doc.text(row.description, tableX + 5, rowY);
 
-      doc.line(20, 155, 103, 155);
+        if (row.earnings !== null) {
+          doc.text(
+            formatNumber(row.earnings),
+            earningsX + earningsW - 5,
+            rowY,
+            {
+              align: "right",
+            },
+          );
+        }
 
-      // Paid Amount
-      doc.text("Paid Amount", 23, 161);
-      doc.text(formatAmount(paidAmount), 78, 161);
-
-      doc.line(20, 164, 103, 164);
-
-      // Gross Salary
-      doc.setFillColor(225, 242, 225);
-      doc.rect(20, 164, 83, 13, "F");
-
-      doc.setFont("helvetica", "bold");
-      doc.text("Gross Salary", 23, 172);
-      doc.text(formatAmount(monthlySalary), 78, 172);
+        if (row.deductions !== null) {
+          doc.text(
+            formatNumber(row.deductions),
+            deductionsX + deductionsW - 5,
+            rowY,
+            { align: "right" },
+          );
+        }
+      });
 
       // ==================================================
-      // C. DEDUCTIONS
+      // TOTAL ROW
       // ==================================================
 
-      doc.setFillColor(250, 225, 232);
-      doc.roundedRect(107, 121, 83, 8, 1, 1, "F");
+      const totalY = bodyBottom;
+
+      doc.setDrawColor(...borderColor);
+
+      doc.rect(tableX, totalY, descriptionW, totalH, "S");
+
+      doc.rect(earningsX, totalY, earningsW, totalH, "S");
+
+      doc.rect(deductionsX, totalY, deductionsW, totalH, "S");
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
-      doc.setTextColor(100, 45, 60);
+      doc.setTextColor(...black);
 
-      doc.text("C. Deductions", 110, 126.5);
+      doc.text("Gross Earnings", tableX + 5, totalY + 6.5);
 
-      doc.setDrawColor(215, 215, 215);
-      doc.roundedRect(107, 129, 83, 48, 1, 1);
-
-      // Table header
-      doc.setFillColor(242, 246, 250);
-      doc.rect(107, 129, 83, 8, "F");
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
-      doc.setTextColor(45, 55, 65);
-
-      doc.text("Component", 110, 134.5);
-      doc.text("Amount", 165, 134.5);
-
-      doc.line(155, 129, 155, 177);
-
-      // Salary Adjustment
-      doc.setFont("helvetica", "normal");
-
-      doc.text("Salary Adjustment", 110, 143);
-      doc.text(formatAmount(salaryAdjustment), 165, 143);
-
-      doc.line(107, 146, 190, 146);
-
-      // Unpaid Days
-      doc.text("Unpaid Days", 110, 152);
       doc.text(
-        String(
-          Math.max(
-            0,
-            Number(salary.totalPayableDays || 0) -
-              Number(salary.paidLeaveDays || 0) -
-              Number(salary.publicHolidayDays || 0),
-          ),
-        ),
-        165,
-        152,
+        formatNumber(totalEarnings),
+        earningsX + earningsW - 5,
+        totalY + 6.5,
+        { align: "right" },
       );
 
-      doc.line(107, 155, 190, 155);
-
-      // Other deductions
-      doc.text("Other Deductions", 110, 161);
-      doc.text("Rs. 0", 165, 161);
-
-      doc.line(107, 164, 190, 164);
-
-      // Total deductions
-      doc.setFillColor(250, 225, 232);
-      doc.rect(107, 164, 83, 13, "F");
-
-      doc.setFont("helvetica", "bold");
-      doc.text("Total Deductions", 110, 172);
-      doc.text(formatAmount(totalDeductions), 165, 172);
+      doc.text(
+        formatNumber(totalDeductions),
+        deductionsX + deductionsW - 5,
+        totalY + 6.5,
+        { align: "right" },
+      );
 
       // ==================================================
-      // D. PAYMENT SUMMARY
+      // PAYMENT DATE + NET PAY
       // ==================================================
 
-      doc.setFillColor(232, 235, 250);
-      doc.roundedRect(20, 183, 170, 8, 1, 1, "F");
+      const footerY = totalY + totalH;
+
+      const paymentDateW = descriptionW + earningsW;
+
+      // Payment Date
+
+      doc.setDrawColor(...borderColor);
+
+      doc.rect(x, footerY, paymentDateW, footerH, "S");
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
-      doc.setTextColor(45, 55, 100);
+      doc.setTextColor(...black);
 
-      doc.text("D. Payment Summary", 23, 188.5);
+      doc.text("Payment Date", x + 5, footerY + 7.5);
 
-      doc.setDrawColor(215, 215, 215);
-      doc.roundedRect(20, 191, 170, 38, 1, 1);
+      doc.text(":", x + 48, footerY + 7.5);
+
+      const paymentDate = salary.paymentDate || salary.paidAt || null;
+
+      const formattedPaymentDate = paymentDate
+        ? new Date(paymentDate).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })
+        : "--";
 
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(50, 50, 50);
 
-      doc.text("Monthly Salary", 23, 200);
-      doc.text(formatAmount(monthlySalary), 150, 200);
+      doc.text(formattedPaymentDate, x + 53, footerY + 7.5);
 
-      doc.text("Total Deductions", 23, 208);
-      doc.text(formatAmount(totalDeductions), 150, 208);
+      // NET PAY
 
-      doc.text("Payable Salary", 23, 216);
-      doc.text(formatAmount(payableSalary), 150, 216);
+      doc.setFillColor(...green);
 
-      // ==================================================
-      // NET SALARY
-      // ==================================================
-
-      doc.setFillColor(225, 242, 250);
-      doc.roundedRect(20, 235, 170, 14, 2, 2, "F");
+      doc.rect(x + paymentDateW, footerY, w - paymentDateW, footerH, "F");
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
-      doc.setTextColor(25, 50, 85);
+      doc.setTextColor(...white);
 
-      doc.text("Net Salary Paid", 24, 244);
-
-      doc.text(formatAmount(payableSalary), 185, 244, {
-        align: "right",
-      });
-
-      // ==================================================
-      // PAID AMOUNT
-      // ==================================================
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(70, 70, 70);
-
-      doc.text(`Paid Amount: ${formatAmount(paidAmount)}`, 105, 258, {
-        align: "center",
-      });
+      doc.text(
+        `NET PAY : Rs. ${formatNumber(netPay)}`,
+        x + paymentDateW + (w - paymentDateW) / 2,
+        footerY + 7.5,
+        { align: "center" },
+      );
 
       // ==================================================
-      // FOOTER
+      // DOWNLOAD PDF
       // ==================================================
 
-      doc.setFontSize(8);
-      doc.setTextColor(120, 120, 120);
+    const safeEmployeeName = String(employeeName)
+      .trim()
+      .replace(/[^a-zA-Z0-9-_]/g, "_");
 
-      doc.text("This is a system generated salary slip.", 105, 270, {
-        align: "center",
-      });
+    const safeMonth = monthName.replace(/\s+/g, "-");
 
-      // ==================================================
-      // DOWNLOAD
-      // ==================================================
+    doc.save(`Salary-Slip-${safeEmployeeName}-${safeMonth}.pdf`);
 
-      const safeEmployeeId = employeeId.replace(/[^a-zA-Z0-9-_]/g, "_");
-
-      const safeMonth = monthName.replace(/\s+/g, "-");
-
-      doc.save(`Salary-Slip-${safeEmployeeId}-${safeMonth}.pdf`);
       toast.dismiss();
+
       toast.success("Salary slip downloaded successfully.");
     } catch (error) {
       console.error("Salary Slip Download Error:", error);
 
+      toast.dismiss();
+
       toast.error("Unable to download salary slip.");
     }
   };
+
+  // const downloadSalarySlip = (salary) => {
+  //   try {
+  //     const doc = new jsPDF({
+  //       orientation: "landscape",
+  //       unit: "mm",
+  //       format: "a4",
+  //     });
+
+  //     // ==================================================
+  //     // EMPLOYEE DETAILS
+  //     // ==================================================
+
+  //     const employeeName =
+  //       existingSalaryResponse?.data?.employeeName ||
+  //       todayAttendance?.employeeId?.employeeName ||
+  //       "--";
+
+  //     const employeeId =
+  //       existingSalaryResponse?.data?.employeeId ||
+  //       todayAttendance?.employeeId?.employeeId ||
+  //       "--";
+
+  //     const designation = todayAttendance?.employeeId?.designation || "--";
+
+  //     const department =
+  //       existingSalaryResponse?.data?.department ||
+  //       todayAttendance?.employeeId?.department ||
+  //       "--";
+  //     const monthName = new Date(
+  //       salary.year,
+  //       salary.month - 1,
+  //     ).toLocaleDateString("en-IN", {
+  //       month: "long",
+  //       year: "numeric",
+  //     });
+
+  //     const monthlySalary = Number(salary.monthlySalary || 0);
+  //     const payableSalary = Number(salary.payableSalary || 0);
+  //     const paidAmount = Number(salary.paidAmount || 0);
+
+  //     const baseSalary = Math.max(monthlySalary - 1500, 0);
+  //     const overtimeEarnings = Math.max(0, payableSalary - monthlySalary);
+
+  //     const salaryAdjustment = Math.max(monthlySalary - payableSalary, 0);
+  //    const totalDaysInMonth = Number(salary.totalDaysInMonth || 0);
+  //    const totalPayableDays = Number(salary.totalPayableDays || 0);
+  //    const paidLeaveDays = Number(salary.paidLeaveDays || 0);
+
+  //    const lop = Math.max(totalDaysInMonth - totalPayableDays, 0);
+  //     const totalEarnings = monthlySalary;
+  //     const totalDeductions = salaryAdjustment;
+  //     const netPay = payableSalary;
+
+  //     // ==================================================
+  //     // COMPANY NAME
+  //     // ==================================================
+
+  //     const isITDepartment = department.trim().toLowerCase() === "it";
+
+  //     const companyName = isITDepartment
+  //       ? "Gopal's Innovative Tech Solutions"
+  //       : "Gopal's Paying Guest Services";
+
+  //     const companySubtitle = isITDepartment
+  //       ? "Gits Technologies Pvt. Ltd."
+  //       : "GPMS";
+
+  //     // ==================================================
+  //     // COLORS
+  //     // ==================================================
+
+  //     const green = [79, 101, 43];
+  //     const lightGreen = [218, 228, 190];
+  //     const borderColor = [125, 125, 125];
+  //     const black = [25, 25, 25];
+  //     const white = [255, 255, 255];
+
+  //     // ==================================================
+  //     // SALARY SLIP DIMENSIONS
+  //     // ==================================================
+
+  //     const pageWidth = 297;
+  //     const pageHeight = 210;
+
+  //     const x = 10;
+  //     const y = 24;
+  //     const w = 277;
+
+  //     const companyW = 65;
+  //     const titleW = 125;
+  //     const confidentialW = w - companyW - titleW;
+
+  //     const headerH = 28;
+  //     const employeeH = 40;
+  //     const tableHeaderH = 10;
+  //     const tableBodyH = 55;
+  //     const totalH = 10;
+  //     const footerH = 12;
+
+  //     const tableX = x;
+  //     const tableY = y + headerH + employeeH;
+
+  //     const descriptionW = 128;
+  //     const earningsW = 72;
+  //     const deductionsW = w - descriptionW - earningsW;
+
+  //     const earningsX = tableX + descriptionW;
+  //     const deductionsX = earningsX + earningsW;
+
+  //     // ==================================================
+  //     // PAGE BACKGROUND
+  //     // ==================================================
+
+  //     doc.setFillColor(245, 248, 245);
+  //     doc.rect(0, 0, pageWidth, pageHeight, "F");
+
+  //     // White salary slip background
+  //     doc.setFillColor(...white);
+  //     doc.setDrawColor(...borderColor);
+  //     doc.setLineWidth(0.35);
+
+  //     doc.rect(
+  //       x,
+  //       y,
+  //       w,
+  //       headerH + employeeH + tableHeaderH + tableBodyH + totalH + footerH,
+  //       "FD",
+  //     );
+
+  //     // ==================================================
+  //     // HEADER
+  //     // ==================================================
+
+  //     // LEFT GREEN COMPANY BOX
+  //     doc.setFillColor(...green);
+  //     doc.rect(x, y, companyW, headerH, "F");
+
+  //     doc.setTextColor(...white);
+  //     doc.setFont("helvetica", "bold");
+  //     doc.setFontSize(12);
+
+  //     const companyLines = doc.splitTextToSize(companyName, companyW - 10);
+
+  //     doc.text(companyLines, x + companyW / 2, y + 11, {
+  //       align: "center",
+  //       lineHeightFactor: 1.3,
+  //     });
+
+  //     // Company subtitle
+  //     doc.setFont("helvetica", "normal");
+  //     doc.setFontSize(8);
+
+  //     // doc.text(
+  //     //   companySubtitle,
+  //     //   x + companyW / 2,
+  //     //   y + 23,
+  //     //   { align: "center" },
+  //     // );
+
+  //     // CENTER SALARY SLIP TITLE
+  //     const titleX = x + companyW;
+
+  //     doc.setDrawColor(...borderColor);
+  //     doc.rect(titleX, y, titleW, headerH, "S");
+
+  //     doc.setTextColor(...black);
+  //     doc.setFont("helvetica", "bold");
+  //     doc.setFontSize(20);
+
+  //     doc.text("SALARY SLIP", titleX + titleW / 2, y + 13, { align: "center" });
+
+  //     doc.setLineWidth(0.25);
+  //     doc.line(titleX, y + 18, titleX + titleW, y + 18);
+
+  //     doc.setFontSize(10);
+  //     doc.setFont("helvetica", "bold");
+
+  //     doc.text(monthName, titleX + titleW / 2, y + 24, { align: "center" });
+
+  //     // RIGHT CONFIDENTIAL BOX
+  //     const confidentialX = titleX + titleW;
+
+  //     doc.setFillColor(...lightGreen);
+  //     doc.rect(confidentialX, y, confidentialW, headerH, "FD");
+
+  //     doc.setTextColor(...black);
+  //     doc.setFont("helvetica", "bold");
+  //     doc.setFontSize(16);
+
+  //     doc.text("CONFIDENTIAL", confidentialX + confidentialW / 2, y + 16, {
+  //       align: "center",
+  //     });
+
+  //     // ==================================================
+  //     // EMPLOYEE INFORMATION
+  //     // ==================================================
+
+  //     const detailsY = y + headerH;
+
+  //     doc.setDrawColor(...borderColor);
+
+  //     // Employee details box
+  //     doc.rect(x, detailsY, w, employeeH, "S");
+
+  //     // Vertical divider
+  //     doc.line(x + w / 2, detailsY, x + w / 2, detailsY + employeeH);
+
+  //     doc.setFont("helvetica", "normal");
+  //     doc.setFontSize(10);
+  //     doc.setTextColor(...black);
+
+  //     const leftDetails = [
+  //       ["Name", employeeName],
+  //       ["Employee ID", employeeId],
+  //       ["Pay Period", monthName],
+  //       ["Total Days", String(Number(salary.totalDaysInMonth || 0))],
+  //       ["Payable Days", String(Number(salary.totalPayableDays || 0))],
+  //     ];
+
+  //     const rightDetails = [
+  //       ["Title", designation],
+  //       // ["Directorate", department],
+  //       ["Department", department],
+  //       ["LOP", String(lop)],
+
+  //       ["Paid Leave", String(Number(salary.paidLeaveDays || 0))],
+  //       // [
+  //       //   "Public Holidays",
+  //       //   String(Number(salary.publicHolidayDays || 0)),
+  //       // ],
+  //     ];
+
+  //     const drawDetails = (details, startX) => {
+  //       details.forEach(([label, value], index) => {
+  //         const rowY = detailsY + 9 + index * 7;
+
+  //         doc.text(label, startX, rowY);
+  //         doc.text(":", startX + 48, rowY);
+
+  //         doc.text(String(value || "--"), startX + 53, rowY);
+  //       });
+  //     };
+
+  //     drawDetails(leftDetails, x + 5);
+  //     drawDetails(rightDetails, x + w / 2 + 5);
+
+  //     // ==================================================
+  //     // TABLE HEADER
+  //     // ==================================================
+
+  //     const headerY = tableY;
+
+  //     doc.setFillColor(...green);
+
+  //     doc.rect(tableX, headerY, descriptionW, tableHeaderH, "F");
+
+  //     doc.rect(earningsX, headerY, earningsW, tableHeaderH, "F");
+
+  //     doc.rect(deductionsX, headerY, deductionsW, tableHeaderH, "F");
+
+  //     doc.setFont("helvetica", "bold");
+  //     doc.setFontSize(10);
+  //     doc.setTextColor(...white);
+
+  //     doc.text("Description", tableX + descriptionW / 2, headerY + 6.5, {
+  //       align: "center",
+  //     });
+
+  //     doc.text("Earnings", earningsX + earningsW / 2, headerY + 6.5, {
+  //       align: "center",
+  //     });
+
+  //     doc.text("Deductions", deductionsX + deductionsW / 2, headerY + 6.5, {
+  //       align: "center",
+  //     });
+
+  //     // ==================================================
+  //     // TABLE BODY
+  //     // ==================================================
+
+  //     const bodyY = headerY + tableHeaderH;
+  //     const bodyBottom = bodyY + tableBodyH;
+
+  //     doc.setDrawColor(...borderColor);
+  //     doc.setLineWidth(0.3);
+
+  //     doc.rect(tableX, bodyY, descriptionW, tableBodyH, "S");
+
+  //     doc.rect(earningsX, bodyY, earningsW, tableBodyH, "S");
+
+  //     doc.rect(deductionsX, bodyY, deductionsW, tableBodyH, "S");
+  //     const adjustmentDetails = salary.adjustmentDetails || {};
+
+  //     const specialPerks = Array.isArray(adjustmentDetails.specialPerks)
+  //       ? adjustmentDetails.specialPerks
+  //       : [];
+
+  //     const salaryDeductions = Array.isArray(adjustmentDetails.deductions)
+  //       ? adjustmentDetails.deductions
+  //       : [];
+  //     // Salary rows
+  //     const salaryRows = [
+  //       {
+  //         description: "Base  Salary",
+  //         earnings: baseSalary,
+  //         deductions: null,
+  //       },
+  //       {
+  //         description: "Overtime Earnings",
+  //         earnings: overtimeEarnings,
+  //         deductions: null,
+  //       },
+
+  //       {
+  //         description: "Snacks Allowance",
+  //         earnings: 500,
+  //         deductions: null,
+  //       },
+  //       {
+  //         description: "Transportation Allowance",
+  //         earnings: 500,
+  //         deductions: null,
+  //       },
+  //       {
+  //         description: "Medical Allowance",
+  //         earnings: 500,
+  //         deductions: null,
+  //       },
+  //       // {
+  //       //   description: "Unpaid Leave Deduction",
+  //       //   earnings: null,
+  //       //   deductions: `eeeee`,
+  //       // },
+  //       // {
+  //       //   description: "Attendance Deficit Deduction",
+  //       //   earnings: null,
+  //       //   deductions: 500,
+  //       // },
+  //       // {
+  //       //   description: "Other Deductions",
+  //       //   earnings: null,
+  //       //   deductions: 0,
+  //       // },
+  //     ];
+
+  //     doc.setFont("helvetica", "normal");
+  //     doc.setFontSize(10);
+  //     doc.setTextColor(...black);
+
+  //     salaryRows.forEach((row, index) => {
+  //       const rowY = bodyY + 7 + index * 10;
+
+  //       doc.text(row.description, tableX + 5, rowY);
+
+  //       if (row.earnings !== null) {
+  //         doc.text(
+  //           Number(row.earnings).toLocaleString("en-IN", {
+  //             minimumFractionDigits: 2,
+  //             maximumFractionDigits: 2,
+  //           }),
+  //           earningsX + earningsW - 5,
+  //           rowY,
+  //           { align: "right" },
+  //         );
+  //       }
+
+  //       if (row.deductions !== null) {
+  //         doc.text(
+  //           Number(row.deductions).toLocaleString("en-IN", {
+  //             minimumFractionDigits: 2,
+  //             maximumFractionDigits: 2,
+  //           }),
+  //           deductionsX + deductionsW - 5,
+  //           rowY,
+  //           { align: "right" },
+  //         );
+  //       }
+  //     });
+
+  //     // ==================================================
+  //     // TOTAL ROW
+  //     // ==================================================
+
+  //     const totalY = bodyBottom;
+
+  //     doc.setDrawColor(...borderColor);
+
+  //     doc.rect(tableX, totalY, descriptionW, totalH, "S");
+
+  //     doc.rect(earningsX, totalY, earningsW, totalH, "S");
+
+  //     doc.rect(deductionsX, totalY, deductionsW, totalH, "S");
+
+  //     doc.setFont("helvetica", "bold");
+  //     doc.setFontSize(10);
+  //     doc.setTextColor(...black);
+
+  //     doc.text("Gross Earnings", tableX + 5, totalY + 6.5);
+
+  //     const formatNumber = (amount) =>
+  //       Number(amount || 0).toLocaleString("en-IN", {
+  //         minimumFractionDigits: 2,
+  //         maximumFractionDigits: 2,
+  //       });
+
+  //     doc.text(
+  //       formatNumber(totalEarnings),
+  //       earningsX + earningsW - 5,
+  //       totalY + 6.5,
+  //       { align: "right" },
+  //     );
+
+  //     doc.text(
+  //       formatNumber(totalDeductions),
+  //       deductionsX + deductionsW - 5,
+  //       totalY + 6.5,
+  //       { align: "right" },
+  //     );
+
+  //     // ==================================================
+  //     // PAYMENT DATE + NET PAY
+  //     // ==================================================
+
+  //     const footerY = totalY + totalH;
+
+  //     const paymentDateW = descriptionW + earningsW;
+
+  //     // Payment date area
+  //     doc.setDrawColor(...borderColor);
+  //     doc.rect(x, footerY, paymentDateW, footerH, "S");
+
+  //     doc.setFont("helvetica", "bold");
+  //     doc.setFontSize(10);
+  //     doc.setTextColor(...black);
+
+  //     doc.text("Payment Date", x + 5, footerY + 7.5);
+
+  //     doc.text(":", x + 48, footerY + 7.5);
+
+  //     // Date field is shown only if provided by the salary record
+  //     const paymentDate = salary.paymentDate || salary.paidAt || null;
+
+  //     const formattedPaymentDate = paymentDate
+  //       ? new Date(paymentDate).toLocaleDateString("en-IN", {
+  //           day: "numeric",
+  //           month: "long",
+  //           year: "numeric",
+  //         })
+  //       : "--";
+
+  //     doc.setFont("helvetica", "normal");
+
+  //     doc.text(formattedPaymentDate, x + 53, footerY + 7.5);
+
+  //     // NET PAY green area
+  //     doc.setFillColor(...green);
+
+  //     doc.rect(x + paymentDateW, footerY, w - paymentDateW, footerH, "F");
+
+  //     doc.setFont("helvetica", "bold");
+  //     doc.setFontSize(12);
+  //     doc.setTextColor(...white);
+
+  //     doc.text(
+  //       `NET PAY : Rs. ${formatNumber(netPay)}`,
+  //       x + paymentDateW + (w - paymentDateW) / 2,
+  //       footerY + 7.5,
+  //       { align: "center" },
+  //     );
+
+  //     // ==================================================
+  //     // DOWNLOAD PDF
+  //     // ==================================================
+
+  //     const safeEmployeeId = String(employeeId).replace(/[^a-zA-Z0-9-_]/g, "_");
+
+  //     const safeMonth = monthName.replace(/\s+/g, "-");
+
+  //     doc.save(`Salary-Slip-${safeEmployeeId}-${safeMonth}.pdf`);
+
+  //     toast.dismiss();
+  //     toast.success("Salary slip downloaded successfully.");
+  //   } catch (error) {
+  //     console.error("Salary Slip Download Error:", error);
+
+  //     toast.dismiss();
+  //     toast.error("Unable to download salary slip.");
+  //   }
+  // };
   const handleSubmitRegularization = async (formData) => {
     // console.log("Dummy regularization request:");
 

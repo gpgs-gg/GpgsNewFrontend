@@ -12,15 +12,34 @@ import { getPropertyDropdown } from "../properties/services";
 import { AsyncPaginate } from "react-select-async-paginate";
 import { selectStyles } from "../../utils/selectStyles";
 import Select from "react-select";
-import { useBatchOptions } from "../Options/services";
+import {
+  useBatchOptions,
+  useMasterData,
+  useUpdateMasterData,
+} from "../Options/services";
 import { useCurrentUser } from "../../auth/services";
 import CreatableSelect from "react-select/creatable";
 const BankTransactionEdit = () => {
     const navigate = useNavigate();
     const { account, id } = useParams();
     const { data: options = {} } = useBatchOptions([
-        "bankstatus", "expensecode", "expensecategory", "expensetype",
-    ]);
+    "bankstatus",
+    "expensecode",
+    "expensecategory",
+    "expensetype",
+  ]);
+
+  // Get Expense Category master record
+  const { data: expenseCategoryMasterResponse } = useMasterData({
+    page: 1,
+    limit: 100,
+    filters: {
+      categoryKey: "expensecategory",
+      isActive: true,
+    },
+  });
+
+  const updateMasterDataMutation = useUpdateMasterData();
     const {
         control,
         register,
@@ -46,6 +65,8 @@ const BankTransactionEdit = () => {
     const { mutate: updateTransaction, isPending: updateLoading } =
         useUpdateBankTransaction();
     const [selectedProperty, setSelectedProperty] = useState(null);
+    const [expenseCategoryInput, setExpenseCategoryInput] = useState("");
+  const [isAddingExpenseCategory, setIsAddingExpenseCategory] = useState(false);
     useEffect(() => {
         if (transactionData?.data) {
             const data = transactionData.data;
@@ -67,7 +88,12 @@ const BankTransactionEdit = () => {
             reset({
                 propertyId: data.propertyId || "",
                 expensecode: data.expenseCode?.id || "",
-                expenseCategory: data.expenseCategory || "",
+              expenseCategory: Array.isArray(data.expenseCategory)
+          ? data.expenseCategory
+          : data.expenseCategory
+            ? [data.expenseCategory]
+            : [],
+        expenseType: data.expenseType || "",
                 expenseType: data.expenseType || "",
                 status: data.status || "",
                 comment: data.comment || "",
@@ -120,7 +146,11 @@ const BankTransactionEdit = () => {
     const onSubmit = (data) => {
         const payload = {
             propertyId: data.propertyId || "",
-            expenseCategory: data.expenseCategory || "",
+          expenseCategory: Array.isArray(data.expenseCategory)
+        ? data.expenseCategory
+        : data.expenseCategory
+          ? [data.expenseCategory]
+          : [],
             expenseType: data.expenseType || "",
             status: data.status || "",
             updatedByName: currentUser?.user?.name,
@@ -475,119 +505,66 @@ const BankTransactionEdit = () => {
                                 />
 
                                 {/* Expense Type - Select or Create */}
-                                <Controller
-                                    name="expenseType"
-                                    control={control}
-                                    rules={{
-                                        required: "Expense Type is required",
-                                        validate: (value) =>
-                                            value?.trim() !== "" || "Expense Type is required",
-                                    }}
-                                    render={({ field }) => {
-                                        const selectedOption =
-                                            expenseTypeOptions.find(
-                                                (option) => option.value === field.value,
-                                            ) ||
-                                            (field.value
-                                                ? {
-                                                    value: field.value,
-                                                    label: field.value,
-                                                }
-                                                : null);
+                               {Number(transaction?.deposit || 0) <= 0 && (
+                  <Controller
+                    name="expenseType"
+                    control={control}
+                    rules={{
+                      required: "Expense Type is required",
+                      validate: (value) =>
+                        value?.trim() !== "" || "Expense Type is required",
+                    }}
+                    render={({ field }) => {
+                      const selectedOption =
+                        expenseTypeOptions.find(
+                          (option) => option.value === field.value,
+                        ) ||
+                        (field.value
+                          ? {
+                              value: field.value,
+                              label: field.value,
+                            }
+                          : null);
 
-                                        return (
-                                            <div>
-                                                <div
-                                                    className={`select-group ${field.value ? "has-value" : ""
-                                                        }`}
-                                                >
-                                                    <label className="select-label form-label required-label">
-                                                        Expense Type
-                                                    </label>
+                      return (
+                        <div>
+                          <div
+                            className={`select-group ${
+                              field.value ? "has-value" : ""
+                            }`}
+                          >
+                            <label className="select-label form-label required-label">
+                              Expense Type
+                            </label>
 
-                                                    <CreatableSelect
-                                                        value={selectedOption}
-                                                        onChange={(option) =>
-                                                            field.onChange(option?.value || "")
-                                                        }
-                                                        onBlur={field.onBlur}
-                                                        options={expenseTypeOptions}
-                                                        isClearable
-                                                        isSearchable
-                                                        placeholder=""
-                                                        formatCreateLabel={(inputValue) =>
-                                                            `Create "${inputValue}"`
-                                                        }
-                                                        styles={selectStyles}
-                                                    />
-                                                </div>
+                            <CreatableSelect
+                              value={selectedOption}
+                              onChange={(option) =>
+                                field.onChange(option?.value || "")
+                              }
+                              onBlur={field.onBlur}
+                              options={expenseTypeOptions}
+                              isClearable
+                              isSearchable
+                              placeholder=""
+                              formatCreateLabel={(inputValue) =>
+                                `Create "${inputValue}"`
+                              }
+                              styles={selectStyles}
+                            />
+                          </div>
 
-                                                {errors.expenseType && (
-                                                    <p className="text-red-500 text-sm mt-1">
-                                                        {errors.expenseType.message}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        );
-                                    }}
-                                />
-                                {/* Expense Category - Select or Create */}
-                                <Controller
-                                    name="expenseCategory"
-                                    control={control}
-                                    rules={{
-                                        required: "Expense Category is required",
-                                        validate: (value) =>
-                                            value?.trim() !== "" || "Expense Category is required",
-                                    }}
-                                    render={({ field }) => {
-                                        const selectedOption =
-                                            expensecategoryOptions.find(
-                                                (option) => option.value === field.value,
-                                            ) ||
-                                            (field.value
-                                                ? {
-                                                    value: field.value,
-                                                    label: field.value,
-                                                }
-                                                : null);
-
-                                        return (
-                                            <div>
-                                                <div
-                                                    className={`select-group ${field.value ? "has-value" : ""
-                                                        }`}
-                                                >
-                                                    <label className="select-label form-label required-label">
-                                                        Expense Category / Item
-                                                    </label>
-
-                                                    <CreatableSelect
-                                                        value={selectedOption}
-                                                        onChange={(option) =>
-                                                            field.onChange(option?.value || "")
-                                                        }
-                                                        onBlur={field.onBlur}
-                                                        options={expensecategoryOptions}
-                                                        isClearable
-                                                        isSearchable
-                                                        placeholder="Select or enter "
-                                                        formatCreateLabel={(inputValue) =>
-                                                            `Create "${inputValue}"`
-                                                        }
-                                                        styles={selectStyles}
-                                                    />
-                                                </div>
-
-                                                {errors.expenseCategory && (
-                                                    <p className="text-red-500 text-sm mt-1">
-                                                        {errors.expenseCategory.message}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        );
-                                    }}
-                                />
+                          {errors.expenseType && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors.expenseType.message}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }}
+                  />
+                )}
+                               
 
                                 <Controller
                                     name="status"
@@ -628,6 +605,201 @@ const BankTransactionEdit = () => {
                                         Commnet
                                     </label>
                                 </div>
+                                {/* Expense Category / Item - Multi Select or Create */}
+                <div className="md:col-span-3">
+                  <Controller
+                    name="expenseCategory"
+                    control={control}
+                    rules={{
+                      validate: (value) =>
+                        (Array.isArray(value) && value.length > 0) ||
+                        "At least one Expense Category is required",
+                    }}
+                    render={({ field }) => {
+                      const selectedOptions = (
+                        Array.isArray(field.value)
+                          ? field.value
+                          : field.value
+                            ? [field.value]
+                            : []
+                      ).map(
+                        (value) =>
+                          expensecategoryOptions.find(
+                            (option) => option.value === value,
+                          ) || {
+                            value,
+                            label: value,
+                          },
+                      );
+
+                      // ==================================
+                      // CREATE NEW EXPENSE CATEGORY
+                      // ==================================
+
+                    const handleCreateExpenseCategory = async (inputValue) => {
+                      const newValue = inputValue.trim();
+
+                      if (!newValue) return;
+
+                      if (newValue.length > 15) {
+                        toast.error(
+                          "Expense Category cannot exceed 15 characters",
+                        );
+                        return;
+                      }
+
+                      // Prevent multiple API calls
+                      if (isAddingExpenseCategory) return;
+
+                      // Prevent duplicate options
+                      const existingOption = expensecategoryOptions.find(
+                        (option) =>
+                          option.value.toLowerCase() ===
+                            newValue.toLowerCase() ||
+                          option.label.toLowerCase() === newValue.toLowerCase(),
+                      );
+
+                      if (existingOption) {
+                        const currentValues = Array.isArray(field.value)
+                          ? field.value
+                          : [];
+
+                        field.onChange([
+                          ...new Set([...currentValues, existingOption.value]),
+                        ]);
+
+                        setExpenseCategoryInput("");
+                        return;
+                      }
+
+                      setIsAddingExpenseCategory(true);
+
+                      try {
+                        const masterData = expenseCategoryMasterResponse?.data;
+
+                        const master = Array.isArray(masterData)
+                          ? masterData.find(
+                              (item) => item.categoryKey === "expensecategory",
+                            )
+                          : masterData?.categoryKey === "expensecategory"
+                            ? masterData
+                            : null;
+
+                        if (!master?._id) {
+                          toast.error("Expense Category master not found");
+                          return;
+                        }
+
+                        const newItem = {
+                          label: newValue,
+                          value: newValue,
+                          code: "",
+                          displayOrder: (master.items?.length || 0) + 1,
+                          isDefault: false,
+                          isActive: true,
+                        };
+
+                        await updateMasterDataMutation.mutateAsync({
+                          id: master._id,
+                          data: {
+                            categoryName: master.categoryName,
+                            description: master.description || "",
+                            items: [...(master.items || []), newItem],
+                            updatedByName: currentUser?.user?.name || "System",
+                          },
+                        });
+
+                        const currentValues = Array.isArray(field.value)
+                          ? field.value
+                          : [];
+
+                        field.onChange([...currentValues, newValue]);
+
+                        setExpenseCategoryInput("");
+
+                        toast.success(
+                          "New Expense Category created successfully",
+                        );
+                      } catch (error) {
+                        toast.error(
+                          error?.response?.data?.message ||
+                            "Failed to create Expense Category",
+                        );
+                      } finally {
+                        setIsAddingExpenseCategory(false);
+                      }
+                    };
+
+                      return (
+                        <div>
+                          <div
+                            className={`select-group ${
+                              selectedOptions.length ? "has-value" : ""
+                            }`}
+                          >
+                            <label className="select-label form-label required-label">
+                              Expense Category / Item
+                            </label>
+
+                            <CreatableSelect
+                              isMulti
+                              value={selectedOptions}
+                              inputValue={expenseCategoryInput}
+                              onInputChange={(newValue, actionMeta) => {
+                                if (actionMeta.action === "input-change") {
+                                  setExpenseCategoryInput(
+                                    newValue.slice(0, 15),
+                                  );
+                                }
+                                return newValue.slice(0, 15);
+                              }}
+                              onChange={(selectedOptions) => {
+                                field.onChange(
+                                  (selectedOptions || []).map(
+                                    (option) => option.value,
+                                  ),
+                                );
+                              }}
+                              onCreateOption={handleCreateExpenseCategory}
+                              onBlur={field.onBlur}
+                              options={expensecategoryOptions}
+                              isClearable
+                              isSearchable
+                              isDisabled={isAddingExpenseCategory}
+                              isLoading={isAddingExpenseCategory}
+                              placeholder={
+                                isAddingExpenseCategory
+                                  ? "Adding Expense Category..."
+                                  : "Select or enter categories"
+                              }
+                              loadingMessage={() =>
+                                "Adding Expense Category, please wait..."
+                              }
+                              formatCreateLabel={(inputValue) =>
+                                `Create "${inputValue}"`
+                              }
+                              styles={selectStyles}
+                            />
+                          </div>
+                          {isAddingExpenseCategory && (
+                            <div className="flex items-center gap-2 mt-2 text-sm text-blue-600">
+                              <span className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+
+                              <span className="font-medium">
+                                Adding Expense Category... Please wait.
+                              </span>
+                            </div>
+                          )}
+                          {errors.expenseCategory && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors.expenseCategory.message}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }}
+                  />
+                </div>
                             </div>
                             {/* ================= WORK LOG ================= */}
                             {transaction?.workLogs?.length > 0 && (

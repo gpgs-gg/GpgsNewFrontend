@@ -13,6 +13,8 @@ const AttendanceFilter = ({
   resetTrigger,
   employees = [],
   initialFilters = {},
+  role = "",
+  userDepartment = "",
 }) => {
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
@@ -45,15 +47,30 @@ const AttendanceFilter = ({
     ],
     [],
   );
-  const employeeOptions = useMemo(
-    () =>
-      employees.map((employee) => ({
-        value: employee._id,
-        label: `${employee.employeeName} `,
-        // label: `${employee.employeeName} (${employee.employeeId})`,
-      })),
-    [employees],
-  );
+
+  const isAdmin = role?.toLowerCase() === "admin";
+
+  const isManagement = userDepartment?.trim().toLowerCase() === "management";
+
+  const canShowDepartmentFilter = isAdmin || isManagement;
+const employeeOptions = useMemo(() => {
+  const canSeeAllEmployees =
+    role?.toLowerCase() === "admin" ||
+    userDepartment?.trim().toLowerCase() === "management";
+
+  const filteredEmployees = canSeeAllEmployees
+    ? employees
+    : employees.filter(
+        (employee) =>
+          employee.department?.trim().toLowerCase() ===
+          userDepartment?.trim().toLowerCase(),
+      );
+
+  return filteredEmployees.map((employee) => ({
+    value: employee._id,
+    label: employee.employeeName,
+  }));
+}, [employees, role, userDepartment]);
 
   const departmentOptions = useMemo(() => {
     const departments = [
@@ -143,6 +160,7 @@ const AttendanceFilter = ({
     initialFilters.status,
     initialFilters.employeeId,
     employeeOptions,
+    departmentOptions,
     statusOptions,
     reset,
   ]);
@@ -320,59 +338,61 @@ const AttendanceFilter = ({
                 </div>
               )}
             />
-            <Controller
-              name="department"
-              control={control}
-              render={({ field }) => (
-                <div
-                  className={`select-group ${field.value ? "has-value" : ""}`}
-                >
-                  <label className="select-label">Department</label>
+            {canShowDepartmentFilter && (
+              <Controller
+                name="department"
+                control={control}
+                render={({ field }) => (
+                  <div
+                    className={`select-group ${field.value ? "has-value" : ""}`}
+                  >
+                    <label className="select-label">Department</label>
 
-                  <Select
-                    options={departmentOptions}
-                    isSearchable
-                    isClearable
-                    placeholder="Select"
-                    value={field.value}
-                    onChange={(option) => field.onChange(option)}
-                    styles={selectStyles}
-                  />
-                </div>
-              )}
-            />
+                    <Select
+                      options={departmentOptions}
+                      isSearchable
+                      isClearable
+                      placeholder="Select"
+                      value={field.value}
+                      onChange={(option) => field.onChange(option)}
+                      styles={selectStyles}
+                    />
+                  </div>
+                )}
+              />)}
           </div>
           {/* ==================================================
               ACTION BUTTONS
           ================================================== */}
 
           <div className="shrink-0 border-t border-gray-200 bg-white p-5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
-  <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                reset({
-                  month: "",
-                  date: "",
-                  status: null,
-                  employeeId: null,
-                  department: null,
-                });
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  reset({
+                    month: "",
+                    date: "",
+                    status: null,
+                    employeeId: null,
+                    department: null,
+                  });
 
-                handleReset();
-              }}
-              className="w-full rounded-lg border border-gray-300 py-2 transition hover:bg-gray-50"
-            >
-              Reset
-            </button>
+                  handleReset();
+                }}
+                className="w-full rounded-lg border border-gray-300 py-2 transition hover:bg-gray-50"
+              >
+                Reset
+              </button>
 
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-gradient-to-r from-slate-800 via-slate-700 to-slate-900 py-2 text-white transition hover:opacity-90"
-            >
-              Apply Filters
-            </button>
-          </div></div>
+              <button
+                type="submit"
+                className="w-full rounded-lg bg-gradient-to-r from-slate-800 via-slate-700 to-slate-900 py-2 text-white transition hover:opacity-90"
+              >
+                Apply Filters
+              </button>
+            </div>
+          </div>
         </form>
       </div>
     </>

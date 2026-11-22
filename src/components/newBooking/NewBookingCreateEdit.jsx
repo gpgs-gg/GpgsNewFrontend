@@ -273,6 +273,53 @@ const NewBookingCreateEdit = () => {
       .oneOf(["PA", "BA", "FA"], "Please select a valid Ask For option"),
   });
 
+
+  const bookingValidationSchema = yup.object({
+    ...clientDetailsAndPropertyDetailsSchema.fields,
+
+    temporaryPropertyId: yup.mixed().nullable(),
+
+    temporaryBedId: yup.mixed().when("temporaryPropertyId", {
+      is: (value) => !!value?.value || !!value,
+      then: () => yup.string().required("Temporary Bed is required"),
+      otherwise: () => yup.mixed().nullable(),
+    }),
+
+    temporaryRoomNo: yup.string().when("temporaryPropertyId", {
+      is: (value) => !!value?.value || !!value,
+      then: (schema) => schema.required("Temporary Room No is required"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+
+    temporaryAcRoom: yup.string().when("temporaryPropertyId", {
+      is: (value) => !!value?.value || !!value,
+      then: (schema) =>
+        schema.required("Temporary AC / Non AC is required"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+
+  temporaryMonthlyRent: yup.number()
+  .transform((value, originalValue) =>
+    originalValue === "" || originalValue == null ? null : value
+  )
+  .nullable()
+  .when("temporaryPropertyId", {
+    is: (value) => !!value,
+    then: (schema) =>
+      schema.required("Temporary Monthly Rent is required"),
+    otherwise: (schema) => schema.nullable(),
+  }),
+
+    temporaryClientDoj: yup.date().when("temporaryPropertyId", {
+      is: (value) => !!value?.value || !!value,
+      then: (schema) =>
+        schema
+          .typeError("Temporary Client DOJ is required")
+          .required("Temporary Client DOJ is required"),
+      otherwise: (schema) => schema.nullable().notRequired(),
+    }),
+  });
+
   const [applyPermBedRent, setApplyPermBedRent] = useState(true);
   const [showDojWarningModal, setShowDojWarningModal] = useState(false);
   const [pendingDoj, setPendingDoj] = useState(null);
@@ -308,16 +355,16 @@ const NewBookingCreateEdit = () => {
     watch,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(clientDetailsAndPropertyDetailsSchema),
+    resolver: yupResolver(bookingValidationSchema),
     mode: "onBlur",
     defaultValues: {
       newWorkLog: "",
     },
   });
-
+   console.log(errors)
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  
+
   const [formPreviewData, setFormPreviewData] = useState(null);
   const [activeTab, setActiveTab] = useState("Permanent");
   const { data: bedAvailableData, isPending: isBedAvailableData } =
@@ -343,30 +390,30 @@ const NewBookingCreateEdit = () => {
   const watchTempClientLastDate = watch("temporaryClientLastDate");
   const watchTempMonthlyRent = watch("temporaryMonthlyRent");
   const watchAskFor = watch("askFor");
-const handleFillBookingForm = (item) => {
-  if (!item) return;
+  const handleFillBookingForm = (item) => {
+    if (!item) return;
 
-  setValue("fullName", item.fullName || "");
-  setValue("whatsappNo", item.whatsappNumber || "");
-  setValue("callingNo", item.callingNumber || "");
-  setValue("emailId", item.email || "");
+    setValue("fullName", item.fullName || "");
+    setValue("whatsappNo", item.whatsappNumber || "");
+    setValue("callingNo", item.callingNumber || "");
+    setValue("emailId", item.email || "");
 
-  setValue("emergencyContact1FullName", item.fatherName || "");
-  setValue("emergencyContact1No", item.fatherContact || "");
+    setValue("emergencyContact1FullName", item.fatherName || "");
+    setValue("emergencyContact1No", item.fatherContact || "");
 
-  setValue("emergencyContact2FullName", item.motherName || "");
-  setValue("emergencyContact2No", item.motherContact || "");
+    setValue("emergencyContact2FullName", item.motherName || "");
+    setValue("emergencyContact2No", item.motherContact || "");
 
-  if (item.askFor) {
-    setValue("askFor", item.askFor);
-  }
+    if (item.askFor) {
+      setValue("askFor", item.askFor);
+    }
 
-  if (item.joiningDate) {
-    setValue("clientDoj", new Date(item.joiningDate));
-  }
+    if (item.joiningDate) {
+      setValue("clientDoj", new Date(item.joiningDate));
+    }
 
-  setShowEnquiries(false);
-};
+    setShowEnquiries(false);
+  };
 
 
   const loadPropertyOptions = async (search, loadedOptions, { page }) => {
@@ -460,13 +507,13 @@ const handleFillBookingForm = (item) => {
 
           const startDay =
             currentDate.getFullYear() === start.getFullYear() &&
-            currentDate.getMonth() === start.getMonth()
+              currentDate.getMonth() === start.getMonth()
               ? start.getDate()
               : 1;
 
           const endDay =
             currentDate.getFullYear() === end.getFullYear() &&
-            currentDate.getMonth() === end.getMonth()
+              currentDate.getMonth() === end.getMonth()
               ? Math.min(end.getDate(), billingDays)
               : billingDays;
 
@@ -492,13 +539,13 @@ const handleFillBookingForm = (item) => {
 
           const startDay =
             currentDate.getFullYear() === start.getFullYear() &&
-            currentDate.getMonth() === start.getMonth()
+              currentDate.getMonth() === start.getMonth()
               ? start.getDate()
               : 1;
 
           const endDay =
             currentDate.getFullYear() === end.getFullYear() &&
-            currentDate.getMonth() === end.getMonth()
+              currentDate.getMonth() === end.getMonth()
               ? Math.min(end.getDate(), billingDays)
               : billingDays;
 
@@ -847,22 +894,22 @@ const handleFillBookingForm = (item) => {
       // React Select values
       propertyId: booking.propertyId
         ? {
-            value: `${booking.propertyId._id},${booking.propertyId.propertyCode}`,
-            label: booking.propertyId.propertyCode,
-            location: booking.propertyId.propertyLocation,
-            bedCount: booking.propertyId.bedCount,
-          }
+          value: `${booking.propertyId._id},${booking.propertyId.propertyCode}`,
+          label: booking.propertyId.propertyCode,
+          location: booking.propertyId.propertyLocation,
+          bedCount: booking.propertyId.bedCount,
+        }
         : null,
       bedId: booking.bedId
         ? `${booking.bedId._id},${booking.bedId.bedNo}`
         : null,
       temporaryPropertyId: booking.temporaryPropertyId
         ? {
-            value: `${booking.temporaryPropertyId._id},${booking.temporaryPropertyId.propertyCode}`,
-            label: booking.temporaryPropertyId.propertyCode,
-            location: booking.temporaryPropertyId.propertyLocation,
-            bedCount: booking.temporaryPropertyId.bedCount,
-          }
+          value: `${booking.temporaryPropertyId._id},${booking.temporaryPropertyId.propertyCode}`,
+          label: booking.temporaryPropertyId.propertyCode,
+          location: booking.temporaryPropertyId.propertyLocation,
+          bedCount: booking.temporaryPropertyId.bedCount,
+        }
         : null,
       temporaryBedId: booking.temporaryBedId
         ? `${booking.temporaryBedId._id},${booking.temporaryBedId.bedNo}`
@@ -1098,8 +1145,8 @@ const handleFillBookingForm = (item) => {
               submitLockRef.current = false;
               toast.error(
                 error?.response?.data?.message ||
-                  error?.message ||
-                  "Something went wrong",
+                error?.message ||
+                "Something went wrong",
               );
             },
           },
@@ -1120,8 +1167,8 @@ const handleFillBookingForm = (item) => {
             submitLockRef.current = false;
             toast.error(
               error?.response?.data?.message ||
-                error?.message ||
-                "Something went wrong",
+              error?.message ||
+              "Something went wrong",
             );
           },
         });
@@ -1379,11 +1426,10 @@ const handleFillBookingForm = (item) => {
           <button
             type="button"
             onClick={() => setActiveTab("Permanent")}
-            className={`px-4 py-2 rounded-lg font-medium  ${
-              activeTab === "Permanent"
+            className={`px-4 py-2 rounded-lg font-medium  ${activeTab === "Permanent"
                 ? "theme-btn text-white"
                 : "bg-gray-100 text-gray-700"
-            }`}
+              }`}
           >
             Permanent Property Details
           </button>
@@ -1391,11 +1437,10 @@ const handleFillBookingForm = (item) => {
           <button
             type="button"
             onClick={() => setActiveTab("Temporary")}
-            className={`px-4 py-2 rounded-lg font-medium ${
-              activeTab === "Temporary"
+            className={`px-4 py-2 rounded-lg font-medium ${activeTab === "Temporary"
                 ? "theme-btn text-white"
                 : "bg-gray-100 text-gray-700"
-            }`}
+              }`}
           >
             Temporary Property Details
           </button>
@@ -1403,11 +1448,10 @@ const handleFillBookingForm = (item) => {
           <button
             type="button"
             onClick={() => setActiveTab("daily")}
-            className={`px-4 py-2 rounded-lg font-medium ${
-              activeTab === "daily"
+            className={`px-4 py-2 rounded-lg font-medium ${activeTab === "daily"
                 ? "theme-btn text-white"
                 : "bg-gray-100 text-gray-700"
-            }`}
+              }`}
           >
             Daily Basis Property Detials
           </button>
@@ -1600,9 +1644,8 @@ const handleFillBookingForm = (item) => {
                 control={control}
                 render={({ field }) => (
                   <div
-                    className={`datepicker-group ${
-                      field.value ? "has-value" : ""
-                    }`}
+                    className={`datepicker-group ${field.value ? "has-value" : ""
+                      }`}
                   >
                     <label className="datepicker-label required-label">
                       Client DOJ
@@ -1647,9 +1690,8 @@ const handleFillBookingForm = (item) => {
                 control={control}
                 render={({ field }) => (
                   <div
-                    className={`datepicker-group ${
-                      field.value ? "has-value" : ""
-                    }`}
+                    className={`datepicker-group ${field.value ? "has-value" : ""
+                      }`}
                   >
                     <label className="datepicker-label">
                       Client Last Date (Optional)
@@ -1800,7 +1842,7 @@ const handleFillBookingForm = (item) => {
                   </div>
                 )}
               />
-
+            
               <Controller
                 name="temporaryBedId"
                 control={control}
@@ -1826,6 +1868,11 @@ const handleFillBookingForm = (item) => {
                       }
                       styles={selectStyles}
                     />
+                    {errors.temporaryBedId && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.temporaryBedId.message}
+                      </p>
+                    )}
                   </div>
                 )}
               />
@@ -1839,6 +1886,11 @@ const handleFillBookingForm = (item) => {
                   disabled
                 />
                 <label className="form-label required-label">Room No</label>
+                {errors.temporaryRoomNo && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.temporaryRoomNo.message}
+                  </p>
+                )}
               </div>
               <div className="form-group">
                 <input
@@ -1849,6 +1901,11 @@ const handleFillBookingForm = (item) => {
                   disabled
                 />
                 <label className="form-label required-label">AC / Non AC</label>
+                {errors.temporaryAcRoom && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.temporaryAcRoom.message}
+                  </p>
+                )}
               </div>
 
               <div className="form-group">
@@ -1862,6 +1919,12 @@ const handleFillBookingForm = (item) => {
                 <label className="form-label required-label">
                   Monthly Fixed Rent ( ₹ )
                 </label>
+
+                {errors.temporaryMonthlyRent && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.temporaryMonthlyRent.message}
+                  </p>
+                )}
               </div>
 
               <Controller
@@ -1869,9 +1932,8 @@ const handleFillBookingForm = (item) => {
                 control={control}
                 render={({ field }) => (
                   <div
-                    className={`datepicker-group ${
-                      field.value ? "has-value" : ""
-                    }`}
+                    className={`datepicker-group ${field.value ? "has-value" : ""
+                      }`}
                   >
                     <label className="datepicker-label required-label">
                       Client DOJ
@@ -1883,7 +1945,13 @@ const handleFillBookingForm = (item) => {
                       dateFormat="dd MMM yyyy"
                       className="custom-datepicker"
                     />
+     {errors.temporaryClientDoj && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.temporaryClientDoj.message}
+                  </p>
+                )}
                   </div>
+                  
                 )}
               />
 
@@ -1892,9 +1960,8 @@ const handleFillBookingForm = (item) => {
                 control={control}
                 render={({ field }) => (
                   <div
-                    className={`datepicker-group ${
-                      field.value ? "has-value" : ""
-                    }`}
+                    className={`datepicker-group ${field.value ? "has-value" : ""
+                      }`}
                   >
                     <label className="datepicker-label required-label">
                       Client Last Date
@@ -1921,6 +1988,7 @@ const handleFillBookingForm = (item) => {
                 <label className="form-label required-label">
                   Rent Amount As Per Client DOJ ( ₹ )
                 </label>
+                
               </div>
 
               <div className="form-group">
@@ -2050,9 +2118,8 @@ const handleFillBookingForm = (item) => {
                 control={control}
                 render={({ field }) => (
                   <div
-                    className={`datepicker-group ${
-                      field.value ? "has-value" : ""
-                    }`}
+                    className={`datepicker-group ${field.value ? "has-value" : ""
+                      }`}
                   >
                     <label className="datepicker-label required-label">
                       Client DOJ
@@ -2073,9 +2140,8 @@ const handleFillBookingForm = (item) => {
                 control={control}
                 render={({ field }) => (
                   <div
-                    className={`datepicker-group ${
-                      field.value ? "has-value" : ""
-                    }`}
+                    className={`datepicker-group ${field.value ? "has-value" : ""
+                      }`}
                   >
                     <label className="datepicker-label required-label">
                       Client Last Date
@@ -2286,11 +2352,11 @@ const handleFillBookingForm = (item) => {
         setApplyPermBedRent={setApplyPermBedRent}
         applyPermBedRent={applyPermBedRent}
       />
-  <BookingEnquiryList
-    isOpen={showEnquiries}
-    onClose={() => setShowEnquiries(false)}
-    onFillBookingForm={handleFillBookingForm}
-/>
+      <BookingEnquiryList
+        isOpen={showEnquiries}
+        onClose={() => setShowEnquiries(false)}
+        onFillBookingForm={handleFillBookingForm}
+      />
       {showDojWarningModal && (
         <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 px-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
@@ -2309,10 +2375,10 @@ const handleFillBookingForm = (item) => {
                   <span className="text-gray-900">
                     {pendingDoj
                       ? new Date(pendingDoj).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })
                       : "-"}
                   </span>
                 </div>
@@ -2324,10 +2390,10 @@ const handleFillBookingForm = (item) => {
                   <span className="text-gray-900">
                     {pendingCvd
                       ? new Date(pendingCvd).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })
                       : "-"}
                   </span>
                 </div>

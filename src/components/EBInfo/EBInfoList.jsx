@@ -25,6 +25,7 @@ import { useEmployeeDetailsData } from "../EmployeeDetails/Services/index";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import { X } from "lucide-react";
 import { useMemo } from "react";
+
 function EBInfoList() {
 
     // ================= DEFAULT NEXT MONTH =================
@@ -50,7 +51,7 @@ const DEFAULT_EB_FILTERS = {
     propertyCode: "",
     status: "",
     ebPaidStatus: "",
-    EBCycle: "",
+    EBCycle: [],
     assignee: "",
     reviewer: "",
   };
@@ -135,12 +136,12 @@ const DEFAULT_EB_FILTERS = {
       });
     }
 
-    if (filters.EBCycle) {
-      labels.push({
-        key: "EBCycle",
-        label: `EB Cycle : ${filters.EBCycle}`,
-      });
-    }
+   if (filters.EBCycle?.length > 0) {
+  labels.push({
+    key: "EBCycle",
+    label: `EB Cycle : ${filters.EBCycle.join(", ")}`,
+  });
+}
 
     if (filters.assignee) {
       labels.push({

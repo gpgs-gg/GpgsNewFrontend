@@ -295,6 +295,69 @@ const BankTransactionList = () => {
     }
   };
 
+  const renderExpenseCategories = (categories) => {
+  const categoryList = Array.isArray(categories)
+    ? categories
+    : categories
+      ? String(categories)
+          .split(",")
+          .map((item) => item.trim())
+      : [];
+
+  const validCategories = categoryList.filter(Boolean);
+
+  if (!validCategories.length) {
+    return <span className="text-gray-400">-</span>;
+  }
+
+  const visibleCategories = validCategories.slice(0, 2);
+  const remainingCount = validCategories.length - 2;
+
+  return (
+    <div className="group relative flex items-center justify-center gap-1.5 min-w-[220px]">
+      {visibleCategories.map((category, index) => (
+        <span
+          key={`${category}-${index}`}
+          className="inline-flex max-w-[120px] truncate items-center px-2 py-1 font-medium text-black"
+          title={category}
+        >
+          {category}
+        </span>
+      ))}
+
+      {remainingCount > 0 && (
+        <div className="relative shrink-0">
+          <span className="cursor-pointer rounded-md border border-gray-300 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">
+            +{remainingCount}
+          </span>
+
+          {/* All categories tooltip */}
+          <div className="absolute right-0 top-full z-50 mt-2 hidden w-[520px] group-hover:block">
+            <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-xl">
+              <p className="mb-2 text-xs font-semibold text-gray-500">
+                ALL EXPENSE CATEGORIES ({validCategories.length})
+              </p>
+
+              {/* Scrollable Categories */}
+              <div className="max-h-[220px] overflow-y-auto pr-2">
+                <div className="grid grid-cols-3 gap-1">
+                  {validCategories.map((category, index) => (
+                    <div
+                      key={`${category}-${index}`}
+                      className="rounded-md px-2 py-1.5 text-sm text-black hover:bg-gray-100 break-words"
+                    >
+                      {category}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
   return (
     <>
       <div className="space-y-5">
@@ -511,8 +574,6 @@ const BankTransactionList = () => {
                     <th className="p-3 text-right">Deposit</th>
                     <th className="p-3 text-right">Property / Expense Code</th>
                     <th className="p-3 text-right">Expense Category</th>
-
-                    
                     <th className="p-3 text-center">Expense Type</th>
                     <th className="p-3 text-right">Assignee</th>
                     <th className="p-3 text-right">Status</th>
@@ -589,8 +650,8 @@ const BankTransactionList = () => {
                             {item?.propertyId?.propertyCode ||
                               item?.expenseCode?.label}
                           </td>
-                          <td className="p-3 text-center">
-                            {item?.expenseCategory || "-"}
+                         <td className="p-3 text-center">
+                            {renderExpenseCategories(item?.expenseCategory)}
                           </td>
                           <td className="p-3 text-center">
                             {item?.expenseType || "-"}

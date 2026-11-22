@@ -17,6 +17,7 @@ import { useAuthorization } from "../../context/AuthorizationContext";
 import { Trash2 } from "lucide-react";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import AllAttendanceRequestsModal from "./AllAttendanceRequestsList";
+import { useAuth } from "../../context/authContext";
 const AllAttendanceTable = () => {
   const DEFAULT_ATTENDANCE_FILTERS = {
     month: "",
@@ -26,6 +27,14 @@ const AllAttendanceTable = () => {
     employeeId: "",
   };
 
+  const { user } = useAuth();
+
+const userRole = user?.role || "";
+const userDepartment =
+  user?.department ||
+  user?.employee?.department ||
+  user?.employeeDetails?.department ||
+  "";
   // ======================================================
   // PERSISTED FILTERS
   // ============
@@ -741,6 +750,8 @@ const AllAttendanceTable = () => {
           employees={employees}
           resetTrigger={resetTrigger}
           initialFilters={filters}
+          role={userRole}
+          userDepartment={userDepartment}
           onClose={() => setFilterOpen(false)}
           onApply={(data) => {
             setFilters({
@@ -754,6 +765,7 @@ const AllAttendanceTable = () => {
             setCurrentPage(1);
           }}
           handleReset={handleReset}
+
         />
         {/* attendance regularization model */}
         <AttendanceRegularizationModal

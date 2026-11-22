@@ -23,7 +23,7 @@ const EBInfoFilter = ({
       propertyCode: "",
       status: "",
       ebPaidStatus: "",
-      EBCycle: "",
+      EBCycle: [],
       assignee: "",
       reviewer: "",
     },
@@ -89,7 +89,10 @@ const EBInfoFilter = ({
       label: "Submitted",
     },
   ];
-
+const ebCycleOptions = Array.from({ length: 31 }, (_, index) => ({
+  value: index + 1,
+  label: String(index + 1),
+}));
   const onSubmit = (data) => {
     const filters = {};
 
@@ -113,7 +116,7 @@ const EBInfoFilter = ({
       propertyCode: null,
       ebPaidStatus: null,
       status: null,
-      EBCycle: null,
+      EBCycle: [],
       assignee: null,
       reviewer: null,
     });
@@ -219,26 +222,34 @@ const EBInfoFilter = ({
               )}
             />
 
-            {/* Department */}
+          {/* EB Cycle - Multiple Selection */}
             <Controller
               name="EBCycle"
               control={control}
               render={({ field }) => (
                 <div
-                  className={`select-group ${field.value ? "has-value" : ""}`}
+                  className={`select-group ${
+                    field.value?.length > 0 ? "has-value" : ""
+                  }`}
                 >
                   <label className="select-label">EB Cycle</label>
 
                   <Select
-                    {...field}
-                    options={statusOptions}
+                    options={ebCycleOptions}
+                    isMulti
                     isClearable
-                    value={
-                      statusOptions.find(
-                        (option) => option.value === field.value,
-                      ) || null
+                    closeMenuOnSelect={false}
+                    placeholder=""
+                    value={ebCycleOptions.filter((option) =>
+                      (field.value || []).includes(option.value),
+                    )}
+                    onChange={(selectedOptions) =>
+                      field.onChange(
+                        selectedOptions
+                          ? selectedOptions.map((option) => option.value)
+                          : [],
+                      )
                     }
-                    onChange={(option) => field.onChange(option?.value || "")}
                     styles={selectStyles}
                   />
                 </div>
