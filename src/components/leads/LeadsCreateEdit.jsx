@@ -306,7 +306,8 @@ const { data: employeeData } = useEmployeeDetailsData({
     return (
         <div className="max-w-12xl h-[80vh] mx-auto my-5 bg-white shadow border border-gray-300 p-4 rounded-xl">
             <form onSubmit={handleSubmit(onSubmit)}>
-                <div className="flex gap-4 mb-10 justify-center">
+                <div className="flex gap-4 mb-10 justify-between items-center">
+                   <div className="">
                     {!id && (
                         <button
                             type="button"
@@ -314,7 +315,7 @@ const { data: employeeData } = useEmployeeDetailsData({
                                 setMode("bulk");
                                 setValue("mode", "bulk");
                             }}
-                            className={`px-10 py-2 whitespace-nowrap rounded text-xl ${mode === "bulk"
+                            className={`px-10 py-2 whitespace-nowrap  text-xl ${mode === "bulk"
                                 ? "bg-black text-white"
                                 : "bg-gray-300"
                                 }`}
@@ -328,13 +329,33 @@ const { data: employeeData } = useEmployeeDetailsData({
                             setMode("single");
                             setValue("mode", "single");
                         }}
-                        className={`px-10 py-2 whitespace-nowrap rounded text-xl ${mode === "single"
+                        className={`px-10 py-2 whitespace-nowrap  text-xl ${mode === "single"
                             ? "bg-black text-white"
                             : "bg-gray-300"
                             }`}
                     >
                         {id ? "Update Lead" : "Add Single Lead"}
                     </button>
+                   </div>
+
+
+                      <div className="flex justify-end gap-3 mt-5">
+                    <Link to="/leads">
+                        <button
+                            type="button"
+                            className="border border-gray-600 hover:bg-gray-700 hover:text-white px-6 py-2 rounded-lg font-medium"
+                        >
+                            Cancel
+                        </button>
+                    </Link>
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="theme-btn text-white px-6 py-2 rounded"
+                    >
+                        {isSubmitting ? <div className='flex justify-center items-center gap-2'><Loader /> Processing...</div> : id ? "Update Lead" : "Create Lead"}
+                    </button>
+                </div>
                 </div>
 
                 {id && (
@@ -343,17 +364,17 @@ const { data: employeeData } = useEmployeeDetailsData({
                             type="button"
                             disabled={!navigation.previousId}
                             onClick={() => navigate(`/leads/edit/${navigation.previousId}`, { state: location.state })}
-                            className="border px-4 py-2 flex items-center gap-1 rounded  theme-btn"
+                            className=" border px-2 py-1 flex items-center gap-1 rounded  "
                         >
-                           <ChevronLeft size={20} /> Previous   
+                           <ChevronLeft size={20} /> 
                         </button>
                         <button
                             type="button"
                             disabled={!navigation.nextId}
                             onClick={() => navigate(`/leads/edit/${navigation.nextId}`, { state: location.state })}
-                            className="border px-4 py-2 rounded flex items-center gap-1  theme-btn"
+                            className=" border px-2 py-1 rounded flex items-center gap-1  "
                         >
-                            Next   <ChevronRight size={20} />
+                      <ChevronRight size={20} />
 
                         </button>
                     </div>

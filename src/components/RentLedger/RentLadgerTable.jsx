@@ -527,7 +527,34 @@ const RentLadgerTable = () => {
                         </td>
                         <td className="p-3">₹{item.rentAmt}</td>
                         <td className="p-3">{item.daysCount}</td>
-                        <td className="p-3">₹{item.ebAmt}</td>
+                        <td className="p-3">
+                          <div className="relative group inline-block">
+                            {/* Total EB */}
+                            <span className="font-semibold cursor-pointer">
+                              ₹{Math.round(Number(item.ebAmt || 0)).toLocaleString("en-IN")}
+                            </span>
+
+                            {/* EB Payment Breakdown */}
+                            {item.ebDailyUpdates?.length > 0 && (
+                              <div className="absolute left-0 top-full mt-2 hidden group-hover:block z-[100] w-max">
+                                <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3">
+                                  <div className="text-xs text-gray-500 mb-1">
+                                    EB Amount Breakdown
+                                  </div>
+
+                                  <div className="text-sm font-semibold text-green-600 whitespace-nowrap">
+                                    {item.ebDailyUpdates.map((eb, index) => (
+                                      <div key={index}>
+                                        {new Date(eb.date + "T00:00:00").toLocaleDateString("en-IN")} : ₹
+                                        {Number(eb.amount || 0).toLocaleString("en-IN")}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </td>
                         <td className="p-3">₹{item.adjEB}</td>
                         <td className="p-3">
                           ₹{Math.round(Number(item.previousDue || 0)).toLocaleString("en-IN")}
