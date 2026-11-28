@@ -28,6 +28,7 @@ import {
 import PropertyExpenseFilter from "./PropertyExpenseFilter";
 import PropertyExpenseMobileCards from "./PropertyExpenseMobileCards";
 const DEFAULT_EXPENSE_FILTERS = {
+  category: "",
   expenseType: "",
   fromDate: "",
   toDate: "",
@@ -118,33 +119,39 @@ const PropertyExpenses = () => {
    * Replace false with the API's actual loading state.
    */
 
-  const filterLabels = useMemo(() => {
-    const labels = [];
+const filterLabels = useMemo(() => {
+  const labels = [];
 
-    if (filters.expenseType) {
-      labels.push({
-        key: "expenseType",
-        label: `Expense Category: ${filters.expenseType}`,
-      });
-    }
+  if (filters.category) {
+    labels.push({
+      key: "category",
+      label: `Expense Category: ${filters.category}`,
+    });
+  }
 
-    if (filters.fromDate) {
-      labels.push({
-        key: "fromDate",
-        label: `From: ${filters.fromDate}`,
-      });
-    }
+  if (filters.expenseType) {
+    labels.push({
+      key: "expenseType",
+      label: `Expense Type: ${filters.expenseType}`,
+    });
+  }
 
-    if (filters.toDate) {
-      labels.push({
-        key: "toDate",
-        label: `To: ${filters.toDate}`,
-      });
-    }
+  if (filters.fromDate) {
+    labels.push({
+      key: "fromDate",
+      label: `From: ${filters.fromDate}`,
+    });
+  }
 
-    return labels;
-  }, [filters]);
+  if (filters.toDate) {
+    labels.push({
+      key: "toDate",
+      label: `To: ${filters.toDate}`,
+    });
+  }
 
+  return labels;
+}, [filters]);
   const hasActiveFilters = filterLabels.length > 0;
 
   const filteredExpenses = useMemo(() => {
@@ -164,12 +171,9 @@ const PropertyExpenses = () => {
           .includes(searchValue),
       );
 
-      const matchesType =
-        !filters.expenseType ||
-        expense.category
-          ?.toLowerCase()
-          .includes(filters.expenseType.toLowerCase());
-
+  const matchesType =
+    !filters.expenseType ||
+    expense.expenseType?.toLowerCase() === filters.expenseType.toLowerCase();
       const expenseDate = expense.expenseDate
         ? new Date(expense.expenseDate).toISOString().slice(0, 10)
         : "";
@@ -186,11 +190,7 @@ const PropertyExpenses = () => {
 
 
 
-  const paginatedExpenses = useMemo(() => {
-    const startIndex = (currentPage - 1) * rowsPerPage;
-
-    return filteredExpenses.slice(startIndex, startIndex + rowsPerPage);
-  }, [filteredExpenses, currentPage, rowsPerPage]);
+const paginatedExpenses = expenses;
 
   const handleReset = () => {
     resetFilters();

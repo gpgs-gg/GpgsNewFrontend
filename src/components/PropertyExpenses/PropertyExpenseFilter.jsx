@@ -10,6 +10,7 @@ const DEFAULT_EXPENSE_FILTERS = {
   expenseType: "",
   fromDate: null,
   toDate: null,
+  category: "",
 };
 
 const PropertyExpenseFilter = ({
@@ -30,19 +31,19 @@ const PropertyExpenseFilter = ({
   // Expense category dropdown options
   // Expense category dropdown options - all unique categories
 
+  // Expense Category options
   const expenseCategoryOptions = useMemo(() => {
     const categories = [
       ...new Set(
         apiData.map((expense) => expense.category?.trim()).filter(Boolean),
       ),
     ];
- 
-    // Include the currently selected category if it isn't in apiData.
+
     if (
-      initialFilters.expenseType &&
-      !categories.includes(initialFilters.expenseType)
+      initialFilters.category &&
+      !categories.includes(initialFilters.category)
     ) {
-      categories.push(initialFilters.expenseType);
+      categories.push(initialFilters.category);
     }
 
     return categories
@@ -51,12 +52,36 @@ const PropertyExpenseFilter = ({
         value: category,
         label: category,
       }));
+  }, [apiData, initialFilters.category]);
+
+  // Expense Type options
+  const expenseTypeOptions = useMemo(() => {
+    const types = [
+      ...new Set(
+        apiData.map((expense) => expense.expenseType?.trim()).filter(Boolean),
+      ),
+    ];
+
+    if (
+      initialFilters.expenseType &&
+      !types.includes(initialFilters.expenseType)
+    ) {
+      types.push(initialFilters.expenseType);
+    }
+
+    return types
+      .sort((a, b) => a.localeCompare(b))
+      .map((type) => ({
+        value: type,
+        label: type,
+      }));
   }, [apiData, initialFilters.expenseType]);
- //console.log(1111111111, expenseCategoryOptions);
+  //console.log(1111111111, expenseCategoryOptions);
   useEffect(() => {
     if (!isOpen) return;
 
     reset({
+      category: initialFilters.category || "",
       expenseType: initialFilters.expenseType || "",
       fromDate: initialFilters.fromDate
         ? new Date(`${initialFilters.fromDate}T00:00:00`)
@@ -67,6 +92,7 @@ const PropertyExpenseFilter = ({
     });
   }, [
     isOpen,
+    initialFilters.category,
     initialFilters.expenseType,
     initialFilters.fromDate,
     initialFilters.toDate,
@@ -85,6 +111,7 @@ const PropertyExpenseFilter = ({
 
   const onSubmit = (data) => {
     onApply({
+      category: data.category || "",
       expenseType: data.expenseType || "",
       fromDate: formatDateForFilter(data.fromDate),
       toDate: formatDateForFilter(data.toDate),
@@ -105,9 +132,8 @@ const PropertyExpenseFilter = ({
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-white z-50 shadow-xl transition-transform duration-300 flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* Header */}
         <div className="flex justify-between items-center p-5 text-white bg-linear-to-r from-slate-800 via-slate-700 to-slate-900">
@@ -124,9 +150,8 @@ const PropertyExpenseFilter = ({
           className="flex flex-col flex-1 min-h-0 overflow-hidden"
         >
           <div className="flex-1 overflow-y-auto min-h-0 p-5 space-y-5">
-            {/* Expense Category */}
             <Controller
-              name="expenseType"
+              name="category"
               control={control}
               render={({ field }) => (
                 <div
@@ -150,16 +175,39 @@ const PropertyExpenseFilter = ({
                 </div>
               )}
             />
+            <Controller
+              name="expenseType"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`select-group ${field.value ? "has-value" : ""}`}
+                >
+                  <label className="select-label">Expense Type</label>
 
+                  <Select
+                    options={expenseTypeOptions}
+                    isSearchable
+                    isClearable
+                    placeholder=""
+                    styles={selectStyles}
+                    value={
+                      expenseTypeOptions.find(
+                        (option) => option.value === field.value,
+                      ) || null
+                    }
+                    onChange={(option) => field.onChange(option?.value || "")}
+                  />
+                </div>
+              )}
+            />
             {/* From Date */}
             <Controller
               name="fromDate"
               control={control}
               render={({ field }) => (
                 <div
-                  className={`datepicker-group ${
-                    field.value ? "has-value" : ""
-                  }`}
+                  className={`datepicker-group ${field.value ? "has-value" : ""
+                    }`}
                 >
                   <label className="datepicker-label">From Date</label>
 
@@ -182,9 +230,8 @@ const PropertyExpenseFilter = ({
               control={control}
               render={({ field }) => (
                 <div
-                  className={`datepicker-group ${
-                    field.value ? "has-value" : ""
-                  }`}
+                  className={`datepicker-group ${field.value ? "has-value" : ""
+                    }`}
                 >
                   <label className="datepicker-label">To Date</label>
 
@@ -225,6 +272,6 @@ const PropertyExpenseFilter = ({
       </div>
     </>
   );
-};;
+};
 
 export default PropertyExpenseFilter;

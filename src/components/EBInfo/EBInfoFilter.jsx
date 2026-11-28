@@ -88,6 +88,10 @@ const EBInfoFilter = ({
       value: "Submitted",
       label: "Submitted",
     },
+    {
+      value: "Open",
+      label: "Open",
+    },
   ];
 const ebCycleOptions = Array.from({ length: 31 }, (_, index) => ({
   value: index + 1,

@@ -175,7 +175,7 @@ const PropertyExpenseModal = ({
                 rules={{ required: "Please select expense type" }}
                 render={({ field }) => {
                   const expenseTypeOptions = [
-                    "New Set Up",
+              "New Setup Expenses",
                     "Owner Expense",
                     "Monthly Expense",
                   ];

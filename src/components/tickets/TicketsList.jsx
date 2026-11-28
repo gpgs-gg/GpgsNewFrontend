@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect } from "react";
 import usePersistedFilters from "../hooks/usePersistedFilters";
 import { Eye, Pencil, Filter, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
-
+import { LayoutDashboard } from "lucide-react";
 import {
   exportTicketsData,
   useDeleteTicketData,
@@ -351,42 +351,69 @@ const TicketsList = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-400 px-3 py-3 sm:px-4">
           <div className="flex flex-col gap-3">
             {/* Header */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <h1 className="text-lg sm:text-2xl font-bold">Tickets List</h1>
 
-                <p className="text-xs sm:text-sm text-gray-500">
-                  Total Tickets: {totalRecords}
-                </p>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              {/* Left Section: Title + Dashboard */}
+              <div className="flex items-center justify-between gap-3 sm:justify-start sm:gap-5 min-w-0">
+                <div className="min-w-0">
+                  <h1 className="text-lg sm:text-2xl font-bold whitespace-nowrap">
+                    Tickets List
+                  </h1>
+
+                  <p className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
+                    Total Tickets: {totalRecords}
+                  </p>
+                </div>
+
+                {/* Dashboard Toggle */}
+                <NavLink
+                  to="/tickets/dashboard"
+                  end
+                  className="flex shrink-0 items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                >
+                  <LayoutDashboard size={18} />
+                  Dashboard
+                </NavLink>
               </div>
-              <div className="hidden md:flex gap-5 ">
-                <div className="flex items-center gap-1.5 whitespace-nowrap">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-200 shrink-0"></span>
-                  <span className="text-gray-600">Late Resolved</span>
+
+              {/* Right Section: Legend + Add Ticket */}
+              <div className="flex items-center justify-between gap-3 sm:gap-5">
+                {/* Status Legend */}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-5">
+                  <div className="flex items-center gap-1.5 whitespace-nowrap">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-200"></span>
+                    <span className="text-xs sm:text-sm text-gray-600">
+                      Late Resolved
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 whitespace-nowrap">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-green-200"></span>
+                    <span className="text-xs sm:text-sm text-gray-600">
+                      Resolved
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 whitespace-nowrap">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-yellow-200"></span>
+                    <span className="text-xs sm:text-sm text-gray-600">
+                      SLA Warning
+                    </span>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 whitespace-nowrap">
-                  <span className="w-2.5 h-2.5 rounded-full bg-green-200 shrink-0"></span>
-                  <span className="text-gray-600">Resolved</span>
-                </div>
-
-                <div className="flex items-center gap-1.5 whitespace-nowrap">
-                  <span className="w-2.5 h-2.5 rounded-full bg-yellow-200 shrink-0"></span>
-                  <span className="text-gray-600">SLA Warning</span>
-                </div>
+                {/* Add Ticket */}
+                {canAddTicket && (
+                  <Link to="/tickets/create" className="shrink-0">
+                    <button
+                      type="button"
+                      className="theme-btn whitespace-nowrap rounded-lg px-3 py-1.5 text-xs text-white hover:bg-gray-700 sm:px-4 sm:py-2 sm:text-sm"
+                    >
+                      + Add Ticket
+                    </button>
+                  </Link>
+                )}
               </div>
-
-              {/* Add Ticket */}
-              {canAddTicket && (
-                <Link to="/tickets/create" className="shrink-0">
-                  <button
-                    type="button"
-                    className="theme-btn text-white px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm rounded-lg hover:bg-gray-700 whitespace-nowrap"
-                  >
-                    + Add Ticket
-                  </button>
-                </Link>
-              )}
             </div>
 
             {/* SLA Legend */}

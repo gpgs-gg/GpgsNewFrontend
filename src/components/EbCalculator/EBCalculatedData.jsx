@@ -17,96 +17,58 @@ function EBCalculationData() {
 
   const rowsPerPage = 10;
 
+// ============================================================
+  // SEARCH
   // ============================================================
+
+  const debouncedSearch = useDebounce(search);
+  // ==========================================
   // GET EB CALCULATIONS
-  // ============================================================
+  // ==========================================
 
   const {
     data: apiResponse,
     isLoading,
     isError,
-  } = useEBCalculations();
+    isPlaceholderData,
+  } = useEBCalculations({
+    page: currentPage,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+  });
 
   // API se actual data
   const apiData = apiResponse?.data || [];
 
-  // ============================================================
+  // ==========================================
+  // BACKEND PAGINATION
+  // ==========================================
+
+  const totalRecords = apiResponse?.totalRecords || 0;
+
+  const totalPages = apiResponse?.totalPages || 0;
+
+  // ==========================================
   // SEARCH
-  // ============================================================
-
-  const debouncedSearch = useDebounce(search);
-
-  const filteredData = useMemo(() => {
-    if (!debouncedSearch.trim()) {
-      return apiData;
-    }
-
-    const searchValue = debouncedSearch.toLowerCase().trim();
-
-    return apiData.filter((item) => {
-      // Property Code
-      const propertyMatch =
-        item.PropertyCode?.toLowerCase().includes(searchValue);
-
-      // EB Dates
-      const dateMatch =
-        item.EBStartDate?.toLowerCase().includes(searchValue) ||
-        item.EBEndDate?.toLowerCase().includes(searchValue);
-
-      // Clients
-      const clientMatch = item.clients?.some((client) => {
-        return (
-          client.ClientName?.toLowerCase().includes(searchValue) ||
-          client.RoomNo?.toLowerCase().includes(searchValue) ||
-          client.BedNo?.toLowerCase().includes(searchValue) ||
-          client.ClientID?.toString()
-            .toLowerCase()
-            .includes(searchValue)
-        );
-      });
-
-      return propertyMatch || dateMatch || clientMatch;
-    });
-  }, [apiData, debouncedSearch]);
-
-  // ============================================================
-  // PAGINATION
-  // ============================================================
-
-  const totalRecords = filteredData.length;
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(totalRecords / rowsPerPage)
-  );
-
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-
-    return filteredData.slice(startIndex, endIndex);
-  }, [filteredData, currentPage]);
-
-  // ============================================================
-  // SEARCH PAGE RESET
-  // ============================================================
+  // ==========================================
 
   const handleSearch = (value) => {
     setSearch(value);
     setCurrentPage(1);
     setExpandedRow(null);
+    setExpandedComment(null);
   };
 
-  // ============================================================
+  // ==========================================
   // RESET
-  // ============================================================
+  // ==========================================
 
   const handleReset = () => {
     setSearch("");
     setCurrentPage(1);
     setExpandedRow(null);
+    setExpandedComment(null);
   };
-
   // ============================================================
   // EXPAND / COLLAPSE CLIENT DETAILS
   // ============================================================
@@ -316,13 +278,13 @@ function EBCalculationData() {
                     </td>
                   </tr>
 
-                ) : paginatedData.length > 0 ? (
+                ) : apiData.length > 0 ? (
 
                   /* =================================================
                      DATA
                   ================================================= */
 
-                  paginatedData.map((item) => {
+                  apiData.map((item) => {
 
                     // =================================================
                     // TOTAL EB
@@ -881,6 +843,7 @@ function EBCalculationData() {
               onPageChange={(page) => {
                 setCurrentPage(page);
                 setExpandedRow(null);
+                setExpandedComment(null)
               }}
             />
 

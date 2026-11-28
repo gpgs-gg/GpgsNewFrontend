@@ -142,6 +142,14 @@ const ClientCreateEdit = () => {
             previousRentHikeDate: ClientData.previousRentHikeDate
                 ? new Date(ClientData.previousRentHikeDate)
                 : null,
+                // Agreement Dates
+          agreementStartDate: ClientData.agreementStartDate
+            ? new Date(ClientData.agreementStartDate)
+            : null,
+
+          agreementLastDate: ClientData.agreementLastDate
+            ? new Date(ClientData.agreementLastDate)
+            : null,
             comments: ClientData.comment,
             status: ClientData.status,
             // Document Status

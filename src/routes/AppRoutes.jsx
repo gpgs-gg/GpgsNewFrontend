@@ -72,6 +72,8 @@ import PageNotFound from "../components/common/PageNotFound";
 import PropertyExpenses from "../components/PropertyExpenses/Main";
 import { useEffect } from "react";
 import HeroVideoSettings from "../components/admin/WebsiteSettings/HeroVideoSettings";
+import TicketDashboard from "../components/tickets/TicketDashboard";
+import FieldWorkerTicketCreateEdit from "../components/tickets/FieldWorkerTicketCreateEdit";
 
 const AppRoutes = () => {
   const { user } = useAuth();
@@ -195,8 +197,13 @@ useEffect(() => {
             />
             <Route path="/tickets/create" element={<TicketCreateEdit />} />
             <Route path="/tickets/edit/:id" element={<TicketCreateEdit />} />
+            <Route
+              path="/tickets/edit/field-worker/:id"
+              element={<FieldWorkerTicketCreateEdit />}
+            />
             <Route path="/tickets/view/:id" element={<TicketView />} />
             <Route path="/tickets" element={<Tickets />} />
+            <Route path="/tickets/dashboard" element={<TicketDashboard />} />
             <Route path="/bank-transactions" element={<BankTransaction />} />
             <Route
               path="/bank-transactions/upload"

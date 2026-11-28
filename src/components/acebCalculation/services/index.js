@@ -6,7 +6,7 @@ import { apiClient } from "../../../api/ApiClient";
 const getACEBAreaData = async ({
   page = 1,
   limit = 10,
-  search,
+  search = "",
   filters = {},
 }) => {
   const params = {
@@ -31,13 +31,7 @@ export const useACEBAreaData = ({
   enabled = true,
 }) => {
   return useQuery({
-    queryKey: [
-      "properties-data",
-      page,
-      limit,
-      search,
-      
-    ],
+    queryKey: ["properties-data", page, limit, search, filters],
     queryFn: () =>
       getACEBAreaData({
         page,

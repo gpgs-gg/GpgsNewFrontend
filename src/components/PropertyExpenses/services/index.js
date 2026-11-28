@@ -56,6 +56,7 @@ const getExpensesByPropertyIdData = async ({
 
   if (search?.trim()) params.search = search.trim();
   if (filters.category) params.category = filters.category;
+   if (filters.expenseType) params.expenseType = filters.expenseType;
   if (filters.fromDate) params.fromDate = filters.fromDate;
   if (filters.toDate) params.toDate = filters.toDate;
 
@@ -84,6 +85,7 @@ export const useExpensesByPropertyId = ({
       page,
       limit,
       search,
+      filters.category,
       filters.expenseType,
       filters.fromDate,
       filters.toDate,

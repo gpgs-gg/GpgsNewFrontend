@@ -556,7 +556,7 @@ const CheckinOut = () => {
           checkOut(formData, {
             onSuccess: (response) => {
               const utterance = new SpeechSynthesisUtterance(
-                "Jai Shree Ram, Check-out successful. Have a nice day",
+                "Jai Shree Ram, Check-out successful. Have a naice day",
               );
 
               utterance.lang = "hi-IN";

@@ -68,33 +68,38 @@ const EmployeeFilter = ({
   // ======================================================
   // RESTORE SELECTED FILTERS
   // ======================================================
+useEffect(() => {
+  if (!isOpen) return;
 
-  useEffect(() => {
-    if (!isOpen) return;
+  const selectedDepartment =
+    departmentOptions.find(
+      (option) => option.value === initialFilters.departmentId,
+    ) || null;
 
-    const selectedDepartment =
-      departmentOptions.find(
-        (option) => option.value === initialFilters.departmentId,
-      ) || null;
+  const selectedTeam =
+    teamCodeOptions.find(
+      (option) => option.value === initialFilters.teamCodeId,
+    ) || null;
 
-    const selectedStatus =
-      statusOptions.find(
-        (option) => option.value === initialFilters.statusId,
-      ) || null;
+  const selectedStatus =
+    statusOptions.find((option) => option.value === initialFilters.statusId) ||
+    null;
 
-    reset({
-      departmentId: selectedDepartment,
-      teamCodeId: null,
-      statusId: selectedStatus,
-    });
-  }, [
-    isOpen,
-    initialFilters.departmentId,
-    initialFilters.statusId,
-    departmentOptions,
-    statusOptions,
-    reset,
-  ]);
+  reset({
+    departmentId: selectedDepartment,
+    teamCodeId: selectedTeam,
+    statusId: selectedStatus,
+  });
+}, [
+  isOpen,
+  initialFilters.departmentId,
+  initialFilters.teamCodeId,
+  initialFilters.statusId,
+  departmentOptions,
+  teamCodeOptions,
+  statusOptions,
+  reset,
+]);
   // ======================================================
   // RESET TRIGGER
   // ======================================================

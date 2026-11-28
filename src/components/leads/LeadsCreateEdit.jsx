@@ -49,6 +49,15 @@ const schema = yup.object().shape({
                 schema.notRequired()
         }),
 
+    Assignee: yup.string()
+        .when("mode", {
+            is: "single",
+            then: (schema) =>
+                schema.required("Assignee is required"),
+            otherwise: (schema) =>
+                schema.notRequired()
+        }),
+
     // TeamCode: yup.string()
     //     .when("mode", {
     //         is: "single",
@@ -547,7 +556,7 @@ const { data: employeeData } = useEmployeeDetailsData({
                             control={control}
                             render={({ field }) => (
                                 <div className={`select-group ${field.value ? "has-value" : ""}`}>
-                                    <label className="select-label">Assignee</label>
+                                    <label className="select-label required-label">Assignee</label>
                                     <Select
                                         {...field}
                                         options={ManagerOptions}
@@ -557,6 +566,11 @@ const { data: employeeData } = useEmployeeDetailsData({
                                         onChange={(e) => field.onChange(e?.value)}
                                         styles={selectStyles}
                                     />
+                                      {errors.Assignee && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.Assignee.message}
+                                </p>
+                            )}
                                 </div>
                             )}
                         />

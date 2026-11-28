@@ -210,3 +210,29 @@ export const exportTicketsPDFData = async (payload) => {
 
   return response.data;
 };
+
+// ============================================================
+// GET TICKET DASHBOARD DATA
+// ============================================================
+
+export const getTicketDashboardData = async (filters = {}) => {
+  const response = await apiClient.get("/tickets/dashboard", {
+    params: {
+      ...filters,
+    },
+  });
+
+  return response.data;
+};
+
+export const useTicketDashboardData = ({
+  enabled = true,
+  ...filters
+} = {}) => {
+  return useQuery({
+    queryKey: ["ticket-dashboard", filters],
+    queryFn: () => getTicketDashboardData(filters),
+    enabled,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
+};

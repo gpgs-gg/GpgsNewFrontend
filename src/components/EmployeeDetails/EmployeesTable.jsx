@@ -31,7 +31,7 @@ import EmployeeTabs from "./EmployeeTabs";
 import { MobileCardSkeleton } from "../common/MobileCardSkelton";
 import useDebounce from "../hooks/useDebounce";
 import { Filter, Eye, Pencil, Trash2, ShieldCheck } from "lucide-react";
-
+import usePersistedFilters from "../hooks/usePersistedFilters";
 import Pagination from "../common/Pagination";
 import ConfirmModal from "../common/ConfirmModal";
 const MAX_FILES = { aadhaar: 2, photo: 1, bank: 1 };
@@ -92,11 +92,30 @@ const EmployeesTable = () => {
 
   const { mutate: toggleEmployeeLogin, isPending: isTogglingLogin } =
     useToggleEmployeeLogin();
-  const [currentPage, setCurrentPage] = useState(1);
+ const DEFAULT_EMPLOYEE_FILTERS = {
+   departmentId: "",
+   teamCodeId: "",
+   statusId: "",
+ };
+
+ const [currentPage, setCurrentPage] = useState(() => {
+   const savedPage = localStorage.getItem("employees_page");
+   return savedPage ? Number(savedPage) : 1;
+ });
+
+ useEffect(() => {
+   localStorage.setItem("employees_page", String(currentPage));
+ }, [currentPage]);
+
+ const {
+   filters,
+   setFilters,
+   resetFilters,
+   removeFilter: removePersistedFilter,
+ } = usePersistedFilters("employees_filters", DEFAULT_EMPLOYEE_FILTERS);
   const [editingRow, setEditingRow] = useState(null);
   const rowsPerPage = 10;
-  const [filters, setFilters] = useState({});
-  const [filterLabels, setFilterLabels] = useState([]);
+  
   const debouncedSearch = useDebounce(search);
   const {
     data: employeesDetail,
@@ -156,7 +175,18 @@ const EmployeesTable = () => {
       },
     });
   };
-
+const [filterLabels, setFilterLabels] = useState(() => {
+  try {
+    return JSON.parse(localStorage.getItem("employees_filter_labels") || "[]");
+  } catch {
+    return [];
+  }
+});
+const hasActiveFilters = useMemo(() => {
+  return Object.values(filters).some(
+    (value) => value !== "" && value !== null && value !== undefined,
+  );
+}, [filters]);
   const {
     register,
     handleSubmit,
@@ -451,25 +481,37 @@ const EmployeesTable = () => {
     return newBlock;
   };
 
-  const handleReset = () => {
-    setFilters({});
-    setFilterLabels([]);
-    setSearch("");
-    setCurrentPage(1);
+ const handleReset = () => {
+   resetFilters();
 
-    setResetTrigger((prev) => prev + 1);
-  };
+   setFilterLabels([]);
+   localStorage.removeItem("employees_filter_labels");
 
-  const removeFilter = (key) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: "",
-    }));
+   setSearch("");
+   setCurrentPage(1);
 
-    setFilterLabels((prev) => prev.filter((item) => item.key !== key));
+   setResetTrigger((prev) => prev + 1);
+ };
 
-    setCurrentPage(1);
-  };
+const removeFilter = (key) => {
+  // Remove filter from persisted filters
+  removePersistedFilter(key);
+
+  // Remove corresponding chip
+  setFilterLabels((prev) => {
+    const updatedLabels = prev.filter((filter) => filter.key !== key);
+
+    localStorage.setItem(
+      "employees_filter_labels",
+      JSON.stringify(updatedLabels),
+    );
+
+    return updatedLabels;
+  });
+
+  // Reset pagination
+  setCurrentPage(1);
+};
 
   return (
     <div className=" w-auto bg-gray-50 ">
@@ -812,13 +854,13 @@ const EmployeesTable = () => {
                               )}
 
                               {/* DELETE EMPLOYEE */}
-                            {/* DELETE EMPLOYEE */}
+                              {/* DELETE EMPLOYEE */}
                               {canDeleteEmployee && (
                                 <button
                                   type="button"
                                   onClick={() => {
                                     if (row.loginEnabled === true) {
-                                      toast.dismiss()
+                                      toast.dismiss();
                                       toast.warning(
                                         "Employee cannot be deleted while login is enabled. Please disable login first.",
                                       );
@@ -902,6 +944,12 @@ const EmployeesTable = () => {
           onApply={(data, labels) => {
             setFilters(data);
             setFilterLabels(labels);
+
+            localStorage.setItem(
+              "employees_filter_labels",
+              JSON.stringify(labels),
+            );
+
             setCurrentPage(1);
           }}
           handleReset={handleReset}

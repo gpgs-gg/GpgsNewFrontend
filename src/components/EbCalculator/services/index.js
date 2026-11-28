@@ -1,4 +1,4 @@
-import { useQuery ,useMutation } from "@tanstack/react-query";
+import { useQuery , keepPreviousData, useMutation } from "@tanstack/react-query";
 import { apiClient } from "../../../api/ApiClient";   
 
 const getClientThrowPropertyData = async (
@@ -138,27 +138,41 @@ export const useCreateEBCalculation = () => {
 // GET ALL EB CALCULATIONS
 // ======================================================
 
-export const getAllEBCalculations = async () => {
-    const response = await apiClient.get(
-        "/eb-calculation-details"
-    );
+export const getAllEBCalculations = async (params = {}) => {
+  const response = await apiClient.get("/eb-calculation-details", {
+    params: {
+      page: params.page || 1,
+      limit: params.limit || 10,
+      search: params.search || "",
+    },
+  });
 
-    return response.data;
+  return response.data;
 };
-
 
 // ======================================================
 // REACT QUERY - GET ALL EB CALCULATIONS
 // ======================================================
 
-export const useEBCalculations = () => {
-    return useQuery({
-        queryKey: ["eb-calculations"],
+export const useEBCalculations = ({
+  page = 1,
+  limit = 10,
+  search = "",
+} = {}) => {
+  return useQuery({
+    queryKey: ["eb-calculations", page, limit, search],
 
-        queryFn: getAllEBCalculations,
+    queryFn: () =>
+      getAllEBCalculations({
+        page,
+        limit,
+        search,
+      }),
 
-        staleTime: 5 * 60 * 1000,
-    });
+    placeholderData: keepPreviousData,
+
+    staleTime: 5 * 60 * 1000,
+  });
 };
 
 

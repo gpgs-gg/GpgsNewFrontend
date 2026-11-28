@@ -285,3 +285,17 @@ export const useEnableClientLogin = () => {
     },
   });
 };
+
+const getClientDocumentDashboardStats = async () => {
+  const response = await apiClient.get("/clients/dashboard/document-stats");
+
+  return response.data;
+};
+
+export const useClientDocumentDashboardStats = (enabled = true) => {
+  return useQuery({
+    queryKey: ["client-document-dashboard-stats"],
+    queryFn: getClientDocumentDashboardStats,
+    enabled,
+  });
+};
