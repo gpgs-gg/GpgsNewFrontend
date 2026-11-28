@@ -173,15 +173,15 @@ const ClientsTable = () => {
     return labels;
   }, [filters]);
 
-const hasActiveFilters = useMemo(() => {
-  return Object.entries(filters).some(
-    ([key, value]) =>
-      key !== "sortByCurrentDues" &&
-      value !== "" &&
-      value !== null &&
-      value !== undefined
-  );
-}, [filters]);
+  const hasActiveFilters = useMemo(() => {
+    return Object.entries(filters).some(
+      ([key, value]) =>
+        key !== "sortByCurrentDues" &&
+        value !== "" &&
+        value !== null &&
+        value !== undefined
+    );
+  }, [filters]);
 
   const [resetTrigger, setResetTrigger] = useState(0);
   const [editingVacation, setEditingVacation] = useState(null);
@@ -388,7 +388,7 @@ const hasActiveFilters = useMemo(() => {
     });
   };
 
- console.log(hasActiveFilters )
+  console.log(hasActiveFilters)
 
 
   return (
@@ -409,7 +409,7 @@ const hasActiveFilters = useMemo(() => {
               }
               className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100"
             >
-              Rent Generation Log
+              Rent Generation Logs
             </button>
           </div>
         </div>
@@ -422,7 +422,7 @@ const hasActiveFilters = useMemo(() => {
               {/* SEARCH */}
               <div className="relative w-full lg:w-80 lg:shrink-0">
                 <input
-                className="border px-3 py-2 pr-10 rounded-lg w-full"
+                  className="border px-3 py-2 pr-10 rounded-lg w-full"
                   placeholder="Search booking..."
                   value={search}
                   onChange={(e) => {
@@ -528,8 +528,8 @@ const hasActiveFilters = useMemo(() => {
                     setCurrentPage(1);
                   }}
                   className={`flex-1 whitespace-nowrap rounded-lg border px-3 py-2.5 text-sm font-medium transition sm:flex-none ${fnfClosedFilter
-                      ? "border-green-300 bg-green-50 text-green-700"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    ? "border-green-300 bg-green-50 text-green-700"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
                     }`}
                 >
                   F&F Closed List
@@ -551,8 +551,8 @@ const hasActiveFilters = useMemo(() => {
                     setCurrentPage(1);
                   }}
                   className={`flex-1 whitespace-nowrap rounded-lg border px-3 py-2.5 text-sm font-medium transition sm:flex-none ${fnfCancelledFilter
-                      ? "border-red-300 bg-red-50 text-red-700"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    ? "border-red-300 bg-red-50 text-red-700"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
                     }`}
                 >
                   Cancelled
@@ -808,12 +808,12 @@ const hasActiveFilters = useMemo(() => {
                             <td className="p-3 text-center">
                               <span
                                 className={`px-2.5 py-1 rounded-full text-md font-semibold ${item.bookingType === "Daily"
-                                    ? " text-indigo-700"
-                                    : item.stayType === "P. Booked"
-                                      ? " text-emerald-700"
-                                      : item.stayType === "T. Booked"
-                                        ? " text-amber-700"
-                                        : " text-gray-700"
+                                  ? " text-indigo-700"
+                                  : item.stayType === "P. Booked"
+                                    ? " text-emerald-700"
+                                    : item.stayType === "T. Booked"
+                                      ? " text-amber-700"
+                                      : " text-gray-700"
                                   }`}
                               >
                                 {item.bookingType === "Daily"
@@ -824,7 +824,7 @@ const hasActiveFilters = useMemo(() => {
 
                             {/* Client Name */}
                             <td className="p-1 text-center">
-                               <>
+                              <>
                                 {item.stayType === "T. Booked" &&
                                   item.permanentBooking ? (
                                   <div className="relative group inline-block">
@@ -1011,8 +1011,8 @@ const hasActiveFilters = useMemo(() => {
                               className={`p-3 ${Number(
                                 item?.latestRentHistory?.currentDue || 0,
                               ) < 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
+                                ? "text-green-600"
+                                : "text-red-600"
                                 }`}
                             >
                               ₹
@@ -1224,8 +1224,8 @@ const hasActiveFilters = useMemo(() => {
                             </td>
                             <td
                               className={`p-3 font-semibold ${item.loginEnabled
-                                  ? "text-green-600"
-                                  : "text-red-600"
+                                ? "text-green-600"
+                                : "text-red-600"
                                 }`}
                             >
                               {item.loginEnabled ? "Enabled" : "Disabled"}
@@ -1253,7 +1253,7 @@ const hasActiveFilters = useMemo(() => {
                               "en-IN"
                             )}
                           </td> */}
-                          <td className="p-3">
+                            <td className="p-3">
                               <div className="flex ">
                                 {[
                                   { label: "Photo", docs: item.photo },
@@ -1369,8 +1369,8 @@ const hasActiveFilters = useMemo(() => {
                                       );
                                     }}
                                     className={`p-2 rounded-md transition-colors ${openMenuId === item._id
-                                        ? "bg-blue-100 text-blue-600"
-                                        : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                      ? "bg-blue-100 text-blue-600"
+                                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                                       }`}
                                   >
                                     <FaEllipsisV />
@@ -1378,11 +1378,11 @@ const hasActiveFilters = useMemo(() => {
                                 )}
                                 {openMenuId === item._id && (
                                   <div className="absolute right-33 top-0 mt-2 w-fit bg-white font-bold border border-gray-300 rounded-lg shadow-xl z-9999">
-                                    {canEditClient &&
+
+                                    {/* {canEditClient &&
                                       item?.bookingType !== "Daily" &&
                                       !item.noticeStartDate && (
                                         <>
-                                          {/* Bed Shift */}
                                           <button
                                             onClick={() => {
                                               setSelectedClient(item);
@@ -1394,21 +1394,11 @@ const hasActiveFilters = useMemo(() => {
                                             <span>🛏</span>
                                             <span>Bed Shift</span>
                                           </button>
-
-                                          {/* Bed History */}
-                                          {/* <button
-                                            onClick={() => {
-                                              setSelectedClient(item);
-                                              setShowBedHistoryModal(true);
-                                              setOpenMenuId(null);
-                                            }}
-                                            className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
-                                          >
-                                            <span>📜</span>
-                                            <span>Bed History</span>
-                                          </button> */}
                                         </>
-                                      )}
+                                      )} */}
+
+
+
                                     {/* Vacation */}
                                     <button
                                       onClick={() => {
@@ -1422,17 +1412,20 @@ const hasActiveFilters = useMemo(() => {
                                       <span>Vacation</span>
                                     </button>
 
-                                    <button
-                                      onClick={() => {
-                                        setSelectedClient(item);
-                                        setShowBedHistoryModal(true);
-                                        setOpenMenuId(null);
-                                      }}
-                                      className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
-                                    >
-                                      <span>📜</span>
-                                      <span>Bed History</span>
-                                    </button>
+                                    {item.bedHistory?.length > 0 && (
+                                      <button
+                                        onClick={() => {
+                                          setSelectedClient(item);
+                                          setShowBedHistoryModal(true);
+                                          setOpenMenuId(null);
+                                        }}
+                                        className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left"
+                                      >
+                                        <span>📜</span>
+                                        <span>Bed History</span>
+                                      </button>
+                                    )}
+
                                     {/* <button className="w-full flex items-center gap-1 px-4 py-3 border-b border-gray-300 hover:bg-gray-100 text-left">
                                     <span>💰</span>
                                     <span>FNF</span>
@@ -1509,7 +1502,7 @@ const hasActiveFilters = useMemo(() => {
 
           {/* PAGINATION */}
           {totalRecords > 0 && (
-           <div className="flex flex-col gap-2 border-t border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 border-t border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm text-gray-500">
                 Showing {(currentPage - 1) * rowsPerPage + 1} - {"  "}
                 {Math.min(currentPage * rowsPerPage, totalRecords)} {"  "}

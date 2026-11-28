@@ -35,20 +35,19 @@ const loadPropertyOptions = async (search, loadedOptions, { page }) => {
     },
   };
 };
-const monthOptions = [
-  { value: 1, label: "Jan 2026" },
-  { value: 2, label: "Feb 2026" },
-  { value: 3, label: "Mar 2026" },
-  { value: 4, label: "Apr 2026" },
-  { value: 5, label: "May 2026" },
-  { value: 6, label: "Jun 2026" },
-  { value: 7, label: "Jul2026" },
-  { value: 8, label: "Aug 2026" },
-  { value: 9, label: "Sept 2026" },
-  { value: 10, label: "Oct 2026" },
-  { value: 11, label: "Nov 2026" },
-  { value: 12, label: "Dec 2026" },
-];
+const monthOptions = Array.from({ length: 12 }, (_, index) => {
+  const date = new Date();
+  date.setDate(1);
+  date.setMonth(date.getMonth() + index);
+
+  return {
+    value: date.getMonth() + 1,
+    year: date.getFullYear(),
+    label:
+      date.toLocaleString("en-US", { month: "short" }) +
+      ` ${date.getFullYear()}`,
+  };
+});
 
 const paymentTypeOptions = [
   { value: "Client Rent", label: "Client Rent" },

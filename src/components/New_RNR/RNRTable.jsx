@@ -6,6 +6,8 @@ import {
   Phone,
   MessageCircle,
 } from "lucide-react";
+import AOS from "aos";
+import "aos/dist/aos.css";
 import { Link } from "react-router-dom";
 import Pagination from "../common/Pagination";
 import NoDataFound from "../common/NoDataFound";
@@ -32,6 +34,15 @@ const RNRTable = () => {
   const [commentText, setCommentText] = useState("");
   const { mutate: createRentNotReceivedComment, isPending: isAddingComment } =
     useCreateRentNotReceivedComment();
+  useEffect(() => {
+    AOS.init({
+      duration: 200,
+      once: true,
+      easing: "ease-out-cubic",
+    });
+
+    AOS.refresh();
+  }, []);
 
   const handleAddComment = () => {
     if (!commentText.trim()) {
@@ -900,8 +911,8 @@ const hasActiveFilters = useMemo(() => {
       </div>
 
       {commentClient && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
-          <div className="bg-white w-[500px] rounded-xl shadow-2xl">
+        <div data-aos="fade-left" className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
+          <div data-aos="fade-left" className="bg-white w-[500px] rounded-xl shadow-2xl">
             {/* Header */}
             <div className="flex justify-between items-center px-5 py-4 border-b">
               <div>

@@ -310,7 +310,7 @@ const BankTransactionList = () => {
     return <span className="text-gray-400">-</span>;
   }
 
-  const visibleCategories = validCategories.slice(0, 2);
+  const visibleCategories = validCategories.slice(0, 1);
   const remainingCount = validCategories.length - 2;
 
   return (
@@ -327,7 +327,7 @@ const BankTransactionList = () => {
 
       {remainingCount > 0 && (
         <div className="relative shrink-0">
-          <span className="cursor-pointer rounded-md border border-gray-300 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">
+          <span className="cursor-pointer rounded-full border border-gray-300 bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">
             +{remainingCount}
           </span>
 
@@ -344,7 +344,7 @@ const BankTransactionList = () => {
                   {validCategories.map((category, index) => (
                     <div
                       key={`${category}-${index}`}
-                      className="rounded-md px-2 py-1.5 text-sm text-black hover:bg-gray-100 break-words"
+                      className="rounded-md  text-sm text-black hover:bg-gray-100 break-words"
                     >
                       {category}
                     </div>

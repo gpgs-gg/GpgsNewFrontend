@@ -268,7 +268,7 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
             if (vacation.vacationStartDate1 && vacation.vacationLastDate1) {
                 const vStart = normalizeDate(new Date(vacation.vacationStartDate1));
                 const vEnd = normalizeDate(new Date(vacation.vacationLastDate1));
-                const vacationDays = Math.floor((vEnd - vStart) / (1000 * 60 * 60 * 24)) + 1;
+                const vacationDays = Math.floor((vEnd - vStart) / (1000 * 60 * 60 * 24)) - 1;
 
                 if (vacationDays >= 15 && currentDate > vStart && currentDate < vEnd) {
                     return true;
@@ -279,7 +279,7 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
             if (vacation.vacationStartDate2 && vacation.vacationLastDate2) {
                 const vStart = normalizeDate(new Date(vacation.vacationStartDate2));
                 const vEnd = normalizeDate(new Date(vacation.vacationLastDate2));
-                const vacationDays = Math.floor((vEnd - vStart) / (1000 * 60 * 60 * 24)) + 1;
+                const vacationDays = Math.floor((vEnd - vStart) / (1000 * 60 * 60 * 24)) - 1;
 
                 if (vacationDays >= 15 && currentDate > vStart && currentDate < vEnd) {
                     return true;
@@ -632,7 +632,7 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                                                                 if (vacation.vacationStartDate1 && vacation.vacationLastDate1) {
                                                                     const vStart = normalizeDate(new Date(vacation.vacationStartDate1));
                                                                     const vEnd = normalizeDate(new Date(vacation.vacationLastDate1));
-                                                                    const vacDays = Math.floor((vEnd - vStart) / (1000 * 60 * 60 * 24)) + 1;
+                                                                    const vacDays = Math.floor((vEnd - vStart) / (1000 * 60 * 60 * 24)) - 1;
                                                                     if (vacDays >= 15 && currentDate > vStart && currentDate < vEnd) {
                                                                         isOnVacation = true;
                                                                         break;
@@ -641,7 +641,7 @@ const EbAttendance = ({ property, onFreeEBChange }) => {
                                                                 if (vacation.vacationStartDate2 && vacation.vacationLastDate2) {
                                                                     const vStart = normalizeDate(new Date(vacation.vacationStartDate2));
                                                                     const vEnd = normalizeDate(new Date(vacation.vacationLastDate2));
-                                                                    const vacDays = Math.floor((vEnd - vStart) / (1000 * 60 * 60 * 24)) + 1;
+                                                                    const vacDays = Math.floor((vEnd - vStart) / (1000 * 60 * 60 * 24)) - 1;
                                                                     if (vacDays >= 15 && currentDate > vStart && currentDate < vEnd) {
                                                                         isOnVacation = true;
                                                                         break;
